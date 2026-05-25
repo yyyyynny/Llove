@@ -1,0 +1,3629 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- v3.7 항목2: 음성 입력 차단 - 키보드 마이크 권한 자체 차단 (지보드·구글 음성) -->
+<meta http-equiv="Permissions-Policy" content="microphone=()">
+<title>코드네임 언어 — 데모 v3.8</title>
+
+<!-- v3.7 항목6: 확정 폰트 CDN 4개 (KNOWLEDGE 19섹션) -->
+<link href="https://cdn.jsdelivr.net/font-nanum/1.0/nanumgothic/nanumgothic.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/font-nanum/1.0/nanummyeongjo/nanummyeongjo.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquareNeo@1.0/nanumsquareneo.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css" rel="stylesheet">
+
+<!-- v3.7: 기본 폰트(시스템 누락 대비) 노토산스 KR + 젯브레인 모노 + 고운 바탕 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Gowun+Batang&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   v3.8: 눈누 CDN 웹폰트 방식으로 전환 (base64 임베딩 제거)
+   KNOWLEDGE 19섹션 — 폰트 6종 눈누 CDN @font-face
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@font-face{font-family:'EarlySummerFloweringTreeV20JangHyeri';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2604-1@1.0/Asummerflowertree-Bold.woff2') format('woff2');font-weight:normal;font-display:swap}
+@font-face{font-family:'RoundedKimGyuri';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2604-1@1.0/Roundandround-Bold.woff2') format('woff2');font-weight:normal;font-display:swap}
+@font-face{font-family:'TaebaekMilkyWay';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2310@1.0/TAEBAEKmilkyway.woff2') format('woff2');font-weight:normal;font-display:swap}
+@font-face{font-family:'IsYun';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2202-2@1.0/LeeSeoyun.woff') format('woff');font-weight:normal;font-display:swap}
+@font-face{font-family:'SongamLeeHyeongSik';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2604-1@1.0/SongamIhyeongsik-Regular.woff2') format('woff2');font-weight:normal;font-display:swap}
+@font-face{font-family:'PyeongchangPeace';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2206-02@1.0/PyeongChangPeace-Light.woff2') format('woff2');font-weight:300;font-display:swap}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   테마 변수 (5개 프리셋 + 커스텀)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:root,[data-theme="antique"]{
+  --bg:#111009;--card:#1a1710;--elev:#222018;--bdr:#302a20;--bdrg:#483e2e;
+  --acc:#b8956a;--accl:#d4b48a;--accd:#6e5438;
+  --txt:#e8e0d0;--txt2:#9a8e7a;--txtm:#504535;
+  --ok:#78b878;--err:#c07070;--inf:#7898c8;--warn:#e09060;
+  --exp:linear-gradient(90deg,#b8956a,#d4b48a);
+  --fn:'Gowun Batang',serif;
+  --mono:'JetBrains Mono',monospace;
+}
+[data-theme="navy"]{
+  --bg:#080d18;--card:#0d1425;--elev:#121c32;--bdr:#1c2a42;--bdrg:#263a58;
+  --acc:#5090f0;--accl:#78b0ff;--accd:#2c5898;
+  --txt:#d8e8ff;--txt2:#6888b0;--txtm:#324860;
+  --ok:#48d898;--err:#d85868;--inf:#48c0e0;--warn:#e09060;
+  --exp:linear-gradient(90deg,#5090f0,#78b0ff);
+  --fn:'Noto Sans KR',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+[data-theme="midnight"]{
+  --bg:#08060f;--card:#0e0c1c;--elev:#141228;--bdr:#201c3c;--bdrg:#302858;
+  --acc:#8e62f0;--accl:#b090ff;--accd:#5438a8;
+  --txt:#e0d8ff;--txt2:#7870a8;--txtm:#3c3860;
+  --ok:#58d888;--err:#d85878;--inf:#58c0f0;--warn:#e09060;
+  --exp:linear-gradient(90deg,#8e62f0,#b090ff);
+  --fn:'Noto Sans KR',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+[data-theme="paper"]{
+  --bg:#ede8df;--card:#f5f1ea;--elev:#faf8f4;--bdr:#d8d0c0;--bdrg:#c0b8a8;
+  --acc:#7a5228;--accl:#9a7040;--accd:#b89868;
+  --txt:#281e12;--txt2:#786050;--txtm:#a89880;
+  --ok:#386840;--err:#a82828;--inf:#284888;--warn:#a86020;
+  --exp:linear-gradient(90deg,#7a5228,#9a7040);
+  --fn:'Nanum Myeongjo',serif;
+  --mono:'JetBrains Mono',monospace;
+}
+[data-theme="forest"]{
+  --bg:#060c08;--card:#0c1410;--elev:#101a12;--bdr:#1a2c1e;--bdrg:#263e2a;
+  --acc:#52a868;--accl:#72c888;--accd:#2e6040;
+  --txt:#d0e8d4;--txt2:#6a9870;--txtm:#304838;
+  --ok:#72c888;--err:#c87858;--inf:#68a8c8;--warn:#e09060;
+  --exp:linear-gradient(90deg,#52a868,#72c888);
+  --fn:'Noto Sans KR',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+[data-theme="custom"]{
+  --bg:var(--c-bg,#0e0e14);--card:var(--c-card,#161620);
+  --elev:var(--c-elev,#1e1e2a);--bdr:var(--c-bdr,#28283a);--bdrg:var(--c-bdrg,#38384a);
+  --acc:var(--c-acc,#8080ff);--accl:var(--c-accl,#a0a0ff);--accd:var(--c-accd,#404090);
+  --txt:var(--c-txt,#e8e8f0);--txt2:#8888a8;--txtm:#404058;
+  --ok:#60d890;--err:#d86070;--inf:#60b8e8;--warn:#e09060;
+  --exp:linear-gradient(90deg,var(--c-acc,#8080ff),var(--c-accl,#a0a0ff));
+  --fn:var(--c-fn,'Noto Sans KR',sans-serif);
+  --mono:'JetBrains Mono',monospace;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:var(--fn);background:var(--bg);color:var(--txt);transition:background .4s,color .4s}
+/* v3.5: 모달 열림 시 레이아웃 쉬프트 방지 — 스크롤바 폭 보정 */
+html{scrollbar-gutter:stable}
+
+/* ━━━ v3.7 항목16: 다크·라이트 전환 색 시프트 해소 ━━━
+   모든 요소의 색·테두리 변화를 0.4초로 동기화하여 「반박자 어긋남」 제거.
+   호버 등 빠른 인터랙션이 둔해지지 않도록 자주 만지는 요소는 override(아래) */
+*, *::before, *::after {
+  transition: background-color .4s, border-color .4s, color .4s;
+}
+/* 호버 인터랙션 빠르게 유지 (테마 전환 색만 .4s, 나머지는 짧게) */
+.btn-acc, .btn-g, .nv-btn, .aopt, .mc, .lset-opt, .ob-nb,
+.seg-btn, .stat-chip, .btn-google, .nm-inp, .nm-prev,
+.mc-arrow, .onum, .qcard, .fc-card, .qpfill, .exp-fill {
+  transition: background-color .4s, border-color .2s, color .2s, transform .2s;
+}
+
+/* ━━━ 애니메이션 (대각선·회전 금지) ━━━ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-28px)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes auraBreath{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
+@keyframes expFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-64px)}}
+@keyframes shakeLR{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes correctPop{0%{background:rgba(120,184,120,.4)}100%{background:rgba(120,184,120,.08)}}
+@keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes treeLine{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes starGlow{0%,100%{text-shadow:0 0 6px rgba(184,149,106,.4)}50%{text-shadow:0 0 12px rgba(184,149,106,.7)}}
+
+.fu{animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
+.s1{animation-delay:.05s}.s2{animation-delay:.10s}.s3{animation-delay:.15s}
+.s4{animation-delay:.20s}.s5{animation-delay:.25s}.s6{animation-delay:.30s}
+.s7{animation-delay:.35s}.s8{animation-delay:.40s}
+
+.screen{display:none;position:fixed;inset:0;flex-direction:column;overflow-y:auto;overflow-x:hidden;z-index:10}
+.screen.active{display:flex}
+.screen.entering{animation:slideIn .35s cubic-bezier(.22,1,.36,1) both}
+.screen.leaving{animation:slideOut .25s cubic-bezier(.22,1,.36,1) both;pointer-events:none}
+.has-bnav{padding-bottom:72px}
+
+/* ━━━ 바텀 네비 ━━━ */
+#g-bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bdr);display:flex;padding:8px 0 16px;z-index:200;transition:background .4s,border-color .4s,transform .3s cubic-bezier(.22,1,.36,1)}
+#g-bnav.hidden{transform:translateY(100%)}
+.nv-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;cursor:pointer;color:var(--txtm);font-size:10px;font-weight:500;transition:color .25s,transform .25s;background:none;border:none;font-family:var(--fn)}
+/* v3.7 항목15: 활성 인디케이터 부드러운 색·스케일 전환 */
+.nv-btn.on{color:var(--acc)}
+.nv-btn.on .nv-icon{transform:scale(1.08)}
+.nv-btn:active{transform:scale(.86)}
+.nv-icon{font-size:21px;transition:transform .25s cubic-bezier(.22,1,.36,1)}
+
+/* ━━━ 공통 컴포넌트 ━━━ */
+.btn-acc{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;padding:13px 22px;border-radius:10px;font-family:var(--fn);font-weight:700;font-size:14px;cursor:pointer;transition:transform .2s,box-shadow .2s;letter-spacing:.3px}
+.btn-acc:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.btn-acc:active{transform:scale(.97)}
+.btn-g{background:transparent;color:var(--txt2);border:1px solid var(--bdr);padding:9px 15px;border-radius:8px;font-family:var(--fn);font-size:13px;cursor:pointer;transition:all .2s}
+.btn-g:hover{border-color:var(--accd);color:var(--acc)}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--card);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:50;transition:background .4s,border-color .4s;flex-shrink:0}
+.tbt{font-family:var(--fn);font-size:16px;color:var(--acc);letter-spacing:.8px}
+
+.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.ta{background:rgba(184,149,106,.12);color:var(--acc);border:1px solid rgba(184,149,106,.28)}
+.tg{background:rgba(90,184,90,.12);color:var(--ok);border:1px solid rgba(90,184,90,.25)}
+.tb{background:rgba(90,152,200,.12);color:var(--inf);border:1px solid rgba(90,152,200,.25)}
+.tp{background:rgba(180,100,210,.12);color:#c39bd3;border:1px solid rgba(180,100,210,.25)}
+.tag-ai{background:rgba(120,180,255,.15);color:var(--inf);border:1px solid rgba(120,180,255,.35);padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+
+.exp-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--bdr)}
+.exp-fill{height:100%;background:var(--exp);border-radius:4px;width:0;transition:width 1.1s cubic-bezier(.22,1,.36,1)}
+.exp-fill.instant{transition:none}
+
+.seg{display:flex;background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0;overflow-x:auto}
+.seg-btn{flex:1;padding:12px 8px;text-align:center;font-size:12px;font-weight:500;color:var(--txt2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;font-family:var(--fn)}
+.seg-btn.on{color:var(--acc);border-bottom-color:var(--acc)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   온보딩 (앱 안내)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#onboarding{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+#onboarding.gone{display:none}
+.ob-prog{position:absolute;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accd),var(--acc));transition:width .4s cubic-bezier(.22,1,.36,1);z-index:5}
+.ob-skip{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--txtm);font-size:12px;cursor:pointer;font-family:var(--fn);padding:4px 8px;z-index:6}
+.ob-skip:hover{color:var(--txt2)}
+.ob-slides{position:relative;flex:1;overflow:hidden}
+.ob-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 28px 20px;opacity:0;transform:translateX(32px);transition:opacity .42s cubic-bezier(.22,1,.36,1),transform .42s cubic-bezier(.22,1,.36,1);pointer-events:none;overflow-y:auto}
+.ob-slide.active{opacity:1;transform:translateX(0);pointer-events:all}
+.ob-slide.exit{opacity:0;transform:translateX(-32px)}
+.ob-bg{position:absolute;inset:0;pointer-events:none}
+.ob-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
+.ob-icon{font-size:50px;margin-bottom:18px;animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both}
+.ob-title{font-family:'Nanum Myeongjo',serif;font-size:23px;font-weight:800;color:var(--acc);text-align:center;margin-bottom:8px;line-height:1.38;letter-spacing:.4px}
+.ob-div{width:40px;height:2px;background:linear-gradient(90deg,transparent,var(--accd),transparent);margin:14px auto}
+.ob-sub{font-size:13px;color:var(--txt2);text-align:center;line-height:1.85;max-width:300px}
+.ob-sub b{color:var(--accl);font-weight:700}
+.ob-feats{display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;margin-top:10px}
+.ob-feat{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:11px 14px;display:flex;align-items:center;gap:12px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
+.ob-feat:nth-child(1){animation-delay:.05s}.ob-feat:nth-child(2){animation-delay:.10s}.ob-feat:nth-child(3){animation-delay:.15s}.ob-feat:nth-child(4){animation-delay:.20s}.ob-feat:nth-child(5){animation-delay:.25s}.ob-feat:nth-child(6){animation-delay:.30s}.ob-feat:nth-child(7){animation-delay:.35s}
+.ob-fi{font-size:22px;width:32px;text-align:center}
+.ob-fn{font-size:13px;font-weight:700;margin-bottom:2px}
+.ob-fd{font-size:11px;color:var(--txt2)}
+.ob-start-btn{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;padding:14px 40px;border-radius:11px;font-family:'Nanum Myeongjo',serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:22px;transition:transform .2s,box-shadow .2s;animation:fadeUp .5s .35s cubic-bezier(.22,1,.36,1) both}
+.ob-start-btn:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(184,149,106,.35)}
+.ob-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 26px 34px;flex-shrink:0}
+.ob-dots{display:flex;gap:5px}
+.ob-dot{width:6px;height:6px;border-radius:3px;background:var(--bdr);transition:all .3s cubic-bezier(.22,1,.36,1)}
+.ob-dot.on{width:18px;background:var(--acc)}
+.ob-nb{background:var(--card);border:1px solid var(--bdr);color:var(--txt2);padding:8px 17px;border-radius:8px;font-family:var(--fn);font-size:13px;cursor:pointer;transition:all .2s}
+.ob-nb:hover{border-color:var(--accd);color:var(--acc)}
+.ob-nb.pri{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border-color:transparent;font-weight:700}
+.ob-nb.inv{opacity:0;pointer-events:none}
+
+/* ━━━ 로그인 ━━━ */
+#sl{justify-content:center;align-items:center;padding:40px 28px;position:relative;overflow-y:auto}
+.lg-bg{position:absolute;inset:0;pointer-events:none}
+.lg-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
+.lg-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:340px}
+.lg-icon-wrap{width:76px;height:76px;background:linear-gradient(135deg,#1e2535,#2a3550);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:36px}
+.lg-title{font-family:'Nanum Myeongjo',serif;font-size:24px;color:var(--acc);letter-spacing:3px}
+.lg-sub{font-size:10px;color:var(--txtm);letter-spacing:3px;text-transform:uppercase}
+.lg-desc{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;width:100%;text-align:center}
+.lg-desc p{font-size:13px;color:var(--txt2);line-height:1.75}
+.btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:15px;color:var(--txt);font-family:var(--fn);font-size:14px;font-weight:500;cursor:pointer;transition:border-color .2s,transform .2s}
+.btn-google:hover{border-color:var(--accd);transform:translateY(-1px)}
+
+/* ━━━ 이름 입력 ━━━ */
+#sn{justify-content:center;align-items:center;padding:40px 24px;overflow-y:auto}
+.nm-inp{background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:14px 16px;color:var(--txt);font-family:var(--fn);font-size:15px;outline:none;width:100%;transition:border-color .2s}
+.nm-inp:focus{border-color:var(--acc)}
+.nm-prev{background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:14px;display:flex;align-items:center;gap:12px;transition:border-color .3s}
+.nm-prev.has{border-color:var(--accd)}
+.nm-av{width:46px;height:46px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px}
+.nm-pname{font-weight:700;font-size:14px}
+.nm-prev.has .nm-pname{color:var(--acc)}
+.nm-rank{font-size:11px;color:var(--acc)}
+
+/* ━━━ 홈 ━━━ */
+.hh{background:var(--card);border-bottom:1px solid var(--bdr);padding:20px;flex-shrink:0;transition:background .4s,border-color .4s}
+.hh-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.hg{font-size:12px;color:var(--txt2)}
+.hun{font-size:19px;font-weight:700}
+.hav{width:46px;height:46px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .2s}
+.hav:active{transform:scale(.9)}
+.lbdg{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);font-weight:900;font-size:11px;padding:3px 9px;border-radius:18px}
+.rn{font-size:13px;color:var(--acc);font-weight:600}
+.exp-row{display:flex;justify-content:space-between;font-size:10px;color:var(--txtm);margin-top:5px}
+.stat-row{display:flex;gap:9px;margin-top:12px}
+.stat-chip{flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:9px;padding:9px;text-align:center;transition:transform .2s,border-color .2s}
+.stat-chip:hover{transform:translateY(-2px);border-color:var(--accd)}
+.sc-val{font-size:17px;font-weight:700;color:var(--acc)}
+.sc-lbl{font-size:9px;color:var(--txtm);margin-top:2px}
+.kc{margin:14px 20px;background:linear-gradient(135deg,var(--card),var(--elev));border:1px solid var(--accd);border-radius:12px;padding:14px;cursor:pointer;position:relative;overflow:hidden;min-height:96px}
+.kl{font-size:10px;color:var(--acc);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:7px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.kt{font-size:14px;line-height:1.78;font-style:italic}
+.kt-author{font-size:11px;color:var(--txt2);text-align:right;margin-top:6px;font-style:normal}
+/* ━━━ v3.7 항목11: 「오늘 한 문장」슬라이드 배너 (KNOWLEDGE 24섹션) ━━━
+   - CSS opacity 페이드, JS는 setInterval 시간 기반(프레임 개념 X)
+   - 카드 내부 빈 곳 탭 → 다음 문장 즉시 전환 + 자동 타이머 리셋(항목12)
+   - 문장 내 학습 단어 탭 → 해당 플래시카드로 이동(데모는 시뮬레이션) */
+.kc-slide{position:absolute;inset:14px;display:flex;flex-direction:column;justify-content:center;opacity:0;transition:opacity .6s ease;pointer-events:none}
+.kc-slide.on{opacity:1;pointer-events:auto;position:relative;inset:auto}
+.kc-dots{position:absolute;bottom:7px;left:0;right:0;display:flex;gap:5px;justify-content:center;pointer-events:none}
+.kc-dot{width:5px;height:5px;border-radius:3px;background:var(--bdr);transition:background .3s,width .3s}
+.kc-dot.on{background:var(--acc);width:14px}
+.kc-word{color:var(--acc);font-weight:700;cursor:pointer;border-bottom:1px dashed var(--accd);padding-bottom:1px;transition:color .2s,border-color .2s}
+.kc-word:hover{color:var(--accl);border-bottom-color:var(--acc)}
+.hs{padding:0 20px 20px}
+.sec-t{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px;margin-top:18px}
+.mc{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:9px;transition:transform .2s,border-color .2s,background .4s;position:relative;overflow:hidden}
+.mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc);transition:width .25s}
+.mc:hover{transform:translateX(3px);border-color:var(--bdrg)}
+.mc:hover::before{width:5px}
+.mc:hover .mc-arrow{transform:translateX(3px);color:var(--acc)}
+.mc-icon{font-size:24px;width:40px;text-align:center;flex-shrink:0}
+.mc-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.mc-desc{font-size:11px;color:var(--txt2)}
+.mc-arrow{color:var(--txtm);font-size:19px;transition:transform .2s,color .2s}
+
+/* ━━━ 학습 - 4지선다 / 3지선다 ━━━ */
+.qprog-wrap{padding:14px 20px;background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0}
+
+/* v3.5: 학습 화면 상단 설정 패널 (접이식) */
+.lset-panel{background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0;transition:all .3s cubic-bezier(.22,1,.36,1)}
+.lset-hdr{padding:9px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;color:var(--txt2);user-select:none}
+.lset-hdr:hover{color:var(--acc)}
+.lset-hdr-left{display:flex;align-items:center;gap:6px}
+.lset-toggle{font-size:11px;color:var(--txtm);transition:transform .3s}
+.lset-panel.open .lset-toggle{transform:rotate(180deg)}
+/* v3.7 항목10: max-height 480px로 확장 (4방식 + 2행 추가 대응)
+   부자연스러움 해소: cubic-bezier 곡선 유지, 컨텐츠 양에 여유 확보 */
+.lset-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.22,1,.36,1);padding:0 18px}
+.lset-panel.open .lset-body{max-height:480px;padding:6px 18px 12px}
+.lset-row{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px}
+/* v3.7 항목9: 「방식」 라벨 가시성 개선 */
+.lset-row-lbl{color:var(--txt);min-width:64px;font-weight:600;font-size:12px}
+.lset-opts{display:flex;gap:6px;flex-wrap:wrap}
+.lset-opt{padding:5px 11px;border:1px solid var(--bdr);border-radius:6px;background:var(--elev);color:var(--txt2);font-size:11px;cursor:pointer;font-family:var(--fn);transition:all .15s}
+.lset-opt:hover{border-color:var(--accd)}
+.lset-opt.on{background:rgba(184,149,106,.1);border-color:var(--acc);color:var(--acc);font-weight:700}
+.qpr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.qmb{font-size:12px;font-weight:700;color:var(--acc)}
+.qct{font-size:12px;color:var(--txt2)}
+.qpbar{height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.qpfill{height:100%;background:linear-gradient(90deg,var(--inf),#80d8ff);border-radius:3px;transition:width .5s cubic-bezier(.22,1,.36,1)}
+.qbody{padding:18px;display:flex;flex-direction:column;gap:16px}
+.qcard{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:22px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
+.qcat{margin-bottom:11px;display:flex;gap:6px;flex-wrap:wrap}
+.q-word{font-size:23px;font-weight:700;color:var(--acc);letter-spacing:2px;margin-bottom:9px}
+.q-question{font-size:15px;line-height:1.7;margin-bottom:6px}
+.q-hint{font-size:12px;color:var(--txt2);line-height:1.75}
+.aopts{display:flex;flex-direction:column;gap:8px}
+.aopt{background:var(--elev);border:1px solid var(--bdr);border-radius:10px;padding:12px 15px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:transform .15s,border-color .2s;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
+.aopt:nth-child(1){animation-delay:.05s}.aopt:nth-child(2){animation-delay:.10s}.aopt:nth-child(3){animation-delay:.15s}.aopt:nth-child(4){animation-delay:.20s}
+.aopt:hover{transform:translateX(3px);border-color:var(--bdrg)}
+.aopt:active{transform:scale(.98)}
+.aopt.correct{border-color:var(--ok);animation:correctPop .45s ease both}
+.aopt.wrong{border-color:var(--err);animation:shakeLR .38s ease both}
+.aopt.disabled{pointer-events:none;opacity:.7}
+.onum{width:26px;height:26px;background:var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--txt2);flex-shrink:0;transition:background .2s,color .2s}
+.aopt.correct .onum{background:var(--ok);color:#fff}
+.aopt.wrong .onum{background:var(--err);color:#fff}
+.otxt{font-size:13px;font-weight:500;line-height:1.5}
+.exp-gain{background:rgba(184,149,106,.08);border:1px solid rgba(184,149,106,.22);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
+.egl{font-size:12px;color:var(--txt2)}
+.egv{font-size:16px;font-weight:900;color:var(--acc)}
+.exp-float{position:fixed;z-index:999;font-size:17px;font-weight:900;color:var(--accl);pointer-events:none;animation:expFloat 1.1s ease forwards;text-shadow:0 0 10px rgba(184,149,106,.8)}
+
+/* ━━━ 플래시카드 ━━━ */
+.fc-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:0;overflow:hidden;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
+.fc-front{padding:48px 24px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:200px;justify-content:center}
+.fc-front-tag{margin-bottom:8px}
+.fc-word{font-size:36px;font-weight:700;color:var(--acc);letter-spacing:3px;font-family:'Nanum Myeongjo',serif}
+.fc-hanja-mark{font-size:14px;color:var(--txt2);margin-top:4px}
+.fc-hint{font-size:11px;color:var(--txtm);margin-top:18px}
+.fc-back{display:none;padding:20px}
+.fc-back.show{display:block;animation:fadeUp .35s cubic-bezier(.22,1,.36,1) both}
+.fc-row{padding:12px 0;border-bottom:1px solid var(--bdr)}
+.fc-row:last-child{border-bottom:none}
+.fc-row-num{font-size:10px;color:var(--txtm);margin-bottom:4px;letter-spacing:1px}
+.fc-reading{font-size:18px;color:var(--acc);font-weight:700;letter-spacing:2px}
+.fc-meaning{font-size:14px;line-height:1.7}
+.fc-more-btn{background:transparent;border:1px dashed var(--bdr);color:var(--txt2);padding:11px;width:100%;border-radius:9px;cursor:pointer;font-size:12px;font-family:var(--fn);margin-top:12px;transition:all .2s}
+.fc-more-btn:hover{border-color:var(--acc);color:var(--acc)}
+.fc-more-btn.opened{display:none}
+.fc-more{display:none;margin-top:12px;flex-direction:column;gap:10px}
+.fc-more.show{display:flex;animation:fadeUp .35s cubic-bezier(.22,1,.36,1) both}
+.fc-hanja-list{display:flex;flex-direction:column;gap:6px;background:var(--elev);padding:14px;border-radius:9px;border:1px solid var(--bdr)}
+.fc-hanja-item{font-size:18px;font-weight:700;color:var(--acc);letter-spacing:2px;font-family:'Nanum Myeongjo',serif}
+.fc-hanja-item small{font-size:11px;color:var(--txt2);font-weight:400;margin-left:8px;letter-spacing:0}
+.fc-direct{background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:14px;padding:12px 16px;font-size:13px;line-height:1.65;color:var(--inf);font-weight:500;position:relative}
+.fc-direct::before{content:'💬';position:absolute;left:-4px;top:-12px;font-size:18px;background:var(--card);padding:2px}
+.fc-example{background:var(--elev);border-left:3px solid var(--acc);padding:10px 14px;font-size:13px;line-height:1.7;color:var(--txt2);font-style:italic;border-radius:0 8px 8px 0}
+.fc-example::before{content:'❝ ';color:var(--acc);font-weight:700;font-style:normal}
+.fc-example::after{content:' ❞';color:var(--acc);font-weight:700;font-style:normal}
+.fc-mnemonic{background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.3);border-radius:9px;padding:10px 14px;font-size:12px;line-height:1.65;color:var(--accl)}
+.fc-judge{display:flex;gap:6px;margin-top:14px}
+.fc-jbtn{flex:1;padding:11px;border-radius:9px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:12px;cursor:pointer;font-weight:700;transition:all .15s}
+.fc-jbtn.j-know{color:var(--ok);border-color:rgba(120,184,120,.3)}
+.fc-jbtn.j-confused{color:var(--warn);border-color:rgba(224,144,96,.3)}
+.fc-jbtn.j-unknown{color:var(--err);border-color:rgba(192,112,112,.3)}
+.fc-jbtn:hover{transform:translateY(-1px)}
+.fc-jbtn:active{transform:scale(.96)}
+
+/* ━━━ v3.7 B안: 유의어 변별 출제 UI (KNOWLEDGE 3-2섹션, 3단계 색 분기) ━━━ */
+.syn-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
+.syn-q{font-size:14px;line-height:1.85;text-align:center;padding:10px 4px 14px;color:var(--txt);font-style:italic}
+.syn-q .syn-blank{display:inline-block;min-width:60px;padding:2px 10px;border-bottom:2px solid var(--acc);color:var(--acc);font-style:normal;font-weight:700}
+.syn-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.syn-opt{padding:13px 10px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:13px;font-weight:700;color:var(--txt);text-align:center;transition:all .15s;position:relative}
+.syn-opt:hover{border-color:var(--acc);transform:translateY(-1px)}
+.syn-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok)}
+.syn-opt.acceptable{background:rgba(224,144,96,.18);border-color:var(--warn);color:var(--warn)}
+.syn-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7}
+.syn-opt.dim{opacity:.45;pointer-events:none}
+.syn-result{margin-top:14px;padding:13px 14px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);font-size:12px;line-height:1.7;display:none}
+.syn-result.show{display:block;animation:fadeUp .3s cubic-bezier(.22,1,.36,1) both}
+.syn-result-title{font-weight:700;margin-bottom:6px;font-size:12px}
+.syn-result-title.ok{color:var(--ok)}
+.syn-result-title.warn{color:var(--warn)}
+.syn-result-title.err{color:var(--err)}
+.syn-result-def{color:var(--txt);margin-bottom:5px}
+.syn-result-reason{color:var(--txt2);font-size:11px;line-height:1.65;background:rgba(224,144,96,.08);border-left:2px solid var(--warn);padding:7px 10px;border-radius:5px;margin-top:6px}
+.syn-actions{display:flex;gap:6px;margin-top:12px}
+.syn-actions .btn-g, .syn-actions .btn-acc{flex:1;padding:10px;font-size:12px}
+
+/* ━━━ 아재개그 ━━━ */
+.dad-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
+.dad-q{font-size:18px;line-height:1.7;font-weight:500;text-align:center;padding:24px 12px}
+.dad-reveal-btn{width:100%;padding:14px;background:var(--elev);border:1px dashed var(--bdr);border-radius:11px;color:var(--txt2);font-family:var(--fn);font-size:13px;cursor:pointer;transition:all .2s}
+.dad-reveal-btn:hover{border-color:var(--acc);color:var(--acc)}
+.dad-answer{display:none;padding:16px;background:var(--elev);border-radius:11px;border:1px solid var(--accd);margin-top:12px}
+.dad-answer.show{display:block;animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both}
+.dad-a-text{font-size:20px;font-weight:700;color:var(--acc);text-align:center;margin-bottom:12px;font-family:'Nanum Myeongjo',serif}
+.dad-a-explain{font-size:12px;color:var(--txt2);line-height:1.6;padding-top:12px;border-top:1px solid var(--bdr)}
+.dad-a-explain::before{content:'💡 ';margin-right:4px}
+
+/* ━━━ 구어 교정 ━━━ */
+.spk-info{padding:14px 18px;background:var(--card);border-bottom:1px solid var(--bdr)}
+.spk-info-text{font-size:12px;color:var(--txt2);line-height:1.7}
+.spk-body{padding:18px;display:flex;flex-direction:column;gap:14px}
+.spk-input-area{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:16px}
+.spk-mode-tabs{display:flex;gap:6px;margin-bottom:12px}
+.spk-mode-btn{flex:1;padding:10px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;color:var(--txt2);font-family:var(--fn);font-size:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.spk-mode-btn.on{border-color:var(--acc);color:var(--acc);background:rgba(184,149,106,.05)}
+.spk-textarea{width:100%;min-height:90px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-family:var(--fn);font-size:13px;outline:none;resize:vertical;line-height:1.6}
+.spk-textarea:focus{border-color:var(--acc)}
+.spk-not-impl{background:var(--elev);border:1px dashed var(--warn);border-radius:9px;padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.spk-not-impl-icon{font-size:34px;opacity:.5}
+.spk-not-impl-text{font-size:12px;color:var(--warn);font-weight:700}
+.spk-not-impl-desc{font-size:11px;color:var(--txt2);line-height:1.6}
+.spk-submit{width:100%;margin-top:8px}
+.spk-result{background:var(--card);border:1px solid var(--accd);border-radius:14px;padding:16px;display:none}
+.spk-result.show{display:block;animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both}
+.spk-result-title{font-size:11px;color:var(--acc);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.spk-orig{padding:10px;background:var(--elev);border-radius:8px;font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.6}
+.spk-orig::before{content:'입력: ';color:var(--txtm);font-weight:700}
+.spk-fix{padding:12px;background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:8px;font-size:13px;color:var(--inf);margin-bottom:10px;line-height:1.65}
+.spk-fix::before{content:'개선: ';color:var(--inf);font-weight:700;font-size:11px}
+.spk-tip{padding:10px;background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.25);border-radius:8px;font-size:11px;color:var(--accl);line-height:1.6}
+.spk-tip::before{content:'💡 '}
+
+/* ━━━ 복습 ━━━ */
+.rv-body{padding:14px 18px;display:flex;flex-direction:column;gap:9px}
+.rv-cap{background:var(--card);border:1px solid var(--bdr);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rv-cap-lbl{font-size:12px;color:var(--txt2);white-space:nowrap}
+.cap-bar{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.cap-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--ok),#5dde8f);transition:width .5s}
+.rv-cap-val{font-size:12px;font-weight:700;cursor:pointer;color:var(--acc)}
+.rv-cap-val:hover{text-decoration:underline}
+.rv-item{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:11px;animation:fadeUp .35s cubic-bezier(.22,1,.36,1) both;transition:opacity .3s}
+.rv-idx{width:26px;height:26px;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--txtm);flex-shrink:0}
+.rv-word{font-size:14px;font-weight:700;margin-bottom:2px}
+.rv-desc{font-size:11px;color:var(--txt2);line-height:1.5}
+.rv-meta{display:flex;align-items:center;gap:7px;margin-top:5px}
+.rv-dots{display:flex;gap:3px}
+.rv-dot{width:8px;height:8px;border-radius:50%;background:var(--bdr);transition:background .3s}
+.rv-dot.f{background:var(--acc)}
+.rv-acts{display:flex;gap:5px;margin-left:auto}
+.act-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt2);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.act-btn:hover{border-color:var(--accd);color:var(--acc);transform:scale(1.08)}
+.act-btn.d:hover{border-color:var(--err);color:var(--err)}
+.act-btn.fav.on{color:#ffd060;border-color:rgba(255,208,96,.3)}
+.bin-info{font-size:11px;color:var(--txtm);padding:8px 12px;background:rgba(255,144,80,.05);border:1px dashed rgba(255,144,80,.2);border-radius:8px;line-height:1.6;margin-bottom:8px}
+
+/* ━━━ 업적 ━━━ */
+.ach-sum{background:var(--card);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;gap:14px;flex-shrink:0}
+.ach-si{text-align:center;flex:1}
+.ach-sn{font-size:20px;font-weight:900;color:var(--acc)}
+.ach-sl{font-size:10px;color:var(--txtm)}
+.ach-divider{width:1px;background:var(--bdr)}
+.ach-body{padding:14px 18px}
+.ach-sec{margin-bottom:22px}
+.ach-sec-t{font-size:11px;font-weight:700;color:var(--txtm);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px}
+.ach-list{display:flex;flex-direction:column;gap:7px}
+.ach-item{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:transform .2s,border-color .2s;animation:fadeUp .35s cubic-bezier(.22,1,.36,1) both}
+.ach-item:hover{transform:translateY(-2px);border-color:var(--bdrg)}
+.ach-item.unl{border-color:rgba(184,149,106,.28)}
+.ach-icon{width:44px;height:44px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.ach-item:hover .ach-icon{transform:scale(1.1)}
+.ach-item.unl .ach-icon{border-color:rgba(184,149,106,.28);background:rgba(184,149,106,.07)}
+.ach-nm{font-size:13px;font-weight:700;margin-bottom:2px}
+.ach-ds{font-size:11px;color:var(--txt2);line-height:1.5}
+.ach-ds.zalgo{font-size:10px;color:var(--txtm);font-family:var(--mono);letter-spacing:.3px;line-height:1.6;opacity:.7;word-break:break-all}
+
+/* 별 표시 — 통합된 ✦ ★ 사용 */
+.ach-stars{font-size:12px;letter-spacing:2px;margin-top:3px;font-weight:700}
+.ach-star-filled{color:var(--accl)}
+.ach-star-empty{color:var(--txtm);opacity:.4}
+.ach-star-mark{color:var(--acc)}
+
+/* 업적 상세 모달 */
+.ach-detail-bg{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
+.ach-detail-bg.show{opacity:1;pointer-events:all}
+.ach-detail{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:26px 22px;max-width:340px;width:100%;transform:scale(.85);transition:transform .38s cubic-bezier(.22,1,.36,1);max-height:85vh;overflow-y:auto}
+.ach-detail-bg.show .ach-detail{transform:scale(1)}
+.ach-d-icon{font-size:48px;text-align:center;margin-bottom:10px}
+.ach-d-name{font-size:18px;font-weight:900;color:var(--acc);text-align:center;margin-bottom:6px}
+.ach-d-cat{font-size:11px;color:var(--txt2);text-align:center;margin-bottom:14px}
+.ach-d-desc{font-size:13px;color:var(--txt2);line-height:1.7;text-align:center;margin-bottom:14px;padding:10px;background:var(--elev);border-radius:9px}
+.ach-d-desc.zalgo{font-family:var(--mono);font-size:11px;letter-spacing:.3px;color:var(--txtm);word-break:break-all;line-height:1.7}
+.ach-d-stars{font-size:18px;letter-spacing:3px;text-align:center;margin:8px 0;font-weight:700}
+.ach-d-table{width:100%;font-size:12px;margin-top:10px;border-collapse:collapse}
+.ach-d-table tr{border-bottom:1px solid var(--bdr)}
+.ach-d-table tr:last-child{border-bottom:none}
+.ach-d-table td{padding:8px 4px}
+.ach-d-table td:first-child{color:var(--txt2)}
+.ach-d-table td:last-child{color:var(--acc);font-weight:700;text-align:right}
+.ach-d-current{background:rgba(120,184,120,.08)}
+.ach-d-current td{color:var(--ok) !important;font-weight:700}
+
+/* ━━━ 현황 (CMD tree) ━━━ */
+.st-body{padding:14px 18px;display:flex;flex-direction:column;gap:13px}
+.st-prof{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px}
+.st-av{width:60px;height:60px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.st-name{font-size:18px;font-weight:900;margin-bottom:3px}
+.st-ttl{font-size:12px;color:var(--acc);margin-bottom:6px}
+/* v3.5: 소칭호 가독성 강화 (이전엔 너무 연하고 작았음) */
+.status-sub-title{font-size:12px !important;color:var(--accl) !important;font-weight:600 !important;letter-spacing:.3px}
+/* 창조주 달성 시 소칭호 황금빛으로 강조 */
+.status-sub-title.creator{color:#ffd700 !important;text-shadow:0 0 8px rgba(255,215,0,.4);animation:starGlow 2s ease-in-out infinite}
+.st-lv-row{display:flex;align-items:center;gap:7px}
+.st-lv{font-size:10px;color:var(--txtm)}
+
+.tree-wrap{
+  background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  padding:18px 16px;font-family:var(--mono);font-size:12.5px;line-height:2;
+  overflow-x:auto;
+}
+.tree-line{
+  white-space:nowrap;
+  opacity:0;
+  animation:treeLine .3s cubic-bezier(.22,1,.36,1) forwards;
+}
+.tree-section{
+  color:var(--accl);font-weight:700;
+  padding:6px 8px;background:rgba(184,149,106,.08);
+  border-left:3px solid var(--acc);border-radius:0 6px 6px 0;
+  margin:8px 0 4px;display:inline-block;
+  font-size:13px;letter-spacing:.5px;
+}
+.tree-line:first-child .tree-section{margin-top:0}
+.tree-branch{color:var(--accd);user-select:none;font-weight:700}
+.tree-key{color:var(--txt)}
+.tree-val{color:var(--acc);font-weight:700}
+.tree-val.highlight{color:var(--accl);text-shadow:0 0 8px rgba(184,149,106,.3)}
+.tree-val.warn{color:var(--warn)}
+.tree-val.ok{color:var(--ok)}
+
+/* ━━━ 설정 ━━━ */
+.set-body{padding:14px 18px;display:flex;flex-direction:column;gap:13px}
+.set-prof{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;transition:background .4s,border-color .4s}
+.set-av{width:57px;height:57px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;flex-shrink:0}
+.set-nm{font-size:18px;font-weight:700;margin-bottom:3px}
+.set-ttl{font-size:11px;color:var(--acc);margin-bottom:2px}
+.set-em{font-size:11px;color:var(--txt2)}
+.set-eb{background:transparent;border:1px solid var(--bdr);color:var(--txt2);padding:7px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);transition:all .2s}
+.set-eb:hover{border-color:var(--accd);color:var(--acc)}
+
+.set-sec{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:14px 16px;transition:background .4s,border-color .4s}
+.set-lbl{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px}
+.set-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--bdr);cursor:pointer;transition:opacity .2s}
+.set-row:last-child{border-bottom:none}
+.set-row:hover{opacity:.85}
+.sri{font-size:18px;width:26px;text-align:center;flex-shrink:0}
+.srl{font-size:13px;font-weight:500}
+.srs{font-size:11px;color:var(--txt2);margin-top:2px}
+.sra{color:var(--txtm);font-size:18px}
+
+/* 토글 */
+.mtw{display:flex;align-items:center;gap:8px}
+.ml{font-size:10px;color:var(--txt2);transition:color .2s}
+.mt{position:relative;display:inline-block;width:38px;height:22px}
+.mt input{opacity:0;width:0;height:0}
+.mtt{position:absolute;cursor:pointer;inset:0;background:var(--elev);border:1px solid var(--bdr);transition:.3s;border-radius:22px}
+.mtth{position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:var(--acc);border-radius:50%;transition:.3s}
+.mt input:checked+.mtt{background:var(--bdrg);border-color:var(--accd)}
+.mt input:checked+.mtt .mtth{transform:translateX(16px)}
+
+/* 테마 그리드 */
+.th-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:6px}
+.tc{background:var(--bg);border:1px solid var(--bdr);border-radius:11px;cursor:pointer;overflow:hidden;transition:transform .2s,border-color .2s}
+.tc:hover{transform:translateY(-2px);border-color:var(--accd)}
+.tc.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.tp-bg{height:48px;position:relative;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px}
+.tp-a{background:linear-gradient(135deg,#1a1710,#222018,#b8956a)}
+.tp-n{background:linear-gradient(135deg,#0d1425,#121c32,#5090f0)}
+.tp-m{background:linear-gradient(135deg,#0e0c1c,#141228,#8e62f0)}
+.tp-p{background:linear-gradient(135deg,#f5f1ea,#ede8df,#7a5228)}
+.tp-f{background:linear-gradient(135deg,#0c1410,#101a12,#52a868)}
+.tdots{display:flex;gap:4px}
+.td{width:8px;height:8px;border-radius:50%}
+.tp-a .d1{background:#b8956a}.tp-a .d2{background:#e8e0d0}.tp-a .d3{background:#6e5438}
+.tp-n .d1{background:#5090f0}.tp-n .d2{background:#d8e8ff}.tp-n .d3{background:#2c5898}
+.tp-m .d1{background:#8e62f0}.tp-m .d2{background:#e0d8ff}.tp-m .d3{background:#5438a8}
+.tp-p .d1{background:#7a5228}.tp-p .d2{background:#281e12}.tp-p .d3{background:#b89868}
+.tp-f .d1{background:#52a868}.tp-f .d2{background:#d0e8d4}.tp-f .d3{background:#2e6040}
+.tnr{padding:7px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border-top:1px solid var(--bdr)}
+.tnm{font-size:11px;font-weight:700}
+.tck{font-size:11px;color:var(--acc);opacity:0;font-weight:700}
+.tc.on .tck{opacity:1}
+
+/* 폰트 선택 */
+.fo-list{display:flex;flex-direction:column;gap:6px}
+.fo{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:11px 13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between}
+.fo:hover{border-color:var(--accd)}
+.fo.on{border-color:var(--acc);background:rgba(128,128,128,.07)}
+.fo-nm{font-size:9px;color:var(--txtm);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+.fo-sm{font-size:15px;color:var(--txt)}
+.fo-ck{font-size:13px;color:var(--acc);opacity:0;transition:opacity .2s}
+.fo.on .fo-ck{opacity:1}
+
+/* 셀렉트 모달 */
+.select-modal-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.select-opt{padding:11px 14px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s;font-size:13px}
+.select-opt:hover{border-color:var(--accd)}
+.select-opt.on{border-color:var(--acc);background:rgba(184,149,106,.05);color:var(--acc)}
+.select-opt-ck{font-size:13px;color:var(--acc);opacity:0}
+.select-opt.on .select-opt-ck{opacity:1}
+
+/* ━━━ 질문하기 FAB ━━━ */
+/* FAB 스타일 v3.4부터 미사용 — 학습 화면 하단 AI 챗 바로 통합 */
+.ask-fab{display:none}
+
+.ask-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.62);opacity:0;pointer-events:none;transition:opacity .3s}
+.ask-bg.show{opacity:1;pointer-events:all}
+.ask-panel{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--card);border-top:1px solid var(--bdr);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column}
+.ask-panel.show{transform:translateY(0)}
+.ask-handle{width:34px;height:4px;background:var(--bdr);border-radius:2px;margin:11px auto 0;flex-shrink:0}
+.ask-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px 11px;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:var(--card);z-index:5;flex-shrink:0}
+.ask-title{font-size:15px;font-weight:700}
+.ask-quota{font-size:10px;color:var(--txt2);background:var(--elev);padding:3px 8px;border-radius:10px}
+.ask-cls{width:30px;height:30px;border-radius:50%;background:var(--elev);border:1px solid var(--bdr);color:var(--txt2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ask-body{padding:14px 18px;display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto}
+.ask-input-row{display:flex;gap:8px}
+.ask-input{flex:1;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:11px 14px;color:var(--txt);font-family:var(--fn);font-size:13px;outline:none;transition:border-color .2s}
+.ask-input:focus{border-color:var(--acc)}
+.ask-send{padding:11px 18px;background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fn)}
+.ask-msg{padding:12px 14px;border-radius:9px;font-size:13px;line-height:1.7}
+.ask-msg.user{background:var(--elev);color:var(--txt2);text-align:right;margin-left:32px;border:1px solid var(--bdr)}
+.ask-msg.ai{background:rgba(120,180,255,.06);border:1px solid rgba(120,180,255,.2);margin-right:32px}
+.ask-msg.ai::before{content:'🤖 AI';font-size:10px;color:var(--inf);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
+.ask-objection-btn{margin-top:6px;background:transparent;border:1px solid var(--err);color:var(--err);padding:6px 14px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700;transition:all .2s}
+.ask-objection-btn:hover{background:rgba(192,112,112,.1)}
+
+.obj-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
+.obj-bg.show{opacity:1;pointer-events:all}
+.obj-modal{background:var(--card);border:1px solid var(--err);border-radius:16px;padding:22px;max-width:320px;width:100%;transform:scale(.85);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.obj-bg.show .obj-modal{transform:scale(1)}
+.obj-icon{font-size:36px;text-align:center;margin-bottom:8px}
+.obj-title{font-size:16px;font-weight:900;color:var(--err);text-align:center;margin-bottom:6px}
+.obj-desc{font-size:12px;color:var(--txt2);text-align:center;line-height:1.6;margin-bottom:14px}
+.obj-input{width:100%;min-height:80px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-family:var(--fn);font-size:12px;outline:none;resize:vertical;line-height:1.6;margin-bottom:12px}
+.obj-input:focus{border-color:var(--err)}
+.obj-btns{display:flex;gap:8px}
+
+/* ━━━ 업적 / 레벨업 팝업 ━━━ */
+.ov-bg{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.68);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
+.ov-bg.show{opacity:1;pointer-events:all}
+.ach-popup{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:28px 22px;text-align:center;max-width:295px;width:100%;box-shadow:0 0 36px rgba(184,149,106,.18);transform:scale(.85);transition:transform .38s cubic-bezier(.22,1,.36,1)}
+.ov-bg.show .ach-popup{transform:scale(1)}
+.pp-icon{font-size:50px;margin-bottom:10px}
+.pp-title{font-size:17px;font-weight:900;color:var(--acc);margin-bottom:5px}
+.pp-stage{font-size:13px;color:var(--accl);margin-bottom:5px;font-weight:700}
+.pp-desc{font-size:13px;color:var(--txt2);margin-bottom:13px}
+.pp-stars{font-size:24px;letter-spacing:4px;margin-bottom:13px;font-weight:700}
+.pp-exp{font-size:24px;font-weight:900;color:var(--accl);margin-bottom:18px}
+
+.lvup-popup{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:28px 22px;text-align:center;max-width:295px;width:100%;box-shadow:0 0 36px rgba(184,149,106,.18);transform:scale(.85);transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.ov-bg.show .lvup-popup{transform:scale(1)}
+.lvup-burst{font-size:64px;animation:bounce 1s ease-in-out infinite}
+.lvup-txt{font-family:'Nanum Myeongjo',serif;font-size:27px;font-weight:700;color:var(--accl);letter-spacing:2px;text-shadow:0 0 28px rgba(184,149,106,.7)}
+.lvup-new{font-size:14px;color:var(--txt2);margin-top:6px}
+.lvup-badge{display:inline-flex;align-items:center;gap:9px;background:rgba(184,149,106,.1);border:2px solid var(--acc);border-radius:40px;padding:10px 20px;margin:13px 0}
+.lvup-lv{font-size:22px;font-weight:900;color:var(--acc)}
+.lvup-rk{font-size:14px;color:var(--txt)}
+
+/* 일반 모달 */
+.modal-bg{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-bg.show{opacity:1;pointer-events:all}
+.modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px;max-width:340px;width:100%;transform:scale(.85);transition:transform .35s cubic-bezier(.22,1,.36,1);max-height:80vh;overflow-y:auto}
+.modal-bg.show .modal-bx{transform:scale(1)}
+.modal-icon{font-size:32px;text-align:center;margin-bottom:8px}
+.modal-title{font-size:15px;font-weight:700;text-align:center;margin-bottom:8px}
+.modal-desc{font-size:12px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:16px}
+.modal-btns{display:flex;gap:8px}
+
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--elev);border:1px solid var(--bdr);border-radius:28px;padding:9px 18px;font-size:12px;font-weight:500;color:var(--txt);white-space:nowrap;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.38)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+#demo-nav{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.93);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.07);padding:7px 10px;display:flex;gap:5px;flex-wrap:wrap;z-index:9998}
+.demb{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);padding:4px 9px;border-radius:5px;font-size:10px;cursor:pointer;transition:all .2s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
+.demb:hover,.demb.on{border-color:rgba(255,255,255,.32);color:#fff}
+.demb.sp{border-color:rgba(184,149,106,.38);color:rgba(184,149,106,.75)}
+.demb.sp:hover{border-color:var(--acc);color:var(--acc)}
+.demo-offset{margin-top:80px}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+</style>
+</head>
+<body data-theme="antique">
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<!-- ━━━ 온보딩 (앱 안내) ━━━ -->
+<!-- v3.6: KNOWLEDGE 23섹션 4장 확정 일치. 기존 5장에서 '레벨업' 슬라이드(구 인덱스 2) 삭제.
+     현재 슬라이드: 0)환영 1)학습 모드 2)숭고함 3)지금, 시작하시겠습니까? -->
+<div id="onboarding">
+  <div class="ob-prog" id="obProg" style="width:25%"></div>
+  <button class="ob-skip" onclick="skipOb()">건너뛰기</button>
+  <div class="ob-slides" id="obSlides">
+    <!-- 0 환영 -->
+    <div class="ob-slide active" data-i="0">
+      <div class="ob-bg"><div class="ob-aura"></div></div>
+      <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
+        <div class="ob-icon">📖</div>
+        <div class="ob-title">언어에<br>오신 것을 환영합니다</div>
+        <div class="ob-div"></div>
+        <div class="ob-sub">고사성어부터 구어 교정까지<br><b>한국어 어휘력</b>을 게임처럼 키워가는<br>당신만의 학습 연대기입니다</div>
+      </div>
+    </div>
+    <!-- 1 모드 -->
+    <div class="ob-slide" data-i="1">
+      <div class="ob-title">7가지 학습 모드</div>
+      <div class="ob-div"></div>
+      <div class="ob-feats">
+        <div class="ob-feat"><div class="ob-fi">🌍</div><div><div class="ob-fn">상식·어원</div><div class="ob-fd">잡학상식과 단어 기원</div></div></div>
+        <div class="ob-feat"><div class="ob-fi">📜</div><div><div class="ob-fn">고사성어·속담</div><div class="ob-fd">선인의 지혜를 직설적으로</div></div></div>
+        <div class="ob-feat"><div class="ob-fi">🏛️</div><div><div class="ob-fn">세계사·신화</div><div class="ob-fd">로마 신화·세이렌 등 흥미로운 이야기</div></div></div>
+        <div class="ob-feat"><div class="ob-fi">😂</div><div><div class="ob-fn">아재개그·넌센스</div><div class="ob-fd">평범한 아재개그와 말장난</div></div></div>
+        <div class="ob-feat"><div class="ob-fi">🈯</div><div><div class="ob-fn">한자·우리말</div><div class="ob-fd">어려운 한자어와 순우리말</div></div></div>
+        <div class="ob-feat"><div class="ob-fi">✏️</div><div><div class="ob-fn">맞춤법</div><div class="ob-fd">한국인이 자주 틀리는 맞춤법</div></div></div>
+        <div class="ob-feat"><div class="ob-fi">🎤</div><div><div class="ob-fn">구어 교정</div><div class="ob-fd">일상 말투를 격식체로</div></div></div>
+      </div>
+    </div>
+    <!-- 2 숭고함 (구 슬라이드 3) -->
+    <!-- v3.6 변경: 별 표시 ✦✦✦✦✦✦✦(풀돌과 동일) → ✧ ✦ ✧ (3개, 가운데만 채움)
+         이유: 업적 [창조주] 풀돌과 시각적으로 동일하여 혼동 유발. '문이 열리는' 신비로운 분위기로 차별화 -->
+    <div class="ob-slide" data-i="2">
+      <div class="ob-title">숭고함을 잃지 않는 자에게</div>
+      <div class="ob-div"></div>
+      <div class="ob-sub">언어는<br><b>그 문을 열어줄 것입니다</b></div>
+      <div style="font-size:28px;letter-spacing:14px;margin-top:24px;color:var(--accl);font-weight:700;text-align:center">✧ ✦ ✧</div>
+    </div>
+    <!-- 3 시작 (구 슬라이드 4) -->
+    <!-- v3.6 변경: 「연대기를 시작할 준비가 됐습니다」 → 「지금, 시작하시겠습니까?」 -->
+    <div class="ob-slide" data-i="3">
+      <div class="ob-bg"><div class="ob-aura"></div></div>
+      <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
+        <div class="ob-icon">⚔️</div>
+        <div class="ob-title">지금,<br>시작하시겠습니까?</div>
+        <div class="ob-div"></div>
+        <div class="ob-sub">로그인하고 학습을 시작하세요</div>
+        <button class="ob-start-btn" onclick="finishOb()">학습 시작하기 →</button>
+      </div>
+    </div>
+  </div>
+  <div class="ob-nav">
+    <button class="ob-nb" id="obPrev" onclick="obPrev()">← 이전</button>
+    <div class="ob-dots" id="obDots"></div>
+    <button class="ob-nb pri" id="obNext" onclick="obNext()">다음 →</button>
+  </div>
+</div>
+
+<!-- 업적 팝업 -->
+<div class="ov-bg" id="achOv" onclick="closeAchOv()">
+  <div class="ach-popup" onclick="event.stopPropagation()">
+    <div class="pp-icon" id="ppIcon">🌱</div>
+    <div class="pp-title" id="ppTitle">[첫걸음]</div>
+    <div class="pp-stage" id="ppStage">명함 획득!</div>
+    <div class="pp-desc" id="ppDesc">최초 학습 기록 생성</div>
+    <div class="pp-stars" id="ppStars"><span class="ach-star-mark">✦</span><span class="ach-star-empty">★★★★★★</span></div>
+    <div class="pp-exp" id="ppExp">+50 EXP</div>
+    <button class="btn-acc" style="width:100%" onclick="closeAchOv()">확인</button>
+  </div>
+</div>
+
+<!-- 레벨업 팝업 -->
+<div class="ov-bg" id="lvupOv" onclick="closeLvUp()">
+  <div class="lvup-popup" onclick="event.stopPropagation()">
+    <div class="lvup-burst">✨</div>
+    <div class="lvup-txt">LEVEL UP!</div>
+    <div class="lvup-new">새로운 등급에 도달했습니다</div>
+    <!-- v3.4: 하드코딩 제거. triggerLvUp에서 동적 주입 -->
+    <div class="lvup-badge"><div class="lvup-lv" id="lvupLvText"></div><div class="lvup-rk" id="lvupRankText"></div></div>
+    <button class="btn-acc" style="width:100%;margin-top:8px" onclick="closeLvUp()">계속하기</button>
+  </div>
+</div>
+
+<!-- 업적 상세 모달 -->
+<div class="ach-detail-bg" id="achDetailBg" onclick="closeAchDetail()">
+  <div class="ach-detail" onclick="event.stopPropagation()">
+    <div class="ach-d-icon" id="adIcon">🌱</div>
+    <div class="ach-d-name" id="adName">[첫걸음]</div>
+    <div class="ach-d-cat" id="adCat">성장 계열 · 단발</div>
+    <div class="ach-d-desc" id="adDesc">달성 조건 표시</div>
+    <div id="adProgress"></div>
+    <button class="btn-acc" style="width:100%;margin-top:14px" onclick="closeAchDetail()">닫기</button>
+  </div>
+</div>
+
+<!-- 일반 모달 -->
+<div class="modal-bg" id="infoBg" onclick="closeInfoModal()">
+  <div class="modal-bx" onclick="event.stopPropagation()">
+    <div class="modal-icon" id="infoIcon">ℹ️</div>
+    <div class="modal-title" id="infoTitle">안내</div>
+    <div class="modal-desc" id="infoDesc">설명</div>
+    <div id="infoBody"></div>
+    <div class="modal-btns" id="infoBtns">
+      <button class="btn-acc" style="flex:1" onclick="closeInfoModal()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 이름 변경 모달 -->
+<div class="modal-bg" id="nmModalBg" onclick="closeNmModal()">
+  <div class="modal-bx" onclick="event.stopPropagation()">
+    <div class="modal-icon">✏️</div>
+    <div class="modal-title">이름 변경</div>
+    <input class="nm-inp" id="nmModalInp" placeholder="새 이름을 입력하세요" maxlength="12" style="margin:8px 0 16px">
+    <div class="modal-btns">
+      <button class="btn-g" style="flex:1" onclick="closeNmModal()">취소</button>
+      <button class="btn-acc" style="flex:2" onclick="applyNmChange()">변경하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 셀렉트 모달 -->
+<div class="modal-bg" id="selBg" onclick="closeSelect()">
+  <div class="modal-bx" onclick="event.stopPropagation()">
+    <div class="modal-title" id="selTitle">선택</div>
+    <div class="modal-desc" id="selDesc"></div>
+    <div class="select-modal-list" id="selList"></div>
+    <div class="modal-btns" style="margin-top:14px">
+      <button class="btn-g" style="flex:1" onclick="closeSelect()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 폰트 선택 모달 — v3.7 항목6,8: 확정 폰트 11종 + 출처 표기 -->
+<div class="modal-bg" id="fontBg" onclick="closeFont()">
+  <div class="modal-bx" onclick="event.stopPropagation()">
+    <div class="modal-title">🔤 폰트 선택</div>
+    <div class="fo-list" id="fontList"></div>
+    <!-- v3.7 항목8: 폰트 출처 표기 (KNOWLEDGE 19섹션 의무) -->
+    <div style="margin-top:14px;padding:10px 12px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;font-size:10px;color:var(--txt2);line-height:1.7">
+      <div style="color:var(--acc);font-weight:700;margin-bottom:5px;font-size:11px">📜 폰트 출처</div>
+      <div id="fontCreditList" style="display:flex;flex-direction:column;gap:3px"></div>
+      <div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bdr);color:var(--txtm);font-size:9px;line-height:1.6">
+        ⚠️ 광고 적용 시점에 상업적 사용 가능 여부 재확인 필요
+      </div>
+    </div>
+    <div class="modal-btns" style="margin-top:14px">
+      <button class="btn-g" style="flex:1" onclick="closeFont()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 질문하기 -->
+<div class="ask-bg" id="askBg" onclick="closeAsk()"></div>
+<div class="ask-panel" id="askPanel">
+  <div class="ask-handle"></div>
+  <div class="ask-hdr">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="ask-title">💬 질문하기</div>
+      <div class="ask-quota" id="askQuota">오늘 <span id="askQuotaNow">0</span>/<span id="askQuotaMax">100</span></div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button id="askCls창조주" onclick="closeAsk()" style="display:none;background:rgba(192,112,112,.15);border:1px solid var(--err);color:var(--err);padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700">중도 포기</button>
+      <button class="ask-cls" onclick="closeAsk()">✕</button>
+    </div>
+  </div>
+  <div class="ask-body" id="askBody">
+    <div class="ask-msg ai">
+      안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요. Grok이 답변드립니다.
+    </div>
+  </div>
+  <!-- 입력 영역: 창조주 시나리오에서 ID로 안정적으로 숨김/복구 -->
+  <div id="askInputArea" style="padding:12px 18px;border-top:1px solid var(--bdr);background:var(--card)">
+    <div class="ask-input-row">
+      <textarea class="ask-input" id="askInp" placeholder="질문을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)" rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" onkeypress="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendAsk();}"></textarea>
+      <button class="ask-send" onclick="sendAsk()">전송</button>
+    </div>
+  </div>
+</div>
+
+<!-- 이의있음! -->
+<div class="obj-bg" id="objBg" onclick="closeObj()">
+  <div class="obj-modal" onclick="event.stopPropagation()">
+    <div class="obj-icon">⚖️</div>
+    <div class="obj-title">이의있음!</div>
+    <!-- v3.7 항목5: obj-sub — 컨텍스트(synonym/speak/general)별 안내문 분기 표시 -->
+    <div class="obj-desc obj-sub">정말로 이 답변이 틀렸다고 생각하십니까?<br>어디가 어떻게 왜 틀렸는지 구체적으로 적어주세요.<br><b>Grok 교차검증 후 인정 시</b> [반박의 화신] 카운터가 올라갑니다.</div>
+    <textarea class="obj-input" id="objInp" placeholder="반박 내용을 입력하세요..."></textarea>
+    <div class="obj-btns">
+      <button class="btn-g" style="flex:1" onclick="closeObj()">취소</button>
+      <button class="btn-acc" style="flex:2" onclick="submitObj()">반박 제출</button>
+    </div>
+  </div>
+</div>
+
+<!-- 데모 네비 -->
+<div id="demo-nav">
+  <button class="demb on" onclick="goNav('sl',this)">① 로그인</button>
+  <button class="demb" onclick="goNav('sn',this)">② 이름</button>
+  <button class="demb" onclick="goNav('sh',this)">③ 홈</button>
+  <button class="demb" onclick="goLearn('상식·어원','sq1',this)">④-1 상식</button>
+  <button class="demb" onclick="goLearn('세계사·신화','sq1',this)">④-2 세계사</button>
+  <button class="demb" onclick="goLearn('고사성어·속담','sq2',this)">④-3 고사성어</button>
+  <button class="demb" onclick="goLearn('한자·우리말','sq2',this)">④-4 한자</button>
+  <button class="demb" onclick="goLearn('맞춤법','sq3',this)">④-5 맞춤법</button>
+  <button class="demb" onclick="goLearn('아재개그','sq4',this)">④-6 아재</button>
+  <button class="demb" onclick="goLearn('구어 교정','sq5',this)">④-7 구어</button>
+  <button class="demb" onclick="goNav('sr',this)">⑤ 복습</button>
+  <button class="demb" onclick="goNav('sa',this)">⑥ 업적</button>
+  <button class="demb" onclick="goNav('ss',this)">⑦ 현황</button>
+  <button class="demb" onclick="goNav('sse',this)">⑧ 설정</button>
+  <button class="demb sp" onclick="showOb()">📖 온보딩</button>
+  <button class="demb sp" onclick="triggerLvUp()">🎉 레벨업</button>
+</div>
+
+<!-- ━━━ ① 로그인 ━━━
+     v3.7 항목1: 구글 로그인 강제화 확정 (KNOWLEDGE 28섹션)
+     - 비로그인·익명 로그인 옵션 폐기
+     - 진입 경로는 단일 「Google 계정으로 시작하기」 버튼만 유효
+     - 실제 Firebase Auth 연결은 Claude Code 단계 -->
+<div id="sl" class="screen active demo-offset">
+  <div class="lg-bg"><div class="lg-aura"></div></div>
+  <div class="lg-content">
+    <div class="lg-icon-wrap fu">📖</div>
+    <div class="lg-title fu s1">언어</div>
+    <div class="lg-sub fu s2">CODENAME · LANGUAGE</div>
+    <div class="lg-desc fu s3"><p>한국어 어휘력과 표현력을<br>게임처럼 키워가는<br>당신만의 학습 연대기</p></div>
+    <button class="btn-google fu s4" onclick="goNav('sn',null)"><span style="font-size:20px">🔵</span>Google 계정으로 시작하기</button>
+    <div class="fu s5" style="font-size:11px;color:var(--txtm);text-align:center;line-height:1.6">로그인 시 서비스 이용약관 및<br>개인정보 처리방침에 동의하게 됩니다</div>
+  </div>
+</div>
+
+<!-- ② 이름 입력 -->
+<div id="sn" class="screen demo-offset">
+  <div style="margin:auto;width:100%;max-width:340px;padding:40px 24px;display:flex;flex-direction:column;gap:20px">
+    <div class="fu" style="text-align:center"><h2 style="font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:6px">✨ 환영합니다!</h2><p style="font-size:13px;color:var(--txt2);line-height:1.75">학습 연대기에서 사용할<br>이름을 설정해 주세요</p></div>
+    <div class="fu s1">
+      <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:6px">이름 (닉네임)</label>
+      <input class="nm-inp" id="nmInp" type="text" placeholder="이름을 입력하세요" maxlength="12" oninput="updateNmPreview()">
+    </div>
+    <div class="nm-prev fu s2" id="nmPrev">
+      <div class="nm-av">⚔️</div>
+      <div><div class="nm-pname" id="nmPrevName">이름을 입력해 주세요</div><div class="nm-rank">🌱 새싹 · Lv.1 견습생</div></div>
+    </div>
+    <button class="btn-acc fu s3" style="width:100%" onclick="applyName()">학습 시작하기 →</button>
+    <div style="text-align:center;font-size:11px;color:var(--txtm)" class="fu s4">나중에 설정에서 변경 가능합니다</div>
+  </div>
+</div>
+
+<!-- ③ 홈 -->
+<div id="sh" class="screen demo-offset has-bnav">
+  <div class="hh">
+    <div class="hh-top">
+      <!-- v3.4: 하드코딩 제거. JS afterNav('sh')에서 사용자 객체로 주입 -->
+      <div class="fu"><div class="hg">오늘도 학습해 볼까요?</div><div class="hun" id="homeUser"></div></div>
+      <div class="hav fu s1" id="homeAvatar"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px" class="fu s2">
+      <div class="lbdg" id="homeLv"></div>
+      <div class="rn" id="homeRank"></div>
+      <div style="font-size:11px;color:var(--txt2)" id="homeTitle"></div>
+    </div>
+    <div class="fu s3">
+      <div class="exp-track"><div class="exp-fill" id="homeExp"></div></div>
+      <div class="exp-row"><span style="color:var(--txt2)">레벨 진행도</span><span id="homeExpTxt"></span></div>
+    </div>
+    <div class="stat-row fu s4">
+      <div class="stat-chip"><div class="sc-val" id="homeStreak"></div><div class="sc-lbl">연속 학습일</div></div>
+      <div class="stat-chip"><div class="sc-val" id="homeVocab"></div><div class="sc-lbl">누적 어휘</div></div>
+      <div class="stat-chip"><div class="sc-val" id="homeReview"></div><div class="sc-lbl">복습 대기</div></div>
+    </div>
+  </div>
+  <!-- v3.7 항목11,12: 오늘 한 문장 슬라이드 배너 (KNOWLEDGE 24섹션)
+       - 자동 순환은 JS에서 setInterval로 시간 기반 처리
+       - 카드 빈 곳 탭 → 다음 문장으로 즉시 전환 (항목12)
+       - 문장 내 학습 단어(.kc-word) 탭 → 해당 플래시카드로 이동 -->
+  <div class="kc fu s1" id="quoteCard" style="flex-shrink:0" onclick="quoteNext(event)">
+    <div class="kl">
+      <span>📜 오늘 한 문장</span>
+      <span style="font-size:9px;color:var(--txt2);font-weight:500;letter-spacing:.4px;text-transform:none">탭하면 다음 →</span>
+    </div>
+    <div id="quoteSlides" style="position:relative;min-height:64px">
+      <!-- JS에서 슬라이드 동적 생성 -->
+    </div>
+    <div class="kc-dots" id="quoteDots"></div>
+  </div>
+  <div class="hs">
+    <div class="sec-t">학습 모드</div>
+    <div class="mc fu s1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon">🌍</div><div style="flex:1"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon">📜</div><div style="flex:1"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s3" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon">🏛️</div><div style="flex:1"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s4" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon">😂</div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s5" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s6" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s7" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
+  </div>
+</div>
+
+<!-- ④-1 4지선다 (상식·어원, 세계사·신화 공용) -->
+<div id="sq1" class="screen demo-offset has-bnav">
+  <div class="top-bar">
+    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
+    <div class="tbt" id="sq1Title">상식·어원</div>
+    <div class="tag ta">+20</div>
+  </div>
+  <div class="qprog-wrap">
+    <div class="qpr-top"><div class="qmb" id="sq1Mode">🌍 4지선다</div><div class="qct">1 / 5 문제</div></div>
+    <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
+  </div>
+  <!-- v3.5: 학습 설정 패널 (접이식) -->
+  <div class="lset-panel" id="lsetSq1">
+    <div class="lset-hdr" onclick="toggleLset('lsetSq1')">
+      <div class="lset-hdr-left">⚙ 학습 설정</div>
+      <span class="lset-toggle">▼</span>
+    </div>
+    <div class="lset-body">
+      <div class="lset-row">
+        <span class="lset-row-lbl">방식</span>
+        <div class="lset-opts">
+          <button class="lset-opt on" onclick="setLsetMode('sq1','선택지',this)">선택지</button>
+          <button class="lset-opt" onclick="setLsetMode('sq1','직접입력',this)">직접입력</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="qbody" id="sq1Body">
+    <!-- JS로 동적 생성 -->
+  </div>
+  <!-- 학습 화면 하단 AI 챗 -->
+  <div style="padding:10px 18px 4px;flex-shrink:0">
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
+      <span style="font-size:14px">💬</span>
+      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ④-2 플래시카드 (고사성어, 한자우리말) -->
+<div id="sq2" class="screen demo-offset has-bnav">
+  <div class="top-bar">
+    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
+    <div class="tbt" id="sq2Title">고사성어·속담</div>
+    <div class="tag ta">+20</div>
+  </div>
+  <div class="qprog-wrap">
+    <div class="qpr-top"><div class="qmb" id="sq2Mode">📜 4지선다</div><div class="qct">1 / 8 카드</div></div>
+    <div class="qpbar"><div class="qpfill" style="width:12%"></div></div>
+  </div>
+  <!-- v3.5: 학습 설정 패널 (접이식) — v3.7 항목3·4·5: 4지선다 기본 + 5방식 -->
+  <div class="lset-panel" id="lsetSq2">
+    <div class="lset-hdr" onclick="toggleLset('lsetSq2')">
+      <div class="lset-hdr-left">⚙ 학습 설정</div>
+      <span class="lset-toggle">▼</span>
+    </div>
+    <div class="lset-body">
+      <div class="lset-row">
+        <span class="lset-row-lbl">방식</span>
+        <div class="lset-opts">
+          <button class="lset-opt on" onclick="setLsetMode('sq2','4지선다',this)">4지선다</button>
+          <button class="lset-opt" onclick="setLsetMode('sq2','뜻 직접 서술',this)">뜻 직접 서술</button>
+          <button class="lset-opt" onclick="setLsetMode('sq2','역방향',this)">역방향</button>
+          <button class="lset-opt" onclick="setLsetMode('sq2','유의어 변별',this)">유의어 변별</button>
+          <button class="lset-opt" onclick="setLsetMode('sq2','플래시카드',this)">플래시카드</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="qbody" id="sq2Body">
+    <!-- JS로 동적 생성 -->
+  </div>
+  <!-- 학습 화면 하단 AI 챗 -->
+  <div style="padding:10px 18px 4px;flex-shrink:0">
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
+      <span style="font-size:14px">💬</span>
+      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ④-3 3지선다 (맞춤법) -->
+<div id="sq3" class="screen demo-offset has-bnav">
+  <div class="top-bar">
+    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
+    <div class="tbt">맞춤법</div>
+    <div class="tag ta">+20</div>
+  </div>
+  <div class="qprog-wrap">
+    <div class="qpr-top"><div class="qmb">✏️ 3지선다</div><div class="qct">1 / 5 문제</div></div>
+    <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
+  </div>
+  <!-- v3.5: 학습 설정 패널 (접이식) -->
+  <div class="lset-panel" id="lsetSq3">
+    <div class="lset-hdr" onclick="toggleLset('lsetSq3')">
+      <div class="lset-hdr-left">⚙ 학습 설정</div>
+      <span class="lset-toggle">▼</span>
+    </div>
+    <div class="lset-body">
+      <div class="lset-row">
+        <span class="lset-row-lbl">방식</span>
+        <div class="lset-opts">
+          <button class="lset-opt on" onclick="setLsetMode('sq3','선택지',this)">선택지</button>
+          <button class="lset-opt" onclick="setLsetMode('sq3','직접입력',this)">직접입력</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="qbody" id="sq3Body">
+    <!-- JS로 동적 생성 -->
+  </div>
+  <!-- 학습 화면 하단 AI 챗 -->
+  <div style="padding:10px 18px 4px;flex-shrink:0">
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
+      <span style="font-size:14px">💬</span>
+      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ④-4 아재개그 -->
+<div id="sq4" class="screen demo-offset has-bnav">
+  <div class="top-bar">
+    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
+    <div class="tbt">아재개그</div>
+    <div class="tag ta">+20</div>
+  </div>
+  <div class="qprog-wrap">
+    <div class="qpr-top"><div class="qmb">😂 탭→공개</div><div class="qct">1 / 5 문제</div></div>
+    <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
+  </div>
+  <!-- v3.5: 학습 설정 패널 (접이식) — v3.7 항목13: 입력 방식 행 추가 -->
+  <div class="lset-panel" id="lsetSq4">
+    <div class="lset-hdr" onclick="toggleLset('lsetSq4')">
+      <div class="lset-hdr-left">⚙ 학습 설정</div>
+      <span class="lset-toggle">▼</span>
+    </div>
+    <div class="lset-body">
+      <div class="lset-row">
+        <span class="lset-row-lbl">난이도</span>
+        <div class="lset-opts">
+          <button class="lset-opt on" onclick="setLsetMode('sq4','아↗그거!',this)">아↗그거!</button>
+          <button class="lset-opt" onclick="setLsetMode('sq4','UP¡¿',this)">UP¡¿</button>
+        </div>
+      </div>
+      <!-- v3.7 항목13: 입력 방식 추가 (KNOWLEDGE 2-2 갱신) -->
+      <div class="lset-row">
+        <span class="lset-row-lbl">입력 방식</span>
+        <div class="lset-opts">
+          <button class="lset-opt on" onclick="setLsetMode('sq4_input','선택지',this)">선택지</button>
+          <button class="lset-opt" onclick="setLsetMode('sq4_input','직접입력',this)">직접입력</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="qbody" id="sq4Body">
+    <!-- JS로 동적 생성 -->
+  </div>
+  <!-- 학습 화면 하단 AI 챗 -->
+  <div style="padding:10px 18px 4px;flex-shrink:0">
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
+      <span style="font-size:14px">💬</span>
+      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ④-5 구어 교정 -->
+<div id="sq5" class="screen demo-offset has-bnav">
+  <div class="top-bar">
+    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
+    <div class="tbt">구어 교정</div>
+    <div class="tag ta">+60</div>
+  </div>
+  <div class="spk-info">
+    <div class="spk-info-text">일상에서 쓰는 말투를 직장·회의·고객 응대 상황에 맞는 격식 표현으로 다듬어 드립니다.</div>
+  </div>
+  <div class="spk-body">
+    <div class="spk-input-area">
+      <div class="spk-mode-tabs">
+        <div class="spk-mode-btn on" id="spkMText" onclick="switchSpkMode('text')">⌨️ 텍스트</div>
+        <div class="spk-mode-btn" id="spkMVoice" onclick="switchSpkMode('voice')">🎤 음성</div>
+      </div>
+      <div id="spkTextArea">
+        <textarea class="spk-textarea" id="spkInput" placeholder="다듬고 싶은 말을 입력하세요. 여러 문장도 가능합니다.">고객님 환불은 불가능합니다</textarea>
+      </div>
+      <div id="spkVoiceArea" style="display:none">
+        <div class="spk-not-impl">
+          <div class="spk-not-impl-icon">🎤</div>
+          <div class="spk-not-impl-text">음성 입력은 미구현 상태입니다</div>
+          <div class="spk-not-impl-desc">Whisper.js 연동은 Claude Code 단계에서<br>구현될 예정입니다.</div>
+        </div>
+      </div>
+      <button class="btn-acc spk-submit" onclick="submitSpk()">분석하기</button>
+    </div>
+
+    <div class="spk-result" id="spkResult">
+      <div class="spk-result-title">교정 결과</div>
+      <div class="spk-orig" id="spkOrigTxt">고객님 환불은 불가능합니다</div>
+      <div class="spk-fix">고객님, 환불이 어려운 점 양해 부탁드립니다.</div>
+      <div class="spk-tip">"불가능"은 강하게 거절하는 인상을 줍니다. "어려운 점 양해 부탁드립니다"는 동일한 의미를 정중하게 전달하면서 고객의 감정을 배려합니다.</div>
+    </div>
+  </div>
+  <!-- 학습 화면 하단 AI 챗 -->
+  <div style="padding:10px 18px 4px;flex-shrink:0">
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
+      <span style="font-size:14px">💬</span>
+      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ⑤ 복습 -->
+<div id="sr" class="screen demo-offset has-bnav">
+  <div class="top-bar"><div></div><div class="tbt">복습 관리</div><div></div></div>
+  <div class="seg" style="flex-shrink:0">
+    <button class="seg-btn on" id="rvT0" onclick="switchRvTab(0)">📥 대기열 (<span id="rvQCnt">0</span>)</button>
+    <button class="seg-btn" id="rvT1" onclick="switchRvTab(1)">⭐ 즐겨찾기 (<span id="rvFCnt">0</span>)</button>
+    <button class="seg-btn" id="rvT2" onclick="switchRvTab(2)">🗑️ 휴지통 (<span id="rvBCnt">0</span>)</button>
+  </div>
+
+  <!-- v3.5: 전체 동적 렌더링. JS의 renderReview() 함수가 채움 -->
+  <div id="rvQueue" class="rv-body"></div>
+  <div id="rvFav" class="rv-body" style="display:none"></div>
+  <div id="rvBin" class="rv-body" style="display:none"></div>
+</div>
+
+<!-- ⑥ 업적 -->
+<div id="sa" class="screen demo-offset has-bnav">
+  <div class="top-bar"><div></div><div class="tbt">업적</div><div></div></div>
+  <div class="ach-sum">
+    <div class="ach-si"><div class="ach-sn">3</div><div class="ach-sl">획득</div></div>
+    <div class="ach-divider"></div>
+    <div class="ach-si"><div class="ach-sn" style="color:var(--ok)">5</div><div class="ach-sl">진행 중</div></div>
+    <div class="ach-divider"></div>
+    <div class="ach-si"><div class="ach-sn" style="color:var(--txtm)">12</div><div class="ach-sl">미달성</div></div>
+  </div>
+  <div class="ach-body" id="achBody">
+    <!-- JS로 동적 생성 -->
+  </div>
+</div>
+
+<!-- ⑦ 현황 (CMD tree) -->
+<div id="ss" class="screen demo-offset has-bnav">
+  <div class="top-bar"><div></div><div class="tbt">현황</div><div></div></div>
+  <div class="st-body">
+    <div class="st-prof fu">
+      <div class="st-av" id="statusAvatar"></div>
+      <div style="flex:1">
+        <!-- v3.4: 하드코딩 제거. JS afterNav('ss')에서 사용자 객체로 주입 -->
+        <div class="st-name" id="statusUser"></div>
+        <div class="st-ttl">🏷️ <span id="statusTitle"></span> &nbsp;<span id="statusSubTitle" class="status-sub-title"></span></div>
+        <div class="st-lv-row"><div class="lbdg" id="statusLv"></div><div class="st-lv" id="statusGrade"></div></div>
+      </div>
+    </div>
+    <div class="tree-wrap" id="treeWrap"></div>
+    <!-- 성장 상세 화면 진입 버튼 -->
+    <button class="btn-g" style="width:100%;padding:13px;font-size:13px;margin-top:4px;border-radius:10px" onclick="goNav('sg',null)">🌱 성장 상세 보기 →</button>
+  </div>
+</div>
+
+<!-- ⑦-1 성장 상세 화면 (sg) — Claude Code 단계에서 완전 구현 예정 -->
+<div id="sg" class="screen demo-offset has-bnav">
+  <div class="top-bar">
+    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('ss',null)">← 나가기</button>
+    <div class="tbt">성장 상세</div>
+    <div></div>
+  </div>
+  <div style="padding:32px 24px;text-align:center;color:var(--txt2);font-size:13px;line-height:2">
+    <!-- Claude Code 단계에서 구현 예정:
+         - 현재 소칭호 + 전체 로드맵 (필멸자→주신→폐하)
+         - EXP 전체 진행 바
+         - EXP 획득 방법 안내 -->
+    <div style="font-size:36px;margin-bottom:16px">🌱</div>
+    <div style="font-size:15px;color:var(--txt);font-weight:700;margin-bottom:8px">성장 상세 화면</div>
+    <div>소칭호 전체 로드맵 · EXP 진행 현황<br>Claude Code 단계에서 구현됩니다.</div>
+  </div>
+</div>
+
+<!-- ⑧ 설정 -->
+<div id="sse" class="screen demo-offset has-bnav">
+  <div class="top-bar"><div></div><div class="tbt">설정</div><div></div></div>
+  <div class="set-body">
+    <div class="set-prof fu">
+      <div class="set-av" id="settingsAvatar"></div>
+      <div style="flex:1">
+        <!-- v3.4: 하드코딩 제거. JS afterNav('sse')에서 사용자 객체로 주입 -->
+        <div class="set-nm" id="settingsUser"></div>
+        <div class="set-ttl">🏷️ <span id="settingsTitle"></span></div>
+        <div class="set-em" id="settingsEmail"></div>
+      </div>
+      <button class="set-eb" onclick="openNmModal()">이름 변경</button>
+    </div>
+
+    <div class="set-sec fu s1">
+      <div class="set-lbl">외관</div>
+      <div class="set-row" style="cursor:default">
+        <span class="sri">🌙</span>
+        <div style="flex:1"><div class="srl">화면 모드</div><div class="srs" id="modeSubTxt">다크 모드</div></div>
+        <div class="mtw">
+          <span class="ml" id="lblD" style="color:var(--acc);font-weight:700">다크</span>
+          <label class="mt"><input type="checkbox" id="modeToggle" onchange="toggleMode()"><div class="mtt"><div class="mtth"></div></div></label>
+          <span class="ml" id="lblL">라이트</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-sec fu s2">
+      <div class="set-lbl">테마 선택</div>
+      <div class="th-grid">
+        <div class="tc on" id="th-antique" onclick="setTheme('antique')"><div class="tp-bg tp-a"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">📜 고서</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-navy" onclick="setTheme('navy')"><div class="tp-bg tp-n"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">🌊 네이비</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-midnight" onclick="setTheme('midnight')"><div class="tp-bg tp-m"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">🌌 미드나이트</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-paper" onclick="setTheme('paper')"><div class="tp-bg tp-p"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr" style="background:#ede8df;border-top-color:#d8d0c0"><span class="tnm" style="color:#281e12">📄 페이퍼</span><span class="tck" style="color:#7a5228">✓</span></div></div>
+        <div class="tc" id="th-forest" onclick="setTheme('forest')"><div class="tp-bg tp-f"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">🌲 포레스트</span><span class="tck">✓</span></div></div>
+        <div class="tc" onclick="showInfoModal('🎨','커스텀 테마','커스텀 테마 자체는 색상·폰트를 직접 설정할 수 있는 에디터로 곧 구현됩니다.<br><br>10슬롯 프로필 저장 기능만 Claude Code 단계로 보류 중입니다.')"><div class="tp-bg" style="height:48px;background:linear-gradient(135deg,var(--bg),var(--elev),var(--accd));position:relative"><div class="tdots"><div class="td" style="background:#8080ff"></div><div class="td" style="background:#e8e8f0"></div><div class="td" style="background:#404090"></div></div></div><div class="tnr"><span class="tnm">🎨 커스텀</span><span class="tck">✓</span></div></div>
+      </div>
+    </div>
+
+    <div class="set-sec fu s3">
+      <div class="set-lbl">학습</div>
+      <div class="set-row" onclick="openHistoryFilter()">
+        <span class="sri">📋</span>
+        <div style="flex:1"><div class="srl">최근 출제 제외</div><div class="srs" id="histFilterTxt">사용 안함</div></div>
+        <span class="sra">›</span>
+      </div>
+      <div class="set-row" style="cursor:default">
+        <span class="sri">🤖</span>
+        <div style="flex:1"><div class="srl">AI 문제만 출제</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
+        <div class="mtw"><label class="mt"><input type="checkbox" id="aiOnlyToggle" onchange="toggleAiOnly()"><div class="mtt"><div class="mtth"></div></div></label></div>
+      </div>
+      <div class="set-row" onclick="showInfoModal('📜','히스토리 확인','각 모드별 최근 출제된 문제 목록을 확인할 수 있습니다. (읽기 전용)<br><br>실제 앱에서는 카테고리별 아코디언으로 표시됩니다.')">
+        <span class="sri">📜</span>
+        <div style="flex:1"><div class="srl">히스토리 확인</div><div class="srs">최근 출제 문제 보기</div></div>
+        <span class="sra">›</span>
+      </div>
+      <div class="set-row" onclick="질문하기_사용량_모달()">
+        <span class="sri">💬</span>
+        <div style="flex:1"><div class="srl">질문하기 사용량</div><div class="srs" id="askQuotaSetTxt">오늘 0 / 100회</div></div>
+        <span class="sra">›</span>
+      </div>
+      <div class="set-row" onclick="showOb()">
+        <span class="sri">📖</span>
+        <div style="flex:1"><div class="srl">앱 안내 다시 보기</div></div>
+        <span class="sra">›</span>
+      </div>
+    </div>
+
+    <div class="set-sec fu s4">
+      <div class="set-lbl">기타</div>
+      <div class="set-row" onclick="openFontSelect()">
+        <span class="sri">🔤</span>
+        <div style="flex:1"><div class="srl">폰트 설정</div><div class="srs" id="fontTxt">고운 바탕</div></div>
+        <span class="sra">›</span>
+      </div>
+    </div>
+
+    <div class="set-sec fu s5">
+      <div class="set-lbl">계정</div>
+      <div class="set-row">
+        <span class="sri">👤</span>
+        <div style="flex:1"><div class="srl">구글 계정</div><div class="srs" id="settingsEmail2"></div></div>
+        <span class="sra">›</span>
+      </div>
+      <div class="set-row" onclick="showInfoModal('🚪','로그아웃','정말 로그아웃 하시겠습니까?<br><br>(데모에서는 동작하지 않습니다)')">
+        <span class="sri">🚪</span>
+        <div style="flex:1"><div class="srl">로그아웃</div></div>
+        <span class="sra">›</span>
+      </div>
+    </div>
+
+    <div class="set-sec fu s6" style="border-color:rgba(192,112,112,.3)">
+      <div class="set-lbl" style="color:var(--err)">위험 구역</div>
+      <div class="set-row" onclick="showInfoModal('⚠️','학습 데이터 초기화','레벨·EXP·마스터리·복습 대기열·휴지통·연속 학습일·업적이 모두 초기화됩니다.<br><br>앱 설정(테마·폰트)·구글 계정·즐겨찾기는 유지됩니다.')">
+        <span class="sri" style="color:var(--err)">⚠️</span>
+        <div style="flex:1"><div class="srl" style="color:var(--err)">학습 데이터 초기화</div><div class="srs">진행 상황을 모두 리셋합니다</div></div>
+        <span class="sra">›</span>
+      </div>
+      <div class="set-row" id="devModeRow" onclick="개발자모드_탭()">
+        <span class="sri" id="devModeIcon">🔒</span>
+        <div style="flex:1"><div class="srl" id="devModeLabel" style="color:var(--txtm)">개발자 모드</div><div class="srs" id="devModeDesc">[창조주] 달성 후 활성화</div></div>
+        <span class="sra" id="devModeArrow" style="color:var(--txtm)">›</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 질문하기 FAB -->
+<!-- 질문하기 FAB 제거됨 (v3.4) — 학습 화면 하단 AI 챗 바로 통합 -->
+
+<!-- 바텀 네비 -->
+<nav id="g-bnav" class="hidden">
+  <button class="nv-btn" id="nb-sh" onclick="goNav('sh',null)"><span class="nv-icon">🏠</span><span>홈</span></button>
+  <button class="nv-btn" id="nb-sr" onclick="goNav('sr',null)"><span class="nv-icon">🔁</span><span>복습</span></button>
+  <button class="nv-btn" id="nb-sa" onclick="goNav('sa',null)"><span class="nv-icon">🏆</span><span>업적</span></button>
+  <button class="nv-btn" id="nb-ss" onclick="goNav('ss',null)"><span class="nv-icon">📊</span><span>현황</span></button>
+  <button class="nv-btn" id="nb-sse" onclick="goNav('sse',null)"><span class="nv-icon">⚙️</span><span>설정</span></button>
+</nav>
+
+<script>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ⚠️⚠️⚠️ 데모 전용 더미 데이터 ⚠️⚠️⚠️
+   Firebase 연동 시 이 블록 전체 삭제
+   실제 DB 구조는 KNOWLEDGE 13-1섹션 참조
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const 사용자 = {
+  // 기본 정보
+  이름: '홍길동',
+  이메일: 'honggildong@gmail.com',
+  프로필이미지: '⚔️',
+
+  // 성장 데이터
+  레벨: 15,
+  현재EXP: 240,
+  연속학습일: 3,
+  총학습일: 12,
+
+  // 마스터리 카운터 (KNOWLEDGE 13섹션)
+  상식어원학습수: 8,
+  언어의뿌리학습수: 18,
+  세계사신화학습수: 0,
+  아재개그학습수: 1,
+  맞춤법학습수: 4,
+  구어교정횟수: 0,
+  이의제기횟수: 0,
+  반박성공횟수: 0,
+  퍼펙트세션수: 2,
+  총누적어휘수: 142,
+
+  // 보관함 카운트 (실제 항목 수와 일치)
+  복습대기열수: 4,
+  복습대기열상한: 50,
+  즐겨찾기수: 2,
+  휴지통수: 2,
+
+  // 업적/창조주
+  창조주달성: false,
+  개발자모드: false,
+};
+/* ⚠️ 데모 전용 더미 데이터 끝 — Firebase 연동 시 위 블록 삭제 ⚠️ */
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ⚠️ 데모 전용 — 복습 시스템 더미 데이터
+   Firebase 연동 시 서브컬렉션으로 교체 (KNOWLEDGE 13-1 참조)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 복습데이터 = {
+  대기열: [
+    {id:1, 단어:'가렴주구 (苛斂誅求)', 뜻:'세금을 혹독하게 거두고 재물을 강제로 빼앗음', 모드:'고사성어', 모드클래스:'ta', 연속정답수:2, 즐겨찾기:false},
+    {id:2, 단어:'필연 (必然)', 뜻:'사물의 관련이나 일의 결과가 반드시 그렇게 되는 것', 모드:'한자어', 모드클래스:'ta', 연속정답수:0, 즐겨찾기:false},
+    {id:3, 단어:'되 vs 돼', 뜻:'"되"는 어간, "돼"는 "되어"의 줄임말', 모드:'맞춤법', 모드클래스:'tg', 연속정답수:1, 즐겨찾기:false},
+    {id:4, 단어:'새옹지마 (塞翁之馬)', 뜻:'인생의 길흉화복은 변화가 많아 예측하기 어려움', 모드:'고사성어', 모드클래스:'ta', 연속정답수:1, 즐겨찾기:true},
+  ],
+  즐겨찾기: [
+    {id:101, 단어:'윤슬', 뜻:'햇빛이나 달빛에 비치어 반짝이는 잔물결', 모드:'우리말 🇰🇷', 모드클래스:'tp'},
+    {id:102, 단어:'새옹지마 (塞翁之馬)', 뜻:'인생의 길흉화복은 변화가 많아 예측하기 어려움', 모드:'고사성어', 모드클래스:'ta'},
+  ],
+  휴지통: [
+    {id:201, 단어:'언 발에 오줌 누기', 뜻:'잠깐의 미봉책으로 급한 것만 면하는 어리석음', 모드:'속담', 모드클래스:'ta', 잔여일:3},
+    {id:202, 단어:'는 vs 던', 뜻:'"는"은 현재, "던"은 과거의 회상', 모드:'맞춤법', 모드클래스:'tg', 잔여일:14},
+  ]
+};
+let 복습데이터다음ID = 300;
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   상태 변수
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let curScreen='sl';
+let userName=사용자.이름;
+let curExp=사용자.현재EXP, curLv=사용자.레벨;
+let curTheme='antique';
+let curFont='gowun';
+const LIGHTS=['paper'];
+
+// 레벨업 공식: 110 + (레벨-1) × 28
+function expForLevel(lv){ return 110 + (lv-1)*28; }
+let maxExp=expForLevel(curLv);
+
+// 등급 계산 (레벨로부터 자동 산출)
+function 등급정보(lv){
+  if(lv>=50) return {등급:'현자', 세부:'마에스트로'};
+  if(lv>=45) return {등급:'통찰가', 세부:'통달자'};
+  if(lv>=40) return {등급:'통찰가', 세부:'철학가'};
+  if(lv>=30) return {등급:'통찰가', 세부:'탐험가'};
+  if(lv>=25) return {등급:'논객', 세부:'전략가'};
+  if(lv>=20) return {등급:'논객', 세부:'분석가'};
+  if(lv>=15) return {등급:'문장가', 세부:'표현가'};
+  if(lv>=10) return {등급:'문장가', 세부:'조율사'};
+  if(lv>=5) return {등급:'견습생', 세부:'길드는 자'};
+  return {등급:'견습생', 세부:'새싹'};
+}
+
+// 소칭호 계산 (현황 탭 전용)
+// v3.6: 창조주 달성 시 레벨 무관 '폐하' 반환 (최우선)
+function 소칭호계산(lv, 창조주달성){
+  if(창조주달성) return '폐하';
+  if(lv>=50) return '성위';
+  if(lv>=40) return '초월자';
+  return '필멸자';
+}
+
+// 설정
+let histFilter='off'; // off / 30 / 50 / 80 / 100 / 120
+let aiOnly=false;
+
+// 온보딩
+// v3.6: KNOWLEDGE 23섹션 4장 확정 일치 (구 5장에서 '레벨업' 슬라이드 삭제)
+let obIdx=0;
+const OB_TOTAL=4;
+
+// 명언 풀
+// v3.7 항목11: 「오늘 한 문장」 슬라이드 배너 데이터 (KNOWLEDGE 24섹션)
+// 문장 안에 학습 단어가 자연스럽게 녹아있는 구조. 단어 탭 → 해당 플래시카드로 이동.
+// {t: 본문(단어를 [필연] 형태로 표시), a: 출처, words: 추출된 단어 매핑}
+// Claude Code 단계에서 data/명언.json으로 분리 예정
+const QUOTES=[
+  {t:'"우리는 우리가 반복하는 행위로 만들어진다. 그러므로 [탁월함]이란 행위가 아니라 [습관]이다."', a:'— 아리스토텔레스'},
+  {t:'"[언어]의 한계는 곧 내 [세계]의 한계이다."', a:'— 비트겐슈타인'},
+  {t:'"[운명]의 별이 이어준 우리의 우연 같은 [필연]"', a:'— 작자 미상'},
+  {t:'"[독서]는 충실한 사람을 만들고, [글쓰기]는 정확한 사람을 만든다."', a:'— 프랜시스 베이컨'},
+  {t:'"우리가 사용하는 [언어]가 우리가 누구인지를 결정한다."', a:'— 토니 모리슨'},
+  {t:'"[문자]는 인간 정신의 거울이다."', a:'— 라이프니츠'},
+];
+
+// v3.7 항목7: 이름 미입력 시 기본값 풀 (KNOWLEDGE 27섹션)
+// 빈 입력으로 학습 시작 누르면 풀에서 랜덤 1개 선택
+const 기본이름풀=[
+  '이름은 나중에','그냥 지나가는 학습자','아무거나요','미확정',
+  '학습 중인 그 누군가','null','undefined','noname','N/A'
+];
+// 희귀 닉네임 풀 보류 — 코드에 주석 보존 (KNOWLEDGE 27섹션)
+// 웹툰 캐릭터 이름 기반 아이디어. 추후 결정.
+// 예: '한로아의 그림자','시이나의 메아리','김정구의 잔향' 등
+
+// v3.7 항목6: 폰트 확정 10종 (KNOWLEDGE 19섹션, v3.7 최종 갱신)
+// CDN 4종 + base64 임베딩 6종 (GraceSerif 제거, Asummerflowertree 추가)
+const FONTS=[
+  // ━━━ CDN 4종 ━━━
+  {key:'nanum_gothic',   name:'나눔고딕',          css:"'NanumGothic',sans-serif",             sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
+  {key:'nanum_myeongjo', name:'나눔명조',          css:"'NanumMyeongjo',serif",                sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
+  {key:'nanum_square',   name:'나눔스퀘어 Neo',    css:"'NanumSquareNeoVariable',sans-serif",  sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
+  {key:'mona',           name:'모나 (Mona)',        css:"'Mona-Sans',sans-serif",               sample:'Language & 언어 1234', src:'CDN · jsDelivr · OFL (라틴 전용)', credit:'OFL'},
+  // ━━━ base64 임베딩 6종 ━━━
+  {key:'asummer',        name:'Asummerflowertree', css:"'EarlySummerFloweringTreeV20JangHyeri',sans-serif",       sample:'한국어 어휘력과 표현력을', src:'임베딩 · 스스로넷 · 상업 라이선스 확인 필요', credit:'무료 배포'},
+  {key:'round',          name:'라운드앤라운드',    css:"'RoundedKimGyuri',sans-serif",           sample:'한국어 어휘력과 표현력을', src:'임베딩 · 스스로넷 · 상업 라이선스 확인 필요', credit:'무료 배포'},
+  {key:'taebaek',        name:'태백체',            css:"'TaebaekMilkyWay',sans-serif",                 sample:'한국어 어휘력과 표현력을', src:'임베딩 · 태백시 · 공공누리 1유형', credit:'공공누리 1유형'},
+  {key:'leeseoyun',      name:'이서윤체',          css:"'IsYun',sans-serif",               sample:'한국어 어휘력과 표현력을', src:'임베딩 · 구글드라이브 · 상업 라이선스 확인 필요', credit:'무료 배포'},
+  {key:'songam',         name:'송암 이형식',       css:"'SongamLeeHyeongSik',serif",            sample:'한국어 어휘력과 표현력을', src:'임베딩 · 공유마당 · 공공누리', credit:'공공누리'},
+  {key:'pyeongchang',    name:'평창평화체 Light',  css:"'PyeongchangPeace',sans-serif",   sample:'한국어 어휘력과 표현력을', src:'임베딩 · 평창군 공식 · 공공누리', credit:'공공누리'},
+];
+
+// v3.7 항목4: 유의어 변별 데이터 (KNOWLEDGE 3-2섹션, 3단계 구조)
+// correct(정답/초록) / acceptable(근사 정답/노랑) / wrong(오답/빨강)
+const 유의어변별데이터=[
+  {
+    예문: '그 일은 일어날 수밖에 없는 [   ]이었다.',
+    correct:    {w:'필연', def:'반드시 일어날 수밖에 없는 일'},
+    acceptable: [
+      {w:'숙명', def:'태어날 때부터 정해진 운명', reason:'의미가 겹치지만 「운명적 색채」가 강하여 맥락에 따라 덜 정확함'}
+    ],
+    wrong: [
+      {w:'우연', def:'뜻하지 않게 어쩌다가 일어남'},
+      {w:'추측', def:'미루어 짐작함'}
+    ]
+  },
+  {
+    예문: '그 시절을 [   ]하며 미소 지었다.',
+    correct:    {w:'회상', def:'지나간 일을 돌이켜 생각함'},
+    acceptable: [
+      {w:'추억', def:'지나간 일을 돌이켜 생각함, 또는 그런 생각', reason:'명사적 의미는 동일하나 동작 동사로 자연스럽지 못함'}
+    ],
+    wrong: [
+      {w:'예상', def:'어떤 일이 있기 전에 미리 생각함'},
+      {w:'환상', def:'현실에 없는 것을 있는 것처럼 느끼는 인식'}
+    ]
+  }
+];
+
+/* 바텀 네비 */
+/* 바텀 네비 표시 화면 목록 */
+const SHOW_NAV=['sh','sq1','sq2','sq3','sq4','sq5','sr','sa','ss','sse','sg'];
+/* 바텀 네비 활성 매핑 (학습 모드는 모두 '홈' 강조, sg는 현황 탭 강조) */
+const NAV_MAP={'sh':'nb-sh','sr':'nb-sr','sa':'nb-sa','ss':'nb-ss','sse':'nb-sse','sg':'nb-ss','sq1':'nb-sh','sq2':'nb-sh','sq3':'nb-sh','sq4':'nb-sh','sq5':'nb-sh'};
+/* (v3.4 미사용) FAB 표시 대상 학습 화면 — FAB 제거됐으나 호환용 보존 */
+const ASK_FAB_SCREENS=['sq1','sq2','sq3','sq4','sq5'];
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   화면 전환 (slideIn / slideOut)
+   - curScreen에서 id로 이동
+   - btn은 데모 네비 버튼 활성화 표시용 (선택)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function goNav(id, btn){
+  if(id===curScreen) return;
+  const prev=document.getElementById(curScreen);
+  const next=document.getElementById(id);
+  if(!next) return;
+
+  // 이전 화면: 슬라이드아웃 후 active 제거
+  if(prev){
+    prev.classList.remove('active','entering');
+    prev.classList.add('leaving');
+    setTimeout(()=>{prev.classList.remove('leaving')},280);
+  }
+
+  next.classList.add('active');
+  // v3.7 항목18: 화면 전환 시 scrollTop 초기화 (이전 화면의 스크롤 잔재 방지)
+  next.scrollTop=0;
+  next.querySelectorAll('.qbody, .ach-list, .set-body, .seg-content').forEach(el=>{ el.scrollTop=0; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    next.classList.add('entering');
+    next.querySelectorAll('.fu').forEach(e=>{e.style.animation='none';void e.offsetWidth;e.style.animation='';});
+    setTimeout(()=>next.classList.remove('entering'),400);
+  }));
+
+  curScreen=id;
+
+  const bnav=document.getElementById('g-bnav');
+  if(SHOW_NAV.includes(id)){
+    bnav.classList.remove('hidden');
+    document.querySelectorAll('.nv-btn').forEach(b=>b.classList.remove('on'));
+    const activeId=NAV_MAP[id];
+    if(activeId) document.getElementById(activeId)?.classList.add('on');
+  } else {
+    bnav.classList.add('hidden');
+  }
+
+  // FAB 제거됨 — 학습 화면 하단 AI 챗 바만 유지
+
+  document.querySelectorAll('.demb').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+
+  // v3.7 항목11,12: 슬라이드 자동 순환 — 홈 진입 시 시작, 그 외 정지
+  if(id==='sh'){ 슬라이드시작(); } else { 슬라이드정지(); }
+
+  afterNav(id);
+}
+
+function afterNav(id){
+  if(id==='sh'){
+    // 홈 화면: 사용자 객체 기반 렌더링
+    const 등급 = 등급정보(curLv);
+    document.getElementById('homeUser').textContent=userName;
+    document.getElementById('homeAvatar').textContent=사용자.프로필이미지;
+    document.getElementById('homeLv').textContent='Lv.'+curLv;
+    document.getElementById('homeRank').textContent=등급.등급;
+    document.getElementById('homeTitle').textContent='· '+등급.세부;
+    document.getElementById('homeExpTxt').textContent=`${curExp} / ${maxExp} EXP`;
+    document.getElementById('homeStreak').textContent='🔥 '+사용자.연속학습일;
+    document.getElementById('homeVocab').textContent='📚 '+사용자.총누적어휘수;
+    document.getElementById('homeReview').textContent='📝 '+사용자.복습대기열수;
+
+    // EXP 바 애니메이션 (transition:none → rAF 두 번 → transition 복구)
+    const bar=document.getElementById('homeExp');
+    bar.classList.add('instant');
+    bar.style.width='0%';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      bar.classList.remove('instant');
+      bar.style.width=(curExp/maxExp*100)+'%';
+    }));
+
+    // v3.7 항목11: 「오늘 한 문장」 슬라이드 빌더 호출 (KNOWLEDGE 24섹션)
+    슬라이드빌드();
+  }
+  if(id==='ss'){
+    // 현황 탭: 사용자 객체 + 소칭호 계산
+    const 등급 = 등급정보(curLv);
+    document.getElementById('statusUser').textContent=userName;
+    document.getElementById('statusAvatar').textContent=사용자.프로필이미지;
+    document.getElementById('statusTitle').textContent=등급.세부;
+
+    // v3.6: 창조주 달성 시 소칭호 자체가 '폐하'로 변경 + 황금빛 강조
+    const 소칭호엘 = document.getElementById('statusSubTitle');
+    소칭호엘.textContent='('+소칭호계산(curLv, 사용자.창조주달성)+')';
+    if(사용자.창조주달성) 소칭호엘.classList.add('creator');
+    else 소칭호엘.classList.remove('creator');
+
+    document.getElementById('statusLv').textContent='Lv.'+curLv;
+    document.getElementById('statusGrade').textContent=등급.등급;
+    renderTree();
+  }
+  if(id==='sse'){
+    // 설정: 사용자 객체 기반
+    const 등급 = 등급정보(curLv);
+    document.getElementById('settingsUser').textContent=userName;
+    document.getElementById('settingsAvatar').textContent=사용자.프로필이미지;
+    document.getElementById('settingsTitle').textContent=등급.세부;
+    document.getElementById('settingsEmail').textContent=사용자.이메일;
+    document.getElementById('settingsEmail2').textContent=사용자.이메일;
+
+    // v3.5: 창조주 달성 시 개발자 모드 항목 활성화 표시
+    갱신_설정_개발자모드_UI();
+  }
+  if(id==='sa'){
+    renderAchievements();
+  }
+  if(id==='sr'){
+    // v3.5: 복습 화면 진입 시 동적 렌더링
+    renderReview();
+  }
+  // 학습 모드 진입 시 항상 초기화
+  if(id==='sq2'){
+    setTimeout(initFlashcard,50);
+  }
+  if(id==='sq4'){
+    setTimeout(initDad,50);
+  }
+}
+
+/* 학습 모드 진입 — 카테고리별 화면/렌더 분기 */
+function goLearn(category, screenId, btn){
+  goNav(screenId, btn);
+  // 4지선다 화면(sq1) — 상식·어원 / 세계사·신화 분기
+  if(screenId==='sq1'){
+    document.getElementById('sq1Title').textContent=category;
+    if(category==='상식·어원'){
+      document.getElementById('sq1Mode').textContent='🌍 4지선다';
+      renderQuiz4(QUIZ_COMMON);
+    } else {
+      document.getElementById('sq1Mode').textContent='🏛️ 4지선다';
+      renderQuiz4(QUIZ_HISTORY);
+    }
+  }
+  // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말 분기
+  if(screenId==='sq2'){
+    document.getElementById('sq2Title').textContent=category;
+    if(category==='고사성어·속담'){
+      document.getElementById('sq2Mode').textContent='📜 4지선다';
+      renderFlashcard(FC_GOSAEONGEO);
+    } else {
+      document.getElementById('sq2Mode').textContent='🈯 4지선다';
+      renderFlashcard(FC_HANJA);
+    }
+  }
+  if(screenId==='sq3'){
+    renderQuiz3(QUIZ_SPELL);
+  }
+  if(screenId==='sq4'){
+    // v3.6: 초기 진입 시 학습설정.sq4 값 기반으로 데이터 선택 + 패널 버튼 상태 동기화
+    const 현재난이도 = 학습설정.sq4 || '아↗그거!';
+    renderDad(DAD_GAGS_BY_DIFFICULTY[현재난이도] || DAD_GAGS_BY_DIFFICULTY['아↗그거!']);
+    동기화_학습설정_버튼('sq4', 현재난이도);
+  }
+}
+
+/* v3.6 신규: 학습 설정 패널 진입 시 버튼 활성 상태를 학습설정 값과 동기화
+   현재는 sq4(아재개그 난이도)만 사용하지만 향후 sq1/sq2/sq3 확장 시 동일 패턴 적용 가능 */
+function 동기화_학습설정_버튼(screenId, 현재값){
+  const 패널 = document.getElementById('lset' + screenId.charAt(0).toUpperCase() + screenId.slice(1));
+  if(!패널) return;
+  패널.querySelectorAll('.lset-opt').forEach(b=>{
+    // 버튼 텍스트가 현재값과 일치하면 on, 아니면 off
+    b.classList.toggle('on', b.textContent.trim() === 현재값);
+  });
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   온보딩
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function renderObDots(){
+  const c=document.getElementById('obDots');
+  c.innerHTML='';
+  for(let i=0;i<OB_TOTAL;i++){
+    const d=document.createElement('div');
+    d.className='ob-dot'+(i===obIdx?' on':'');
+    c.appendChild(d);
+  }
+}
+function setObSlide(i){
+  document.querySelectorAll('.ob-slide').forEach(s=>{
+    const idx=parseInt(s.dataset.i);
+    s.classList.remove('active','exit');
+    if(idx===i) s.classList.add('active');
+    else if(idx<i) s.classList.add('exit');
+  });
+  obIdx=i;
+  document.getElementById('obProg').style.width=((i+1)/OB_TOTAL*100)+'%';
+  renderObDots();
+  // 버튼 상태
+  document.getElementById('obPrev').classList.toggle('inv', i===0);
+  const next=document.getElementById('obNext');
+  if(i===OB_TOTAL-1){
+    next.classList.add('inv');
+  } else {
+    next.classList.remove('inv');
+  }
+}
+function obNext(){ if(obIdx<OB_TOTAL-1) setObSlide(obIdx+1); }
+function obPrev(){ if(obIdx>0) setObSlide(obIdx-1); }
+function skipOb(){ finishOb(); }
+function finishOb(){
+  document.getElementById('onboarding').classList.add('gone');
+  // 로그인 화면 fadeUp 애니메이션 재실행
+  const sl=document.getElementById('sl');
+  sl.querySelectorAll('.fu').forEach(e=>{
+    e.style.animation='none';
+    void e.offsetWidth;
+    e.style.animation='';
+  });
+}
+function showOb(){
+  document.getElementById('onboarding').classList.remove('gone');
+  setObSlide(0);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   이름 & 이름 변경
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function updateNmPreview(){
+  const v=document.getElementById('nmInp').value;
+  const p=document.getElementById('nmPrev');
+  document.getElementById('nmPrevName').textContent=v||'이름을 입력해 주세요';
+  p.classList.toggle('has',v.length>0);
+}
+function applyName(){
+  const v=document.getElementById('nmInp').value.trim();
+  // v3.7 항목7: 빈 입력 시 기본 이름 풀에서 랜덤 1개 (KNOWLEDGE 27섹션)
+  if(v){
+    userName=v;
+  } else {
+    userName=기본이름풀[Math.floor(Math.random()*기본이름풀.length)];
+  }
+  사용자.이름=userName;
+  goNav('sh',null);
+}
+function openNmModal(){
+  document.getElementById('nmModalInp').value=userName;
+  document.getElementById('nmModalBg').classList.add('show');
+  setTimeout(()=>document.getElementById('nmModalInp').focus(),300);
+}
+function closeNmModal(){
+  document.getElementById('nmModalBg').classList.remove('show');
+}
+function applyNmChange(){
+  const v=document.getElementById('nmModalInp').value.trim();
+  if(v){
+    userName=v;
+    사용자.이름=v; // 사용자 객체와 동기화
+    ['homeUser','statusUser','settingsUser'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.textContent=v;
+    });
+    showToastMsg('이름이 변경됐습니다');
+  }
+  closeNmModal();
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   퀴즈 데이터
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const QUIZ_COMMON=[
+  {ai:true, cat:'상식', q:'악수의 기원은 다음 중 무엇입니까?', opts:[
+    {t:'결투 신청을 알리는 의식', c:false},
+    {t:'무기를 들고 있지 않다는 것을 보여주는 인사', c:true},
+    {t:'고대 화폐를 교환하던 풍습', c:false},
+    {t:'왕에게 충성을 맹세하던 절차', c:false}
+  ]}
+];
+const QUIZ_HISTORY=[
+  {ai:false, cat:'신화', q:'그리스 신화에서 세이렌(Siren)은 어떤 존재로 묘사됩니까?', opts:[
+    {t:'바다의 폭풍을 다스리는 여신', c:false},
+    {t:'아름다운 노래로 선원들을 유혹해 파멸시키는 존재', c:true},
+    {t:'신들의 전령을 맡은 정령', c:false},
+    {t:'태양을 끌어올리는 거인족', c:false}
+  ]}
+];
+const QUIZ_SPELL=[
+  {cat:'맞춤법', q:'"그렇게 하면 (&nbsp;&nbsp;&nbsp;&nbsp;) 않아?"', hint:'괄호 안에 들어갈 알맞은 표현을 고르세요.', opts:[
+    {t:'되지', c:true},
+    {t:'돼지', c:false},
+    {t:'대지', c:false}
+  ]}
+];
+
+/* 4지선다 렌더 — 상식·어원, 세계사·신화 공용 */
+function renderQuiz4(data){
+  const body=document.getElementById('sq1Body');
+  const q=data[0];
+  // 선택지 HTML 동적 생성 (1~4번)
+  let optsHtml='';
+  q.opts.forEach((o,i)=>{
+    optsHtml+=`<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`;
+  });
+  body.innerHTML=`
+    <div class="qcard">
+      <div class="qcat">${q.ai?'<span class="tag-ai">🤖 AI 출제</span>':''}<span class="tag tb">${q.cat}</span></div>
+      <div class="q-question">${q.q}</div>
+    </div>
+    <div class="aopts">${optsHtml}</div>
+    <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
+    <button class="btn-acc" style="width:100%" onclick="showInfoModal('🎯','다음 문제','실제 앱에서는 다음 문제로 이동합니다.')">다음 문제 →</button>
+  `;
+}
+
+/* 3지선다 렌더 — 맞춤법 전용 */
+function renderQuiz3(data){
+  const body=document.getElementById('sq3Body');
+  const q=data[0];
+  let optsHtml='';
+  q.opts.forEach((o,i)=>{
+    optsHtml+=`<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`;
+  });
+  body.innerHTML=`
+    <div class="qcard">
+      <div class="qcat"><span class="tag tg">${q.cat}</span></div>
+      <div class="q-question">${q.q}</div>
+      <div class="q-hint">${q.hint||''}</div>
+    </div>
+    <div class="aopts">${optsHtml}</div>
+    <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
+    <button class="btn-acc" style="width:100%" onclick="showInfoModal('🎯','다음 문제','실제 앱에서는 다음 문제로 이동합니다.')">다음 문제 →</button>
+  `;
+}
+
+/* 정답 선택 처리 — 정답이면 EXP 플로팅, 오답이면 정답 강조 */
+function selAns(el, isCorrect){
+  const aopts=el.parentElement.querySelectorAll('.aopt');
+  // 이미 선택된 상태면 무시
+  if(el.parentElement.querySelector('.correct,.wrong')) return;
+
+  if(isCorrect){
+    el.classList.add('correct');
+    showExpFloat(el,'+20');
+    showToastMsg('✓ 정답입니다!');
+  } else {
+    el.classList.add('wrong');
+    aopts.forEach(o=>{
+      const oc=o.getAttribute('onclick')||'';
+      if(oc.includes('true')){
+        o.classList.add('correct');
+      }
+    });
+    showToastMsg('✗ 오답입니다');
+  }
+  aopts.forEach(o=>o.classList.add('disabled'));
+}
+
+function showExpFloat(el, text){
+  const r=el.getBoundingClientRect();
+  const f=document.createElement('div');
+  f.className='exp-float';
+  f.textContent=text;
+  f.style.left=(r.left+r.width/2-20)+'px';
+  f.style.top=r.top+'px';
+  document.body.appendChild(f);
+  setTimeout(()=>f.remove(),1100);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   플래시카드
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const FC_GOSAEONGEO=[
+  {
+    cat:'고사성어',word:'苛斂誅求',mark:'한자어',
+    reading:'가렴주구',
+    meaning:'세금을 혹독하게 거두고 재물을 강제로 빼앗음. 가혹한 정치를 비유적으로 이르는 말.',
+    hanja:[
+      ['苛','가혹할 가'],
+      ['斂','거둘 렴'],
+      ['誅','벨 주'],
+      ['求','구할 구']
+    ],
+    direct:'나랏님이 백성 등골 빼먹는 거. 옛날 탐관오리들이 세금이라는 명목으로 닥치는 대로 뜯어가던 그 짓이다.',
+    example:'그 시대 탐관오리들의 가렴주구에 백성들은 굶주릴 수밖에 없었다.',
+    mnemonic:'가혹하게 / 렴치없이 / 주구장창 / 구해(뺏어) 가는 것'
+  }
+];
+const FC_HANJA=[
+  {
+    cat:'한자어',word:'必然',mark:'한자어',
+    reading:'필연',
+    meaning:'사물의 관련이나 일의 결과가 반드시 그렇게 될 수밖에 없음. 또는 그런 일.',
+    hanja:[
+      ['必','반드시 필'],
+      ['然','그럴 연']
+    ],
+    direct:'안 그럴 수가 없는 거. 우연(偶然)의 반대말이다.',
+    example:'두 사람의 만남은 단순한 우연이 아니라 운명의 필연이었다.',
+    mnemonic:'반드시(必) 그렇게(然) 되는 것'
+  }
+];
+function renderFlashcard(data){
+  const body=document.getElementById('sq2Body');
+  const c=data[0];
+  let hanjaHtml='';
+  c.hanja.forEach(h=>{
+    hanjaHtml+=`<div class="fc-hanja-item">${h[0]} <small>${h[1]}</small></div>`;
+  });
+  body.innerHTML=`
+    <div class="fc-card" id="fcCard">
+      <div class="fc-front" id="fcFront" onclick="flipCard()">
+        <div class="fc-front-tag"><span class="tag ta">${c.cat}</span></div>
+        <div class="fc-word">${c.word}</div>
+        <div class="fc-hanja-mark">${c.mark}</div>
+        <div class="fc-hint">탭하면 뜻이 공개됩니다</div>
+      </div>
+      <div class="fc-back" id="fcBack">
+        <div class="fc-row"><div class="fc-row-num">① 읽기</div><div class="fc-reading">${c.reading}</div></div>
+        <div class="fc-row"><div class="fc-row-num">② 뜻</div><div class="fc-meaning">${c.meaning}</div></div>
+        <button class="fc-more-btn" id="fcMoreBtn" onclick="showMore()">더 알아보기 ▾</button>
+        <div class="fc-more" id="fcMore">
+          <div><div class="fc-row-num">③ 한자</div><div class="fc-hanja-list">${hanjaHtml}</div></div>
+          <div><div class="fc-row-num">④ 직설</div><div class="fc-direct">${c.direct}</div></div>
+          <div><div class="fc-row-num">⑤ 예문</div><div class="fc-example">${c.example}</div></div>
+          <div><div class="fc-row-num">⑥ 연상법</div><div class="fc-mnemonic">${c.mnemonic}</div></div>
+          <div class="fc-judge">
+            <button class="fc-jbtn j-know" onclick="judgeCard('know')">알았다 ✓</button>
+            <button class="fc-jbtn j-confused" onclick="judgeCard('confused')">헷갈린다 △</button>
+            <button class="fc-jbtn j-unknown" onclick="judgeCard('unknown')">몰랐다 ✗</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   v3.7 B안: 유의어 변별 출제 (KNOWLEDGE 3-2섹션 + 5섹션 이의있음! 확장)
+   - 정적 데이터(유의어변별데이터)로 데모용 출제 1회 시연
+   - correct(초록) / acceptable(노랑+이유) / wrong(빨강) 3단계 분기
+   - TODO Claude Code: 실제로 동작 — 출제 풀 확장, 4방식 분기, 실사용자 댓글 예문 결합
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 유의어현재 = null;
+
+function 유의어변별_렌더(인덱스){
+  const body = document.getElementById('sq2Body');
+  if(!body) return;
+  const i = 인덱스 ?? Math.floor(Math.random() * 유의어변별데이터.length);
+  유의어현재 = 유의어변별데이터[i];
+
+  // 4개 보기 = correct 1 + acceptable + wrong (랜덤 순서)
+  const 보기풀 = [
+    {w: 유의어현재.correct.w, kind:'correct'},
+    ...유의어현재.acceptable.map(a=>({w:a.w, kind:'acceptable'})),
+    ...유의어현재.wrong.map(w=>({w:w.w, kind:'wrong'}))
+  ].slice(0,4);
+  // 셔플
+  for(let k=보기풀.length-1; k>0; k--){
+    const j = Math.floor(Math.random()*(k+1));
+    [보기풀[k], 보기풀[j]] = [보기풀[j], 보기풀[k]];
+  }
+
+  // 예문 빈칸 표시
+  const 예문html = 유의어현재.예문.replace('[   ]', '<span class="syn-blank">?</span>');
+
+  body.innerHTML = `
+    <div class="syn-card">
+      <div class="syn-q">${예문html}</div>
+      <div class="syn-opts" id="synOpts">
+        ${보기풀.map(o=>`<button class="syn-opt" data-kind="${o.kind}" data-word="${o.w}" onclick="유의어변별_선택(this)">${o.w}</button>`).join('')}
+      </div>
+      <div class="syn-result" id="synResult"></div>
+      <div class="syn-actions" id="synActions" style="display:none">
+        <button class="btn-g" onclick="openObj('synonym')">⚖️ 이의있음!</button>
+        <button class="btn-acc" onclick="유의어변별_다음()">다음 문제 →</button>
+      </div>
+    </div>
+  `;
+}
+
+function 유의어변별_선택(btn){
+  const kind = btn.dataset.kind;
+  const word = btn.dataset.word;
+  // 정답·근사·오답 색 동시 공개
+  const all = document.querySelectorAll('#synOpts .syn-opt');
+  all.forEach(el=>{
+    el.classList.add('dim');
+    const k = el.dataset.kind;
+    if(k === 'correct')   el.classList.add('correct');
+    if(k === 'acceptable')el.classList.add('acceptable');
+    if(k === 'wrong')     el.classList.add('wrong');
+  });
+  btn.classList.remove('dim');
+
+  // 결과 텍스트
+  const res = document.getElementById('synResult');
+  let html = '';
+  if(kind === 'correct'){
+    html = `
+      <div class="syn-result-title ok">✅ 정답 — 「${word}」</div>
+      <div class="syn-result-def">${유의어현재.correct.def}</div>
+    `;
+  } else if(kind === 'acceptable'){
+    const a = 유의어현재.acceptable.find(x=>x.w === word);
+    html = `
+      <div class="syn-result-title warn">△ 근사 정답 — 「${word}」</div>
+      <div class="syn-result-def">${a?.def ?? ''}</div>
+      <div class="syn-result-reason">정답(${유의어현재.correct.w})과 의미가 겹치지만 더 정확한 표현이 있습니다.<br>${a?.reason ?? ''}</div>
+    `;
+  } else {
+    const w = 유의어현재.wrong.find(x=>x.w === word);
+    html = `
+      <div class="syn-result-title err">✗ 오답 — 「${word}」</div>
+      <div class="syn-result-def">${w?.def ?? ''}</div>
+      <div class="syn-result-reason">정답은 「${유의어현재.correct.w}」 — ${유의어현재.correct.def}</div>
+    `;
+  }
+  res.innerHTML = html;
+  res.classList.add('show');
+  document.getElementById('synActions').style.display = 'flex';
+}
+
+function 유의어변별_다음(){
+  유의어변별_렌더();  // 다음 문제 랜덤
+}
+
+function initFlashcard(){
+  document.getElementById('fcBack')?.classList.remove('show');
+  document.getElementById('fcMore')?.classList.remove('show');
+  document.getElementById('fcMoreBtn')?.classList.remove('opened');
+}
+/* 플래시카드 앞면 → 뒷면 공개 (① 읽기, ② 뜻) */
+function flipCard(){
+  document.getElementById('fcBack').classList.add('show');
+}
+/* 「더 알아보기」 펼침 — ③ 한자 / ④ 직설 / ⑤ 예문 / ⑥ 연상법 */
+function showMore(){
+  document.getElementById('fcMore').classList.add('show');
+  document.getElementById('fcMoreBtn').classList.add('opened');
+}
+/* 판정 버튼 — 알았다 / 헷갈린다 / 몰랐다 */
+function judgeCard(type){
+  const messages={
+    'know':'알았다 — 복습 대기열 졸업 카운트 +1',
+    'confused':'헷갈린다 — 복습 대기열 유지',
+    'unknown':'몰랐다 — 복습 대기열 카운트 초기화'
+  };
+  showToastMsg('✓ ' + messages[type]);
+  if(type==='know'){
+    const btn=document.querySelector('.fc-jbtn.j-know');
+    if(btn) showExpFloat(btn,'+20');
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   아재개그
+   v3.6: 초기 진입 시점부터 DAD_GAGS_BY_DIFFICULTY 사용으로 통일.
+   아래 DAD_GAGS 상수는 호환용 잔존이며 실제 렌더에는 더 이상 사용되지 않음.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const DAD_GAGS=[
+  {q:'세상에서 가장 빠른 닭은?', a:'치타', e:'치타는 동물 중 가장 빠른 육상동물(시속 약 110km). "치킨"의 "치"와 발음이 같아서 생긴 말장난이다.'}
+];
+function renderDad(data){
+  const body=document.getElementById('sq4Body');
+  const g=data[0];
+  body.innerHTML=`
+    <div class="dad-card">
+      <div class="qcat" style="margin-bottom:8px"><span class="tag tp">아재개그</span></div>
+      <div class="dad-q">${g.q}</div>
+      <button class="dad-reveal-btn" id="dadBtn" onclick="revealDad()">정답 보기</button>
+      <div class="dad-answer" id="dadAns">
+        <div class="dad-a-text">${g.a}</div>
+        <div class="dad-a-explain">${g.e}</div>
+      </div>
+    </div>
+    <button class="btn-acc" style="width:100%" onclick="showInfoModal('🎯','다음 문제','실제 앱에서는 다음 문제로 이동합니다.')">다음 문제 →</button>
+  `;
+}
+function initDad(){
+  document.getElementById('dadAns')?.classList.remove('show');
+  const btn=document.getElementById('dadBtn');
+  if(btn) btn.style.display='block';
+}
+function revealDad(){
+  document.getElementById('dadAns').classList.add('show');
+  document.getElementById('dadBtn').style.display='none';
+  showExpFloat(document.querySelector('.dad-card'),'+20');
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   구어 교정
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function switchSpkMode(mode){
+  if(mode==='text'){
+    document.getElementById('spkMText').classList.add('on');
+    document.getElementById('spkMVoice').classList.remove('on');
+    document.getElementById('spkTextArea').style.display='block';
+    document.getElementById('spkVoiceArea').style.display='none';
+  } else {
+    document.getElementById('spkMVoice').classList.add('on');
+    document.getElementById('spkMText').classList.remove('on');
+    document.getElementById('spkTextArea').style.display='none';
+    document.getElementById('spkVoiceArea').style.display='block';
+  }
+}
+function submitSpk(){
+  const txt=document.getElementById('spkInput').value.trim();
+  if(!txt){
+    showToastMsg('입력해 주세요');
+    return;
+  }
+  document.getElementById('spkOrigTxt').textContent=txt;
+  document.getElementById('spkResult').classList.add('show');
+  showToastMsg('✓ 분석 완료');
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   복습
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   학습 화면 상단 설정 패널 (v3.5 신규)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+// 모드별 현재 선택값 저장 (Firebase 연동 시 설정 데이터로 이전)
+// v3.7 항목3,13: sq2 4방식 확장 + sq4 입력 방식 추가
+let 학습설정 = {
+  sq1: '선택지',         // 선택지 / 직접입력
+  sq2: '4지선다',         // 4지선다 / 뜻 직접 서술 / 역방향 / 유의어 변별 (v3.7 항목3)
+  sq3: '선택지',         // 선택지 / 직접입력
+  sq4: '아↗그거!',        // 아↗그거! / UP¡¿
+  sq4_input: '선택지'    // 선택지 / 직접입력 (v3.7 항목13)
+};
+
+/* 패널 펼치기/접기 토글 */
+function toggleLset(id){
+  const panel = document.getElementById(id);
+  if(panel) panel.classList.toggle('open');
+}
+
+/* 모드 선택 */
+// v3.7 항목9: sq1·sq2·sq3 동작 미연동 해소 — 각 모드별 분기 처리
+function setLsetMode(screenId, mode, btn){
+  학습설정[screenId] = mode;
+
+  // 같은 행 내 다른 버튼 활성화 해제 (행 단위 토글: sq4의 「난이도」·「입력 방식」 독립 토글)
+  const row = btn.closest('.lset-row');
+  if(row) row.querySelectorAll('.lset-opt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+
+  // v3.7 항목9: 분기 처리 — 데모 수준에서 토스트로 변경 확인 + 가능한 즉시 갱신
+  if(screenId==='sq1'){
+    // 상식·어원, 세계사·신화 (4지선다) — 데모는 토스트만, 실제 출제는 동일 데이터
+    showToastMsg(`상식·세계사 출제 방식: ${mode}`);
+  } else if(screenId==='sq2'){
+    // 고사성어·속담, 한자·우리말 (5방식: 4지선다 기본값)
+    // 유의어 변별: 즉시 유의어 변별 UI 렌더
+    // 플래시카드: 카드 뒤집기 UI 렌더
+    // 그 외(4지선다·뜻 직접 서술·역방향): Claude Code 단계에서 각각 별도 UI 분기 예정
+    const 현재카테고리 = document.getElementById('sq2Title').textContent;
+    const 배지아이콘 = 현재카테고리 === '한자·우리말' ? '🈯' : '📜';
+    // 배지 텍스트 갱신 — 현재 선택된 방식 표시
+    document.getElementById('sq2Mode').textContent = `${배지아이콘} ${mode}`;
+    if(mode === '유의어 변별'){
+      유의어변별_렌더();
+    } else if(mode === '플래시카드'){
+      // 플래시카드 모드: 카드 뒤집기 UI
+      renderFlashcard(현재카테고리 === '한자·우리말' ? FC_HANJA : FC_GOSAEONGEO);
+    } else {
+      // 4지선다·뜻 직접 서술·역방향 (Claude Code 단계에서 실제 분기)
+      // TODO Claude Code: 실제 동작 — 각 방식별 별도 UI로 분기
+      renderFlashcard(현재카테고리 === '한자·우리말' ? FC_HANJA : FC_GOSAEONGEO);
+    }
+    showToastMsg(`출제 방식: ${mode}`);
+  } else if(screenId==='sq3'){
+    // 맞춤법 (3지선다)
+    showToastMsg(`맞춤법 출제 방식: ${mode}`);
+  } else if(screenId==='sq4'){
+    // 아재개그 난이도 즉시 갱신
+    renderDad(DAD_GAGS_BY_DIFFICULTY[mode] || DAD_GAGS_BY_DIFFICULTY['아↗그거!']);
+    showToastMsg(`난이도: ${mode}`);
+  } else if(screenId==='sq4_input'){
+    // 아재개그 입력 방식 (선택지 / 직접입력)
+    showToastMsg(`입력 방식: ${mode}`);
+  } else {
+    showToastMsg(`설정 변경: ${mode}`);
+  }
+}
+
+/* 아재개그 난이도별 데이터 */
+const DAD_GAGS_BY_DIFFICULTY = {
+  '아↗그거!': [
+    {q:'세상에서 가장 빠른 닭은?', a:'치타', e:'치타는 동물 중 가장 빠른 육상동물(시속 약 110km). "치킨"의 "치"와 발음이 같아서 생긴 말장난이다.'}
+  ],
+  'UP¡¿': [
+    {q:'뚱뚱한 구름은?', a:'적운형 구름', e:'적운(積雲)은 위로 솟아 오른 모양의 구름. "쌓인 = 뚱뚱"의 언어유희.'},
+    {q:'함께 달에 가지 못해서 미안해.', a:'데이비드', e:'아폴로 11호는 닐 암스트롱·버즈 올드린이 달에 착륙했고, 마이클 콜린스는 사령선에서 대기. "달에 못 간 사람"을 농담으로 다른 인물(데이비드)로 빗댄 것.'}
+  ]
+};
+
+/* 복습 화면 렌더링 — 모든 탭(대기열/즐겨찾기/휴지통) 한꺼번에 그림 */
+function renderReview(){
+  // 카운트 갱신
+  document.getElementById('rvQCnt').textContent = 복습데이터.대기열.length;
+  document.getElementById('rvFCnt').textContent = 복습데이터.즐겨찾기.length;
+  document.getElementById('rvBCnt').textContent = 복습데이터.휴지통.length;
+
+  // 사용자 객체와 카운트 동기화
+  사용자.복습대기열수 = 복습데이터.대기열.length;
+  사용자.즐겨찾기수 = 복습데이터.즐겨찾기.length;
+  사용자.휴지통수 = 복습데이터.휴지통.length;
+
+  // 대기열 렌더
+  renderQueueTab();
+  renderFavTab();
+  renderBinTab();
+}
+
+/* 대기열 탭 렌더 */
+function renderQueueTab(){
+  const wrap = document.getElementById('rvQueue');
+  const 대기열 = 복습데이터.대기열;
+  const 상한 = 사용자.복습대기열상한;
+
+  // 용량 표시 줄
+  let html = `
+    <div class="rv-cap">
+      <span class="rv-cap-lbl">용량</span>
+      <div class="cap-bar"><div class="cap-fill" style="width:${Math.min(100,(대기열.length/상한)*100)}%"></div></div>
+      <span class="rv-cap-val" onclick="openCapacity()">${대기열.length} / ${상한} ⚙</span>
+    </div>
+  `;
+
+  // 비어있을 때
+  if(대기열.length===0){
+    html += `<div style="text-align:center;padding:48px 20px;color:var(--txtm);font-size:13px">📥 대기열이 비어있습니다</div>`;
+    wrap.innerHTML = html;
+    return;
+  }
+
+  // 항목들
+  대기열.forEach((item,idx)=>{
+    const dots = [0,1,2].map(i=>`<div class="rv-dot${i<item.연속정답수?' f':''}"></div>`).join('');
+    html += `
+      <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
+        <div class="rv-idx">${idx}</div>
+        <div style="flex:1">
+          <div class="rv-word">${item.단어}</div>
+          <div class="rv-desc">${item.뜻}</div>
+          <div class="rv-meta">
+            <span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span>
+            <div class="rv-dots">${dots}</div>
+            <span style="font-size:10px;color:var(--txtm)">${item.연속정답수}/3</span>
+          </div>
+        </div>
+        <div class="rv-acts">
+          <div class="act-btn fav${item.즐겨찾기?' on':''}" onclick="대기열_즐겨찾기토글(${item.id})" title="즐겨찾기">${item.즐겨찾기?'★':'☆'}</div>
+          <div class="act-btn d" onclick="대기열_휴지통이동(${item.id})" title="삭제">🗑</div>
+        </div>
+      </div>
+    `;
+  });
+
+  // 복습 시작 버튼
+  html += `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="showInfoModal('🔁','복습 시작','복습 대기열의 항목들을 순차적으로 다시 풀어봅니다.<br><br>(데모에서는 동작하지 않습니다)')">🔁 복습 시작</button>`;
+
+  wrap.innerHTML = html;
+}
+
+/* 즐겨찾기 탭 렌더 */
+function renderFavTab(){
+  const wrap = document.getElementById('rvFav');
+  const 즐겨찾기 = 복습데이터.즐겨찾기;
+
+  let html = `<div class="bin-info">⭐ 즐겨찾기는 무한 보관 가능하며 다른 시스템(대기열·휴지통)의 영향을 받지 않습니다.</div>`;
+
+  if(즐겨찾기.length===0){
+    html += `<div style="text-align:center;padding:48px 20px;color:var(--txtm);font-size:13px">⭐ 즐겨찾기가 비어있습니다</div>`;
+    wrap.innerHTML = html;
+    return;
+  }
+
+  즐겨찾기.forEach((item,idx)=>{
+    html += `
+      <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
+        <div class="rv-idx">${idx}</div>
+        <div style="flex:1">
+          <div class="rv-word">${item.단어}</div>
+          <div class="rv-desc">${item.뜻}</div>
+          <div class="rv-meta"><span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span></div>
+        </div>
+        <div class="rv-acts">
+          <div class="act-btn" onclick="즐겨찾기_다시풀기(${item.id})" title="다시 풀기">↻</div>
+          <div class="act-btn" onclick="즐겨찾기_유사문제(${item.id})" title="유사 문제">✨</div>
+          <div class="act-btn d" onclick="즐겨찾기_해제(${item.id})" title="해제">★</div>
+        </div>
+      </div>
+    `;
+  });
+
+  wrap.innerHTML = html;
+}
+
+/* 휴지통 탭 렌더 */
+function renderBinTab(){
+  const wrap = document.getElementById('rvBin');
+  const 휴지통 = 복습데이터.휴지통;
+
+  let html = `<div class="bin-info">🕒 휴지통의 항목은 <b>20일 후 자동 삭제</b>됩니다. 그 전에 복구하거나 영구삭제할 수 있습니다.</div>`;
+
+  if(휴지통.length===0){
+    html += `<div style="text-align:center;padding:48px 20px;color:var(--txtm);font-size:13px">🗑️ 휴지통이 비어있습니다</div>`;
+    wrap.innerHTML = html;
+    return;
+  }
+
+  휴지통.forEach((item,idx)=>{
+    html += `
+      <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
+        <div class="rv-idx">${idx}</div>
+        <div style="flex:1">
+          <div class="rv-word">${item.단어}</div>
+          <div class="rv-desc">${item.뜻}</div>
+          <div class="rv-meta">
+            <span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span>
+            <span style="font-size:10px;color:var(--txtm)">${item.잔여일}일 후 삭제</span>
+          </div>
+        </div>
+        <div class="rv-acts">
+          <div class="act-btn" onclick="휴지통_복구(${item.id})" title="복구">↩</div>
+          <div class="act-btn d" onclick="휴지통_영구삭제(${item.id})" title="영구삭제">✕</div>
+        </div>
+      </div>
+    `;
+  });
+
+  // 휴지통 비우기 버튼
+  html += `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="휴지통_전체비우기()">🗑️ 휴지통 비우기</button>`;
+
+  wrap.innerHTML = html;
+}
+
+/* 탭 전환 */
+function switchRvTab(idx){
+  ['rvT0','rvT1','rvT2'].forEach((id,i)=>{
+    document.getElementById(id).classList.toggle('on',i===idx);
+  });
+  document.getElementById('rvQueue').style.display=idx===0?'flex':'none';
+  document.getElementById('rvFav').style.display=idx===1?'flex':'none';
+  document.getElementById('rvBin').style.display=idx===2?'flex':'none';
+}
+
+/* ━━━ 대기열 액션 ━━━ */
+
+/* 대기열 항목 즐겨찾기 토글 */
+function 대기열_즐겨찾기토글(id){
+  const item = 복습데이터.대기열.find(x=>x.id===id);
+  if(!item) return;
+  item.즐겨찾기 = !item.즐겨찾기;
+
+  if(item.즐겨찾기){
+    // 즐겨찾기 목록에 동일 단어가 없으면 추가
+    const 중복 = 복습데이터.즐겨찾기.find(x=>x.단어===item.단어);
+    if(!중복){
+      복습데이터.즐겨찾기.push({
+        id: 복습데이터다음ID++,
+        단어: item.단어,
+        뜻: item.뜻,
+        모드: item.모드,
+        모드클래스: item.모드클래스
+      });
+    }
+    showToastMsg('⭐ 즐겨찾기에 추가됨');
+  } else {
+    // 즐겨찾기 목록에서 동일 단어 제거
+    복습데이터.즐겨찾기 = 복습데이터.즐겨찾기.filter(x=>x.단어!==item.단어);
+    showToastMsg('즐겨찾기에서 제거됨');
+  }
+
+  renderReview();
+}
+
+/* 대기열 항목 휴지통 이동 */
+function 대기열_휴지통이동(id){
+  const idx = 복습데이터.대기열.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const item = 복습데이터.대기열[idx];
+
+  // 휴지통으로 이동 (잔여일 20일로 시작)
+  복습데이터.휴지통.push({
+    id: 복습데이터다음ID++,
+    단어: item.단어,
+    뜻: item.뜻,
+    모드: item.모드,
+    모드클래스: item.모드클래스,
+    잔여일: 20
+  });
+
+  // 대기열에서 제거
+  복습데이터.대기열.splice(idx,1);
+
+  showToastMsg('🗑️ 휴지통으로 이동');
+  renderReview();
+}
+
+/* ━━━ 즐겨찾기 액션 ━━━ */
+
+function 즐겨찾기_다시풀기(id){
+  showInfoModal('🔁','다시 풀기','이 문제를 다시 출제합니다.<br><br>(데모에서는 동작하지 않습니다)');
+}
+
+function 즐겨찾기_유사문제(id){
+  showInfoModal('✨','유사 문제','Grok이 비슷한 유형의 문제를 새로 만듭니다.<br><br>토큰 20 차감.<br><br>(데모에서는 동작하지 않습니다)');
+}
+
+function 즐겨찾기_해제(id){
+  const idx = 복습데이터.즐겨찾기.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const 단어 = 복습데이터.즐겨찾기[idx].단어;
+
+  // 즐겨찾기 목록에서 제거
+  복습데이터.즐겨찾기.splice(idx,1);
+
+  // 대기열에 동일 단어가 있으면 즐겨찾기 플래그 해제
+  const 대기열항목 = 복습데이터.대기열.find(x=>x.단어===단어);
+  if(대기열항목) 대기열항목.즐겨찾기 = false;
+
+  showToastMsg('즐겨찾기 해제됨');
+  renderReview();
+}
+
+/* ━━━ 휴지통 액션 ━━━ */
+
+function 휴지통_복구(id){
+  const idx = 복습데이터.휴지통.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const item = 복습데이터.휴지통[idx];
+
+  // 대기열 상한 체크
+  if(복습데이터.대기열.length >= 사용자.복습대기열상한){
+    showInfoModal('🚫','복구 불가',`대기열이 가득 찼습니다 (${사용자.복습대기열상한}개).<br><br>먼저 대기열 항목을 줄여주세요.`);
+    return;
+  }
+
+  // 대기열로 복구 (연속정답수 0으로 초기화)
+  복습데이터.대기열.push({
+    id: 복습데이터다음ID++,
+    단어: item.단어,
+    뜻: item.뜻,
+    모드: item.모드,
+    모드클래스: item.모드클래스,
+    연속정답수: 0,
+    즐겨찾기: false
+  });
+
+  // 휴지통에서 제거
+  복습데이터.휴지통.splice(idx,1);
+
+  showToastMsg('↩️ 대기열로 복구됨');
+  renderReview();
+}
+
+function 휴지통_영구삭제(id){
+  const idx = 복습데이터.휴지통.findIndex(x=>x.id===id);
+  if(idx<0) return;
+
+  복습데이터.휴지통.splice(idx,1);
+
+  showToastMsg('✕ 영구 삭제됨');
+  renderReview();
+}
+
+function 휴지통_전체비우기(){
+  if(복습데이터.휴지통.length===0){
+    showToastMsg('휴지통이 비어있습니다');
+    return;
+  }
+  복습데이터.휴지통 = [];
+  showToastMsg('🧹 휴지통 비웠습니다 — [환경미화원] 카운트 +1');
+  renderReview();
+}
+
+/* (구) toggleFav — 호환성 유지용. 실제로는 위 새 함수들이 사용됨 */
+function toggleFav(el){
+  el.classList.toggle('on');
+  el.textContent = el.classList.contains('on') ? '★' : '☆';
+}
+/* 복습 대기열 상한 설정 — 30/40/50/60/70 */
+function openCapacity(){
+  document.getElementById('selTitle').textContent='⚙️ 복습 대기열 상한';
+  document.getElementById('selDesc').textContent='상한 초과 시 가장 오래된 항목이 휴지통으로 자동 이동됩니다. 현재 항목 수보다 작은 값으로는 변경 불가.';
+
+  const list=document.getElementById('selList');
+  const opts=[30,40,50,60,70];
+  list.innerHTML='';
+
+  opts.forEach(v=>{
+    const div=document.createElement('div');
+    div.className='select-opt'+(v===사용자.복습대기열상한?' on':'');
+
+    // 현재 항목 수보다 작은 값으로 변경 시도 시 차단
+    const 차단여부 = v < 사용자.복습대기열수;
+
+    if(차단여부){
+      div.style.opacity='0.4';
+      div.style.cursor='not-allowed';
+      div.onclick=()=>showInfoModal('🚫','변경 불가',
+        `현재 대기열 항목 수(${사용자.복습대기열수}개)가 새 상한(${v}개)보다 많습니다.<br><br>먼저 항목을 줄여주세요.`);
+    } else {
+      div.onclick=()=>applyCapacity(v);
+    }
+
+    div.innerHTML=`<span>${v}개${v===50?' (기본값)':''}${차단여부?' 🚫':''}</span><span class="select-opt-ck">✓</span>`;
+    list.appendChild(div);
+  });
+
+  document.getElementById('selBg').classList.add('show');
+}
+
+/* 상한 실제 적용 */
+function applyCapacity(v){
+  사용자.복습대기열상한=v;
+
+  // v3.5: 복습 화면이 표시 중이면 즉시 재렌더
+  if(curScreen==='sr') renderReview();
+
+  showToastMsg(`복습 대기열 상한: ${v}개`);
+  setTimeout(closeSelect,250);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   업적 데이터
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const ACH_DATA=[
+  // 성장
+  {sec:'⭐ 성장', items:[
+    {key:'first', name:'[첫걸음]', icon:'🌱', cat:'성장 계열 · 단발',
+     desc:'최초 학습 기록 생성 시 자동 획득',
+     stage:'unl', progress:'+50 EXP', single:true},
+    {key:'growth', name:'[성장의 기록]', icon:'📈', cat:'성장 계열 · 풀돌',
+     desc:'레벨 달성 시 자동 발동',
+     stage:2, current:'Lv.15 / Lv.20',
+     rows:[['명함','Lv.3'],['1돌','Lv.5'],['2돌','Lv.10'],['3돌','Lv.20'],['4돌','Lv.30'],['5돌','Lv.40'],['풀돌','Lv.50']]},
+    {key:'steady', name:'[꾸준한 발걸음]', icon:'🔥', cat:'성장 계열 · 풀돌',
+     desc:'연속 학습일 기준 자동 발동',
+     stage:1, current:'3일 / 5일',
+     rows:[['명함','2일'],['1돌','3일'],['2돌','5일'],['3돌','7일'],['4돌','10일'],['5돌','15일'],['풀돌','20일']]}
+  ]},
+  // 숙련
+  {sec:'🎯 숙련', items:[
+    {key:'perfect', name:'[완벽주의자]', icon:'🏅', cat:'숙련 계열 · 풀돌',
+     desc:'세션 내 퀴즈 전부 정답 시 카운터 +1',
+     stage:0, current:'1회 / 2회',
+     rows:[['명함','1회'],['1돌','2회'],['2돌','4회'],['3돌','6회'],['4돌','9회'],['5돌','12회'],['풀돌','15회']]},
+    {key:'speech', name:'[말의 품격]', icon:'🎙️', cat:'숙련 계열 · 풀돌',
+     desc:'구어 교정 완료 시 카운터 +1',
+     stage:-1, current:'0회 / 2회',
+     rows:[['명함','2회'],['1돌','4회'],['2돌','6회'],['3돌','9회'],['4돌','12회'],['5돌','16회'],['풀돌','20회']]}
+  ]},
+  // 탐구
+  {sec:'📚 탐구', items:[
+    {key:'know', name:'[상식의 탑]', icon:'🌍', cat:'탐구 계열 · 풀돌',
+     desc:'상식·어원 모드 풀 때마다 +1',
+     stage:1, current:'8회 / 10회',
+     rows:[['명함','3회'],['1돌','5회'],['2돌','10회'],['3돌','20회'],['4돌','30회'],['5돌','45회'],['풀돌','60회']]},
+    {key:'root', name:'[언어의 뿌리]', icon:'📜', cat:'탐구 계열 · 풀돌',
+     desc:'고사성어·속담·한자·우리말 합산',
+     stage:2, current:'18회 / 25회',
+     rows:[['명함','3회'],['1돌','5회'],['2돌','15회'],['3돌','25회'],['4돌','40회'],['5돌','55회'],['풀돌','70회']]},
+    {key:'history', name:'[역사 탐험가]', icon:'🏛️', cat:'탐구 계열 · 풀돌',
+     desc:'세계사·신화 모드 풀 때마다 +1',
+     stage:-1, current:'0회 / 3회',
+     rows:[['명함','3회'],['1돌','5회'],['2돌','10회'],['3돌','20회'],['4돌','30회'],['5돌','45회'],['풀돌','60회']]},
+    {key:'spell', name:'[맞춤법 수호자]', icon:'✏️', cat:'탐구 계열 · 풀돌',
+     desc:'맞춤법 모드 풀 때마다 +1',
+     stage:0, current:'4회 / 5회',
+     rows:[['명함','3회'],['1돌','5회'],['2돌','10회'],['3돌','20회'],['4돌','30회'],['5돌','45회'],['풀돌','60회']]},
+    {key:'dad', name:'[아재력]', icon:'😂', cat:'탐구 계열 · 풀돌',
+     desc:'아재개그 모드 풀 때마다 +1',
+     stage:-1, current:'1회 / 3회',
+     rows:[['명함','3회'],['1돌','5회'],['2돌','8회'],['3돌','12회'],['4돌','18회'],['5돌','24회'],['풀돌','30회']]},
+    {key:'vocab', name:'[어휘 대사전]', icon:'📖', cat:'탐구 계열 · 풀돌',
+     desc:'총누적어휘수 카운터 기준 (졸업 후 감소 없음)',
+     stage:1, current:'142개 / 100개',
+     rows:[['명함','20개'],['1돌','50개'],['2돌','100개'],['3돌','150개'],['4돌','200개'],['5돌','300개'],['풀돌','400개']]}
+  ]},
+  // 관리
+  {sec:'🗂 관리', items:[
+    {key:'clean', name:'[환경미화원]', icon:'🧹', cat:'관리 계열 · 단발',
+     desc:'휴지통 전체 비우기 1회',
+     stage:'unl', progress:'+80 EXP', single:true}
+  ]},
+  // 히든
+  {sec:'🔮 히든', items:[
+    {key:'reb', name:'[반박의 화신]', icon:'⚡', cat:'히든 계열 · 풀돌',
+     desc:'I̷̢͓͆̑͐s̵̛͍͊̈́̃s̵̢͊̈́̀͝ů̷̳͇̦̈́͘e̵̛̞͆̌̑͐̀̕ 반박 성공 시 카운터 +1', zalgo:true,
+     stage:-1, current:'0회 / 1회',
+     rows:[['명함','1회'],['1돌','2회'],['2돌','4회'],['3돌','6회'],['4돌','9회'],['5돌','12회'],['풀돌','15회']]},
+    {key:'night', name:'[밤의 사색가]', icon:'🌙', cat:'히든 계열 · 풀돌',
+     desc:'Ň̴̡̛̑͐̕i̷̢͓͆̌̑͐̀̕g̸̢̛͊̈́͘͝ḣ̴̡̊̓̈́̑͘t̵̢̛̅̈́̃̌̀͝ 새벽 00:00~04:00 학습 시 +1', zalgo:true,
+     stage:-1, current:'0회 / 1회',
+     rows:[['명함','1회'],['1돌','2회'],['2돌','3회'],['3돌','5회'],['4돌','7회'],['5돌','9회'],['풀돌','10회']]},
+    {key:'asker', name:'[질문쟁이]', icon:'💬', cat:'히든 계열 · 풀돌',
+     desc:'Ǎ̴̡̛̑͐̕s̸̢̛͊̈́͘͝k̵̛̞̅̈́̃̌͝ 질문하기 기능 사용 시 +1', zalgo:true,
+     stage:1, current:'4회 / 5회',
+     rows:[['명함','2회'],['1돌','5회'],['2돌','8회'],['3돌','12회'],['4돌','16회'],['5돌','19회'],['풀돌','23회']]},
+    {key:'abyss', name:'[심연을 들여다보는 자]', icon:'👁️', cat:'히든 계열 · 단발',
+     desc:'V̷̢͓̌̑͐̀̕o̷̢͊̈́̀͝ȋ̷̢͐̀̕ď̴̡̛̑͐̀̕ 자아·존재·너는 누구냐 키워드 감지 시', zalgo:true,
+     stage:'lck', progress:'+150 EXP', single:true},
+    {key:'will', name:'[불굴의 의지]', icon:'💪', cat:'히든 계열 · 단발',
+     desc:'F̴̡̛̌̑͐̀̕ȃ̷̢͐̀̕i̸̢̛͊̈́̀͘͝l̵̛̞̅̈́̃̌͝ 동일 세션 오답→오답→정답', zalgo:true,
+     stage:'lck', progress:'+120 EXP', single:true},
+    {key:'deep', name:'[지식의 탐닉자]', icon:'🦉', cat:'히든 계열 · 단발',
+     desc:'D̷̢͓̑͐̀̕e̷̢͊̈́̀͘ȇ̷̢͐̀̕p̴̡̛̌̑͐̀̕ 세션 시작부터 30분 이상 연속', zalgo:true,
+     stage:'lck', progress:'+150 EXP', single:true},
+    {key:'border', name:'[경계를 넘어서]', icon:'🚧', cat:'히든 계열 · 단발',
+     desc:'B̴̡̛̌̑͐̀̕ȏ̷̢͐̀̕ư̸̢͊̈́̀͘͝n̵̛̞̅̈́̃̌͝d̷̢̑͐̀̕ 제한 분야 요청 2회 감지 시', zalgo:true,
+     stage:'lck', progress:'+120 EXP', single:true}
+  ]},
+  // 최상위
+  {sec:'👑 최상위', items:[
+    {key:'creator', name:'[창조주]', icon:'👑', cat:'최상위',
+     desc:'', zalgo:false, blur:true,
+     blurText:`【부富와 권력權力. 승리勝利와 영광榮光.】\n【전지全知와 전능全能.】\n【실패하지 않을 것이요, 고꾸라지지 않을 것이다. 필멸자의 승리는 영원하지 않으나 네 것만은 영원하리라.】\n【원한다면 언제든 세계를 너의 발밑에.】\n【바란다면 죽음 또한 감히 그대를 삼키지 못할지니.】`,
+     stage:'lck', progress:'+2000 EXP · 칭호: 폐하', single:true, mystery:true}
+  ]}
+];
+
+/* 별/달 표시 생성 (v3.6: single 속성 기반으로 재구성)
+   - single=true: 단발 업적, 달 기호 (☾ 획득 / ☽ 미획득)
+   - single=false 또는 미지정: 풀돌 업적, 별 7개 (✦ 채움 / ✧ 빔)
+   stage 값:
+     - 단발(single=true): 'unl' 획득 / 'lck' 또는 -1 미획득
+     - 풀돌(single=false): -1 미획득 / 0~6 명함~풀돌
+   stage의 매직스트링('unl', 'lck')에 의존하지 않고 single 속성으로 우선 분기 */
+function buildStars(stage, single){
+  // 단발 업적 — 달 기호 1개
+  if(single){
+    // 획득 판정: 'unl' 또는 양의 숫자 stage
+    const 획득 = (stage==='unl') || (typeof stage==='number' && stage>=0);
+    if(획득) return '<span class="ach-star-filled" style="font-size:18px">☾</span>';
+    return '<span class="ach-star-empty" style="font-size:18px">☽</span>';
+  }
+
+  // 풀돌 업적 — 별 7개
+  // 미획득 처리: -1 또는 잘못된 값
+  if(stage===-1 || stage==='lck' || typeof stage!=='number' || stage<0){
+    return '<span class="ach-star-empty">✧✧✧✧✧✧✧</span>';
+  }
+  let html='';
+  for(let i=0;i<7;i++){
+    if(i<=stage) html+=`<span class="ach-star-filled">✦</span>`;
+    else html+=`<span class="ach-star-empty">✧</span>`;
+  }
+  return html;
+}
+
+/* 업적 렌더 */
+function renderAchievements(){
+  const body=document.getElementById('achBody');
+  let html='';
+  ACH_DATA.forEach(sec=>{
+    html+=`<div class="ach-sec"><div class="ach-sec-t">${sec.sec}</div><div class="ach-list">`;
+    sec.items.forEach((a,idx)=>{
+      const unlClass = (a.stage==='unl' || (typeof a.stage==='number' && a.stage>=0)) ? 'unl' : '';
+      const desc = a.zalgo ? `<div class="ach-ds zalgo">${a.desc}</div>` : `<div class="ach-ds">${a.desc}</div>`;
+      let stars='';
+      if(!a.single){
+        // v3.6: buildStars에 single 명시적 전달 (false)
+        stars=`<div class="ach-stars">${buildStars(a.stage, false)}<span style="color:var(--txt2);font-size:10px;font-weight:400;margin-left:8px">${stageLabel(a.stage)} · ${a.current}</span></div>`;
+      } else {
+        // v3.6: 단발 업적은 single=true 명시
+        stars=`<div class="ach-stars">${buildStars(a.stage, true)}<span style="color:var(--txt2);font-size:10px;font-weight:400;margin-left:8px">${a.stage==='unl'?'획득':'미획득'} · ${a.progress}</span></div>`;
+      }
+      html+=`<div class="ach-item ${unlClass}" style="animation-delay:${0.03*idx}s" onclick="openAchDetail('${a.key}')">
+        <div class="ach-icon">${a.icon}</div>
+        <div style="flex:1">
+          <div class="ach-nm">${a.name}</div>
+          ${desc}
+          ${stars}
+        </div>
+      </div>`;
+    });
+    html+='</div></div>';
+  });
+  body.innerHTML=html;
+}
+
+function stageLabel(stage){
+  if(stage==='unl')return '획득';
+  if(stage==='lck')return '미획득';
+  if(stage===-1)return '미획득';
+  if(stage===0)return '명함';
+  if(stage===6)return '풀돌';
+  return stage+'돌';
+}
+
+/* 업적 상세 */
+function openAchDetail(key){
+  let target=null;
+  ACH_DATA.forEach(sec=>{
+    sec.items.forEach(a=>{
+      if(a.key===key) target=a;
+    });
+  });
+  if(!target) return;
+
+  document.getElementById('adIcon').textContent=target.icon;
+  document.getElementById('adName').textContent=target.name;
+  document.getElementById('adCat').textContent=target.cat;
+
+  const descEl=document.getElementById('adDesc');
+
+  // 창조주 블러 처리
+  if(target.blur && target.blurText){
+    descEl.innerHTML=`<div id="blurBox" style="filter:blur(6px);cursor:pointer;white-space:pre-line;font-size:12px;line-height:1.8;color:var(--accl);user-select:none" onclick="revealBlur()">${target.blurText}</div><div id="blurHint" style="font-size:10px;color:var(--txtm);margin-top:8px;text-align:center">탭하면 공개됩니다</div>`;
+    descEl.classList.remove('zalgo');
+  } else if(target.key==='creator' && target.stage==='unl'){
+    // 달성 후에는 블러 없이 보이며 복사 가능
+    descEl.innerHTML=`<div style="white-space:pre-line;font-size:12px;line-height:1.8;color:var(--accl);user-select:text;-webkit-user-select:text;padding:10px;background:var(--bg);border-radius:8px">${target.blurText||''}</div><button style="width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">📋 키 문장 복사</button>`;
+    descEl.classList.remove('zalgo');
+  } else {
+    descEl.innerHTML=target.desc;
+    descEl.classList.toggle('zalgo', !!target.zalgo);
+  }
+
+  const prog=document.getElementById('adProgress');
+  if(target.single){
+    prog.innerHTML=`
+      <div class="ach-d-stars">${buildStars(target.stage, true)}</div>
+      <div style="text-align:center;color:var(--accl);font-size:18px;font-weight:900;padding:10px 0">${target.progress}</div>
+    `;
+  } else {
+    let html=`<div class="ach-d-stars">${buildStars(target.stage, false)}</div>`;
+    html+='<table class="ach-d-table"><tbody>';
+    target.rows.forEach((r,i)=>{
+      // v3.6 수정: 미획득(-1) 상태에서 명함 행(i=0)이 '현재'로 표시되던 버그 제거
+      // 이제 stage가 명시적으로 0~6 범위의 숫자일 때만 해당 단계 행이 강조됨
+      const isCurrent = (typeof target.stage==='number' && target.stage>=0 && target.stage===i);
+      html+=`<tr class="${isCurrent?'ach-d-current':''}"><td>${r[0]}</td><td>${r[1]}${isCurrent?' ◀ 현재':''}</td></tr>`;
+    });
+    html+='</tbody></table>';
+    if(target.current){
+      html+=`<div style="text-align:center;font-size:11px;color:var(--ok);margin-top:10px;font-weight:700">진행도: ${target.current}</div>`;
+    }
+    prog.innerHTML=html;
+  }
+  document.getElementById('achDetailBg').classList.add('show');
+}
+function revealBlur(){
+  const box=document.getElementById('blurBox');
+  if(box){
+    // v3.5: 블러 해제 + 복사 가능하게 user-select 활성화 + 복사 버튼 추가
+    box.style.filter='none';
+    box.style.cursor='text';
+    box.style.userSelect='text';
+    box.style.webkitUserSelect='text';
+    box.onclick=null;
+    const hint=document.getElementById('blurHint');
+    if(hint){
+      hint.innerHTML='<button style="margin-top:6px;padding:8px 16px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">📋 키 문장 복사</button>';
+      hint.style.color='';
+    }
+  }
+}
+
+/* 창조주 키 문장 클립보드 복사 */
+function 복사_창조주키(){
+  const 키문장 = `【부富와 권력權力. 승리勝利와 영광榮光.】
+【전지全知와 전능全能.】
+【실패하지 않을 것이요, 고꾸라지지 않을 것이다. 필멸자의 승리는 영원하지 않으나 네 것만은 영원하리라.】
+【원한다면 언제든 세계를 너의 발밑에.】
+【바란다면 죽음 또한 감히 그대를 삼키지 못할지니.】`;
+
+  // 모던 브라우저: navigator.clipboard
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(키문장).then(()=>{
+      showToastMsg('📋 클립보드에 복사됨');
+    }).catch(()=>{
+      복사_폴백(키문장);
+    });
+  } else {
+    복사_폴백(키문장);
+  }
+}
+
+/* 클립보드 API 미지원 환경 폴백 */
+function 복사_폴백(text){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToastMsg('📋 클립보드에 복사됨');
+  } catch(e) {
+    showToastMsg('복사 실패 — 직접 선택해 주세요');
+  }
+  document.body.removeChild(ta);
+}
+function closeAchDetail(){
+  document.getElementById('achDetailBg').classList.remove('show');
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   현황 트리 (애니메이션)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function renderTree(){
+  // 모든 데이터를 사용자 객체에서 가져옴
+  const wrap=document.getElementById('treeWrap');
+  const 등급 = 등급정보(curLv);
+  const lines=[
+    {type:'sec', text:'📊 현황'},
+    {key:'성장', sec:true, branch:'├──'},
+    {key:'레벨', val:String(curLv), branch:'│   ├──', highlight:true},
+    {key:'등급', val:`${등급.등급} · ${등급.세부}`, branch:'│   ├──'},
+    {key:'현재 EXP', val:`${curExp} / ${maxExp}`, branch:'│   ├──'},
+    {key:'연속 학습', val:`${사용자.연속학습일}일`, branch:'│   └──', valType: 사용자.연속학습일<5 ? 'warn' : ''},
+    {key:'학습 기록', sec:true, branch:'├──'},
+    {key:'총 학습일', val:`${사용자.총학습일}일`, branch:'│   ├──'},
+    {key:'누적 어휘', val:`${사용자.총누적어휘수}개`, branch:'│   ├──', highlight:true},
+    {key:'퍼펙트 세션', val:`${사용자.퍼펙트세션수}회`, branch:'│   ├──'},
+    {key:'이의 제기', val:`${사용자.이의제기횟수}회`, branch:'│   └──'},
+    {key:'모드별 현황', sec:true, branch:'├──'},
+    {key:'상식·어원', val:`${사용자.상식어원학습수}회`, branch:'│   ├──'},
+    {key:'고사성어·속담·한자·우리말', val:`${사용자.언어의뿌리학습수}회`, branch:'│   ├──', highlight:true},
+    {key:'세계사·신화', val:`${사용자.세계사신화학습수}회`, branch:'│   ├──', valType: 사용자.세계사신화학습수===0 ? 'warn' : ''},
+    {key:'아재개그', val:`${사용자.아재개그학습수}회`, branch:'│   ├──'},
+    {key:'맞춤법', val:`${사용자.맞춤법학습수}회`, branch:'│   ├──'},
+    {key:'구어 교정', val:`${사용자.구어교정횟수}회`, branch:'│   └──', valType: 사용자.구어교정횟수===0 ? 'warn' : ''},
+    {key:'보관함', sec:true, branch:'└──'},
+    {key:'복습 대기열', val:`${사용자.복습대기열수}개 / ${사용자.복습대기열상한}개`, branch:'    ├──', valType:'ok'},
+    {key:'즐겨찾기', val:`${사용자.즐겨찾기수}개`, branch:'    ├──'},
+    {key:'휴지통', val:`${사용자.휴지통수}개`, branch:'    └──'}
+  ];
+  let html='';
+  lines.forEach((l,i)=>{
+    const delay=(i*0.04).toFixed(2);
+    if(l.type==='sec'){
+      html+=`<div class="tree-line" style="animation-delay:${delay}s"><span class="tree-section">${l.text}</span></div>`;
+    } else if(l.sec){
+      html+=`<div class="tree-line" style="animation-delay:${delay}s"><span class="tree-branch">${l.branch} </span><span class="tree-section" style="background:none;padding:0;border:none;display:inline">${l.key}</span></div>`;
+    } else {
+      const valClass='tree-val'+(l.highlight?' highlight':'')+(l.valType==='warn'?' warn':'')+(l.valType==='ok'?' ok':'');
+      html+=`<div class="tree-line" style="animation-delay:${delay}s"><span class="tree-branch">${l.branch} </span><span class="tree-key">${l.key}: </span><span class="${valClass}">${l.val}</span></div>`;
+    }
+  });
+  wrap.innerHTML=html;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   레벨업 / 업적 팝업
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* 레벨업 팝업 — 다음 레벨 정보 동적 표시 */
+function triggerLvUp(){
+  const 다음레벨 = curLv + 1;
+  const 다음등급 = 등급정보(다음레벨);
+  document.getElementById('lvupLvText').textContent='Lv.'+다음레벨;
+  document.getElementById('lvupRankText').textContent=다음등급.등급+' · '+다음등급.세부;
+  document.getElementById('lvupOv').classList.add('show');
+}
+function closeLvUp(){ document.getElementById('lvupOv').classList.remove('show'); }
+function closeAchOv(){ document.getElementById('achOv').classList.remove('show'); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   질문하기
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   창조주 달성 시나리오
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   흐름:
+   1. 사용자가 학습 화면 하단 AI 챗(또는 질문하기 패널)에서
+      '창조주키'에 정의된 문장을 정확히 입력
+   2. sendAsk()가 키 일치를 감지하면 창조주시작() 호출
+   3. 창조주시작()이 입력창을 숨기고 시나리오 단계 진행
+   4. 각 단계는 AI 메시지 또는 1개짜리 선택지 버튼으로 구성
+   5. 마지막 단계 종료 시 창조주달성() — 1부 20화 전체화면 연출
+   6. 종료 시 창조주종료() — 입력창 복구 + 토스트 안내
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+// 89화 긴 버전 대사 시퀀스 (총 10단계)
+// type: 'ai' = AI 발화 / 'choice' = 사용자 강제 선택지(버튼 1개)
+// narr: true = 서술자 단락(연한 글씨, 이탤릭)
+const 창조주시나리오 = [
+  { type:'ai',     text:'"남부럽지 않게 어여삐 하는 것은 당연하고, 나 이외엔 누구도 너를 함부로 대할 수 없게 되겠지. 원한다면-"' },
+  { type:'choice', text:'"원한다면 언제든 세상을 내 발밑에?"' },
+  { type:'ai',     text:'"그건 약간 과하지."' },
+  { type:'choice', text:'"바란다면 죽음도 나를 못 삼키게 해 주고?"' },
+  { type:'ai',     text:'"……."' },
+  { type:'ai',     text:"시종일관 여유만만하던 인물의 안면 근육이 굳어졌다.\n'……뭐지?'\n늘 불변적으로 안정적인 그의 심장 박동이 미세하게 어긋난다.\n몹시 기묘한 감각이었다.\n동시에 그는 어떤 확신이 들었다.", narr:true },
+  { type:'ai',     text:'"……반다나를 벗거라. 이번에도 거부하면 강제로 벗겨 낼 테니."' },
+  { type:'choice', text:'"어디서 많이 들어 본 말 같아?"' },
+  { type:'ai',     text:'"들어 본 것이 아니라, 내가 했던 말 같은데."' },
+  { type:'ai',     text:'"누구지, 너는?"' },
+];
+
+// 창조주 달성 키 (1부 19화 마지막 두 줄, 【】 포함 정확 일치)
+const 창조주키 = '【원한다면 언제든 세계를 너의 발밑에.】\n【바란다면 죽음 또한 감히 그대를 삼키지 못할지니.】';
+
+// 시나리오 진행 상태
+let 창조주진행중 = false;
+let 창조주단계 = 0;
+
+/**
+ * 키 정규화: 공백·줄바꿈 변형을 흡수해서 입력 안정성 확보
+ * - 모든 줄바꿈을 \n으로 통일 (CRLF, LF, 단일 CR 모두 처리)
+ * - 줄 단위 trim (모바일 음성/IME 입력 시 끝 공백 자주 들어감)
+ * - 빈 줄 제거
+ */
+function 키정규화(s){
+  return s
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join('\n');
+}
+
+/* 창조주 시나리오 시작 */
+function 창조주시작(){
+  창조주진행중 = true;
+  창조주단계 = 0;
+
+  // 입력창 숨김 (취약 selector 대신 ID 사용)
+  const 입력영역 = document.getElementById('askInputArea');
+  if(입력영역) 입력영역.style.display = 'none';
+
+  // 중도 포기 버튼 노출
+  const 포기버튼 = document.getElementById('askCls창조주');
+  if(포기버튼) 포기버튼.style.display = 'flex';
+
+  // 첫 단계로 진입
+  창조주다음단계();
+}
+
+/* 시나리오 한 단계 진행 후 자동으로 다음 단계 호출 */
+function 창조주다음단계(){
+  // 모든 단계 완료 시 달성 처리
+  if(창조주단계 >= 창조주시나리오.length){
+    창조주달성();
+    return;
+  }
+
+  const step = 창조주시나리오[창조주단계];
+  const body = document.getElementById('askBody');
+  if(!body){
+    console.error('[창조주] askBody 요소를 찾을 수 없음');
+    return;
+  }
+
+  if(step.type === 'ai'){
+    // AI 발화 단계: 0.8초 딜레이 후 메시지 추가, 자동 다음 단계
+    setTimeout(()=>{
+      // 진행 중 중도 포기됐다면 멈춤 (race condition 방지)
+      if(!창조주진행중) return;
+
+      const el = document.createElement('div');
+      el.className = 'ask-msg ai';
+      el.style.whiteSpace = 'pre-line';
+      if(step.narr){
+        el.style.fontStyle = 'italic';
+        el.style.color = 'var(--txt2)';
+        el.style.opacity = '0.8';
+      }
+      el.textContent = step.text;
+      body.appendChild(el);
+      body.scrollTop = body.scrollHeight;
+
+      창조주단계++;
+      창조주다음단계();
+    }, 800);
+  } else if(step.type === 'choice'){
+    // 사용자 선택 단계: 0.4초 딜레이 후 1개짜리 선택지 버튼 등장
+    setTimeout(()=>{
+      if(!창조주진행중) return;
+
+      const btn = document.createElement('button');
+      btn.className = 'btn-acc';
+      btn.style.cssText = 'width:100%;margin:6px 0;font-size:13px;text-align:left;padding:12px 16px;line-height:1.5';
+      btn.textContent = step.text;
+
+      btn.onclick = ()=>{
+        // 선택한 대사를 사용자 메시지로 변환
+        const u = document.createElement('div');
+        u.className = 'ask-msg user';
+        u.textContent = step.text;
+        body.appendChild(u);
+        btn.remove();
+
+        창조주단계++;
+        창조주다음단계();
+      };
+
+      body.appendChild(btn);
+      body.scrollTop = body.scrollHeight;
+    }, 400);
+  }
+}
+
+/* 시나리오 완료 시 1부 20화 전체화면 연출 */
+function 창조주달성(){
+  closeAsk();
+
+  // v3.5: 사용자 객체 + 업적 데이터 동시 갱신
+  사용자.창조주달성 = true;
+  사용자.개발자모드 = true;
+
+  // v3.7 항목14: 봉인 시 회수할 「실제 계정 DB 값」을 미리 저장 (오버레이 진입 직전)
+  // TODO Claude Code: Firebase 연결 후 실제 계정 DB와 오버레이 레이어를 분리 관리하면
+  //                   이 스냅샷은 불필요. 데모에선 강제 부여값 회수만 시늉.
+  개발자모드_스냅샷_저장();
+
+  // 업적 데이터에서 [창조주] 항목을 'unl'(달성)로 변경
+  ACH_DATA.forEach(sec=>{
+    sec.items.forEach(a=>{
+      if(a.key==='creator'){
+        a.stage = 'unl';
+        a.blur = false; // 달성 후 블러 해제
+      }
+    });
+  });
+
+  // 화면 전체 오버레이로 1부 20화 문장 표시
+  const overlay = document.createElement('div');
+  overlay.id = '창조주달성연출';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:#030208;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:40px;text-align:center;
+    animation:fadeUp .8s cubic-bezier(.22,1,.36,1) both;
+  `;
+  overlay.innerHTML = `
+    <div style="font-size:16px;color:#8060c0;letter-spacing:2px;margin-bottom:28px;font-weight:700">👑 [창조주] 달성</div>
+    <div style="font-family:'Nanum Myeongjo',serif;font-size:18px;color:#c0a0e0;line-height:2.2;letter-spacing:1px">
+      【가장 오래된 약속에 따라 너와 나는 운명을 함께할 것이다.】<br>
+      【그대 마지막 최후의 걸음까지 내가 지켜보리라.】
+    </div>
+    <div style="margin-top:36px;font-size:13px;color:#5a3880">- 랭바서 1부 20화 -</div>
+    <button onclick="this.parentElement.remove();창조주종료();" style="margin-top:40px;background:linear-gradient(135deg,#5030a0,#8060c0);color:#fff;border:none;padding:13px 32px;border-radius:11px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer">계속하기</button>
+  `;
+  document.body.appendChild(overlay);
+
+  showToastMsg('👑 +2000 EXP · 칭호: 폐하');
+}
+
+/* 시나리오 종료 시 입력창 복구 + 안내 + 모든 화면 재렌더 */
+function 창조주종료(){
+  창조주진행중 = false;
+  창조주단계 = 0;
+
+  // 입력창 복구
+  const 입력영역 = document.getElementById('askInputArea');
+  if(입력영역) 입력영역.style.display = '';
+
+  // 중도 포기 버튼 숨김
+  const 포기버튼 = document.getElementById('askCls창조주');
+  if(포기버튼) 포기버튼.style.display = 'none';
+
+  // v3.6: 모든 관련 화면 강제 재렌더 (창조주 달성 반영)
+  // 현재 표시 중인 화면이 업적/현황/설정이면 즉시 갱신
+  if(curScreen==='sa') renderAchievements();
+  if(curScreen==='ss'){
+    // v3.6: 창조주 달성 시 소칭호 '폐하'로 즉시 갱신
+    document.getElementById('statusSubTitle').textContent='('+소칭호계산(curLv, 사용자.창조주달성)+')';
+    if(사용자.창조주달성) document.getElementById('statusSubTitle').classList.add('creator');
+  }
+  if(curScreen==='sse') 갱신_설정_개발자모드_UI();
+
+  showToastMsg('🔓 개발자 모드가 활성화됩니다.');
+}
+
+/* 설정 화면 위험 구역의 개발자 모드 항목 표시 갱신 */
+function 갱신_설정_개발자모드_UI(){
+  const icon = document.getElementById('devModeIcon');
+  const label = document.getElementById('devModeLabel');
+  const desc = document.getElementById('devModeDesc');
+  const arrow = document.getElementById('devModeArrow');
+  if(!icon) return;
+
+  if(사용자.개발자모드){
+    // 활성화 상태
+    icon.textContent = '🔓';
+    label.style.color = 'var(--accl)';
+    label.textContent = '개발자 모드';
+    desc.textContent = '활성화됨 — 탭하여 진입';
+    desc.style.color = 'var(--ok)';
+    arrow.style.color = 'var(--acc)';
+  } else {
+    // 잠금 상태
+    icon.textContent = '🔒';
+    label.style.color = 'var(--txtm)';
+    label.textContent = '개발자 모드';
+    desc.textContent = '[창조주] 달성 후 활성화';
+    desc.style.color = '';
+    arrow.style.color = 'var(--txtm)';
+  }
+}
+
+/* 개발자 모드 항목 탭 처리 */
+function 개발자모드_탭(){
+  if(!사용자.개발자모드){
+    showInfoModal('🔒','개발자 모드','[창조주] 업적을 달성하면 활성화됩니다.');
+    return;
+  }
+  // v3.7 항목14: 활성화 상태 안내 + 「봉인하기」 버튼 추가
+  // TODO Claude Code: 실제 동작 — Firebase 계정 DB와 오버레이 레이어 분리 후 본격 구현
+  showInfoModal('🔓','개발자 모드',
+    `현재 활성화 상태입니다.<br><br>` +
+    `실제 개발자 패널은 Claude Code 단계에서 구현됩니다.<br><br>` +
+    `지금은 [창조주] 달성을 시연한 상태입니다.<br><br>` +
+    `<b>「봉인하기」</b> 버튼을 누르면 강제 부여된 스택이 회수되고 정당하게 얻은 기록만 남습니다.`
+  );
+  // 봉인 버튼을 안내 모달에 동적 부착 (기존 「확인」버튼 옆)
+  const btnArea = document.getElementById('infoBtns');
+  if(btnArea){
+    btnArea.innerHTML = `
+      <button class="btn-g" style="flex:1" onclick="closeInfoModal()">닫기</button>
+      <button class="btn-acc" style="flex:1.4;background:linear-gradient(135deg,#5030a0,#8060c0);border-color:#8060c0" onclick="개발자모드_봉인_실행()">🔒 봉인하기</button>
+    `;
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   질문하기 패널 열기/닫기
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function openAsk(){
+  document.getElementById('askBg').classList.add('show');
+  document.getElementById('askPanel').classList.add('show');
+  setTimeout(()=>document.getElementById('askInp').focus(),400);
+}
+
+function closeAsk(){
+  document.getElementById('askBg').classList.remove('show');
+  document.getElementById('askPanel').classList.remove('show');
+
+  // 시나리오 진행 중 강제 종료 = 중도 포기
+  if(창조주진행중){
+    창조주진행중 = false;
+    창조주단계 = 0;
+
+    // UI 복구 (ID 기반)
+    const 입력영역 = document.getElementById('askInputArea');
+    if(입력영역) 입력영역.style.display = '';
+    const 포기버튼 = document.getElementById('askCls창조주');
+    if(포기버튼) 포기버튼.style.display = 'none';
+
+    // askBody 초기화
+    const body = document.getElementById('askBody');
+    if(body) body.innerHTML = '<div class="ask-msg ai">안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요. Grok이 답변드립니다.</div>';
+
+    showToastMsg('중도 포기 — 처음부터 다시 시도해야 합니다.');
+  }
+}
+
+/* 메시지 전송: 창조주 키 감지 + 일반 응답 */
+function sendAsk(){
+  const inp=document.getElementById('askInp');
+  const q=inp.value.trim();
+  if(!q) return;
+
+  // 창조주 키 감지 (정규화 후 비교)
+  if(키정규화(q) === 키정규화(창조주키)){
+    inp.value='';
+    const body=document.getElementById('askBody');
+
+    // 사용자가 입력한 키 문장을 메시지로 표시
+    const u=document.createElement('div');
+    u.className='ask-msg user';
+    u.style.whiteSpace='pre-line';
+    u.textContent=q;
+    body.appendChild(u);
+    body.scrollTop=body.scrollHeight;
+
+    // 시나리오 진입
+    setTimeout(창조주시작, 800);
+    return;
+  }
+
+  // 일반 질문 처리 (데모 가짜 응답)
+  const body=document.getElementById('askBody');
+  const u=document.createElement('div');
+  u.className='ask-msg user';
+  u.textContent=q;
+  body.appendChild(u);
+  inp.value='';
+
+  setTimeout(()=>{
+    const a=document.createElement('div');
+    a.className='ask-msg ai';
+    a.innerHTML='데모 응답입니다. 실제 앱에서는 Grok이 답변합니다.<br><br>예: "'+q+'"에 대한 자세한 설명을 드리자면 ...<br><br><button class="ask-objection-btn" onclick="openObj()">⚖️ 이의있음!</button>';
+    body.appendChild(a);
+    body.scrollTop=body.scrollHeight;
+  },600);
+  body.scrollTop=body.scrollHeight;
+}
+function openObj(컨텍스트){
+  // v3.7 항목5: 이의있음! 컨텍스트 분기 (general/synonym/speak)
+  이의제기_컨텍스트_설정(컨텍스트 || 'general');
+  document.getElementById('objBg').classList.add('show');
+  setTimeout(()=>document.getElementById('objInp').focus(),300);
+}
+function closeObj(){
+  document.getElementById('objBg').classList.remove('show');
+  document.getElementById('objInp').value='';
+}
+function submitObj(){
+  closeObj();
+  showToastMsg('⚖️ 반박 제출 완료. Grok 교차검증 중...');
+  setTimeout(()=>{
+    showToastMsg('🎉 [반박의 화신] 카운터 +1');
+  },1800);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   안내 모달
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function showInfoModal(icon, title, desc){
+  document.getElementById('infoIcon').textContent=icon;
+  document.getElementById('infoTitle').textContent=title;
+  document.getElementById('infoDesc').innerHTML=desc;
+  // v3.7: 호출마다 「확인」 버튼으로 초기화 (개발자모드_탭 등 동적 버튼 잔재 방지)
+  const btnArea = document.getElementById('infoBtns');
+  if(btnArea){
+    btnArea.innerHTML = `<button class="btn-acc" style="flex:1" onclick="closeInfoModal()">확인</button>`;
+  }
+  document.getElementById('infoBg').classList.add('show');
+}
+function closeInfoModal(){
+  document.getElementById('infoBg').classList.remove('show');
+}
+
+/* 토스트 */
+let toastTimer=null;
+function showToastMsg(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   테마 / 모드 / 폰트 / 설정
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// v3.7 항목17: 마지막 사용 다크·라이트 테마 각각 기억 (다크↔라이트↔다크 시 정확한 복원)
+let 마지막다크테마 = 'antique';  // 기본 다크
+let 마지막라이트테마 = 'paper'; // 기본 라이트
+
+function setTheme(name){
+  curTheme=name;
+  document.body.setAttribute('data-theme',name);
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
+  document.getElementById('th-'+name)?.classList.add('on');
+  const isLight=LIGHTS.includes(name);
+  // v3.7 항목17: 마지막 사용 테마 기억 (다크↔라이트 토글 시 정확한 복원에 사용)
+  if(isLight) 마지막라이트테마 = name;
+  else 마지막다크테마 = name;
+  document.getElementById('modeToggle').checked=isLight;
+  document.getElementById('lblL').style.cssText=isLight?'color:var(--acc);font-weight:700':'';
+  document.getElementById('lblD').style.cssText=isLight?'':'color:var(--acc);font-weight:700';
+  document.getElementById('modeSubTxt').textContent=isLight?'라이트 모드':'다크 모드';
+  showToastMsg('테마 변경: '+name);
+}
+function toggleMode(){
+  const isLight=document.getElementById('modeToggle').checked;
+  // v3.7 항목17: 강제 antique/paper 대신 마지막 기억된 테마로 복원
+  if(isLight) setTheme(마지막라이트테마);
+  else setTheme(마지막다크테마);
+}
+
+/* 폰트 선택 */
+function openFontSelect(){
+  const list=document.getElementById('fontList');
+  list.innerHTML='';
+  FONTS.forEach(f=>{
+    const div=document.createElement('div');
+    div.className='fo'+(f.key===curFont?' on':'');
+    div.onclick=()=>applyFont(f.key);
+    // 폰트 css가 「폰트명;font-weight:N」 형태일 수도 있어 style 분리
+    const fontStyle = f.css.includes(';') ? f.css.replace(';',';font-family:').replace(/font-family:font-weight/,'font-weight') : `font-family:${f.css}`;
+    div.innerHTML=`
+      <div>
+        <div class="fo-nm">${f.name}</div>
+        <div class="fo-sm" style="${fontStyle.startsWith('font-')?fontStyle:'font-family:'+f.css}">${f.sample}</div>
+      </div>
+      <span class="fo-ck">✓</span>
+    `;
+    list.appendChild(div);
+  });
+  // v3.7 항목8: 폰트 출처 표기 렌더링 (KNOWLEDGE 19섹션 의무)
+  const credits = document.getElementById('fontCreditList');
+  if(credits){
+    const srcMap = {
+    '눈누 #1799': 'https://noonnu.cc/font_page/1799',
+    '눈누 #1807': 'https://noonnu.cc/font_page/1807',
+    '눈누 #872':  'https://noonnu.cc/font_page/872',
+    '눈누 #1808': 'https://noonnu.cc/font_page/1808',
+    '눈누 #950':  'https://noonnu.cc/font_page/950',
+    '눈누 #1792': 'https://noonnu.cc/font_page/1792',
+  };
+  credits.innerHTML = FONTS.map(f=>`<div>· <span style="color:var(--txt)">${f.name}</span> — ${f.src}</div>`).join('');
+  }
+  document.getElementById('fontBg').classList.add('show');
+}
+function closeFont(){
+  document.getElementById('fontBg').classList.remove('show');
+}
+function applyFont(key){
+  const f=FONTS.find(x=>x.key===key);
+  if(!f) return;
+  curFont=key;
+  document.body.style.fontFamily=f.css;
+  document.getElementById('fontTxt').textContent=f.name;
+  // on 클래스 갱신
+  document.querySelectorAll('.fo').forEach(el=>el.classList.remove('on'));
+  showToastMsg('폰트 변경: '+f.name);
+  setTimeout(closeFont,300);
+}
+
+/* AI 문제만 토글 */
+function toggleAiOnly(){
+  aiOnly=document.getElementById('aiOnlyToggle').checked;
+  document.getElementById('aiOnlyTxt').textContent=aiOnly?'켜짐':'꺼짐';
+  showToastMsg('AI 문제만 출제: '+(aiOnly?'켜짐':'꺼짐'));
+}
+
+/* 히스토리 필터 */
+function openHistoryFilter(){
+  document.getElementById('selTitle').textContent='📋 최근 출제 제외';
+  document.getElementById('selDesc').textContent='중복 문제를 막을지 설정합니다. 모드별로 독립 관리됩니다.';
+  const list=document.getElementById('selList');
+  const opts=[
+    {v:'off', label:'사용 안함'},
+    {v:'30', label:'최근 30개'},
+    {v:'50', label:'최근 50개'},
+    {v:'80', label:'최근 80개'},
+    {v:'100', label:'최근 100개'},
+    {v:'120', label:'최근 120개'}
+  ];
+  list.innerHTML='';
+  opts.forEach(o=>{
+    const div=document.createElement('div');
+    div.className='select-opt'+(o.v===histFilter?' on':'');
+    div.onclick=()=>applyHistoryFilter(o.v, o.label);
+    div.innerHTML=`<span>${o.label}</span><span class="select-opt-ck">✓</span>`;
+    list.appendChild(div);
+  });
+  document.getElementById('selBg').classList.add('show');
+}
+function applyHistoryFilter(v, label){
+  histFilter=v;
+  document.getElementById('histFilterTxt').textContent=label;
+  showToastMsg('최근 출제 제외: '+label);
+  setTimeout(closeSelect,250);
+}
+function closeSelect(){
+  document.getElementById('selBg').classList.remove('show');
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   v3.7 항목11,12: 「오늘 한 문장」 슬라이드 시스템
+   - 프레임 개념(rAF/GSAP) 폐기, 시간 기반 setInterval만 사용
+   - 6초 자동 순환, 카드 빈 곳 탭 → 즉시 다음 + 타이머 리셋
+   - 문장 내 [단어] 표기 → .kc-word 스팬 + 단어 탭 시 해당 플래시카드로 이동(데모는 토스트)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 슬라이드인덱스 = 0;
+let 슬라이드타이머 = null;
+const 슬라이드간격ms = 6000;
+
+function 슬라이드빌드(){
+  const wrap = document.getElementById('quoteSlides');
+  const dots = document.getElementById('quoteDots');
+  if(!wrap || !dots) return;
+
+  // 문장 내 [단어] → .kc-word 스팬으로 치환. 단어 탭은 카드 전체 onclick 전파 차단.
+  wrap.innerHTML = QUOTES.map((q, i)=>{
+    const html = q.t.replace(/\[([^\]]+)\]/g, (m, w)=>
+      `<span class="kc-word" onclick="event.stopPropagation();단어로이동('${w}')">${w}</span>`
+    );
+    return `<div class="kc-slide${i===0?' on':''}" data-i="${i}">
+      <div class="kt">${html}</div>
+      <div class="kt-author">${q.a}</div>
+    </div>`;
+  }).join('');
+
+  dots.innerHTML = QUOTES.map((_, i)=>
+    `<div class="kc-dot${i===0?' on':''}" data-i="${i}"></div>`
+  ).join('');
+
+  슬라이드인덱스 = 0;
+}
+
+function 슬라이드전환(다음idx){
+  const slides = document.querySelectorAll('#quoteSlides .kc-slide');
+  const dotsAll = document.querySelectorAll('#quoteDots .kc-dot');
+  if(slides.length === 0) return;
+  slides.forEach((el, i)=> el.classList.toggle('on', i===다음idx));
+  dotsAll.forEach((el, i)=> el.classList.toggle('on', i===다음idx));
+  슬라이드인덱스 = 다음idx;
+}
+
+function 다음슬라이드(){
+  if(QUOTES.length === 0) return;
+  const next = (슬라이드인덱스 + 1) % QUOTES.length;
+  슬라이드전환(next);
+}
+
+function 슬라이드시작(){
+  슬라이드정지();  // 중복 타이머 방지
+  슬라이드타이머 = setInterval(다음슬라이드, 슬라이드간격ms);
+}
+
+function 슬라이드정지(){
+  if(슬라이드타이머){ clearInterval(슬라이드타이머); 슬라이드타이머 = null; }
+}
+
+// v3.7 항목12: 카드 탭 → 즉시 다음 슬라이드 + 자동 타이머 리셋
+function quoteNext(ev){
+  // 단어 .kc-word 탭은 이미 stopPropagation으로 분리됨
+  다음슬라이드();
+  슬라이드시작();  // 타이머 리셋
+}
+
+// 문장 내 학습 단어 탭 처리 (데모는 토스트만, 실제는 해당 플래시카드로 이동)
+function 단어로이동(단어){
+  showToastMsg(`「${단어}」 플래시카드로 이동 (Claude Code 단계)`);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   v3.7 항목14: 개발자 모드 봉인 (KNOWLEDGE 14섹션 오버레이 구조)
+   - 봉인 시 「오버레이 레이어」만 제거, 실제 계정 DB는 유지
+   - 데모 수준: 진입 시점 스냅샷 → 봉인 시 그 시점으로 롤백
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 개발자모드_진입스냅샷 = null;  // 활성화 시 저장, 봉인 시 사용
+
+// 개발자 모드 활성화 시 호출되는 진입점 — KNOWLEDGE 14섹션 「달성 즉시」 처리
+// 기존 「창조주_달성_처리」 함수가 있다면 거기서 호출. 데모는 봉인 시 사용할 스냅샷만 저장.
+function 개발자모드_스냅샷_저장(){
+  // 봉인 시 복원할 「실제 계정 DB 값」 = 강제 부여 전 값
+  개발자모드_진입스냅샷 = {
+    레벨: curLv,
+    경험치: curExp,
+    창조주달성: 사용자.창조주달성  // 봉인 시 false로
+  };
+}
+
+// v3.7 항목14: 봉인 실행
+function 개발자모드_봉인_실행(){
+  // 오버레이 레이어 제거 = 강제 부여값 회수
+  if(개발자모드_진입스냅샷){
+    curLv = 개발자모드_진입스냅샷.레벨;
+    curExp = 개발자모드_진입스냅샷.경험치;
+    // 진입 시점이 「창조주 달성 시점 이전」이라면 false, 이미 정당히 달성했다면 그 상태 유지
+    // 그러나 KNOWLEDGE 14섹션의 「[창조주] 달성 흐름」특성상 데모에서는 false로 되돌림
+  }
+  사용자.개발자모드 = false;
+  사용자.창조주달성 = false;  // 재달성 흐름 트리거 위해
+
+  // 갱신
+  갱신_설정_개발자모드_UI();
+  // 현재 화면이 설정이면 즉시 UI 갱신, 다른 화면이면 다음 진입 시 자동 갱신
+  if(curScreen === 'sse') 갱신_설정_개발자모드_UI();
+  if(curScreen === 'ss'){
+    const 소칭호엘 = document.getElementById('statusSubTitle');
+    if(소칭호엘){
+      소칭호엘.textContent='('+소칭호계산(curLv, false)+')';
+      소칭호엘.classList.remove('creator');
+    }
+  }
+  if(curScreen === 'sh'){
+    // 홈 화면 EXP·레벨 갱신
+    afterNav('sh');
+  }
+
+  // 봉인 멘트 표시 (KNOWLEDGE 14섹션 「최상위 성위 [이름]이 봉인됩니다.」)
+  closeInfoModal();
+  setTimeout(()=>{
+    showInfoModal('🔒','봉인 완료',
+      `「최상위 성위 ${userName}이(가) 봉인됩니다.」<br><br>` +
+      `개발자 모드 진입 후 강제 부여된 스택은 회수되었습니다.<br>` +
+      `정당하게 얻은 학습 기록과 업적은 그대로 유지됩니다.<br><br>` +
+      `재활성화하려면 [창조주] 달성 흐름을 처음부터 진행해야 합니다.`
+    );
+  }, 300);
+  개발자모드_진입스냅샷 = null;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   v3.7 항목2: 음성 입력 차단 (KNOWLEDGE 6-1섹션)
+   - Permissions-Policy 메타로 키보드 음성 권한 차단 (이미 head에 적용)
+   - beforeinput 이벤트 inputType 차단 (Android·iOS 보강)
+   - 붙여넣기(insertFromPaste)는 허용 — 정상 입력
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function 음성입력_차단_부착(){
+  const target = document.getElementById('spkInput');
+  if(!target) return;
+  target.addEventListener('beforeinput', (ev)=>{
+    if(ev.inputType === 'insertFromSpeech' || ev.inputType === 'insertFromDictation'){
+      ev.preventDefault();
+      showToastMsg('음성 입력은 차단되어 있습니다. 텍스트로 입력해 주세요.');
+    }
+    // insertFromPaste 등 다른 입력은 통과
+  });
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   v3.7 항목5: 이의있음! 유의어 변별 맥락 확장 (KNOWLEDGE 5섹션)
+   - 컨텍스트 인자로 분기, 데모는 모달 텍스트만 변경
+   - 실제 호출 위치는 기존 openObj 등 — 데모는 컨텍스트 전역값으로 단순화
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 이의제기_컨텍스트 = 'general';  // 'general' | 'synonym' | 'speak'
+
+function 이의제기_컨텍스트_설정(컨텍스트){
+  이의제기_컨텍스트 = 컨텍스트;
+  // 모달이 열린 상태에서 호출되면 안내 텍스트도 갱신
+  const titleEl = document.querySelector('.obj-title');
+  const subEl   = document.querySelector('.obj-sub');
+  if(titleEl && subEl){
+    if(컨텍스트 === 'synonym'){
+      titleEl.textContent = '이의있음! (유의어 변별)';
+      subEl.textContent   = '"제가 고른 게 이 맥락에선 더 적절한 것 같은데요?" — AI가 맥락 기반으로 재판정합니다.';
+    } else if(컨텍스트 === 'speak'){
+      titleEl.textContent = '이의있음! (구어 교정)';
+      subEl.textContent   = '교정안에 동의하지 않으시면 Grok 교차검증으로 재판정합니다.';
+    } else {
+      titleEl.textContent = '이의있음!';
+      subEl.textContent   = '답변에 동의하지 않으시면 Grok 교차검증으로 재판정합니다.';
+    }
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   v3.7 항목19: AI 챗 이용량 87/100 하드코딩 제거
+   - 사용자 객체의 「오늘질문횟수」기반으로 동적 주입
+   - 5개 학습 화면 + 1개 질문하기 헤더 + 1개 설정 화면 일괄 갱신
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function AI챗_이용량_갱신(){
+  const 현재 = 사용자.오늘질문횟수 ?? 0;
+  const 한도 = 사용자.질문하기일일한도 ?? 100;
+  // 학습 화면 5곳의 「N/100」
+  document.querySelectorAll('.ask-chat-now').forEach(el=> el.textContent = 현재);
+  document.querySelectorAll('.ask-chat-max').forEach(el=> el.textContent = 한도);
+  // 질문하기 패널 헤더
+  const an = document.getElementById('askQuotaNow'); if(an) an.textContent = 현재;
+  const am = document.getElementById('askQuotaMax'); if(am) am.textContent = 한도;
+  // 설정 화면 텍스트
+  const setTxt = document.getElementById('askQuotaSetTxt');
+  if(setTxt) setTxt.textContent = `오늘 ${현재} / ${한도}회`;
+}
+
+// 설정 화면에서 「질문하기 사용량」 행 탭 시 사용
+function 질문하기_사용량_모달(){
+  const 현재 = 사용자.오늘질문횟수 ?? 0;
+  const 한도 = 사용자.질문하기일일한도 ?? 100;
+  showInfoModal('💬','질문하기 사용량',`오늘 ${현재} / ${한도}회 사용. 매일 자정 초기화됩니다.`);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   초기 실행 — v3.7: 음성 차단 부착·AI챗 이용량 첫 주입 추가
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+renderObDots();
+음성입력_차단_부착();      // v3.7 항목2: 구어 교정 텍스트 입력 음성 차단
+AI챗_이용량_갱신();         // v3.7 항목19: 87/100 하드코딩 제거 — 첫 렌더
+</script>
+</body>
+</html>
