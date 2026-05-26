@@ -686,9 +686,9 @@ html{scrollbar-gutter:stable}
 
 <!-- Firebase Compat SDK (KNOWLEDGE 13·28 — 구글 로그인 + Firestore 동기화). compat 방식: 전역 firebase 객체 사용 -->
 <!-- 버전은 필요 시 교체 가능 -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore-compat.js"></script>
 </head>
 <body data-theme="antique">
 
@@ -1878,14 +1878,15 @@ function applyNmChange(){
    - 필드명·변수명 전부 한글 유지 (KNOWLEDGE 13)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-// ⚠️ 최고 관리자님 제공 값으로 교체할 것 (잠시 후 제공 예정). 빈 값이면 Firebase 비활성(콘솔 에러).
+// Firebase 프로젝트 설정 (콘솔 제공값). apiKey는 Firebase 웹 클라이언트 식별자로 공개 전제 — 보안은 Firestore 규칙·승인 도메인으로 제어.
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyCXJoknAhLI8gGJs8o0R5B8rdQCLENlz8Q",
+  authDomain: "llove-djsdj.firebaseapp.com",
+  projectId: "llove-djsdj",
+  storageBucket: "llove-djsdj.firebasestorage.app",
+  messagingSenderId: "395917310027",
+  appId: "1:395917310027:web:4f28f55c3d52084c19b5ce",
+  measurementId: "G-7W3G1T7ZY2"
 };
 
 let fbApp = null, fbAuth = null, fbDb = null;
@@ -2014,8 +2015,8 @@ function 사용자데이터_저장(부분){
    - reasoning_effort는 기능별 레벨 적용 (KNOWLEDGE 4-1)
    ⚠️ 실제 기능(문제 생성·질문하기·이의있음 등) 연결은 엔드포인트 확정 후 진행
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-// ⚠️ Workers 엔드포인트 미생성 — 생성 후 URL 입력 (예: 'https://xxxx.workers.dev/')
-const GROK_WORKERS_ENDPOINT = '';
+// Cloudflare Workers 엔드포인트 (xAI/Grok 프록시). xAI API 키는 Workers에서만 관리 — 프론트 미노출.
+const GROK_WORKERS_ENDPOINT = 'https://xai-api-llove.hypoqwer.workers.dev';
 
 // 기능별 리즈닝 레벨 (KNOWLEDGE 4-1섹션)
 const GROK_리즈닝레벨 = {
