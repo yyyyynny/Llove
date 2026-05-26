@@ -249,8 +249,11 @@ html{scrollbar-gutter:stable}
    - CSS opacity 페이드, JS는 setInterval 시간 기반(프레임 개념 X)
    - 카드 내부 빈 곳 탭 → 다음 문장 즉시 전환 + 자동 타이머 리셋(항목12)
    - 문장 내 학습 단어 탭 → 해당 플래시카드로 이동(데모는 시뮬레이션) */
-.kc-slide{position:absolute;inset:14px;display:flex;flex-direction:column;justify-content:center;opacity:0;transition:opacity .6s ease;pointer-events:none}
-.kc-slide.on{opacity:1;pointer-events:auto;position:relative;inset:auto}
+/* 버그1·C 수정: position absolute↔relative 전환 폐기 → CSS grid 스택.
+   모든 슬라이드를 같은 셀(1/1)에 겹쳐 컨테이너 높이를 가장 긴 문장 기준으로 고정 → 전환 시 레이아웃 점프 제거.
+   슬라이드가 흐름에서 빠지지 않으므로 하단 kc-dots 인디케이터를 가리지 않음. */
+.kc-slide{grid-area:1/1;display:flex;flex-direction:column;justify-content:center;opacity:0;transition:opacity .6s ease;pointer-events:none}
+.kc-slide.on{opacity:1;pointer-events:auto}
 .kc-dots{position:absolute;bottom:7px;left:0;right:0;display:flex;gap:5px;justify-content:center;pointer-events:none}
 .kc-dot{width:5px;height:5px;border-radius:3px;background:var(--bdr);transition:background .3s,width .3s}
 .kc-dot.on{background:var(--acc);width:14px}
@@ -374,6 +377,16 @@ html{scrollbar-gutter:stable}
 .syn-result-reason{color:var(--txt2);font-size:11px;line-height:1.65;background:rgba(224,144,96,.08);border-left:2px solid var(--warn);padding:7px 10px;border-radius:5px;margin-top:6px}
 .syn-actions{display:flex;gap:6px;margin-top:12px}
 .syn-actions .btn-g, .syn-actions .btn-acc{flex:1;padding:10px;font-size:12px}
+/* 버그3 수정: 선택 후 4개 보기 전부의 설명을 나열 공개 */
+.syn-result-all{margin-top:4px}
+.syn-result-item{padding-top:9px;margin-top:9px;border-top:1px solid var(--bdr)}
+.syn-result-item:first-child{border-top:none;margin-top:6px;padding-top:0}
+.syn-result-item.picked{background:rgba(184,149,106,.08);margin-left:-6px;margin-right:-6px;padding:8px 6px;border-radius:6px;border-top:none}
+.syn-ri-head{font-weight:700;font-size:12px;margin-bottom:3px}
+.syn-ri-head.ok{color:var(--ok)}
+.syn-ri-head.warn{color:var(--warn)}
+.syn-ri-head.err{color:var(--err)}
+.syn-ri-pick{font-size:10px;color:var(--acc);font-weight:700;margin-left:2px}
 
 /* ━━━ 아재개그 ━━━ */
 .dad-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
@@ -814,7 +827,7 @@ html{scrollbar-gutter:stable}
 <!-- 폰트 선택 모달 — v3.7 항목6,8: 확정 폰트 11종 + 출처 표기 -->
 <div class="modal-bg" id="fontBg" onclick="closeFont()">
   <div class="modal-bx" onclick="event.stopPropagation()">
-    <div class="modal-title">🔤 폰트 선택</div>
+    <div class="modal-title">🔤 글꼴</div>
     <div class="fo-list" id="fontList"></div>
     <!-- v3.7 항목8: 폰트 출처 표기 (KNOWLEDGE 19섹션 의무) -->
     <div style="margin-top:14px;padding:10px 12px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;font-size:10px;color:var(--txt2);line-height:1.7">
@@ -852,7 +865,7 @@ html{scrollbar-gutter:stable}
   <!-- 입력 영역: 창조주 시나리오에서 ID로 안정적으로 숨김/복구 -->
   <div id="askInputArea" style="padding:12px 18px;border-top:1px solid var(--bdr);background:var(--card)">
     <div class="ask-input-row">
-      <textarea class="ask-input" id="askInp" placeholder="질문을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)" rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" onkeypress="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendAsk();}"></textarea>
+      <textarea class="ask-input" id="askInp" placeholder="질문을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)" rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" oninput="질문입력_높이조절(this)" onkeypress="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendAsk();}"></textarea>
       <button class="ask-send" onclick="sendAsk()">전송</button>
     </div>
   </div>
@@ -959,7 +972,7 @@ html{scrollbar-gutter:stable}
       <span>📜 오늘 한 문장</span>
       <span style="font-size:9px;color:var(--txt2);font-weight:500;letter-spacing:.4px;text-transform:none">탭하면 다음 →</span>
     </div>
-    <div id="quoteSlides" style="position:relative;min-height:64px">
+    <div id="quoteSlides" style="display:grid;min-height:64px">
       <!-- JS에서 슬라이드 동적 생성 -->
     </div>
     <div class="kc-dots" id="quoteDots"></div>
@@ -1333,7 +1346,7 @@ html{scrollbar-gutter:stable}
       <div class="set-lbl">기타</div>
       <div class="set-row" onclick="openFontSelect()">
         <span class="sri">🔤</span>
-        <div style="flex:1"><div class="srl">폰트 설정</div><div class="srs" id="fontTxt">고운 바탕</div></div>
+        <div style="flex:1"><div class="srl">글꼴</div><div class="srs" id="fontTxt">나눔스퀘어 Neo</div></div>
         <span class="sra">›</span>
       </div>
     </div>
@@ -1354,9 +1367,15 @@ html{scrollbar-gutter:stable}
 
     <div class="set-sec fu s6" style="border-color:rgba(192,112,112,.3)">
       <div class="set-lbl" style="color:var(--err)">위험 구역</div>
-      <div class="set-row" onclick="showInfoModal('⚠️','학습 데이터 초기화','레벨·EXP·마스터리·복습 대기열·휴지통·연속 학습일·업적이 모두 초기화됩니다.<br><br>앱 설정(테마·폰트)·구글 계정·즐겨찾기는 유지됩니다.')">
+      <div class="set-row" onclick="showInfoModal('⚠️','학습 데이터 초기화','레벨·EXP·마스터리·복습 대기열·휴지통·연속 학습일·업적이 모두 초기화됩니다.<br><br>앱 설정(테마·글꼴)·구글 계정·즐겨찾기는 유지됩니다.')">
         <span class="sri" style="color:var(--err)">⚠️</span>
         <div style="flex:1"><div class="srl" style="color:var(--err)">학습 데이터 초기화</div><div class="srs">진행 상황을 모두 리셋합니다</div></div>
+        <span class="sra">›</span>
+      </div>
+      <!-- 버그6: 계정 삭제 (2중 확인 절차) — KNOWLEDGE 18섹션 -->
+      <div class="set-row" onclick="계정삭제_1단계()">
+        <span class="sri" style="color:var(--err)">🗑️</span>
+        <div style="flex:1"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 데이터를 영구 삭제 (2중 확인)</div></div>
         <span class="sra">›</span>
       </div>
       <div class="set-row" id="devModeRow" onclick="개발자모드_탭()">
@@ -1451,7 +1470,8 @@ let curScreen='sl';
 let userName=사용자.이름;
 let curExp=사용자.현재EXP, curLv=사용자.레벨;
 let curTheme='antique';
-let curFont='gowun';
+// 버그D 수정: 'gowun'은 FONTS 배열에 없는 유령 키였음 → 기본 글꼴(나눔스퀘어 Neo) 실제 키로 교정 (KNOWLEDGE 8·19)
+let curFont='nanum_square';
 const LIGHTS=['paper'];
 
 // 레벨업 공식: 110 + (레벨-1) × 28
@@ -1514,21 +1534,24 @@ const 기본이름풀=[
 // 웹툰 캐릭터 이름 기반 아이디어. 추후 결정.
 // 예: '한로아의 그림자','시이나의 메아리','김정구의 잔향' 등
 
-// v3.7 항목6: 폰트 확정 10종 (KNOWLEDGE 19섹션, v3.7 최종 갱신)
-// CDN 4종 + base64 임베딩 6종 (GraceSerif 제거, Asummerflowertree 추가)
+// 폰트 확정 10종 (KNOWLEDGE 19섹션)
+// 버그A 수정: v3.8 눈누 CDN 전환 반영. 하단 6종은 base64 임베딩이 아니라 상단 <style>의 눈누 @font-face CDN이다.
+//   - family명을 @font-face/KNOWLEDGE 19와 일치시키고, 출처 표기를 '임베딩' → '눈누 CDN'으로 정정.
+//   - mona: KNOWLEDGE 19 기준 family명은 'Mona'. CDN 직접 검증 불가하여 'Mona-Sans' 폴백을 함께 둠.
+//   - weight: 단일 굵기로 배포된 폰트(평창평화체 Light=300)의 미리보기 굵기 지정용 (버그B 연동).
 const FONTS=[
   // ━━━ CDN 4종 ━━━
   {key:'nanum_gothic',   name:'나눔고딕',          css:"'NanumGothic',sans-serif",             sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
   {key:'nanum_myeongjo', name:'나눔명조',          css:"'NanumMyeongjo',serif",                sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
   {key:'nanum_square',   name:'나눔스퀘어 Neo',    css:"'NanumSquareNeoVariable',sans-serif",  sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
-  {key:'mona',           name:'모나 (Mona)',        css:"'Mona-Sans',sans-serif",               sample:'Language & 언어 1234', src:'CDN · jsDelivr · OFL (라틴 전용)', credit:'OFL'},
-  // ━━━ base64 임베딩 6종 ━━━
-  {key:'asummer',        name:'Asummerflowertree', css:"'EarlySummerFloweringTreeV20JangHyeri',sans-serif",       sample:'한국어 어휘력과 표현력을', src:'임베딩 · 스스로넷 · 상업 라이선스 확인 필요', credit:'무료 배포'},
-  {key:'round',          name:'라운드앤라운드',    css:"'RoundedKimGyuri',sans-serif",           sample:'한국어 어휘력과 표현력을', src:'임베딩 · 스스로넷 · 상업 라이선스 확인 필요', credit:'무료 배포'},
-  {key:'taebaek',        name:'태백체',            css:"'TaebaekMilkyWay',sans-serif",                 sample:'한국어 어휘력과 표현력을', src:'임베딩 · 태백시 · 공공누리 1유형', credit:'공공누리 1유형'},
-  {key:'leeseoyun',      name:'이서윤체',          css:"'IsYun',sans-serif",               sample:'한국어 어휘력과 표현력을', src:'임베딩 · 구글드라이브 · 상업 라이선스 확인 필요', credit:'무료 배포'},
-  {key:'songam',         name:'송암 이형식',       css:"'SongamLeeHyeongSik',serif",            sample:'한국어 어휘력과 표현력을', src:'임베딩 · 공유마당 · 공공누리', credit:'공공누리'},
-  {key:'pyeongchang',    name:'평창평화체 Light',  css:"'PyeongchangPeace',sans-serif",   sample:'한국어 어휘력과 표현력을', src:'임베딩 · 평창군 공식 · 공공누리', credit:'공공누리'},
+  {key:'mona',           name:'모나 (Mona)',        css:"'Mona','Mona-Sans',sans-serif",        sample:'Language & 언어 1234', src:'CDN · jsDelivr · 한글 지원 커스텀(MonadABXY)', credit:'OFL'},
+  // ━━━ 눈누 CDN 6종 (상단 <style> @font-face) ━━━
+  {key:'asummer',        name:'Asummerflowertree', css:"'EarlySummerFloweringTreeV20JangHyeri',sans-serif",       sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 스스로넷 · 상업 사용 가능', credit:'스스로넷'},
+  {key:'round',          name:'라운드앤라운드',    css:"'RoundedKimGyuri',sans-serif",           sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 스스로넷 · 상업 사용 가능', credit:'스스로넷'},
+  {key:'taebaek',        name:'태백체',            css:"'TaebaekMilkyWay',sans-serif",                 sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 태백시 · 공공누리 1유형', credit:'공공누리 1유형'},
+  {key:'leeseoyun',      name:'이서윤체',          css:"'IsYun',sans-serif",               sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 흥국생명 · 상업 사용 가능', credit:'흥국생명'},
+  {key:'songam',         name:'송암 이형식',       css:"'SongamLeeHyeongSik',serif",            sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 공유마당 · 공공누리', credit:'공공누리'},
+  {key:'pyeongchang',    name:'평창평화체 Light',  css:"'PyeongchangPeace',sans-serif",   weight:300, sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 평창군 · 공공누리', credit:'공공누리'},
 ];
 
 // v3.7 항목4: 유의어 변별 데이터 (KNOWLEDGE 3-2섹션, 3단계 구조)
@@ -1702,16 +1725,11 @@ function goLearn(category, screenId, btn){
       renderQuiz4(QUIZ_HISTORY);
     }
   }
-  // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말 분기
+  // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말
+  // 버그2·9 수정: 4지선다 하드코딩 제거 → 저장된 학습설정.sq2 방식대로 출제 (진입·재진입 공통)
   if(screenId==='sq2'){
     document.getElementById('sq2Title').textContent=category;
-    if(category==='고사성어·속담'){
-      document.getElementById('sq2Mode').textContent='📜 4지선다';
-      renderFlashcard(FC_GOSAEONGEO);
-    } else {
-      document.getElementById('sq2Mode').textContent='🈯 4지선다';
-      renderFlashcard(FC_HANJA);
-    }
+    sq2_출제_렌더(category);
   }
   if(screenId==='sq3'){
     renderQuiz3(QUIZ_SPELL);
@@ -1721,6 +1739,24 @@ function goLearn(category, screenId, btn){
     const 현재난이도 = 학습설정.sq4 || '아↗그거!';
     renderDad(DAD_GAGS_BY_DIFFICULTY[현재난이도] || DAD_GAGS_BY_DIFFICULTY['아↗그거!']);
     동기화_학습설정_버튼('sq4', 현재난이도);
+  }
+}
+
+/* 버그2·9 수정: sq2(고사성어·속담 / 한자·우리말) 출제 렌더 — 진입·재진입·설정 변경 공통 경로.
+   저장된 학습설정.sq2 값(4지선다·뜻 직접 서술·역방향·유의어 변별·플래시카드)대로 출제하여
+   재진입 시 4지선다로 리셋되던 문제를 해소한다. */
+function sq2_출제_렌더(category){
+  const 방식 = 학습설정.sq2 || '4지선다';
+  const 배지아이콘 = category === '한자·우리말' ? '🈯' : '📜';
+  document.getElementById('sq2Mode').textContent = `${배지아이콘} ${방식}`;
+  // 설정 패널 버튼 활성 상태도 현재 방식과 동기화
+  동기화_학습설정_버튼('sq2', 방식);
+  if(방식 === '유의어 변별'){
+    유의어변별_렌더();
+  } else {
+    // 4지선다(기본)·뜻 직접 서술·역방향·플래시카드 — 데모는 플래시카드 UI로 표시
+    // (각 방식별 실제 출제 분기는 빌드 단계에서 확장)
+    renderFlashcard(category === '한자·우리말' ? FC_HANJA : FC_GOSAEONGEO);
   }
 }
 
@@ -2039,8 +2075,8 @@ function 유의어변별_렌더(인덱스){
 }
 
 function 유의어변별_선택(btn){
-  const kind = btn.dataset.kind;
-  const word = btn.dataset.word;
+  const 선택kind = btn.dataset.kind;
+  const 선택word = btn.dataset.word;
   // 정답·근사·오답 색 동시 공개
   const all = document.querySelectorAll('#synOpts .syn-opt');
   all.forEach(el=>{
@@ -2052,30 +2088,37 @@ function 유의어변별_선택(btn){
   });
   btn.classList.remove('dim');
 
-  // 결과 텍스트
+  // 사용자 선택 결과 헤더
+  const 헤더 =
+    선택kind === 'correct'    ? `<div class="syn-result-title ok">✅ 정답 — 「${선택word}」를 선택했습니다</div>` :
+    선택kind === 'acceptable' ? `<div class="syn-result-title warn">△ 근사 정답 — 「${선택word}」를 선택했습니다</div>` :
+                                `<div class="syn-result-title err">✗ 오답 — 「${선택word}」를 선택했습니다</div>`;
+
+  // 버그3 수정: 선택한 1개만이 아니라 보기 전부의 설명을 공개
+  const 항목들 = Array.from(all).map(el=>{
+    const k = el.dataset.kind;
+    const w = el.dataset.word;
+    const 선택됨 = (w === 선택word);
+    let badge='', cls='', def='', reason='';
+    if(k === 'correct'){
+      badge='✅ 정답'; cls='ok'; def=유의어현재.correct.def;
+    } else if(k === 'acceptable'){
+      const a = 유의어현재.acceptable.find(x=>x.w === w);
+      badge='△ 근사'; cls='warn'; def=a?.def ?? ''; reason=a?.reason ?? '';
+    } else {
+      const x = 유의어현재.wrong.find(y=>y.w === w);
+      badge='✗ 오답'; cls='err'; def=x?.def ?? '';
+    }
+    return `
+      <div class="syn-result-item${선택됨 ? ' picked' : ''}">
+        <div class="syn-ri-head ${cls}">${badge} · 「${w}」${선택됨 ? ' <span class="syn-ri-pick">← 내 선택</span>' : ''}</div>
+        <div class="syn-result-def">${def}</div>
+        ${reason ? `<div class="syn-result-reason">${reason}</div>` : ''}
+      </div>`;
+  }).join('');
+
   const res = document.getElementById('synResult');
-  let html = '';
-  if(kind === 'correct'){
-    html = `
-      <div class="syn-result-title ok">✅ 정답 — 「${word}」</div>
-      <div class="syn-result-def">${유의어현재.correct.def}</div>
-    `;
-  } else if(kind === 'acceptable'){
-    const a = 유의어현재.acceptable.find(x=>x.w === word);
-    html = `
-      <div class="syn-result-title warn">△ 근사 정답 — 「${word}」</div>
-      <div class="syn-result-def">${a?.def ?? ''}</div>
-      <div class="syn-result-reason">정답(${유의어현재.correct.w})과 의미가 겹치지만 더 정확한 표현이 있습니다.<br>${a?.reason ?? ''}</div>
-    `;
-  } else {
-    const w = 유의어현재.wrong.find(x=>x.w === word);
-    html = `
-      <div class="syn-result-title err">✗ 오답 — 「${word}」</div>
-      <div class="syn-result-def">${w?.def ?? ''}</div>
-      <div class="syn-result-reason">정답은 「${유의어현재.correct.w}」 — ${유의어현재.correct.def}</div>
-    `;
-  }
-  res.innerHTML = html;
+  res.innerHTML = 헤더 + `<div class="syn-result-all">${항목들}</div>`;
   res.classList.add('show');
   document.getElementById('synActions').style.display = 'flex';
 }
@@ -2212,24 +2255,9 @@ function setLsetMode(screenId, mode, btn){
     // 상식·어원, 세계사·신화 (4지선다) — 데모는 토스트만, 실제 출제는 동일 데이터
     showToastMsg(`상식·세계사 출제 방식: ${mode}`);
   } else if(screenId==='sq2'){
-    // 고사성어·속담, 한자·우리말 (5방식: 4지선다 기본값)
-    // 유의어 변별: 즉시 유의어 변별 UI 렌더
-    // 플래시카드: 카드 뒤집기 UI 렌더
-    // 그 외(4지선다·뜻 직접 서술·역방향): Claude Code 단계에서 각각 별도 UI 분기 예정
-    const 현재카테고리 = document.getElementById('sq2Title').textContent;
-    const 배지아이콘 = 현재카테고리 === '한자·우리말' ? '🈯' : '📜';
-    // 배지 텍스트 갱신 — 현재 선택된 방식 표시
-    document.getElementById('sq2Mode').textContent = `${배지아이콘} ${mode}`;
-    if(mode === '유의어 변별'){
-      유의어변별_렌더();
-    } else if(mode === '플래시카드'){
-      // 플래시카드 모드: 카드 뒤집기 UI
-      renderFlashcard(현재카테고리 === '한자·우리말' ? FC_HANJA : FC_GOSAEONGEO);
-    } else {
-      // 4지선다·뜻 직접 서술·역방향 (Claude Code 단계에서 실제 분기)
-      // TODO Claude Code: 실제 동작 — 각 방식별 별도 UI로 분기
-      renderFlashcard(현재카테고리 === '한자·우리말' ? FC_HANJA : FC_GOSAEONGEO);
-    }
+    // 고사성어·속담 / 한자·우리말 (5방식: 4지선다 기본값)
+    // 버그2 수정: 학습설정.sq2는 위에서 이미 mode로 저장됨 → 공통 렌더 함수로 즉시 반영
+    sq2_출제_렌더(document.getElementById('sq2Title').textContent);
     showToastMsg(`출제 방식: ${mode}`);
   } else if(screenId==='sq3'){
     // 맞춤법 (3지선다)
@@ -3215,6 +3243,12 @@ function closeAsk(){
   }
 }
 
+/* 버그4 수정: 질문 입력창 높이 자동 조절 — 내용 줄 수에 맞춰 확장(최대 120px) */
+function 질문입력_높이조절(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
 /* 메시지 전송: 창조주 키 감지 + 일반 응답 */
 function sendAsk(){
   const inp=document.getElementById('askInp');
@@ -3224,6 +3258,7 @@ function sendAsk(){
   // 창조주 키 감지 (정규화 후 비교)
   if(키정규화(q) === 키정규화(창조주키)){
     inp.value='';
+    inp.style.height='auto';  // 버그4: 전송 후 입력창 높이 초기화
     const body=document.getElementById('askBody');
 
     // 사용자가 입력한 키 문장을 메시지로 표시
@@ -3246,6 +3281,7 @@ function sendAsk(){
   u.textContent=q;
   body.appendChild(u);
   inp.value='';
+  inp.style.height='auto';  // 버그4: 전송 후 입력창 높이 초기화
 
   setTimeout(()=>{
     const a=document.createElement('div');
@@ -3265,6 +3301,8 @@ function openObj(컨텍스트){
 function closeObj(){
   document.getElementById('objBg').classList.remove('show');
   document.getElementById('objInp').value='';
+  // 버그E 수정: 닫을 때 컨텍스트를 general로 복귀 → 다음 호출 시 잔존 컨텍스트(synonym/speak) 방지
+  이의제기_컨텍스트_설정('general');
 }
 function submitObj(){
   closeObj();
@@ -3290,6 +3328,43 @@ function showInfoModal(icon, title, desc){
 }
 function closeInfoModal(){
   document.getElementById('infoBg').classList.remove('show');
+}
+
+/* 버그6: 2중 확인 모달 — 정보 모달 컴포넌트 재사용, [취소]+[확인] 2버튼 */
+function showConfirmModal(icon, title, desc, confirmLabel, onConfirm){
+  document.getElementById('infoIcon').textContent=icon;
+  document.getElementById('infoTitle').textContent=title;
+  document.getElementById('infoDesc').innerHTML=desc;
+  const body=document.getElementById('infoBody'); if(body) body.innerHTML='';
+  const btnArea=document.getElementById('infoBtns');
+  if(btnArea){
+    btnArea.innerHTML='';
+    const cancel=document.createElement('button');
+    cancel.className='btn-g'; cancel.style.flex='1'; cancel.textContent='취소';
+    cancel.onclick=closeInfoModal;
+    const ok=document.createElement('button');
+    ok.className='btn-acc'; ok.style.flex='1'; ok.textContent=confirmLabel;
+    // 첫 모달이 닫힌 뒤 다음 단계 호출 (전환 깜빡임 방지)
+    ok.onclick=()=>{ closeInfoModal(); setTimeout(()=>{ if(onConfirm) onConfirm(); }, 240); };
+    btnArea.appendChild(cancel); btnArea.appendChild(ok);
+  }
+  document.getElementById('infoBg').classList.add('show');
+}
+
+/* 버그6: 계정 삭제 — 2중 확인 절차 (KNOWLEDGE 18섹션) */
+function 계정삭제_1단계(){
+  showConfirmModal('⚠️','계정 삭제 (1/2)',
+    '계정을 삭제하면 레벨·업적·복습 데이터·토큰 등 <b>모든 데이터가 영구 삭제</b>되며 되돌릴 수 없습니다.<br><br>계속하시겠습니까?',
+    '계속', 계정삭제_2단계);
+}
+function 계정삭제_2단계(){
+  showConfirmModal('🗑️','계정 삭제 (2/2)',
+    '<b>마지막 확인</b>입니다. 정말로 계정을 영구 삭제하시겠습니까?<br><br>이 작업은 취소할 수 없습니다.',
+    '영구 삭제', 계정삭제_실행);
+}
+function 계정삭제_실행(){
+  // 실제 삭제는 Firebase 연동(2단계)에서 Auth deleteUser + Firestore 사용자 문서 삭제로 연결 예정
+  showToastMsg('🗑️ 계정 삭제 — Firebase 연동 후 실제 삭제됩니다');
 }
 
 /* 토스트 */
@@ -3339,12 +3414,13 @@ function openFontSelect(){
     const div=document.createElement('div');
     div.className='fo'+(f.key===curFont?' on':'');
     div.onclick=()=>applyFont(f.key);
-    // 폰트 css가 「폰트명;font-weight:N」 형태일 수도 있어 style 분리
-    const fontStyle = f.css.includes(';') ? f.css.replace(';',';font-family:').replace(/font-family:font-weight/,'font-weight') : `font-family:${f.css}`;
+    // 버그B 수정: 기존의 취약한 style 조립 로직 제거. css는 순수 font-family 스택이므로 그대로 적용하고,
+    //   단일 굵기로 배포된 폰트(weight 지정)는 미리보기에 굵기를 함께 적용한다.
+    const 미리보기스타일 = `font-family:${f.css}` + (f.weight ? `;font-weight:${f.weight}` : '');
     div.innerHTML=`
       <div>
         <div class="fo-nm">${f.name}</div>
-        <div class="fo-sm" style="${fontStyle.startsWith('font-')?fontStyle:'font-family:'+f.css}">${f.sample}</div>
+        <div class="fo-sm" style="${미리보기스타일}">${f.sample}</div>
       </div>
       <span class="fo-ck">✓</span>
     `;
@@ -3353,15 +3429,7 @@ function openFontSelect(){
   // v3.7 항목8: 폰트 출처 표기 렌더링 (KNOWLEDGE 19섹션 의무)
   const credits = document.getElementById('fontCreditList');
   if(credits){
-    const srcMap = {
-    '눈누 #1799': 'https://noonnu.cc/font_page/1799',
-    '눈누 #1807': 'https://noonnu.cc/font_page/1807',
-    '눈누 #872':  'https://noonnu.cc/font_page/872',
-    '눈누 #1808': 'https://noonnu.cc/font_page/1808',
-    '눈누 #950':  'https://noonnu.cc/font_page/950',
-    '눈누 #1792': 'https://noonnu.cc/font_page/1792',
-  };
-  credits.innerHTML = FONTS.map(f=>`<div>· <span style="color:var(--txt)">${f.name}</span> — ${f.src}</div>`).join('');
+    credits.innerHTML = FONTS.map(f=>`<div>· <span style="color:var(--txt)">${f.name}</span> — ${f.src}</div>`).join('');
   }
   document.getElementById('fontBg').classList.add('show');
 }
@@ -3376,7 +3444,7 @@ function applyFont(key){
   document.getElementById('fontTxt').textContent=f.name;
   // on 클래스 갱신
   document.querySelectorAll('.fo').forEach(el=>el.classList.remove('on'));
-  showToastMsg('폰트 변경: '+f.name);
+  showToastMsg('글꼴 변경: '+f.name);
   setTimeout(closeFont,300);
 }
 
