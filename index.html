@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- v3.7 항목2: 음성 입력 차단 - 키보드 마이크 권한 자체 차단 (지보드·구글 음성) -->
 <meta http-equiv="Permissions-Policy" content="microphone=()">
-<title>코드네임 언어 — 데모 v3.8</title>
+<title>코드네임 언어 — 정식 빌드1</title>
 
 <!-- v3.7 항목6: 확정 폰트 CDN 4개 (KNOWLEDGE 19섹션) -->
 <link href="https://cdn.jsdelivr.net/font-nanum/1.0/nanumgothic/nanumgothic.css" rel="stylesheet">
@@ -500,7 +500,8 @@ html{scrollbar-gutter:stable}
 .st-name{font-size:18px;font-weight:900;margin-bottom:3px}
 .st-ttl{font-size:12px;color:var(--acc);margin-bottom:6px}
 /* v3.5: 소칭호 가독성 강화 (이전엔 너무 연하고 작았음) */
-.status-sub-title{font-size:12px !important;color:var(--accl) !important;font-weight:600 !important;letter-spacing:.3px}
+/* α6: 소칭호 12px → 14.5px 상향 (KNOWLEDGE 11) / α7: 색상은 JS 소칭호적용()이 인라인 지정 — color !important 제거 */
+.status-sub-title{font-size:14.5px !important;color:var(--accl);font-weight:600 !important;letter-spacing:.3px}
 /* 창조주 달성 시 소칭호 황금빛으로 강조 */
 .status-sub-title.creator{color:#ffd700 !important;text-shadow:0 0 8px rgba(255,215,0,.4);animation:starGlow 2s ease-in-out infinite}
 .st-lv-row{display:flex;align-items:center;gap:7px}
@@ -672,12 +673,53 @@ html{scrollbar-gutter:stable}
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--elev);border:1px solid var(--bdr);border-radius:28px;padding:9px 18px;font-size:12px;font-weight:500;color:var(--txt);white-space:nowrap;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.38)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-#demo-nav{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.93);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.07);padding:7px 10px;display:flex;gap:5px;flex-wrap:wrap;z-index:9998}
+/* 정식 빌드1: 데모 네비는 기본 숨김 — 개발자 모드 활성화 시에만 노출 (body.devnav) */
+#demo-nav{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.93);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.07);padding:7px 10px;display:none;gap:5px;flex-wrap:wrap;z-index:9998}
+body.devnav #demo-nav{display:flex}
 .demb{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);padding:4px 9px;border-radius:5px;font-size:10px;cursor:pointer;transition:all .2s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
 .demb:hover,.demb.on{border-color:rgba(255,255,255,.32);color:#fff}
 .demb.sp{border-color:rgba(184,149,106,.38);color:rgba(184,149,106,.75)}
 .demb.sp:hover{border-color:var(--acc);color:var(--acc)}
-.demo-offset{margin-top:80px}
+.demo-offset{margin-top:0}
+body.devnav .demo-offset{margin-top:80px}
+
+/* ━━━ 빌드1 α8: 주҉신҉ 소칭호 무지개 글리치 (결합 문자 + 그라디언트 순환) ━━━ */
+.sub-jushin{background:linear-gradient(90deg,#ff5050,#ffb050,#ffe850,#50d850,#50a8ff,#b070ff,#ff50c0);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;color:transparent !important;animation:jushinShift 3s linear infinite}
+@keyframes jushinShift{0%{background-position:0% 0}100%{background-position:400% 0}}
+
+/* ━━━ 빌드1 β5: 토큰 UI — 잔량 바 + 드롭다운 + 차감 안내 (KNOWLEDGE 32·35) ━━━ */
+.tkb{margin:8px 18px 0;background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:9px 12px;cursor:pointer;flex-shrink:0}
+.tkb-row{display:flex;align-items:center;gap:8px}
+.tkb-icon{font-size:13px}
+.tkb-bar{flex:1;height:7px;background:var(--elev);border-radius:4px;overflow:hidden}
+.tkb-fill{height:100%;width:100%;background:#4caf50;border-radius:4px;transition:width .5s ease,background .4s}
+.tkb-val{font-size:10px;color:var(--txt2);font-family:var(--mono);white-space:nowrap}
+.tkb-info{background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:6px;padding:3px 7px;font-size:9px;cursor:pointer;font-family:var(--fn);white-space:nowrap}
+.tkb-drop{display:none;margin-top:8px;border-top:1px solid var(--bdr);padding-top:7px;font-size:10px;color:var(--txt2);line-height:1.8}
+.tkb.open .tkb-drop{display:block}
+.tkb-lock .tkb-fill{background:#666 !important}
+
+/* ━━━ 빌드1 β10: 성장 상세 화면 sg (KNOWLEDGE 17-1) ━━━ */
+.sg-body{flex:1;overflow-y:auto;padding:14px 18px 90px;display:flex;flex-direction:column;gap:12px}
+.sg-sec{background:var(--card);border:1px solid var(--bdr);border-radius:13px;padding:14px 16px}
+.sg-sec-t{font-size:11px;color:var(--acc);font-weight:700;letter-spacing:.5px;margin-bottom:10px}
+.sg-road-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--bdr);font-size:13px}
+.sg-road-item:last-child{border-bottom:none}
+.sg-road-range{margin-left:auto;font-size:10px;color:var(--txtm);font-family:var(--mono)}
+.sg-road-state{font-size:10px;font-weight:700}
+
+/* ━━━ 빌드1 β8: 구어 교정 예문 출제 카드 (정령왕 JSON 27건) ━━━ */
+.spk-prompt{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:12px 14px;margin-bottom:10px}
+.spk-prompt-lbl{font-size:10px;color:var(--acc);font-weight:700;margin-bottom:6px}
+.spk-prompt-text{font-size:14px;color:var(--txt);line-height:1.6}
+.spk-prompt-diff{font-size:9px;color:var(--txtm);margin-top:6px}
+
+/* ━━━ 빌드1 β3: 이의있음! reasoning_note 패널 (KNOWLEDGE 33) ━━━ */
+.obj-note{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;margin:10px 0;font-size:11px;color:var(--txt2);line-height:1.7;text-align:left}
+.obj-note-lbl{color:var(--acc);font-weight:700;font-size:10px;margin-bottom:4px}
+
+/* ━━━ 빌드1 α4: Lv.70 「주신의 경지」 메시지 (현황 탭 상단) ━━━ */
+.jushin-msg{background:linear-gradient(135deg,rgba(80,48,160,.25),rgba(128,96,192,.15));border:1px solid #8060c0;border-radius:13px;padding:13px 16px;margin-bottom:12px;cursor:pointer;text-align:center;font-size:14px;font-weight:700;color:#c0a0e0}
 
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -762,7 +804,8 @@ html{scrollbar-gutter:stable}
     <div class="pp-title" id="ppTitle">[첫걸음]</div>
     <div class="pp-stage" id="ppStage">명함 획득!</div>
     <div class="pp-desc" id="ppDesc">최초 학습 기록 생성</div>
-    <div class="pp-stars" id="ppStars"><span class="ach-star-mark">✦</span><span class="ach-star-empty">★★★★★★</span></div>
+    <!-- α12: EXP 별 표시 통일 — ✦✧✧✧✧✧✧ 형식 (KNOWLEDGE 14) -->
+    <div class="pp-stars" id="ppStars"><span class="ach-star-mark">✦</span><span class="ach-star-empty">✧✧✧✧✧✧</span></div>
     <div class="pp-exp" id="ppExp">+50 EXP</div>
     <button class="btn-acc" style="width:100%" onclick="closeAchOv()">확인</button>
   </div>
@@ -839,8 +882,12 @@ html{scrollbar-gutter:stable}
     <div style="margin-top:14px;padding:10px 12px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;font-size:10px;color:var(--txt2);line-height:1.7">
       <div style="color:var(--acc);font-weight:700;margin-bottom:5px;font-size:11px">📜 폰트 출처</div>
       <div id="fontCreditList" style="display:flex;flex-direction:column;gap:3px"></div>
+      <!-- 빌드1: 가사 미리보기 출처 표기 의무 (KNOWLEDGE 19) -->
+      <div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bdr)">
+        🎵 가사 © 음율 (피차일반) · © ユイリ (Betelgeuse) · 각 아티스트 저작권 보유
+      </div>
       <div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bdr);color:var(--txtm);font-size:9px;line-height:1.6">
-        ⚠️ 광고 적용 시점에 상업적 사용 가능 여부 재확인 필요
+        ⚠️ 광고 적용 시점에 상업적 사용 가능 여부(가사 사용 라이선스 포함) 재확인 필요
       </div>
     </div>
     <div class="modal-btns" style="margin-top:14px">
@@ -856,9 +903,12 @@ html{scrollbar-gutter:stable}
   <div class="ask-hdr">
     <div style="display:flex;align-items:center;gap:8px">
       <div class="ask-title">💬 질문하기</div>
-      <div class="ask-quota" id="askQuota">오늘 <span id="askQuotaNow">0</span>/<span id="askQuotaMax">100</span></div>
+      <!-- β2: 일일 100회 풀 폐기 — 토큰 잔량 표시로 통합 (KNOWLEDGE 22·32) -->
+      <div class="ask-quota" id="askQuota">💎 <span id="askQuotaNow">1,500</span></div>
     </div>
     <div style="display:flex;gap:6px;align-items:center">
+      <!-- β7: 사고전개 탭 — 기본 OFF, 매번 수동 ON (KNOWLEDGE 5-1) -->
+      <button id="thinkToggle" onclick="사고전개_토글()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt2);padding:5px 10px;border-radius:7px;font-size:10px;cursor:pointer;font-family:var(--fn)">🧠 사고전개 OFF</button>
       <button id="askCls창조주" onclick="closeAsk()" style="display:none;background:rgba(192,112,112,.15);border:1px solid var(--err);color:var(--err);padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700">중도 포기</button>
       <button class="ask-cls" onclick="closeAsk()">✕</button>
     </div>
@@ -882,6 +932,8 @@ html{scrollbar-gutter:stable}
   <div class="obj-modal" onclick="event.stopPropagation()">
     <div class="obj-icon">⚖️</div>
     <div class="obj-title">이의있음!</div>
+    <!-- β3: reasoning_note 패널 — 이의있음! 상단 항상 표시 (KNOWLEDGE 33) -->
+    <div class="obj-note" id="objNote" style="display:none"></div>
     <!-- v3.7 항목5: obj-sub — 컨텍스트(synonym/speak/general)별 안내문 분기 표시 -->
     <div class="obj-desc obj-sub">정말로 이 답변이 틀렸다고 생각하십니까?<br>어디가 어떻게 왜 틀렸는지 구체적으로 적어주세요.<br><b>Grok 교차검증 후 인정 시</b> [반박의 화신] 카운터가 올라갑니다.</div>
     <textarea class="obj-input" id="objInp" placeholder="반박 내용을 입력하세요..."></textarea>
@@ -1006,6 +1058,16 @@ html{scrollbar-gutter:stable}
     <div class="qpr-top"><div class="qmb" id="sq1Mode">🌍 4지선다</div><div class="qct">1 / 5 문제</div></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
+  <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
+  <div class="tkb" onclick="토큰드롭다운_토글(this)">
+    <div class="tkb-row">
+      <span class="tkb-icon">💎</span>
+      <div class="tkb-bar"><div class="tkb-fill"></div></div>
+      <span class="tkb-val">- / 1,500</span>
+      <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
+    </div>
+    <div class="tkb-drop"></div>
+  </div>
   <!-- v3.5: 학습 설정 패널 (접이식) -->
   <div class="lset-panel" id="lsetSq1">
     <div class="lset-hdr" onclick="toggleLset('lsetSq1')">
@@ -1030,7 +1092,7 @@ html{scrollbar-gutter:stable}
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
       <span style="font-size:14px">💬</span>
       <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
@@ -1045,6 +1107,16 @@ html{scrollbar-gutter:stable}
   <div class="qprog-wrap">
     <div class="qpr-top"><div class="qmb" id="sq2Mode">📜 4지선다</div><div class="qct">1 / 8 카드</div></div>
     <div class="qpbar"><div class="qpfill" style="width:12%"></div></div>
+  </div>
+  <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
+  <div class="tkb" onclick="토큰드롭다운_토글(this)">
+    <div class="tkb-row">
+      <span class="tkb-icon">💎</span>
+      <div class="tkb-bar"><div class="tkb-fill"></div></div>
+      <span class="tkb-val">- / 1,500</span>
+      <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
+    </div>
+    <div class="tkb-drop"></div>
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) — v3.7 항목3·4·5: 4지선다 기본 + 5방식 -->
   <div class="lset-panel" id="lsetSq2">
@@ -1073,7 +1145,7 @@ html{scrollbar-gutter:stable}
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
       <span style="font-size:14px">💬</span>
       <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
@@ -1088,6 +1160,16 @@ html{scrollbar-gutter:stable}
   <div class="qprog-wrap">
     <div class="qpr-top"><div class="qmb">✏️ 3지선다</div><div class="qct">1 / 5 문제</div></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
+  </div>
+  <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
+  <div class="tkb" onclick="토큰드롭다운_토글(this)">
+    <div class="tkb-row">
+      <span class="tkb-icon">💎</span>
+      <div class="tkb-bar"><div class="tkb-fill"></div></div>
+      <span class="tkb-val">- / 1,500</span>
+      <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
+    </div>
+    <div class="tkb-drop"></div>
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) -->
   <div class="lset-panel" id="lsetSq3">
@@ -1113,7 +1195,7 @@ html{scrollbar-gutter:stable}
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
       <span style="font-size:14px">💬</span>
       <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
@@ -1128,6 +1210,16 @@ html{scrollbar-gutter:stable}
   <div class="qprog-wrap">
     <div class="qpr-top"><div class="qmb">😂 탭→공개</div><div class="qct">1 / 5 문제</div></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
+  </div>
+  <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
+  <div class="tkb" onclick="토큰드롭다운_토글(this)">
+    <div class="tkb-row">
+      <span class="tkb-icon">💎</span>
+      <div class="tkb-bar"><div class="tkb-fill"></div></div>
+      <span class="tkb-val">- / 1,500</span>
+      <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
+    </div>
+    <div class="tkb-drop"></div>
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) — v3.7 항목13: 입력 방식 행 추가 -->
   <div class="lset-panel" id="lsetSq4">
@@ -1161,7 +1253,7 @@ html{scrollbar-gutter:stable}
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
       <span style="font-size:14px">💬</span>
       <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
@@ -1176,20 +1268,36 @@ html{scrollbar-gutter:stable}
   <div class="spk-info">
     <div class="spk-info-text">일상에서 쓰는 말투를 직장·회의·고객 응대 상황에 맞는 격식 표현으로 다듬어 드립니다.</div>
   </div>
+  <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
+  <div class="tkb" onclick="토큰드롭다운_토글(this)">
+    <div class="tkb-row">
+      <span class="tkb-icon">💎</span>
+      <div class="tkb-bar"><div class="tkb-fill"></div></div>
+      <span class="tkb-val">- / 1,500</span>
+      <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
+    </div>
+    <div class="tkb-drop"></div>
+  </div>
   <div class="spk-body">
     <div class="spk-input-area">
+      <!-- β8: 정령왕 JSON 구어_교정 27건 출제 카드 — 예문데이터_로드() 성공 시 표시 -->
+      <div class="spk-prompt" id="spkPrompt" style="display:none">
+        <div class="spk-prompt-lbl">📢 이 문장을 격식체로 다듬어 보세요</div>
+        <div class="spk-prompt-text" id="spkPromptText"></div>
+        <div class="spk-prompt-diff" id="spkPromptDiff"></div>
+      </div>
       <div class="spk-mode-tabs">
         <div class="spk-mode-btn on" id="spkMText" onclick="switchSpkMode('text')">⌨️ 텍스트</div>
         <div class="spk-mode-btn" id="spkMVoice" onclick="switchSpkMode('voice')">🎤 음성</div>
       </div>
       <div id="spkTextArea">
-        <textarea class="spk-textarea" id="spkInput" placeholder="다듬고 싶은 말을 입력하세요. 여러 문장도 가능합니다.">고객님 환불은 불가능합니다</textarea>
+        <textarea class="spk-textarea" id="spkInput" placeholder="위 예문(또는 다듬고 싶은 말)을 격식체로 바꿔 입력하세요."></textarea>
       </div>
       <div id="spkVoiceArea" style="display:none">
         <div class="spk-not-impl">
           <div class="spk-not-impl-icon">🎤</div>
           <div class="spk-not-impl-text">음성 입력은 미구현 상태입니다</div>
-          <div class="spk-not-impl-desc">Whisper.js 연동은 Claude Code 단계에서<br>구현될 예정입니다.</div>
+          <div class="spk-not-impl-desc">Whisper.js 연동은 다음 빌드에서<br>검토 예정입니다.</div>
         </div>
       </div>
       <button class="btn-acc spk-submit" onclick="submitSpk()">분석하기</button>
@@ -1197,9 +1305,10 @@ html{scrollbar-gutter:stable}
 
     <div class="spk-result" id="spkResult">
       <div class="spk-result-title">교정 결과</div>
-      <div class="spk-orig" id="spkOrigTxt">고객님 환불은 불가능합니다</div>
-      <div class="spk-fix">고객님, 환불이 어려운 점 양해 부탁드립니다.</div>
-      <div class="spk-tip">"불가능"은 강하게 거절하는 인상을 줍니다. "어려운 점 양해 부탁드립니다"는 동일한 의미를 정중하게 전달하면서 고객의 감정을 배려합니다.</div>
+      <div class="spk-orig" id="spkOrigTxt"></div>
+      <div class="spk-fix" id="spkFixTxt"></div>
+      <div class="spk-tip" id="spkTipTxt"></div>
+      <button class="btn-g" style="width:100%;margin-top:10px" onclick="구어교정_다음예문()">다음 예문 →</button>
     </div>
   </div>
   <!-- 학습 화면 하단 AI 챗 -->
@@ -1207,7 +1316,7 @@ html{scrollbar-gutter:stable}
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
       <span style="font-size:14px">💬</span>
       <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)"><span class="ask-chat-now">0</span>/<span class="ask-chat-max">100</span></span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
@@ -1246,8 +1355,11 @@ html{scrollbar-gutter:stable}
 <div id="ss" class="screen demo-offset has-bnav">
   <div class="top-bar"><div></div><div class="tbt">현황</div><div></div></div>
   <div class="st-body">
+    <!-- α4: Lv.70 도달 시 「주신의 경지」 메시지 UI (KNOWLEDGE 11) -->
+    <div class="jushin-msg" id="jushinMsg" style="display:none" onclick="주신의경지_탭()">「주҉신҉의 경지」</div>
     <div class="st-prof fu">
-      <div class="st-av" id="statusAvatar"></div>
+      <!-- α9: 아바타 탭 → 고급 커스터마이징 -->
+      <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="고급커스터마이징_탭()"></div>
       <div style="flex:1">
         <!-- v3.4: 하드코딩 제거. JS afterNav('ss')에서 사용자 객체로 주입 -->
         <div class="st-name" id="statusUser"></div>
@@ -1268,15 +1380,9 @@ html{scrollbar-gutter:stable}
     <div class="tbt">성장 상세</div>
     <div></div>
   </div>
-  <div style="padding:32px 24px;text-align:center;color:var(--txt2);font-size:13px;line-height:2">
-    <!-- Claude Code 단계에서 구현 예정:
-         - 현재 소칭호 + 전체 로드맵 (필멸자→주신→폐하)
-         - EXP 전체 진행 바
-         - EXP 획득 방법 안내 -->
-    <div style="font-size:36px;margin-bottom:16px">🌱</div>
-    <div style="font-size:15px;color:var(--txt);font-weight:700;margin-bottom:8px">성장 상세 화면</div>
-    <div>소칭호 전체 로드맵 · EXP 진행 현황<br>Claude Code 단계에서 구현됩니다.</div>
-  </div>
+  <!-- β10: 성장 상세 — 소칭호 로드맵 + EXP 진행 바 + 획득 방법 안내 (KNOWLEDGE 17-1)
+       afterNav('sg') → 렌더_성장상세()가 동적 생성 -->
+  <div class="sg-body" id="sgBody"></div>
 </div>
 
 <!-- ⑧ 설정 -->
@@ -1284,7 +1390,8 @@ html{scrollbar-gutter:stable}
   <div class="top-bar"><div></div><div class="tbt">설정</div><div></div></div>
   <div class="set-body">
     <div class="set-prof fu">
-      <div class="set-av" id="settingsAvatar"></div>
+      <!-- α9: 아바타 탭 → 고급 커스터마이징 (초월자 {wait!} / 필멸자 [권한 부족]) -->
+      <div class="set-av" id="settingsAvatar" style="cursor:pointer" onclick="고급커스터마이징_탭()"></div>
       <div style="flex:1">
         <!-- v3.4: 하드코딩 제거. JS afterNav('sse')에서 사용자 객체로 주입 -->
         <div class="set-nm" id="settingsUser"></div>
@@ -1336,9 +1443,10 @@ html{scrollbar-gutter:stable}
         <div style="flex:1"><div class="srl">히스토리 확인</div><div class="srs">최근 출제 문제 보기</div></div>
         <span class="sra">›</span>
       </div>
-      <div class="set-row" onclick="질문하기_사용량_모달()">
-        <span class="sri">💬</span>
-        <div style="flex:1"><div class="srl">질문하기 사용량</div><div class="srs" id="askQuotaSetTxt">오늘 0 / 100회</div></div>
+      <!-- β2: 질문하기 일일 100회 행 폐기 → 토큰 행으로 교체 (KNOWLEDGE 22·32·35) -->
+      <div class="set-row" onclick="토큰차감안내_모달()">
+        <span class="sri">💎</span>
+        <div style="flex:1"><div class="srl">토큰</div><div class="srs" id="tokenSetTxt">1,500 / 1,500</div></div>
         <span class="sra">›</span>
       </div>
       <div class="set-row" onclick="showOb()">
@@ -1373,7 +1481,8 @@ html{scrollbar-gutter:stable}
 
     <div class="set-sec fu s6" style="border-color:rgba(192,112,112,.3)">
       <div class="set-lbl" style="color:var(--err)">위험 구역</div>
-      <div class="set-row" onclick="showInfoModal('⚠️','학습 데이터 초기화','레벨·EXP·마스터리·복습 대기열·휴지통·연속 학습일·업적이 모두 초기화됩니다.<br><br>앱 설정(테마·글꼴)·구글 계정·즐겨찾기는 유지됩니다.')">
+      <!-- 빌드1: 학습 데이터 초기화 실제 구현 (KNOWLEDGE 15 초기화 범위, 2중 확인) -->
+      <div class="set-row" onclick="학습데이터초기화_1단계()">
         <span class="sri" style="color:var(--err)">⚠️</span>
         <div style="flex:1"><div class="srl" style="color:var(--err)">학습 데이터 초기화</div><div class="srs">진행 상황을 모두 리셋합니다</div></div>
         <span class="sra">›</span>
@@ -1413,40 +1522,53 @@ html{scrollbar-gutter:stable}
    - 변수명은 전부 한글 유지 (KNOWLEDGE 13·13-1)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const 사용자 = {
-  // 기본 정보
-  이름: '홍길동',
+  // 기본 정보 — 로그인 전 중립 기본값 (빌드1: 홍길동/Lv.15 데모 더미 제거)
+  이름: '학습자',
   이메일: '',          // 버그7: 하드코딩 제거 — 로그인 시 Firebase Auth의 currentUser.email 주입
   프로필이미지: '⚔️',
 
   // 성장 데이터
-  레벨: 15,
-  현재EXP: 240,
-  연속학습일: 3,
-  총학습일: 12,
+  레벨: 1,
+  현재EXP: 0,
+  총누적EXP: 0,
+  연속학습일: 0,
+  총학습일: 0,
+  마지막학습일: '',
 
   // 마스터리 카운터 (KNOWLEDGE 13섹션)
-  상식어원학습수: 8,
-  언어의뿌리학습수: 18,
+  상식어원학습수: 0,
+  언어의뿌리학습수: 0,
   세계사신화학습수: 0,
-  아재개그학습수: 1,
-  맞춤법학습수: 4,
+  아재개그학습수: 0,
+  맞춤법학습수: 0,
   구어교정횟수: 0,
   이의제기횟수: 0,
   반박성공횟수: 0,
-  퍼펙트세션수: 2,
-  총누적어휘수: 142,
+  퍼펙트세션수: 0,
+  총누적어휘수: 0,
 
-  // 보관함 카운트 (실제 항목 수와 일치)
-  복습대기열수: 4,
+  // 토큰 (KNOWLEDGE 32 — 기본 1,500)
+  보유토큰: 1500,
+  토큰소진시각: null,
+  토큰락해제시각: null,
+  총소비토큰: 0,
+
+  // 보관함 카운트 (renderReview가 복습데이터와 동기화)
+  복습대기열수: 0,
   복습대기열상한: 50,
-  즐겨찾기수: 2,
-  휴지통수: 2,
+  즐겨찾기수: 0,
+  휴지통수: 0,
+
+  // 질문하기 (통계)
+  오늘질문횟수: 0,
+  질문날짜: '',
 
   // 업적/창조주
+  업적진행도: {},
   창조주달성: false,
   개발자모드: false,
 };
-/* ⚠️ 데모 전용 더미 데이터 끝 — Firebase 연동 시 위 블록 삭제 ⚠️ */
+/* 빌드1: 위 객체는 로그인 전 placeholder — 로그인 시 사용자데이터_적용()이 Firestore 값으로 덮어씀 */
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ⚠️ 데모 전용 — 복습 시스템 더미 데이터
@@ -1482,11 +1604,21 @@ let curFont='nanum_square';
 const LIGHTS=['paper'];
 
 // 레벨업 공식: 110 + (레벨-1) × 28
-function expForLevel(lv){ return 110 + (lv-1)*28; }
+// α3: 하급신 구간(Lv.36~46)은 ×1.123 적용 — 성장 정체 의도 (KNOWLEDGE 11)
+// α2: Lv.70 하드 캡 (개발자 모드 Lv.120 확장은 오버레이 구현 단계에서)
+const 최대레벨 = 70;
+function expForLevel(lv){
+  const 기본 = 110 + (lv-1)*28;
+  return (lv>=36 && lv<=46) ? Math.round(기본*1.123) : 기본;
+}
 let maxExp=expForLevel(curLv);
 
-// 등급 계산 (레벨로부터 자동 산출)
+// 등급 계산 (레벨로부터 자동 산출) — α13: Lv.70까지 확장 (KNOWLEDGE 11 등급 체계)
 function 등급정보(lv){
+  if(lv>=70) return {등급:'강림자', 세부:'강림자'};
+  if(lv>=65) return {등급:'도래자', 세부:'응시자'};
+  if(lv>=60) return {등급:'도래자', 세부:'도래자'};
+  if(lv>=55) return {등급:'현자', 세부:'사유자'};
   if(lv>=50) return {등급:'현자', 세부:'마에스트로'};
   if(lv>=45) return {등급:'통찰가', 세부:'통달자'};
   if(lv>=40) return {등급:'통찰가', 세부:'철학가'};
@@ -1500,12 +1632,34 @@ function 등급정보(lv){
 }
 
 // 소칭호 계산 (현황 탭 전용)
-// v3.6: 창조주 달성 시 레벨 무관 '폐하' 반환 (최우선)
+// α1: KNOWLEDGE 11섹션 7단계 확정표로 교체 (구 3단계 '성위' 폐기)
+// α5: 창조주 달성 시 선택 칭호 반환 — 기본 「폐하」, 글리치 없는 깨끗한 「주신」 전환 가능
 function 소칭호계산(lv, 창조주달성){
-  if(창조주달성) return '폐하';
-  if(lv>=50) return '성위';
-  if(lv>=40) return '초월자';
+  if(창조주달성) return 사용자.선택칭호 || '폐하';
+  if(lv>=69) return '주҉신҉';
+  if(lv>=58) return '최고신';
+  if(lv>=47) return '중급신';
+  if(lv>=36) return '하급신';
+  if(lv>=26) return '시련';
+  if(lv>=16) return '초월자';
   return '필멸자';
+}
+
+// α7: 소칭호 7단계 색상표 (KNOWLEDGE 11 — 기본 10팔레트 회피색)
+// 주҉신҉은 색상 대신 CSS 무지개 글리치 클래스(.sub-jushin)로 처리
+const 소칭호색상표 = {
+  '필멸자':'#a8a8b8', '초월자':'#4ec9b0', '시련':'#b53854', '하급신':'#c5c5d8',
+  '중급신':'#d4af37', '최고신':'#8b3e9c', '폐하':'#ffd700', '주신':'#ffd700'
+};
+
+// 소칭호를 화면 요소에 적용 — 텍스트 + 색상 + 주신 글리치 (α7·α8)
+function 소칭호적용(el, lv, 창조주달성){
+  if(!el) return;
+  const 칭호 = 소칭호계산(lv, 창조주달성);
+  el.textContent = '(' + 칭호 + ')';
+  el.classList.toggle('sub-jushin', 칭호==='주҉신҉');
+  el.classList.toggle('creator', !!창조주달성);
+  el.style.color = (칭호==='주҉신҉') ? '' : (소칭호색상표[칭호] || '');
 }
 
 // 설정
@@ -1521,7 +1675,8 @@ const OB_TOTAL=4;
 // v3.7 항목11: 「오늘 한 문장」 슬라이드 배너 데이터 (KNOWLEDGE 24섹션)
 // 문장 안에 학습 단어가 자연스럽게 녹아있는 구조. 단어 탭 → 해당 플래시카드로 이동.
 // {t: 본문(단어를 [필연] 형태로 표시), a: 출처, words: 추출된 단어 매핑}
-// Claude Code 단계에서 data/명언.json으로 분리 예정
+// β8: 실데이터는 data/정령왕_통합_v2.json의 오늘의_한문장 7건을 fetch하여 사용 (KNOWLEDGE 24)
+//     아래 배열은 fetch 실패 시(오프라인·file:// 직접 실행)에만 쓰이는 폴백이다.
 const QUOTES=[
   {t:'"우리는 우리가 반복하는 행위로 만들어진다. 그러므로 [탁월함]이란 행위가 아니라 [습관]이다."', a:'— 아리스토텔레스'},
   {t:'"[언어]의 한계는 곧 내 [세계]의 한계이다."', a:'— 비트겐슈타인'},
@@ -1530,6 +1685,8 @@ const QUOTES=[
   {t:'"우리가 사용하는 [언어]가 우리가 누구인지를 결정한다."', a:'— 토니 모리슨'},
   {t:'"[문자]는 인간 정신의 거울이다."', a:'— 라이프니츠'},
 ];
+// β8: 한문장 출제 풀 — 예문데이터_로드() 성공 시 정령왕 JSON 7건으로 교체됨
+let 한문장풀 = QUOTES;
 
 // v3.7 항목7: 이름 미입력 시 기본값 풀 (KNOWLEDGE 27섹션)
 // 빈 입력으로 학습 시작 누르면 풀에서 랜덤 1개 선택
@@ -1563,6 +1720,7 @@ const FONTS=[
 
 // v3.7 항목4: 유의어 변별 데이터 (KNOWLEDGE 3-2섹션, 3단계 구조)
 // correct(정답/초록) / acceptable(근사 정답/노랑) / wrong(오답/빨강)
+// β8: 실데이터는 data/정령왕_통합_v2.json의 유의어_변별 18건 — 아래 2건은 fetch 실패 시 폴백
 const 유의어변별데이터=[
   {
     예문: '그 일은 일어날 수밖에 없는 [   ]이었다.',
@@ -1587,6 +1745,47 @@ const 유의어변별데이터=[
     ]
   }
 ];
+// β8: 유의어 출제 풀 — 예문데이터_로드() 성공 시 정령왕 JSON 18건으로 교체됨
+let 유의어출제풀 = 유의어변별데이터;
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   β8: 콘텐츠 데이터 로드 (data/ 폴더 JSON — KNOWLEDGE 1·3-3·24)
+   - 정령왕_통합_v2.json: 구어_교정 27 / 유의어_변별 18 / 오늘의_한문장 7
+   - 모드별 DB JSON 6종: 현재 빈 파일({"items":[]}) — 내용이 채워지면 자동으로 출제에 사용
+   - fetch 실패 시(오프라인·file:// 직접 실행) 위 폴백 정적 데이터 유지
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 구어교정풀 = [];           // 정령왕 구어_교정 27건
+let 구어교정현재 = null;       // 현재 출제 중인 구어 교정 예문
+let 구어교정완료ID = {};       // 같은 예문 반복 제출로 EXP 중복 획득 방지
+const DB문제 = {};             // 모드명 → JSON items (β9 DB 출제 풀)
+const DB파일맵 = {
+  '상식·어원':'상식어원', '고사성어·속담':'고사성어속담', '세계사·신화':'세계사신화',
+  '아재개그':'아재개그', '한자·우리말':'한자우리말', '맞춤법':'맞춤법'
+};
+
+function 예문데이터_로드(){
+  return fetch('data/정령왕_통합_v2.json')
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(d=>{
+      if(Array.isArray(d.유의어_변별) && d.유의어_변별.length) 유의어출제풀 = d.유의어_변별;
+      if(Array.isArray(d.오늘의_한문장) && d.오늘의_한문장.length) 한문장풀 = d.오늘의_한문장;
+      if(Array.isArray(d.구어_교정) && d.구어_교정.length) 구어교정풀 = d.구어_교정;
+      // 홈 화면이 이미 떠 있으면 슬라이드 즉시 재빌드
+      if(curScreen==='sh') 슬라이드빌드();
+      구어교정_예문표시();
+      console.log(`[데이터] 정령왕 JSON 로드 완료 — 구어 ${구어교정풀.length} / 유의어 ${유의어출제풀.length} / 한문장 ${한문장풀.length}`);
+    })
+    .catch(e=> console.error('[데이터] 정령왕 JSON 로드 실패 — 폴백 정적 데이터 사용', e));
+}
+
+function 모드DB_로드(){
+  Object.entries(DB파일맵).forEach(([모드, 파일])=>{
+    fetch(`data/${encodeURIComponent(파일)}.json`)
+      .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(d=>{ DB문제[모드] = Array.isArray(d.items) ? d.items : []; })
+      .catch(()=>{ DB문제[모드] = []; });
+  });
+}
 
 /* 바텀 네비 */
 /* 바텀 네비 표시 화면 목록 */
@@ -1680,15 +1879,27 @@ function afterNav(id){
     document.getElementById('statusAvatar').textContent=사용자.프로필이미지;
     document.getElementById('statusTitle').textContent=등급.세부;
 
-    // v3.6: 창조주 달성 시 소칭호 자체가 '폐하'로 변경 + 황금빛 강조
+    // α1·α7·α8: 7단계 소칭호 + 색상 + 주신 글리치 일괄 적용
     const 소칭호엘 = document.getElementById('statusSubTitle');
-    소칭호엘.textContent='('+소칭호계산(curLv, 사용자.창조주달성)+')';
-    if(사용자.창조주달성) 소칭호엘.classList.add('creator');
-    else 소칭호엘.classList.remove('creator');
+    소칭호적용(소칭호엘, curLv, 사용자.창조주달성);
+    // α5: 창조주 달성 시 소칭호 탭 → 칭호 선택 (폐하 ↔ 깨끗한 주신)
+    소칭호엘.style.cursor = 사용자.창조주달성 ? 'pointer' : '';
+    소칭호엘.onclick = 사용자.창조주달성 ? 칭호선택_모달 : null;
+    // α4: Lv.70 도달 시 「주신의 경지」 메시지 노출 (창조주 달성 전까지)
+    const jm=document.getElementById('jushinMsg');
+    if(jm) jm.style.display = (curLv >= 최대레벨 && !사용자.창조주달성) ? 'block' : 'none';
 
     document.getElementById('statusLv').textContent='Lv.'+curLv;
     document.getElementById('statusGrade').textContent=등급.등급;
     renderTree();
+  }
+  if(id==='sg'){
+    // β10: 성장 상세 화면 렌더
+    렌더_성장상세();
+  }
+  // 학습 화면 진입 시 토큰 바 갱신 (β5)
+  if(['sq1','sq2','sq3','sq4','sq5'].includes(id)){
+    토큰표시_갱신();
   }
   if(id==='sse'){
     // 설정: 사용자 객체 기반
@@ -1721,15 +1932,19 @@ function afterNav(id){
 /* 학습 모드 진입 — 카테고리별 화면/렌더 분기 */
 function goLearn(category, screenId, btn){
   goNav(screenId, btn);
-  // 4지선다 화면(sq1) — 상식·어원 / 세계사·신화 분기
+  // 빌드1: 현재 모드 기록 (EXP·마스터리 연결용) + 토큰 바 갱신
+  현재학습모드 = category;
+  현재학습모드필드 = 모드_마스터리맵[category] || '';
+  토큰표시_갱신();
+  // 4지선다 화면(sq1) — 상식·어원 / 세계사·신화 분기 (β9: 출제_분기 경유)
   if(screenId==='sq1'){
     document.getElementById('sq1Title').textContent=category;
     if(category==='상식·어원'){
       document.getElementById('sq1Mode').textContent='🌍 4지선다';
-      renderQuiz4(QUIZ_COMMON);
+      renderQuiz4(출제_분기(category, QUIZ_COMMON));
     } else {
       document.getElementById('sq1Mode').textContent='🏛️ 4지선다';
-      renderQuiz4(QUIZ_HISTORY);
+      renderQuiz4(출제_분기(category, QUIZ_HISTORY));
     }
   }
   // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말
@@ -1739,7 +1954,7 @@ function goLearn(category, screenId, btn){
     sq2_출제_렌더(category);
   }
   if(screenId==='sq3'){
-    renderQuiz3(QUIZ_SPELL);
+    renderQuiz3(출제_분기('맞춤법', QUIZ_SPELL));
   }
   if(screenId==='sq4'){
     // v3.6: 초기 진입 시 학습설정.sq4 값 기반으로 데이터 선택 + 패널 버튼 상태 동기화
@@ -1761,9 +1976,10 @@ function sq2_출제_렌더(category){
   if(방식 === '유의어 변별'){
     유의어변별_렌더();
   } else {
-    // 4지선다(기본)·뜻 직접 서술·역방향·플래시카드 — 데모는 플래시카드 UI로 표시
-    // (각 방식별 실제 출제 분기는 빌드 단계에서 확장)
-    renderFlashcard(category === '한자·우리말' ? FC_HANJA : FC_GOSAEONGEO);
+    // 4지선다(기본)·뜻 직접 서술·역방향·플래시카드 — 현재 플래시카드 UI로 표시
+    // (각 방식별 실제 출제 분기는 플래시카드 DB 확충 후 확장)
+    // β9: data/ JSON에 내용이 채워지면 출제_분기가 자동으로 그 풀을 사용
+    renderFlashcard(출제_분기(category, category === '한자·우리말' ? FC_HANJA : FC_GOSAEONGEO));
   }
 }
 
@@ -1959,6 +2175,24 @@ function 사용자데이터_적용(data, authUser){
   curLv  = 사용자.레벨    ?? curLv;
   curExp = 사용자.현재EXP ?? curExp;
   maxExp = expForLevel(curLv);
+  // 빌드1: 설정 데이터 복원 — Firestore 값 우선 (KNOWLEDGE 13-1 설정 데이터)
+  if(data.테마) setTheme(data.테마, true);
+  if(data.폰트) applyFont(data.폰트, true);
+  if(data.히스토리필터){
+    histFilter = data.히스토리필터;
+    const t=document.getElementById('histFilterTxt');
+    if(t) t.textContent = (histFilter==='off') ? '사용 안함' : `최근 ${histFilter}개`;
+  }
+  if(typeof data.AI문제만 === 'boolean'){
+    aiOnly = data.AI문제만;
+    const tg=document.getElementById('aiOnlyToggle'); if(tg) tg.checked=aiOnly;
+    const tx=document.getElementById('aiOnlyTxt');   if(tx) tx.textContent=aiOnly?'켜짐':'꺼짐';
+  }
+  if(data.복습상한) 사용자.복습대기열상한 = data.복습상한;
+  // 빌드1: 토큰 락 만료 검사 + 토큰 UI·개발자 네비 갱신
+  토큰락_체크();
+  토큰표시_갱신();
+  갱신_개발자네비_표시();
 }
 
 // 신규 사용자 Firestore 루트 문서 생성 (KNOWLEDGE 13-1 기본값, 전부 한글 필드명)
@@ -2009,6 +2243,108 @@ function 사용자데이터_저장(부분){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   빌드1: EXP 획득·레벨업·마스터리·학습일 시스템 (KNOWLEDGE 11·12·13·14)
+   - 학습 행동이 일어날 때마다 Firestore에 변경 필드만 merge 저장
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// α11: [꾸준한 발걸음] 단계별 EXP 획득 배율 (KNOWLEDGE 14 — 현재 도달 단계의 배율만 적용)
+function EXP배율(연속일){
+  if(연속일>=20) return 1.22;
+  if(연속일>=15) return 1.15;
+  if(연속일>=10) return 1.09;
+  if(연속일>=7)  return 1.07;
+  if(연속일>=5)  return 1.05;
+  if(연속일>=3)  return 1.03;
+  if(연속일>=2)  return 1.01;
+  return 1;
+}
+
+// EXP 획득 + 레벨업 처리 + Firestore 저장 — 반환값: 배율 적용된 실제 획득량
+function EXP획득(양, 사유){
+  학습일갱신();
+  const 실획득 = Math.round(양 * EXP배율(사용자.연속학습일 || 0));
+  사용자.총누적EXP = (사용자.총누적EXP || 0) + 실획득;  // Lv.70 이후에도 계속 누적 (KNOWLEDGE 13-1)
+  let 레벨업됨 = false;
+  if(curLv < 최대레벨){
+    curExp += 실획득;
+    while(curExp >= maxExp && curLv < 최대레벨){
+      curExp -= maxExp;
+      curLv++;
+      maxExp = expForLevel(curLv);
+      레벨업됨 = true;
+    }
+    // α2: Lv.70 하드 캡 — 도달 후 현재EXP는 바 최대치에서 고정
+    if(curLv >= 최대레벨) curExp = Math.min(curExp, maxExp);
+  }
+  사용자.레벨 = curLv;
+  사용자.현재EXP = curExp;
+  사용자데이터_저장({레벨:curLv, 현재EXP:curExp, 총누적EXP:사용자.총누적EXP});
+  if(레벨업됨) 레벨업팝업(curLv);
+  if(curScreen==='sh') afterNav('sh');  // 홈 EXP 바 즉시 갱신
+  return 실획득;
+}
+
+// 마스터리 카운터 증가 + 저장 (KNOWLEDGE 13 한글 변수명 그대로)
+function 마스터리증가(필드, 증가량){
+  사용자[필드] = (사용자[필드] || 0) + (증가량 ?? 1);
+  사용자데이터_저장({[필드]: 사용자[필드]});
+}
+
+// 연속·총 학습일 갱신 — 하루 1회만 동작 (KNOWLEDGE 13-1)
+function 학습일갱신(){
+  const 오늘 = new Date().toISOString().slice(0,10);
+  if(사용자.마지막학습일 === 오늘) return;
+  const 어제 = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+  사용자.연속학습일 = (사용자.마지막학습일 === 어제) ? (사용자.연속학습일 || 0) + 1 : 1;
+  사용자.총학습일 = (사용자.총학습일 || 0) + 1;
+  사용자.마지막학습일 = 오늘;
+  사용자데이터_저장({연속학습일:사용자.연속학습일, 총학습일:사용자.총학습일, 마지막학습일:오늘});
+}
+
+// 레벨업 팝업 — 도달한 레벨 기준 표시
+function 레벨업팝업(레벨){
+  const 등급 = 등급정보(레벨);
+  document.getElementById('lvupLvText').textContent='Lv.'+레벨;
+  document.getElementById('lvupRankText').textContent=등급.등급+' · '+등급.세부;
+  document.getElementById('lvupOv').classList.add('show');
+}
+
+// 10연속 정답 → 토큰 +10 복구 (KNOWLEDGE 32 복구 시스템, 무제한)
+let 연속정답수세션 = 0;
+function 연속정답처리(정답여부){
+  if(정답여부){
+    연속정답수세션++;
+    if(연속정답수세션 > 0 && 연속정답수세션 % 10 === 0) 토큰복구(10, '10연속 정답');
+  } else {
+    연속정답수세션 = 0;
+  }
+}
+
+// 학습 데이터 초기화 — KNOWLEDGE 15 초기화 범위 (테마·폰트·계정·즐겨찾기 보존)
+function 학습데이터초기화_1단계(){
+  showConfirmModal('⚠️','학습 데이터 초기화',
+    '레벨·EXP·마스터리·복습 대기열·휴지통·연속 학습일·업적·<b>토큰(1,500으로 리셋)</b>이 모두 초기화됩니다.<br><br>앱 설정(테마·글꼴)·구글 계정·즐겨찾기는 유지됩니다.<br><br>계속하시겠습니까?',
+    '초기화', 학습데이터초기화_실행);
+}
+function 학습데이터초기화_실행(){
+  const 리셋 = {
+    레벨:1, 현재EXP:0, 총누적EXP:0, 연속학습일:0, 총학습일:0, 마지막학습일:'',
+    상식어원학습수:0, 언어의뿌리학습수:0, 세계사신화학습수:0, 아재개그학습수:0,
+    맞춤법학습수:0, 구어교정횟수:0, 이의제기횟수:0, 반박성공횟수:0, 퍼펙트세션수:0, 총누적어휘수:0,
+    보유토큰:1500, 토큰소진시각:null, 토큰락해제시각:null, 총소비토큰:0,
+    업적진행도:{}, 창조주달성:false, 개발자모드:false, 오늘질문횟수:0, 질문날짜:''
+  };
+  Object.assign(사용자, 리셋);
+  curLv=1; curExp=0; maxExp=expForLevel(1);
+  토큰경고단계=0; 토큰로그세션=[]; 연속정답수세션=0;
+  복습데이터.대기열=[]; 복습데이터.휴지통=[];  // 즐겨찾기는 보존 (KNOWLEDGE 15)
+  사용자데이터_저장(리셋);
+  토큰표시_갱신();
+  갱신_개발자네비_표시();
+  afterNav(curScreen);
+  showToastMsg('⚠️ 학습 데이터가 초기화되었습니다');
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Grok 연동 준비 (KNOWLEDGE 4-1·5·32) — Cloudflare Workers 프록시 경유
    - API 키는 프론트에 두지 않음 (Workers에서만 관리)
    - Workers 엔드포인트는 추후 생성 후 아래 상수에 입력 (현재 미생성)
@@ -2018,6 +2354,12 @@ function 사용자데이터_저장(부분){
 // Cloudflare Workers 엔드포인트 (xAI/Grok 프록시). xAI API 키는 Workers에서만 관리 — 프론트 미노출.
 const GROK_WORKERS_ENDPOINT = 'https://xai-api-llove.hypoqwer.workers.dev';
 
+// ⚠️ Grok 게이트 (최고 관리자님 지시 — 2026-06-10)
+//    xAI 크레딧 미구매 상태이므로 실호출 전면 봉인. 모든 기능은 이 플래그를 먼저 확인하며,
+//    false인 동안에는 grok호출()이 절대 실행되지 않고 토큰도 차감하지 않는다.
+//    크레딧 구매 후 이 값만 true로 바꾸면 연결 지점(질문하기·이의있음·구어교정·출제분기)이 활성화된다.
+const GROK_활성화 = false;
+
 // 기능별 리즈닝 레벨 (KNOWLEDGE 4-1섹션)
 const GROK_리즈닝레벨 = {
   문제생성: 'none', 채점: 'none', 질문하기: 'low',
@@ -2026,6 +2368,11 @@ const GROK_리즈닝레벨 = {
 
 // Grok 호출 — Workers로 프록시. 기능명에 따라 reasoning_effort 적용.
 async function grok호출(기능명, payload){
+  if(!GROK_활성화){
+    // 게이트 봉인 상태 — 어떤 경우에도 네트워크 호출하지 않음 (크레딧 미구매)
+    console.warn('[Grok] 게이트 봉인(GROK_활성화=false) — 호출 차단:', 기능명);
+    return null;
+  }
   if(!GROK_WORKERS_ENDPOINT){
     console.error('[Grok] Workers 엔드포인트 미설정 — 호출 불가');
     return null;
@@ -2044,9 +2391,255 @@ async function grok호출(기능명, payload){
     return await res.json();
   }catch(e){
     console.error('[Grok] 호출 실패', e);
-    showToastMsg('Oops, 그록이 뻗었어요!'); // KNOWLEDGE 5 rate limit 문구
+    showToastMsg(UI_TEXT.rate_limit.문구); // KNOWLEDGE 5 rate limit 문구
     return null;
   }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   β2: 토큰 시스템 (KNOWLEDGE 32) + β5: 토큰 UI (KNOWLEDGE 35)
+   - 기본 1,500 / 소진 시 2시간 락 → 전량 충전
+   - 차감: 문제생성 15 · 질문하기 20(+15/4턴~) · 사고전개 100(+30/4턴~)
+           구어교정 30 · 유사문제 20 · 이의있음 70(+30/턴~)
+   - 복구: 2시간 대기 전량 · 복습 1회 +30(일 3회) · 10연속 정답 +10
+   - GROK_활성화=false인 동안 실차감 발생 경로 없음 (호출 자체가 봉인)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// 토큰 관련 UI 문구 — 전부 한글 변수로 관리 (KNOWLEDGE 32 UI_TEXT 그대로)
+const UI_TEXT = {
+  토큰: {
+    소진안내: "토큰이 소진되었습니다",
+    락안내: "2시간 후 충전됩니다",
+    경고75: "토큰이 75% 남았습니다",
+    경고50: "토큰이 절반 남았습니다",
+    경고25: "토큰이 거의 소진되었습니다",
+    차감내역제목: "최근 차감 내역",
+    기능명: {
+      문제생성: "문제 생성",
+      질문하기: "질문하기",
+      사고전개: "사고전개",
+      구어교정: "구어 교정",
+      이의있음: "이의있음!",
+      유사문제: "유사 문제"
+    }
+  },
+  이의있음: {
+    출제근거라벨: "📋 출제 근거",
+    반박입력플레이스홀더: "어디가 틀렸나요?",
+    위협감지: "?? 위협 감지??",
+    락안내: "10분 후 해제됩니다"
+  },
+  소진흐름: {
+    ai끄기안내: "토큰 소진. AI 출제를 끄면 계속 학습 가능합니다.",
+    db소진안내: "더 풀 수 있는 문제가 없습니다. 히스토리를 초기화하거나 충전을 기다려 주세요.",
+    끄기버튼: "AI 출제 끄기",
+    기다리기버튼: "기다리기",
+    히스토리초기화버튼: "히스토리 초기화"
+  },
+  rate_limit: {
+    문구: "Oops, 그록이 뻗었어요!"
+  }
+};
+
+// 창조주 충돌 해결 — 세션 변수만, Firebase 저장 없음 (KNOWLEDGE 32 확정)
+let 창조주달성진행중 = false;
+let 토큰경고단계 = 0;       // 0=없음 1=75% 2=50% 3=25% (같은 단계 중복 토스트 방지)
+let 토큰로그세션 = [];       // 드롭다운용 최근 차감 내역 (Firestore 토큰로그 서브컬렉션 미러)
+
+// 토큰 바 색상 단계 (KNOWLEDGE 35 구현 참고 코드 그대로)
+function 토큰색상계산(잔량){
+  if(잔량 > 1125) return '#4caf50'; // 초록
+  if(잔량 > 750)  return '#ffeb3b'; // 노랑
+  if(잔량 > 375)  return '#ff9800'; // 주황
+  return '#f44336';                  // 빨강
+}
+
+// 2시간 락 만료 검사 — 만료 시 전량 충전 (소진 「시점」부터 2시간, 앱 실행 시점 아님)
+function 토큰락_체크(){
+  if(사용자.토큰락해제시각 && Date.now() >= new Date(사용자.토큰락해제시각).getTime()){
+    사용자.보유토큰 = 1500;
+    사용자.토큰소진시각 = null;
+    사용자.토큰락해제시각 = null;
+    토큰경고단계 = 0;
+    사용자데이터_저장({보유토큰:1500, 토큰소진시각:null, 토큰락해제시각:null});
+    토큰표시_갱신();
+    showToastMsg('💎 토큰이 전량 충전되었습니다 (1,500)');
+  }
+}
+
+// 토큰 차감 — 성공 시 true. 개발자 모드 무제한 / 창조주 달성 흐름 중 차감 정지
+function 토큰차감(기능명, 양){
+  if(사용자.개발자모드) return true;        // 개발자 모드: 토큰 제한 해제 (KNOWLEDGE 14)
+  if(창조주달성진행중) return true;          // 창조주 달성 흐름 중 차감 정지 (KNOWLEDGE 32)
+  토큰락_체크();
+  if(사용자.토큰락해제시각){ showToastMsg('🔒 ' + UI_TEXT.토큰.락안내); return false; }
+  if((사용자.보유토큰 || 0) < 양){ showToastMsg(UI_TEXT.토큰.소진안내); return false; }
+  사용자.보유토큰 -= 양;
+  사용자.총소비토큰 = (사용자.총소비토큰 || 0) + 양;
+  const 저장필드 = {보유토큰:사용자.보유토큰, 총소비토큰:사용자.총소비토큰};
+  if(사용자.보유토큰 <= 0){
+    // 소진 → 2시간 락 시작
+    사용자.보유토큰 = 0;
+    사용자.토큰소진시각 = new Date().toISOString();
+    사용자.토큰락해제시각 = new Date(Date.now() + 2*3600*1000).toISOString();
+    저장필드.보유토큰 = 0;
+    저장필드.토큰소진시각 = 사용자.토큰소진시각;
+    저장필드.토큰락해제시각 = 사용자.토큰락해제시각;
+    showToastMsg(UI_TEXT.토큰.소진안내 + ' — ' + UI_TEXT.토큰.락안내);
+  } else {
+    토큰경고_검사();
+  }
+  사용자데이터_저장(저장필드);
+  토큰로그_기록(기능명, 양);
+  토큰표시_갱신();
+  return true;
+}
+
+// 잔량 경고 3단계 — 임계 통과 시 1회만 토스트 (KNOWLEDGE 32 경고 시스템)
+function 토큰경고_검사(){
+  const 잔량 = 사용자.보유토큰;
+  let 단계 = 0;
+  if(잔량 <= 375) 단계 = 3;
+  else if(잔량 <= 750) 단계 = 2;
+  else if(잔량 <= 1125) 단계 = 1;
+  if(단계 > 토큰경고단계){
+    토큰경고단계 = 단계;
+    const 문구 = 단계===3 ? UI_TEXT.토큰.경고25 : 단계===2 ? UI_TEXT.토큰.경고50 : UI_TEXT.토큰.경고75;
+    showToastMsg('💎 ' + 문구);
+  } else if(단계 < 토큰경고단계){
+    토큰경고단계 = 단계;  // 복구로 상향 시 경고 단계 되감기
+  }
+}
+
+// 토큰 복구 (+30 복습 일3회 / +10 10연속 정답) — 상한 1,500, 락 중에는 무시
+function 토큰복구(양, 사유){
+  if(사용자.토큰락해제시각) return;
+  const 이전 = 사용자.보유토큰 || 0;
+  사용자.보유토큰 = Math.min(1500, 이전 + 양);
+  if(사용자.보유토큰 === 이전) return;
+  사용자데이터_저장({보유토큰: 사용자.보유토큰});
+  토큰경고_검사();
+  토큰표시_갱신();
+  showToastMsg(`💎 +${양} 토큰 (${사유})`);
+}
+
+// 차감 내역 기록 — 세션 미러 + Firestore 토큰로그 서브컬렉션 (KNOWLEDGE 13-1)
+function 토큰로그_기록(기능명, 차감량){
+  const 항목 = {
+    기능명: UI_TEXT.토큰.기능명[기능명] || 기능명,
+    차감량, 잔여토큰: 사용자.보유토큰,
+    일시: new Date()
+  };
+  토큰로그세션.unshift(항목);
+  if(토큰로그세션.length > 5) 토큰로그세션.length = 5;
+  if(fbDb && 현재UID){
+    fbDb.collection('users').doc(현재UID).collection('토큰로그').add({
+      기능명: 항목.기능명, 차감량, 잔여토큰: 사용자.보유토큰,
+      일시: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(e=> console.error('[Firestore] 토큰로그 기록 실패', e));
+  }
+}
+
+// 토큰 UI 일괄 갱신 — 학습 화면 5곳 토큰 바 + AI 챗 미니바 + 질문 패널 + 설정 행
+function 토큰표시_갱신(){
+  const 잔량 = 사용자.보유토큰 ?? 1500;
+  const 잠금 = !!사용자.토큰락해제시각;
+  const 포맷 = n => n.toLocaleString('ko-KR');
+  let 라벨 = `${포맷(잔량)} / 1,500`;
+  if(잠금){
+    const 남은분 = Math.max(0, Math.ceil((new Date(사용자.토큰락해제시각).getTime() - Date.now())/60000));
+    라벨 = `🔒 충전까지 ${Math.floor(남은분/60)}시간 ${남은분%60}분`;
+  }
+  document.querySelectorAll('.tkb').forEach(bar=>{
+    bar.classList.toggle('tkb-lock', 잠금);
+    const fill = bar.querySelector('.tkb-fill');
+    if(fill){
+      fill.style.width = (잠금 ? 0 : (잔량/1500*100)) + '%';
+      fill.style.background = 토큰색상계산(잔량);
+    }
+    const val = bar.querySelector('.tkb-val');
+    if(val) val.textContent = 라벨;
+  });
+  document.querySelectorAll('.ask-chat-now').forEach(el=> el.textContent = 포맷(잔량));
+  const aq = document.getElementById('askQuotaNow'); if(aq) aq.textContent = 포맷(잔량);
+  const st = document.getElementById('tokenSetTxt'); if(st) st.textContent = 잠금 ? 라벨 : `${포맷(잔량)} / 1,500`;
+}
+
+// 토큰 바 탭 → 최근 5개 차감 내역 드롭다운 (KNOWLEDGE 35)
+function 토큰드롭다운_토글(bar){
+  const drop = bar.querySelector('.tkb-drop');
+  if(!drop) return;
+  if(!bar.classList.contains('open')){
+    if(토큰로그세션.length === 0){
+      drop.innerHTML = `<b>${UI_TEXT.토큰.차감내역제목}</b><br>아직 차감 내역이 없습니다.`;
+    } else {
+      drop.innerHTML = `<b>${UI_TEXT.토큰.차감내역제목}</b><br>` + 토큰로그세션.map(l=>{
+        const t = l.일시 instanceof Date ? l.일시.toTimeString().slice(0,5) : '';
+        return `${l.기능명} | -${l.차감량} | 잔여 ${l.잔여토큰.toLocaleString('ko-KR')} | ${t}`;
+      }).join('<br>');
+    }
+  }
+  bar.classList.toggle('open');
+}
+
+// [? 차감 안내] 팝업 — 기능별 차감량 + 충전 방법 (KNOWLEDGE 35 차감 안내 팝업)
+function 토큰차감안내_모달(){
+  showInfoModal('💎','토큰 차감 안내',
+    `<div style="text-align:left;font-size:12px;line-height:2">` +
+    `문제 생성 <b>-15</b><br>` +
+    `질문하기 <b>-20</b> (시작) · +15 / 4턴~<br>` +
+    `사고전개 <b>-100</b> (시작) · +30 / 4턴~<br>` +
+    `구어 교정 <b>-30</b><br>` +
+    `유사 문제 <b>-20</b><br>` +
+    `이의있음! <b>-70</b> (시작) · +30 / 턴~<br>` +
+    `<hr style="border-color:var(--bdr);margin:8px 0">` +
+    `충전: 2시간 대기 → 전량 (1,500)<br>` +
+    `복습 1회 완료 → +30 (일 3회)<br>` +
+    `10연속 정답 → +10 (무제한)` +
+    `</div>`);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   빌드1: 출제 공통 상태 + β9 AI 출제 분기 스켈레톤 (KNOWLEDGE 4)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 현재학습모드 = '';            // 진입한 카테고리명 (goLearn에서 설정)
+let 현재학습모드필드 = '';        // 해당 모드의 마스터리 변수명 (KNOWLEDGE 13)
+let 현재문제_reasoning_note = ''; // β3: 현재 문제의 출제 근거 (이의있음! 패널 상단 표시)
+let 현재퀴즈풀 = null;            // 「다음 문제」 재출제용 풀
+let 현재퀴즈화면 = '';            // sq1 / sq3
+let 현재아재풀 = null;            // 아재개그 재출제용 풀
+let AI대체안내함 = false;          // AI→DB 대체 토스트는 세션당 1회만
+
+const 모드_마스터리맵 = {
+  '상식·어원':'상식어원학습수', '세계사·신화':'세계사신화학습수',
+  '고사성어·속담':'언어의뿌리학습수', '한자·우리말':'언어의뿌리학습수',
+  '맞춤법':'맞춤법학습수', '아재개그':'아재개그학습수', '구어 교정':'구어교정횟수'
+};
+
+// β9: 출제 확률 결정 — DB 40% / AI 60%, 「AI 문제만」 ON 시 항상 AI (KNOWLEDGE 4)
+function 출제방식_결정(){
+  if(aiOnly) return 'ai';
+  return Math.random() < 0.4 ? 'db' : 'ai';
+}
+
+// β9: 출제 풀 선택 — AI 선택 시 Grok 미연동 단계에서는 DB로 폴백
+// (Grok 활성화 후: 토큰 15 차감 → grok호출('문제생성') → reasoning_note 동시 생성이 이 자리에 연결됨)
+function 출제_분기(category, 정적폴백){
+  const 방식 = 출제방식_결정();
+  if(방식 === 'ai' && !GROK_활성화 && !AI대체안내함){
+    showToastMsg('🤖 AI 출제 준비 중 — DB 문제로 대체합니다');
+    AI대체안내함 = true;
+  }
+  // DB 풀: data/ JSON에 내용이 있으면 그것을, 비어 있으면 내장 폴백 사용
+  // (실DB가 채워진 뒤에는 「DB 소진 → 팝업 → AI 강제 전환」 흐름이 의미를 가짐 — KNOWLEDGE 4)
+  const json풀 = DB문제[category];
+  return (json풀 && json풀.length) ? json풀 : 정적폴백;
+}
+
+// 「다음 문제」 — 같은 풀에서 랜덤 재출제 (sq1/sq3 공용)
+function 다음문제(){
+  if(!현재퀴즈풀) return;
+  if(현재퀴즈화면 === 'sq3') renderQuiz3(현재퀴즈풀);
+  else renderQuiz4(현재퀴즈풀);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2079,7 +2672,10 @@ const QUIZ_SPELL=[
 /* 4지선다 렌더 — 상식·어원, 세계사·신화 공용 */
 function renderQuiz4(data){
   const body=document.getElementById('sq1Body');
-  const q=data[0];
+  // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
+  현재퀴즈풀=data; 현재퀴즈화면='sq1';
+  const q=data[Math.floor(Math.random()*data.length)];
+  현재문제_reasoning_note = q.reasoning_note || '';  // β3: DB 문제는 JSON에 직접 작성 (없으면 Grok fallback 예정)
   // 선택지 HTML 동적 생성 (1~4번)
   let optsHtml='';
   q.opts.forEach((o,i)=>{
@@ -2092,14 +2688,17 @@ function renderQuiz4(data){
     </div>
     <div class="aopts">${optsHtml}</div>
     <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
-    <button class="btn-acc" style="width:100%" onclick="showInfoModal('🎯','다음 문제','실제 앱에서는 다음 문제로 이동합니다.')">다음 문제 →</button>
+    <button class="btn-acc" style="width:100%" onclick="다음문제()">다음 문제 →</button>
   `;
 }
 
 /* 3지선다 렌더 — 맞춤법 전용 */
 function renderQuiz3(data){
   const body=document.getElementById('sq3Body');
-  const q=data[0];
+  // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
+  현재퀴즈풀=data; 현재퀴즈화면='sq3';
+  const q=data[Math.floor(Math.random()*data.length)];
+  현재문제_reasoning_note = q.reasoning_note || '';
   let optsHtml='';
   q.opts.forEach((o,i)=>{
     optsHtml+=`<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`;
@@ -2112,7 +2711,7 @@ function renderQuiz3(data){
     </div>
     <div class="aopts">${optsHtml}</div>
     <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
-    <button class="btn-acc" style="width:100%" onclick="showInfoModal('🎯','다음 문제','실제 앱에서는 다음 문제로 이동합니다.')">다음 문제 →</button>
+    <button class="btn-acc" style="width:100%" onclick="다음문제()">다음 문제 →</button>
   `;
 }
 
@@ -2124,8 +2723,11 @@ function selAns(el, isCorrect){
 
   if(isCorrect){
     el.classList.add('correct');
-    showExpFloat(el,'+20');
+    // 빌드1: 실제 EXP 획득 (+20, 꾸준한 발걸음 배율 적용) + Firestore 저장
+    const 획득 = EXP획득(20, '퀴즈 정답');
+    showExpFloat(el,'+'+획득);
     showToastMsg('✓ 정답입니다!');
+    연속정답처리(true);  // 10연속 정답 → 토큰 +10
   } else {
     el.classList.add('wrong');
     aopts.forEach(o=>{
@@ -2135,7 +2737,11 @@ function selAns(el, isCorrect){
       }
     });
     showToastMsg('✗ 오답입니다');
+    연속정답처리(false);
   }
+  // 빌드1: 모드별 마스터리 +1 (문제 풀 때마다 — KNOWLEDGE 13) + 누적 어휘 +1
+  if(현재학습모드필드) 마스터리증가(현재학습모드필드);
+  마스터리증가('총누적어휘수');
   aopts.forEach(o=>o.classList.add('disabled'));
 }
 
@@ -2185,7 +2791,8 @@ const FC_HANJA=[
 ];
 function renderFlashcard(data){
   const body=document.getElementById('sq2Body');
-  const c=data[0];
+  const c=data[Math.floor(Math.random()*data.length)];
+  현재문제_reasoning_note = c.reasoning_note || '';
   let hanjaHtml='';
   c.hanja.forEach(h=>{
     hanjaHtml+=`<div class="fc-hanja-item">${h[0]} <small>${h[1]}</small></div>`;
@@ -2228,8 +2835,10 @@ let 유의어현재 = null;
 function 유의어변별_렌더(인덱스){
   const body = document.getElementById('sq2Body');
   if(!body) return;
-  const i = 인덱스 ?? Math.floor(Math.random() * 유의어변별데이터.length);
-  유의어현재 = 유의어변별데이터[i];
+  // β8: 정령왕 JSON 18건 풀에서 출제 (로드 실패 시 폴백 2건)
+  const i = 인덱스 ?? Math.floor(Math.random() * 유의어출제풀.length);
+  유의어현재 = 유의어출제풀[i];
+  현재문제_reasoning_note = 유의어현재.reasoning_note || '';
 
   // 4개 보기 = correct 1 + acceptable + wrong (랜덤 순서)
   const 보기풀 = [
@@ -2243,8 +2852,8 @@ function 유의어변별_렌더(인덱스){
     [보기풀[k], 보기풀[j]] = [보기풀[j], 보기풀[k]];
   }
 
-  // 예문 빈칸 표시
-  const 예문html = 유의어현재.예문.replace('[   ]', '<span class="syn-blank">?</span>');
+  // 예문 빈칸 표시 — 공백 개수 변형에 견디도록 정규식 사용
+  const 예문html = 유의어현재.예문.replace(/\[\s*\]/, '<span class="syn-blank">?</span>');
 
   body.innerHTML = `
     <div class="syn-card">
@@ -2308,6 +2917,16 @@ function 유의어변별_선택(btn){
   res.innerHTML = 헤더 + `<div class="syn-result-all">${항목들}</div>`;
   res.classList.add('show');
   document.getElementById('synActions').style.display = 'flex';
+
+  // 빌드1: 실제 EXP·마스터리 반영 — 정답 +20, 근사 정답은 EXP 없음 (KNOWLEDGE 3-2)
+  if(선택kind === 'correct'){
+    EXP획득(20, '유의어 변별 정답');
+    연속정답처리(true);
+  } else {
+    연속정답처리(false);
+  }
+  if(현재학습모드필드) 마스터리증가(현재학습모드필드);
+  마스터리증가('총누적어휘수');
 }
 
 function 유의어변별_다음(){
@@ -2336,10 +2955,17 @@ function judgeCard(type){
     'unknown':'몰랐다 — 복습 대기열 카운트 초기화'
   };
   showToastMsg('✓ ' + messages[type]);
+  // 빌드1: 실제 EXP 획득 — 알았다 +20 / 헷갈린다 +8 (KNOWLEDGE 12)
   if(type==='know'){
+    const 획득 = EXP획득(20, '플래시카드 알았다');
     const btn=document.querySelector('.fc-jbtn.j-know');
-    if(btn) showExpFloat(btn,'+20');
+    if(btn) showExpFloat(btn,'+'+획득);
+  } else if(type==='confused'){
+    EXP획득(8, '플래시카드 헷갈린다');
   }
+  // 모드별 마스터리(언어의뿌리학습수) + 누적 어휘 +1
+  if(현재학습모드필드) 마스터리증가(현재학습모드필드);
+  마스터리증가('총누적어휘수');
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2352,7 +2978,10 @@ const DAD_GAGS=[
 ];
 function renderDad(data){
   const body=document.getElementById('sq4Body');
-  const g=data[0];
+  // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
+  현재아재풀=data;
+  const g=data[Math.floor(Math.random()*data.length)];
+  현재문제_reasoning_note = g.reasoning_note || '';
   body.innerHTML=`
     <div class="dad-card">
       <div class="qcat" style="margin-bottom:8px"><span class="tag tp">아재개그</span></div>
@@ -2363,8 +2992,13 @@ function renderDad(data){
         <div class="dad-a-explain">${g.e}</div>
       </div>
     </div>
-    <button class="btn-acc" style="width:100%" onclick="showInfoModal('🎯','다음 문제','실제 앱에서는 다음 문제로 이동합니다.')">다음 문제 →</button>
+    <button class="btn-acc" style="width:100%" onclick="아재_다음문제()">다음 문제 →</button>
   `;
+}
+/* 아재개그 다음 문제 — 같은 난이도 풀에서 랜덤 재출제 */
+function 아재_다음문제(){
+  if(현재아재풀) renderDad(현재아재풀);
+  setTimeout(initDad,30);
 }
 function initDad(){
   document.getElementById('dadAns')?.classList.remove('show');
@@ -2374,7 +3008,11 @@ function initDad(){
 function revealDad(){
   document.getElementById('dadAns').classList.add('show');
   document.getElementById('dadBtn').style.display='none';
-  showExpFloat(document.querySelector('.dad-card'),'+20');
+  // 빌드1: 실제 EXP 획득 + 마스터리(아재개그학습수) +1
+  const 획득 = EXP획득(20, '아재개그');
+  showExpFloat(document.querySelector('.dad-card'),'+'+획득);
+  마스터리증가('아재개그학습수');
+  마스터리증가('총누적어휘수');
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2393,6 +3031,24 @@ function switchSpkMode(mode){
     document.getElementById('spkVoiceArea').style.display='block';
   }
 }
+/* β8: 구어 교정 출제 — 정령왕 JSON 구어_교정 27건에서 랜덤 예문 제시 */
+function 구어교정_예문표시(){
+  const card=document.getElementById('spkPrompt');
+  if(!card || !구어교정풀.length) return;
+  구어교정현재 = 구어교정풀[Math.floor(Math.random()*구어교정풀.length)];
+  현재문제_reasoning_note = 구어교정현재.reasoning_note || '';
+  card.style.display='block';
+  document.getElementById('spkPromptText').textContent = '"' + 구어교정현재.구어 + '"';
+  document.getElementById('spkPromptDiff').textContent = '난이도: ' + (구어교정현재.난이도 || '-');
+  document.getElementById('spkResult').classList.remove('show');
+  const inp=document.getElementById('spkInput');
+  if(inp) inp.value='';
+}
+function 구어교정_다음예문(){
+  구어교정_예문표시();
+  showToastMsg('다음 예문입니다');
+}
+
 function submitSpk(){
   const txt=document.getElementById('spkInput').value.trim();
   if(!txt){
@@ -2400,8 +3056,28 @@ function submitSpk(){
     return;
   }
   document.getElementById('spkOrigTxt').textContent=txt;
+  if(GROK_활성화){
+    // β1 연결 지점 (크레딧 구매 후 활성화):
+    //   토큰차감('구어교정', 30) → grok호출('구어교정', {입력:txt}) → 응답을 spkFixTxt/spkTipTxt에 주입
+    //   ※ 사고전개 ON 시 비용 체계는 미확정 보류 (KNOWLEDGE 21 #13) — 확정 후 구현
+  }
+  // Grok 미연동 단계: 정령왕 예문의 모범답안·포인트와 비교하는 방식으로 동작
+  if(구어교정현재){
+    document.getElementById('spkFixTxt').textContent = 구어교정현재.격식;
+    document.getElementById('spkTipTxt').textContent = '💡 ' + (구어교정현재.포인트 || '');
+  } else {
+    document.getElementById('spkFixTxt').textContent = '(Grok 연동 후 입력 문장에 맞춘 교정안이 제공됩니다)';
+    document.getElementById('spkTipTxt').textContent = '지금은 예문 모범답안 비교 모드로 동작합니다.';
+  }
   document.getElementById('spkResult').classList.add('show');
-  showToastMsg('✓ 분석 완료');
+  // 같은 예문 반복 제출로 EXP 중복 획득 방지 — 예문당 1회만 +60 (KNOWLEDGE 12)
+  const id = (구어교정현재 && 구어교정현재.id) || '자유입력';
+  if(!구어교정완료ID[id]){
+    구어교정완료ID[id] = true;
+    EXP획득(60, '구어 교정 완료');
+    마스터리증가('구어교정횟수');
+  }
+  showToastMsg('✓ 분석 완료 — 모범답안과 비교해 보세요');
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2535,8 +3211,8 @@ function renderQueueTab(){
     `;
   });
 
-  // 복습 시작 버튼
-  html += `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="showInfoModal('🔁','복습 시작','복습 대기열의 항목들을 순차적으로 다시 풀어봅니다.<br><br>(데모에서는 동작하지 않습니다)')">🔁 복습 시작</button>`;
+  // 복습 시작 버튼 — 복습 플레이 흐름은 서브컬렉션 동기화와 함께 다음 빌드에서 구현
+  html += `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="showInfoModal('🔁','복습 시작','복습 대기열의 항목들을 순차적으로 다시 풀어봅니다.<br><br>완료 시 토큰 +30 충전 (일 3회 한도 — KNOWLEDGE 32).<br><br>🔧 복습 플레이 흐름은 다음 빌드에서 구현됩니다.')">🔁 복습 시작</button>`;
 
   wrap.innerHTML = html;
 }
@@ -2680,11 +3356,19 @@ function 대기열_휴지통이동(id){
 /* ━━━ 즐겨찾기 액션 ━━━ */
 
 function 즐겨찾기_다시풀기(id){
-  showInfoModal('🔁','다시 풀기','이 문제를 다시 출제합니다.<br><br>(데모에서는 동작하지 않습니다)');
+  // 서브컬렉션 연동(즐겨찾기 항목 ↔ 문제 풀 매핑) 후 실제 재출제 연결 예정
+  showInfoModal('🔁','다시 풀기','이 문제를 다시 출제합니다.<br><br>🔧 문제 풀 매핑 구축 후 제공됩니다 (다음 빌드).');
 }
 
 function 즐겨찾기_유사문제(id){
-  showInfoModal('✨','유사 문제','Grok이 비슷한 유형의 문제를 새로 만듭니다.<br><br>토큰 20 차감.<br><br>(데모에서는 동작하지 않습니다)');
+  if(!GROK_활성화){
+    showInfoModal('✨','유사 문제','Grok이 비슷한 유형의 문제를 새로 생성합니다 (토큰 20 차감).<br><br>🔌 Grok 연동(크레딧 구매) 후 활성화됩니다.');
+    return;
+  }
+  // ── Grok 활성화 후 실행 경로 ──
+  if(!토큰차감('유사문제', 20)) return;
+  // grok호출('문제생성', {유사기준: 항목}) → 새 문제 렌더 (β1 연결 지점)
+  showToastMsg('✨ 유사 문제 생성 중...');
 }
 
 function 즐겨찾기_해제(id){
@@ -2794,6 +3478,7 @@ function openCapacity(){
 /* 상한 실제 적용 */
 function applyCapacity(v){
   사용자.복습대기열상한=v;
+  사용자데이터_저장({복습상한: v});  // 빌드1: Firestore 설정 동기화 (13-1 필드명 「복습상한」)
 
   // v3.5: 복습 화면이 표시 중이면 즉시 재렌더
   if(curScreen==='sr') renderReview();
@@ -2813,8 +3498,9 @@ const ACH_DATA=[
      stage:'unl', progress:'+50 EXP', single:true},
     {key:'growth', name:'[성장의 기록]', icon:'📈', cat:'성장 계열 · 풀돌',
      desc:'레벨 달성 시 자동 발동',
-     stage:2, current:'Lv.15 / Lv.20',
-     rows:[['명함','Lv.3'],['1돌','Lv.5'],['2돌','Lv.10'],['3돌','Lv.20'],['4돌','Lv.30'],['5돌','Lv.40'],['풀돌','Lv.50']]},
+     stage:-1, current:'Lv.1 / Lv.5',
+     // α10: Lv.70 캡 확장 조건표 (KNOWLEDGE 14)
+     rows:[['명함','Lv.5'],['1돌','Lv.10'],['2돌','Lv.20'],['3돌','Lv.30'],['4돌','Lv.40'],['5돌','Lv.55'],['풀돌','Lv.70']]},
     {key:'steady', name:'[꾸준한 발걸음]', icon:'🔥', cat:'성장 계열 · 풀돌',
      desc:'연속 학습일 기준 자동 발동',
      stage:1, current:'3일 / 5일',
@@ -3127,13 +3813,9 @@ function renderTree(){
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    레벨업 / 업적 팝업
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-/* 레벨업 팝업 — 다음 레벨 정보 동적 표시 */
+/* 레벨업 팝업 미리보기 — 개발자 네비 전용 버튼 (실제 레벨업은 EXP획득() → 레벨업팝업()) */
 function triggerLvUp(){
-  const 다음레벨 = curLv + 1;
-  const 다음등급 = 등급정보(다음레벨);
-  document.getElementById('lvupLvText').textContent='Lv.'+다음레벨;
-  document.getElementById('lvupRankText').textContent=다음등급.등급+' · '+다음등급.세부;
-  document.getElementById('lvupOv').classList.add('show');
+  레벨업팝업(Math.min(curLv + 1, 최대레벨));
 }
 function closeLvUp(){ document.getElementById('lvupOv').classList.remove('show'); }
 function closeAchOv(){ document.getElementById('achOv').classList.remove('show'); }
@@ -3196,6 +3878,7 @@ function 키정규화(s){
 /* 창조주 시나리오 시작 */
 function 창조주시작(){
   창조주진행중 = true;
+  창조주달성진행중 = true;  // 토큰 차감 정지 — 세션 변수, Firebase 저장 없음 (KNOWLEDGE 32)
   창조주단계 = 0;
 
   // 입력창 숨김 (취약 selector 대신 ID 사용)
@@ -3324,7 +4007,11 @@ function 창조주달성(){
 /* 시나리오 종료 시 입력창 복구 + 안내 + 모든 화면 재렌더 */
 function 창조주종료(){
   창조주진행중 = false;
+  창조주달성진행중 = false;  // 달성 완료 → 토큰 차감 재개 (KNOWLEDGE 32)
   창조주단계 = 0;
+  // 빌드1: 창조주 달성 사항 Firestore 반영 + 개발자 네비 노출
+  사용자데이터_저장({창조주달성:true, 개발자모드:true});
+  갱신_개발자네비_표시();
 
   // 입력창 복구
   const 입력영역 = document.getElementById('askInputArea');
@@ -3337,11 +4024,7 @@ function 창조주종료(){
   // v3.6: 모든 관련 화면 강제 재렌더 (창조주 달성 반영)
   // 현재 표시 중인 화면이 업적/현황/설정이면 즉시 갱신
   if(curScreen==='sa') renderAchievements();
-  if(curScreen==='ss'){
-    // v3.6: 창조주 달성 시 소칭호 '폐하'로 즉시 갱신
-    document.getElementById('statusSubTitle').textContent='('+소칭호계산(curLv, 사용자.창조주달성)+')';
-    if(사용자.창조주달성) document.getElementById('statusSubTitle').classList.add('creator');
-  }
+  if(curScreen==='ss') afterNav('ss');  // 빌드1: 소칭호·칭호 선택·주신 메시지 일괄 재렌더
   if(curScreen==='sse') 갱신_설정_개발자모드_UI();
 
   showToastMsg('🔓 개발자 모드가 활성화됩니다.');
@@ -3401,7 +4084,30 @@ function 개발자모드_탭(){
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    질문하기 패널 열기/닫기
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// β7: 사고전개 — 기본 OFF, 패널 열 때마다 수동으로 켜야 함 (KNOWLEDGE 5-1)
+let 사고전개모드 = false;
+let 질문턴수 = 0;   // 질문하기 차감 계산용 — 1턴 시작 차감, 4턴부터 추가 차감 (KNOWLEDGE 32)
+
+function 사고전개_토글(){
+  사고전개모드 = !사고전개모드;
+  const b=document.getElementById('thinkToggle');
+  if(b){
+    b.textContent = 사고전개모드 ? '🧠 사고전개 ON' : '🧠 사고전개 OFF';
+    b.style.color = 사고전개모드 ? 'var(--acc)' : '';
+    b.style.borderColor = 사고전개모드 ? 'var(--acc)' : '';
+  }
+  showToastMsg(사고전개모드
+    ? '🧠 사고전개 ON — 시작 100토큰, 4턴부터 매 턴 +30'
+    : '🧠 사고전개 OFF');
+}
+
 function openAsk(){
+  // 사고전개 기본값 OFF로 초기화 (매번 수동 ON — KNOWLEDGE 5-1)
+  사고전개모드 = false;
+  질문턴수 = 0;
+  const b=document.getElementById('thinkToggle');
+  if(b){ b.textContent='🧠 사고전개 OFF'; b.style.color=''; b.style.borderColor=''; }
+  토큰표시_갱신();
   document.getElementById('askBg').classList.add('show');
   document.getElementById('askPanel').classList.add('show');
   setTimeout(()=>document.getElementById('askInp').focus(),400);
@@ -3414,6 +4120,7 @@ function closeAsk(){
   // 시나리오 진행 중 강제 종료 = 중도 포기
   if(창조주진행중){
     창조주진행중 = false;
+    창조주달성진행중 = false;  // 중도 포기 → 토큰 차감 재개
     창조주단계 = 0;
 
     // UI 복구 (ID 기반)
@@ -3461,7 +4168,7 @@ function sendAsk(){
     return;
   }
 
-  // 일반 질문 처리 (데모 가짜 응답)
+  // 일반 질문 처리 — β1 연결 지점 (Grok 게이트)
   const body=document.getElementById('askBody');
   const u=document.createElement('div');
   u.className='ask-msg user';
@@ -3469,19 +4176,64 @@ function sendAsk(){
   body.appendChild(u);
   inp.value='';
   inp.style.height='auto';  // 버그4: 전송 후 입력창 높이 초기화
+  body.scrollTop=body.scrollHeight;
 
-  setTimeout(()=>{
+  if(!GROK_활성화){
+    // 크레딧 미구매 단계: 호출·토큰 차감 없이 안내만 출력
+    setTimeout(()=>{
+      const a=document.createElement('div');
+      a.className='ask-msg ai';
+      a.innerHTML='🔌 Grok 연동 준비 중입니다.<br>API 크레딧 구매 후 활성화되면 실제 답변이 제공됩니다. (토큰 차감 없음)';
+      body.appendChild(a);
+      body.scrollTop=body.scrollHeight;
+    },400);
+    return;
+  }
+
+  // ── 이하 Grok 활성화 후 실행 경로 ──
+  // 토큰 차감: 시작 차감 1턴 / 2~3턴 무료 / 4턴부터 매 턴 추가 차감 (KNOWLEDGE 32)
+  질문턴수++;
+  const 기능 = 사고전개모드 ? '사고전개' : '질문하기';
+  const 시작차감 = 사고전개모드 ? 100 : 20;
+  const 추가차감 = 사고전개모드 ? 30 : 15;
+  const 비용 = (질문턴수===1) ? 시작차감 : (질문턴수>=4 ? 추가차감 : 0);
+  if(비용>0 && !토큰차감(기능, 비용)){ 질문턴수--; return; }
+  // 질문하기 통계 (KNOWLEDGE 13-1)
+  const 오늘 = new Date().toISOString().slice(0,10);
+  if(사용자.질문날짜 !== 오늘){ 사용자.질문날짜=오늘; 사용자.오늘질문횟수=0; }
+  사용자.오늘질문횟수++;
+  사용자데이터_저장({오늘질문횟수:사용자.오늘질문횟수, 질문날짜:오늘});
+
+  grok호출(기능, {질문:q}).then(res=>{
     const a=document.createElement('div');
     a.className='ask-msg ai';
-    a.innerHTML='데모 응답입니다. 실제 앱에서는 Grok이 답변합니다.<br><br>예: "'+q+'"에 대한 자세한 설명을 드리자면 ...<br><br><button class="ask-objection-btn" onclick="openObj()">⚖️ 이의있음!</button>';
+    if(res && res.답변){
+      // 이의있음! 버튼은 답변 생성 후에만 노출 (KNOWLEDGE 5 표시 조건)
+      a.innerHTML = res.답변 + '<br><br><button class="ask-objection-btn" onclick="openObj()">⚖️ 이의있음!</button>';
+    } else {
+      a.textContent = UI_TEXT.rate_limit.문구;
+    }
     body.appendChild(a);
     body.scrollTop=body.scrollHeight;
-  },600);
-  body.scrollTop=body.scrollHeight;
+  });
 }
 function openObj(컨텍스트){
   // v3.7 항목5: 이의있음! 컨텍스트 분기 (general/synonym/speak)
   이의제기_컨텍스트_설정(컨텍스트 || 'general');
+  // β3: reasoning_note 패널 — 항상 상단 표시 (KNOWLEDGE 33)
+  const note=document.getElementById('objNote');
+  if(note){
+    note.style.display='block';
+    note.innerHTML = `<div class="obj-note-lbl">${UI_TEXT.이의있음.출제근거라벨}</div>` +
+      (현재문제_reasoning_note
+        ? 현재문제_reasoning_note
+        : '(이 문제는 출제 근거가 아직 등록되지 않았습니다 — Grok 연동 후 자동 생성됩니다)');
+  }
+  // 토큰 소진 시 이의있음! 비활성화 (KNOWLEDGE 5 표시 조건)
+  if(!사용자.개발자모드 && (사용자.보유토큰||0) <= 0){
+    showToastMsg('💎 토큰 소진 — 이의있음!은 충전 후 사용 가능합니다');
+    return;
+  }
   document.getElementById('objBg').classList.add('show');
   setTimeout(()=>document.getElementById('objInp').focus(),300);
 }
@@ -3491,12 +4243,30 @@ function closeObj(){
   // 버그E 수정: 닫을 때 컨텍스트를 general로 복귀 → 다음 호출 시 잔존 컨텍스트(synonym/speak) 방지
   이의제기_컨텍스트_설정('general');
 }
+// β6: 이의있음! 멀티턴 — 시작 70토큰, 매 턴 +30, 턴 제한 없음 (KNOWLEDGE 5·32)
+let 이의턴수 = 0;
 function submitObj(){
+  const 내용 = document.getElementById('objInp').value.trim();
+  if(!내용){
+    showToastMsg('반박 내용을 입력해 주세요');
+    return;
+  }
+  if(!GROK_활성화){
+    // 크레딧 미구매 단계: 가짜 판정 폐기 — 호출·차감 없이 안내만 (구 데모의 거짓 「반박의 화신 +1」 제거)
+    closeObj();
+    showToastMsg('🔌 이의있음!은 Grok 연동 후 사용 가능합니다 (토큰 차감 없음)');
+    return;
+  }
+  // ── 이하 Grok 활성화 후 실행 경로 ──
+  이의턴수++;
+  const 비용 = (이의턴수===1) ? 70 : 30;
+  if(!토큰차감('이의있음', 비용)){ 이의턴수--; return; }
+  마스터리증가('이의제기횟수');
+  // grok호출('이의있음', {반박:내용, 컨텍스트:이의제기_컨텍스트, 출제근거:현재문제_reasoning_note})
+  //   → 최종 판정 인정 시: 마스터리증가('반박성공횟수') + EXP획득(100, '반박 성공') (KNOWLEDGE 12)
+  //   → 이의제기로그 서브컬렉션 기록 (KNOWLEDGE 13-1)
   closeObj();
-  showToastMsg('⚖️ 반박 제출 완료. Grok 교차검증 중...');
-  setTimeout(()=>{
-    showToastMsg('🎉 [반박의 화신] 카운터 +1');
-  },1800);
+  showToastMsg('⚖️ 반박 제출 — Grok 교차검증 중...');
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3587,7 +4357,7 @@ function showToastMsg(msg){
 let 마지막다크테마 = 'antique';  // 기본 다크
 let 마지막라이트테마 = 'paper'; // 기본 라이트
 
-function setTheme(name){
+function setTheme(name, 조용히){
   curTheme=name;
   document.body.setAttribute('data-theme',name);
   document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
@@ -3600,6 +4370,11 @@ function setTheme(name){
   document.getElementById('lblL').style.cssText=isLight?'color:var(--acc);font-weight:700':'';
   document.getElementById('lblD').style.cssText=isLight?'':'color:var(--acc);font-weight:700';
   document.getElementById('modeSubTxt').textContent=isLight?'라이트 모드':'다크 모드';
+  // 빌드1: plx_ 로컬 캐시 (새로고침 대비)
+  try{ localStorage.setItem('plx_테마', name); }catch(e){ /* localStorage 차단 환경 무시 */ }
+  if(조용히) return;  // 초기 로드·Firestore 복원 시: 토스트·저장 생략
+  사용자.테마 = name;
+  사용자데이터_저장({테마: name});  // Firestore 설정 동기화 (KNOWLEDGE 13-1)
   showToastMsg('테마 변경: '+name);
 }
 function toggleMode(){
@@ -3610,7 +4385,24 @@ function toggleMode(){
 }
 
 /* 폰트 선택 */
+// 빌드1: 글꼴 미리보기 가사 2세트 — 모달 열 때마다 A ↔ B 교체 (KNOWLEDGE 19 확정표)
+// 세트 A: 피차일반 (음율, 幸福論 2023) / 세트 B: Betelgeuse (ユイリ 유우리)
+let 가사세트 = 'B'; // openFontSelect에서 먼저 토글되므로 첫 열람은 A
+const 글꼴가사 = {
+  nanum_gothic:   {A:'언젠가 이뤄낼 미래, 그 이상을', B:'그건 마치 우리들처럼 꼭 붙어 있어'},
+  nanum_myeongjo: {A:'상상만 해도 좋잖아', B:'그걸 울고 웃으며 계속 이어나가고 있어'},
+  nanum_square:   {A:'믿지 않는 당신도', B:'몇십 번, 몇백 번 부딪히더라도'},
+  mona:           {A:'내일을 꿈꾸잖아', B:'몇십 년, 몇백 년 옛날의 빛이'},
+  asummer:        {A:'여전히 다를 게 없네 우린', B:'별자신도 잊어버렸을 즈음에'},
+  round:          {A:'피차일반이네', B:'우리들에게 닿는 거야'},
+  taebaek:        {A:'미련이라는 마음 남기지 않아', B:'우리는 서로 찾아내고, 서로 당기며 같은 하늘을'},
+  leeseoyun:      {A:'그저 이 하나만 이루면 돼', B:'빛나는 것도 둘일 거라고 약속했어'},
+  songam:         {A:'인생의 마지막 날에도 후회 없이', B:'아득히 머나먼 끝나지 않는 베텔기우스'},
+  pyeongchang:    {A:'들려주고 싶은 노래를 부를게', B:'누군가에게 잇는 마법'},
+};
+
 function openFontSelect(){
+  가사세트 = (가사세트==='A') ? 'B' : 'A';  // 열 때마다 세트 교체
   const list=document.getElementById('fontList');
   list.innerHTML='';
   FONTS.forEach(f=>{
@@ -3620,10 +4412,12 @@ function openFontSelect(){
     // 버그B 수정: 기존의 취약한 style 조립 로직 제거. css는 순수 font-family 스택이므로 그대로 적용하고,
     //   단일 굵기로 배포된 폰트(weight 지정)는 미리보기에 굵기를 함께 적용한다.
     const 미리보기스타일 = `font-family:${f.css}` + (f.weight ? `;font-weight:${f.weight}` : '');
+    // 빌드1: 미리보기 문구는 가사 2세트에서 — 매핑 없는 폰트만 기존 sample 폴백
+    const 미리보기문구 = (글꼴가사[f.key] && 글꼴가사[f.key][가사세트]) || f.sample;
     div.innerHTML=`
       <div>
         <div class="fo-nm">${f.name}</div>
-        <div class="fo-sm" style="${미리보기스타일}">${f.sample}</div>
+        <div class="fo-sm" style="${미리보기스타일}">${미리보기문구}</div>
       </div>
       <span class="fo-ck">✓</span>
     `;
@@ -3639,7 +4433,7 @@ function openFontSelect(){
 function closeFont(){
   document.getElementById('fontBg').classList.remove('show');
 }
-function applyFont(key){
+function applyFont(key, 조용히){
   const f=FONTS.find(x=>x.key===key);
   if(!f) return;
   curFont=key;
@@ -3647,6 +4441,11 @@ function applyFont(key){
   document.getElementById('fontTxt').textContent=f.name;
   // on 클래스 갱신
   document.querySelectorAll('.fo').forEach(el=>el.classList.remove('on'));
+  // 빌드1: plx_ 로컬 캐시 — 로그인 전·새로고침 대비 (CLAUDE.md localStorage 규칙)
+  try{ localStorage.setItem('plx_폰트', key); }catch(e){ /* localStorage 차단 환경 무시 */ }
+  if(조용히) return;  // 초기 로드·Firestore 복원 시: 토스트·저장 생략
+  사용자.폰트 = key;
+  사용자데이터_저장({폰트: key});  // Firestore 설정 동기화 (KNOWLEDGE 13-1)
   showToastMsg('글꼴 변경: '+f.name);
   setTimeout(closeFont,300);
 }
@@ -3655,6 +4454,8 @@ function applyFont(key){
 function toggleAiOnly(){
   aiOnly=document.getElementById('aiOnlyToggle').checked;
   document.getElementById('aiOnlyTxt').textContent=aiOnly?'켜짐':'꺼짐';
+  사용자.AI문제만 = aiOnly;
+  사용자데이터_저장({AI문제만: aiOnly});  // 빌드1: Firestore 설정 동기화
   showToastMsg('AI 문제만 출제: '+(aiOnly?'켜짐':'꺼짐'));
 }
 
@@ -3684,6 +4485,8 @@ function openHistoryFilter(){
 function applyHistoryFilter(v, label){
   histFilter=v;
   document.getElementById('histFilterTxt').textContent=label;
+  사용자.히스토리필터 = v;
+  사용자데이터_저장({히스토리필터: v});  // 빌드1: Firestore 설정 동기화
   showToastMsg('최근 출제 제외: '+label);
   setTimeout(closeSelect,250);
 }
@@ -3706,8 +4509,9 @@ function 슬라이드빌드(){
   const dots = document.getElementById('quoteDots');
   if(!wrap || !dots) return;
 
+  // β8: 한문장풀 — 정령왕 JSON 7건 (로드 실패 시 폴백 6건)
   // 문장 내 [단어] → .kc-word 스팬으로 치환. 단어 탭은 카드 전체 onclick 전파 차단.
-  wrap.innerHTML = QUOTES.map((q, i)=>{
+  wrap.innerHTML = 한문장풀.map((q, i)=>{
     const html = q.t.replace(/\[([^\]]+)\]/g, (m, w)=>
       `<span class="kc-word" onclick="event.stopPropagation();단어로이동('${w}')">${w}</span>`
     );
@@ -3717,7 +4521,7 @@ function 슬라이드빌드(){
     </div>`;
   }).join('');
 
-  dots.innerHTML = QUOTES.map((_, i)=>
+  dots.innerHTML = 한문장풀.map((_, i)=>
     `<div class="kc-dot${i===0?' on':''}" data-i="${i}"></div>`
   ).join('');
 
@@ -3734,8 +4538,8 @@ function 슬라이드전환(다음idx){
 }
 
 function 다음슬라이드(){
-  if(QUOTES.length === 0) return;
-  const next = (슬라이드인덱스 + 1) % QUOTES.length;
+  if(한문장풀.length === 0) return;
+  const next = (슬라이드인덱스 + 1) % 한문장풀.length;
   슬라이드전환(next);
 }
 
@@ -3755,9 +4559,9 @@ function quoteNext(ev){
   슬라이드시작();  // 타이머 리셋
 }
 
-// 문장 내 학습 단어 탭 처리 (데모는 토스트만, 실제는 해당 플래시카드로 이동)
+// 문장 내 학습 단어 탭 처리 — 플래시카드 DB 구축 후 해당 카드로 직행 연결 예정
 function 단어로이동(단어){
-  showToastMsg(`「${단어}」 플래시카드로 이동 (Claude Code 단계)`);
+  showToastMsg(`「${단어}」 플래시카드 연결은 단어 DB 구축 후 제공됩니다`);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3789,18 +4593,15 @@ function 개발자모드_봉인_실행(){
   }
   사용자.개발자모드 = false;
   사용자.창조주달성 = false;  // 재달성 흐름 트리거 위해
+  // 빌드1: 봉인 결과 Firestore 반영 + 개발자 네비 숨김
+  사용자데이터_저장({개발자모드:false, 창조주달성:false, 레벨:curLv, 현재EXP:curExp});
+  갱신_개발자네비_표시();
 
   // 갱신
   갱신_설정_개발자모드_UI();
   // 현재 화면이 설정이면 즉시 UI 갱신, 다른 화면이면 다음 진입 시 자동 갱신
   if(curScreen === 'sse') 갱신_설정_개발자모드_UI();
-  if(curScreen === 'ss'){
-    const 소칭호엘 = document.getElementById('statusSubTitle');
-    if(소칭호엘){
-      소칭호엘.textContent='('+소칭호계산(curLv, false)+')';
-      소칭호엘.classList.remove('creator');
-    }
-  }
+  if(curScreen === 'ss') afterNav('ss');  // 빌드1: 소칭호 색상·글리치 포함 재렌더
   if(curScreen === 'sh'){
     // 홈 화면 EXP·레벨 갱신
     afterNav('sh');
@@ -3864,38 +4665,133 @@ function 이의제기_컨텍스트_설정(컨텍스트){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   v3.7 항목19: AI 챗 이용량 87/100 하드코딩 제거
-   - 사용자 객체의 「오늘질문횟수」기반으로 동적 주입
-   - 5개 학습 화면 + 1개 질문하기 헤더 + 1개 설정 화면 일괄 갱신
+   빌드1: 질문하기 일일 100회 표시 폐기 (KNOWLEDGE 22)
+   - 구 AI챗_이용량_갱신/질문하기_사용량_모달 제거 → 토큰표시_갱신/토큰차감안내_모달로 통합
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function AI챗_이용량_갱신(){
-  const 현재 = 사용자.오늘질문횟수 ?? 0;
-  const 한도 = 사용자.질문하기일일한도 ?? 100;
-  // 학습 화면 5곳의 「N/100」
-  document.querySelectorAll('.ask-chat-now').forEach(el=> el.textContent = 현재);
-  document.querySelectorAll('.ask-chat-max').forEach(el=> el.textContent = 한도);
-  // 질문하기 패널 헤더
-  const an = document.getElementById('askQuotaNow'); if(an) an.textContent = 현재;
-  const am = document.getElementById('askQuotaMax'); if(am) am.textContent = 한도;
-  // 설정 화면 텍스트
-  const setTxt = document.getElementById('askQuotaSetTxt');
-  if(setTxt) setTxt.textContent = `오늘 ${현재} / ${한도}회`;
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   빌드1 α4·α5·α9: 주신의 경지 / 칭호 선택 / 고급 커스터마이징
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// α4: Lv.70 도달 메시지 탭 — 창조주 달성 흐름 안내 (KNOWLEDGE 11)
+function 주신의경지_탭(){
+  showInfoModal('👑','주҉신҉의 경지',
+    '창조주의 권한을 얻어라.<br><b>마지막 2문장을 말해라.</b><br><br>([창조주] 업적에서 단서를 확인할 수 있습니다)');
 }
 
-// 설정 화면에서 「질문하기 사용량」 행 탭 시 사용
-function 질문하기_사용량_모달(){
-  const 현재 = 사용자.오늘질문횟수 ?? 0;
-  const 한도 = 사용자.질문하기일일한도 ?? 100;
-  showInfoModal('💬','질문하기 사용량',`오늘 ${현재} / ${한도}회 사용. 매일 자정 초기화됩니다.`);
+// α5: 창조주 달성 후 칭호 선택 — 「폐하」 ↔ 글리치 없는 깨끗한 「주신」 (KNOWLEDGE 11)
+function 칭호선택_모달(){
+  if(!사용자.창조주달성) return;
+  document.getElementById('selTitle').textContent='👑 칭호 선택';
+  document.getElementById('selDesc').textContent='창조주 달성자는 칭호를 선택할 수 있습니다.';
+  const list=document.getElementById('selList');
+  list.innerHTML='';
+  [{v:'폐하', d:' (기본)'},{v:'주신', d:' (글리치 없는 깨끗한 주신)'}].forEach(o=>{
+    const div=document.createElement('div');
+    div.className='select-opt'+((사용자.선택칭호||'폐하')===o.v?' on':'');
+    div.onclick=()=>{
+      사용자.선택칭호=o.v;
+      사용자데이터_저장({선택칭호:o.v});  // 신규 필드 — KNOWLEDGE 13-1 규칙에 따라 한글 변수명, 추가 보고됨
+      closeSelect();
+      if(curScreen==='ss') afterNav('ss');
+      showToastMsg('칭호 변경: '+o.v);
+    };
+    div.innerHTML=`<span>${o.v}${o.d}</span><span class="select-opt-ck">✓</span>`;
+    list.appendChild(div);
+  });
+  document.getElementById('selBg').classList.add('show');
+}
+
+// α9: 고급 커스터마이징 진입 — 초월자(Lv.16) 이상 {wait!} / 필멸자 [권한 부족] (KNOWLEDGE 11)
+function 고급커스터마이징_탭(){
+  if(사용자.개발자모드 || curLv >= 16){
+    showInfoModal('🎨','고급 커스터마이징','{wait!}<br><br>안정화 후 정비 예정입니다.');
+  } else {
+    showInfoModal('🔒','고급 커스터마이징','[권한 부족]<br><br>초월자(Lv.16) 달성 시 해금됩니다.');
+  }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   초기 실행 — v3.7: 음성 차단 부착·AI챗 이용량 첫 주입 추가
+   빌드1 β10: 성장 상세 화면 sg 렌더 (KNOWLEDGE 17-1)
+   - 현재 상태 요약 + 전체 EXP 진행 바 + 소칭호 로드맵 + 획득 방법 안내
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function 렌더_성장상세(){
+  const body=document.getElementById('sgBody');
+  if(!body) return;
+  const 칭호 = 소칭호계산(curLv, 사용자.창조주달성);
+  // Lv.1→70 총 필요 EXP 대비 현재 위치 (α3 보정 공식 합산)
+  let 총필요=0, 누적=0;
+  for(let l=1; l<최대레벨; l++){
+    총필요 += expForLevel(l);
+    if(l < curLv) 누적 += expForLevel(l);
+  }
+  const 전체진행 = Math.min(100, ((누적 + curExp) / 총필요) * 100);
+  const 로드맵=[
+    {t:'필멸자',  r:'Lv.1~15',  min:1},
+    {t:'초월자',  r:'Lv.16~25', min:16},
+    {t:'시련',    r:'Lv.26~35', min:26},
+    {t:'하급신',  r:'Lv.36~46', min:36},
+    {t:'중급신',  r:'Lv.47~57', min:47},
+    {t:'최고신',  r:'Lv.58~68', min:58},
+    {t:'주҉신҉',  r:'Lv.69~70', min:69},
+    {t:'폐하',    r:'창조주 달성', min:Infinity}
+  ];
+  const 색상키 = t => (t==='주҉신҉') ? '주신' : t;
+  body.innerHTML = `
+    <div class="sg-sec fu">
+      <div class="sg-sec-t">현재 상태</div>
+      <div style="font-size:15px;font-weight:700">${userName} <span style="font-size:12px;color:${소칭호색상표[색상키(칭호)]||'var(--accl)'}">(${칭호})</span></div>
+      <div style="font-size:12px;color:var(--txt2);margin-top:4px">Lv.${curLv} — EXP ${curExp} / ${maxExp} · 총누적 ${(사용자.총누적EXP||0).toLocaleString('ko-KR')}</div>
+    </div>
+    <div class="sg-sec fu s1">
+      <div class="sg-sec-t">전체 성장 진행 (Lv.1 → 70)</div>
+      <div class="exp-track"><div class="exp-fill" style="width:${전체진행.toFixed(1)}%"></div></div>
+      <div style="font-size:10px;color:var(--txt2);margin-top:5px;text-align:right">${전체진행.toFixed(1)}%</div>
+    </div>
+    <div class="sg-sec fu s2">
+      <div class="sg-sec-t">소칭호 로드맵</div>
+      ${로드맵.map(it=>{
+        const 달성 = (it.min===Infinity) ? !!사용자.창조주달성 : curLv >= it.min;
+        const 현재구간 = (칭호 === it.t);
+        return `<div class="sg-road-item">
+          <span style="color:${소칭호색상표[색상키(it.t)]||'#a8a8b8'};font-weight:700${현재구간?';text-decoration:underline':''}">(${it.t})</span>
+          <span class="sg-road-range">${it.r}</span>
+          <span class="sg-road-state" style="color:${달성?'var(--ok)':'var(--txtm)'}">${달성?'달성':'미달성'}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="sg-sec fu s3">
+      <div class="sg-sec-t">EXP 획득 방법</div>
+      <div style="font-size:12px;color:var(--txt2);line-height:2">
+        퀴즈 정답 +20 · 플래시카드 알았다 +20 / 헷갈린다 +8<br>
+        퍼펙트 세션 +150 · 구어 교정 완료 +60 · 반박 성공 +100<br>
+        [꾸준한 발걸음] 배율 ×1.01~×1.22 — 현재 ×${EXP배율(사용자.연속학습일||0)}
+      </div>
+    </div>`;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   빌드1: 개발자 네비 표시 제어 — 개발자 모드에서만 상단 데모 네비 노출
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function 갱신_개발자네비_표시(){
+  document.body.classList.toggle('devnav', !!사용자.개발자모드);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   초기 실행 — 빌드1: 데이터 로드·plx 캐시·토큰 UI·개발자 네비
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 renderObDots();
 음성입력_차단_부착();      // v3.7 항목2: 구어 교정 텍스트 입력 음성 차단
-AI챗_이용량_갱신();         // v3.7 항목19: 87/100 하드코딩 제거 — 첫 렌더
-Firebase초기화();          // 구글 로그인 + Firestore 동기화 초기화 (config 입력 시 활성)
+// plx_ 로컬 캐시 적용 — 로그인 전·새로고침 대비 (Firestore 로드 시 그 값으로 다시 덮어씀)
+try{
+  const 저장테마 = localStorage.getItem('plx_테마'); if(저장테마) setTheme(저장테마, true);
+  const 저장폰트 = localStorage.getItem('plx_폰트'); if(저장폰트) applyFont(저장폰트, true);
+}catch(e){ /* localStorage 차단 환경 무시 */ }
+예문데이터_로드();          // β8: 정령왕 JSON (구어 27 · 유의어 18 · 한문장 7)
+모드DB_로드();              // β9: 모드별 DB JSON 6종 (현재 빈 파일 — 채워지면 자동 출제)
+토큰표시_갱신();            // β5: 토큰 UI 첫 렌더
+setInterval(()=>{ 토큰락_체크(); if(사용자.토큰락해제시각) 토큰표시_갱신(); }, 30000);  // 2시간 락 카운트다운
+갱신_개발자네비_표시();      // 데모 네비: 개발자 모드에서만 노출
+Firebase초기화();          // 구글 로그인 + Firestore 동기화 초기화
 </script>
 </body>
 </html>
