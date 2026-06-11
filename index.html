@@ -1708,7 +1708,10 @@ const FONTS=[
   {key:'nanum_gothic',   name:'나눔고딕',          css:"'NanumGothic',sans-serif",             sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
   {key:'nanum_myeongjo', name:'나눔명조',          css:"'NanumMyeongjo',serif",                sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
   {key:'nanum_square',   name:'나눔스퀘어 Neo',    css:"'NanumSquareNeoVariable',sans-serif",  sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
-  {key:'mona',           name:'모나 (Mona)',        css:"'Mona','Mona-Sans',sans-serif",        sample:'Language & 언어 1234', src:'CDN · jsDelivr · 한글 지원 커스텀(MonadABXY)', credit:'OFL'},
+  // 모나 family명 실측 확정 (세션 2 — CDN 검증 완료): mona.css에는 'Mona'·'Mona-Sans'가 존재하지 않음.
+  // 실제 제공 family는 Mona10/Mona12/'Mona12 Text KR' 등이며, 한글은 'Mona12 Text KR'가 담당.
+  // 라틴은 Mona12 → 한글 글리프는 Mona12 Text KR로 글자 단위 폴백되는 스택으로 교정.
+  {key:'mona',           name:'모나 (Mona)',        css:"'Mona12','Mona12 Text KR',sans-serif",  sample:'Language & 언어 1234', src:'CDN · jsDelivr · 한글 지원 커스텀(MonadABXY)', credit:'OFL'},
   // ━━━ 눈누 CDN 6종 (상단 <style> @font-face) ━━━
   {key:'asummer',        name:'Asummerflowertree', css:"'EarlySummerFloweringTreeV20JangHyeri',sans-serif",       sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 스스로넷 · 상업 사용 가능', credit:'스스로넷'},
   {key:'round',          name:'라운드앤라운드',    css:"'RoundedKimGyuri',sans-serif",           sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 스스로넷 · 상업 사용 가능', credit:'스스로넷'},

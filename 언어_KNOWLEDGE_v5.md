@@ -1644,3 +1644,12 @@ function 토큰색상계산(잔량) {
 - 퍼펙트 세션 판정 로직
 - 특정 계정 특혜 (계정 정보 미공개로 보류)
 - 모드 DB JSON 6종 콘텐츠 채우기 (현재 빈 파일 — 채우면 출제_분기가 자동 사용)
+
+### 37-1. 실측 메모 (세션 2 — CDN 검증 결과)
+
+- **모나(Mona) 폰트 family 실측**: `mona.css`(MonadABXY)에는 `'Mona'`·`'Mona-Sans'`가 존재하지 않음.
+  실제 제공 family: `Mona10` / `Mona12` / `Mona12 Text KR`(한글) 등.
+  코드(FONTS)는 `'Mona12','Mona12 Text KR',sans-serif`로 교정 완료.
+  → **19섹션 폰트 표의 `'Mona'` 기재는 실측과 불일치 — 최고 관리자님 확인 후 표 갱신 필요.**
+- 눈누 CDN 6종·나눔 CDN·Firebase SDK 12.13.0 전 URL HTTP 200 확인 (2026-06-10).
+- Cloudflare Workers(`xai-api-llove`) 배포 상태 확인: GET 405 응답 (POST 전용으로 정상 동작 추정, xAI 호출 없이 확인).
