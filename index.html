@@ -2292,11 +2292,17 @@ function 마스터리증가(필드, 증가량){
   사용자데이터_저장({[필드]: 사용자[필드]});
 }
 
+// 로컬(기기 시간대) 기준 YYYY-MM-DD — toISOString()은 UTC라 한국 시간 자정 경계가 9시간 어긋남
+function 오늘날짜_로컬(편차일){
+  const d = new Date(Date.now() + (편차일 || 0) * 86400000);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
 // 연속·총 학습일 갱신 — 하루 1회만 동작 (KNOWLEDGE 13-1)
 function 학습일갱신(){
-  const 오늘 = new Date().toISOString().slice(0,10);
+  const 오늘 = 오늘날짜_로컬(0);
   if(사용자.마지막학습일 === 오늘) return;
-  const 어제 = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+  const 어제 = 오늘날짜_로컬(-1);
   사용자.연속학습일 = (사용자.마지막학습일 === 어제) ? (사용자.연속학습일 || 0) + 1 : 1;
   사용자.총학습일 = (사용자.총학습일 || 0) + 1;
   사용자.마지막학습일 = 오늘;
@@ -2874,6 +2880,8 @@ function 유의어변별_렌더(인덱스){
 }
 
 function 유의어변별_선택(btn){
+  // 오류 수정: 결과 공개 후 보기 재클릭으로 EXP를 반복 획득하던 문제 — 1문제 1판정 가드
+  if(document.getElementById('synResult')?.classList.contains('show')) return;
   const 선택kind = btn.dataset.kind;
   const 선택word = btn.dataset.word;
   // 정답·근사·오답 색 동시 공개
@@ -2952,6 +2960,12 @@ function showMore(){
 }
 /* 판정 버튼 — 알았다 / 헷갈린다 / 몰랐다 */
 function judgeCard(type){
+  // 오류 수정: 판정 버튼 연타로 EXP를 반복 획득하던 문제 — 카드당 1회만 판정
+  const 판정영역 = document.querySelector('#sq2Body .fc-judge');
+  if(판정영역){
+    if(판정영역.dataset.판정완료) return;
+    판정영역.dataset.판정완료 = '1';
+  }
   const messages={
     'know':'알았다 — 복습 대기열 졸업 카운트 +1',
     'confused':'헷갈린다 — 복습 대기열 유지',
@@ -4090,6 +4104,7 @@ function 개발자모드_탭(){
 // β7: 사고전개 — 기본 OFF, 패널 열 때마다 수동으로 켜야 함 (KNOWLEDGE 5-1)
 let 사고전개모드 = false;
 let 질문턴수 = 0;   // 질문하기 차감 계산용 — 1턴 시작 차감, 4턴부터 추가 차감 (KNOWLEDGE 32)
+let 사고전개시작차감됨 = false;  // 오류 수정: 턴 중간에 사고전개를 켜도 시작 100토큰이 1회 차감되도록 추적
 
 function 사고전개_토글(){
   사고전개모드 = !사고전개모드;
@@ -4107,6 +4122,7 @@ function 사고전개_토글(){
 function openAsk(){
   // 사고전개 기본값 OFF로 초기화 (매번 수동 ON — KNOWLEDGE 5-1)
   사고전개모드 = false;
+  사고전개시작차감됨 = false;
   질문턴수 = 0;
   const b=document.getElementById('thinkToggle');
   if(b){ b.textContent='🧠 사고전개 OFF'; b.style.color=''; b.style.borderColor=''; }
@@ -4195,14 +4211,25 @@ function sendAsk(){
 
   // ── 이하 Grok 활성화 후 실행 경로 ──
   // 토큰 차감: 시작 차감 1턴 / 2~3턴 무료 / 4턴부터 매 턴 추가 차감 (KNOWLEDGE 32)
+  // 사고전개는 켠 시점이 몇 턴이든 첫 사용 시 100 시작 차감, 이후 4턴~ +30
   질문턴수++;
   const 기능 = 사고전개모드 ? '사고전개' : '질문하기';
-  const 시작차감 = 사고전개모드 ? 100 : 20;
-  const 추가차감 = 사고전개모드 ? 30 : 15;
-  const 비용 = (질문턴수===1) ? 시작차감 : (질문턴수>=4 ? 추가차감 : 0);
-  if(비용>0 && !토큰차감(기능, 비용)){ 질문턴수--; return; }
+  let 비용;
+  if(사고전개모드 && !사고전개시작차감됨){
+    비용 = 100;
+    사고전개시작차감됨 = true;
+  } else if(질문턴수 === 1){
+    비용 = 20;
+  } else {
+    비용 = (질문턴수 >= 4) ? (사고전개모드 ? 30 : 15) : 0;
+  }
+  if(비용>0 && !토큰차감(기능, 비용)){
+    질문턴수--;
+    if(사고전개모드 && 비용===100) 사고전개시작차감됨 = false;  // 차감 실패 시 시작 차감 상태 되돌림
+    return;
+  }
   // 질문하기 통계 (KNOWLEDGE 13-1)
-  const 오늘 = new Date().toISOString().slice(0,10);
+  const 오늘 = 오늘날짜_로컬(0);
   if(사용자.질문날짜 !== 오늘){ 사용자.질문날짜=오늘; 사용자.오늘질문횟수=0; }
   사용자.오늘질문횟수++;
   사용자데이터_저장({오늘질문횟수:사용자.오늘질문횟수, 질문날짜:오늘});

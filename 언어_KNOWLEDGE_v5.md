@@ -1115,7 +1115,7 @@ data/정령왕_통합_v2.json의 오늘의_한문장 배열에서 fetch
 | 나눔고딕 | `'NanumGothic'` | `cdn.jsdelivr.net/font-nanum/1.0/nanumgothic/nanumgothic.css` | OFL |
 | 나눔명조 | `'NanumMyeongjo'` | `cdn.jsdelivr.net/font-nanum/1.0/nanummyeongjo/nanummyeongjo.css` | OFL |
 | 나눔스퀘어 Neo | `'NanumSquareNeoVariable'` ← 하이픈 없음 주의 | `cdn.jsdelivr.net/gh/moonspam/NanumSquareNeo@1.0/nanumsquareneo.css` | OFL |
-| 모나(Mona) | `'Mona'` | `cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css` | 한글 지원 커스텀 버전 (MonadABXY) |
+| 모나(Mona) | `'Mona12','Mona12 Text KR'` ← 실측 확정 (구 `'Mona'` 기재는 CDN에 미존재, 한글은 `Mona12 Text KR`) | `cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css` | 한글 지원 커스텀 버전 (MonadABXY) |
 
 **눈누 CDN 방식 (v3.8 전환 완료) — 6종:**
 
@@ -1650,6 +1650,6 @@ function 토큰색상계산(잔량) {
 - **모나(Mona) 폰트 family 실측**: `mona.css`(MonadABXY)에는 `'Mona'`·`'Mona-Sans'`가 존재하지 않음.
   실제 제공 family: `Mona10` / `Mona12` / `Mona12 Text KR`(한글) 등.
   코드(FONTS)는 `'Mona12','Mona12 Text KR',sans-serif`로 교정 완료.
-  → **19섹션 폰트 표의 `'Mona'` 기재는 실측과 불일치 — 최고 관리자님 확인 후 표 갱신 필요.**
+  → 최고 관리자님 승인(2026-06-11)으로 19섹션 표 갱신 완료. CDN 주소 자체는 기존 기재와 동일함을 재확인.
 - 눈누 CDN 6종·나눔 CDN·Firebase SDK 12.13.0 전 URL HTTP 200 확인 (2026-06-10).
 - Cloudflare Workers(`xai-api-llove`) 배포 상태 확인: GET 405 응답 (POST 전용으로 정상 동작 추정, xAI 호출 없이 확인).
