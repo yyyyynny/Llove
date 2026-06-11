@@ -2252,9 +2252,34 @@ function Firebase초기화(){
 
 // 로그인 화면 「Google 계정으로 시작하기」 — 구글 로그인 강제화 (KNOWLEDGE 28)
 function 구글로그인(){
-  if(!fbAuth){ console.error('[Firebase] auth 미초기화 — 로그인 불가'); return; }
+  if(!fbAuth){
+    console.error('[Firebase] auth 미초기화 — 로그인 불가');
+    showToastMsg('로그인 모듈이 초기화되지 않았습니다');
+    return;
+  }
   const provider = new firebase.auth.GoogleAuthProvider();
-  fbAuth.signInWithPopup(provider).catch(e=> console.error('[Firebase] 구글 로그인 실패', e));
+  fbAuth.signInWithPopup(provider).catch(e=>{
+    console.error('[Firebase] 구글 로그인 실패', e);
+    // 팝업이 테두리만 뜨고 닫히는 대표 원인 = 승인 도메인 미등록. 사용자에게 원인을 표면화.
+    let 안내;
+    switch(e && e.code){
+      case 'auth/unauthorized-domain':
+        안내 = '이 도메인이 Firebase 승인 목록에 없어 로그인 창이 닫혔습니다. (콘솔 → Authentication → 승인된 도메인에 현재 주소 추가 필요)';
+        break;
+      case 'auth/popup-blocked':
+        안내 = '브라우저가 팝업을 차단했습니다. 팝업 허용 후 다시 시도해 주세요.';
+        break;
+      case 'auth/popup-closed-by-user':
+        안내 = '로그인 창이 닫혔습니다. 다시 시도해 주세요.';
+        break;
+      case 'auth/operation-not-allowed':
+        안내 = 'Firebase 콘솔에서 Google 로그인 제공업체가 비활성 상태입니다.';
+        break;
+      default:
+        안내 = '구글 로그인 실패: ' + ((e && e.code) || (e && e.message) || '알 수 없는 오류');
+    }
+    showToastMsg(안내);
+  });
 }
 
 // 로그아웃 (설정 화면)
@@ -5321,6 +5346,39 @@ function 렌더_성장상세(){
 function 갱신_개발자네비_표시(){
   document.body.classList.toggle('devnav', !!사용자.개발자모드);
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   최고 관리자님 전용 — 비로그인 테스트 진입 (백도어)
+   키보드로 특정 키 시퀀스가 연속 입력되면 Firebase 로그인 없이 로컬 테스트 세션 진입.
+   - 현재UID는 null 유지 → Firestore 저장은 자동으로 건너뜀(쓰기 없음, 안전)
+   - keydown 이벤트만 사용 → 어떤 브라우저 권한도 요구하지 않음 (WebHID와 무관)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const 테스트진입_시퀀스 = 'yyyyynny';
+let 테스트진입_버퍼 = '';
+function 테스트진입_키감지(ev){
+  // 입력창에 타이핑 중일 때는 무시 (이름·질문·구어 교정 등 정상 입력 방해 방지)
+  const t = ev.target;
+  if(t && (t.tagName==='INPUT' || t.tagName==='TEXTAREA' || t.isContentEditable)) return;
+  const k = (ev.key || '').toLowerCase();
+  if(k.length !== 1) return;  // Shift·Enter 등 특수키 무시
+  테스트진입_버퍼 = (테스트진입_버퍼 + k).slice(-테스트진입_시퀀스.length);
+  if(테스트진입_버퍼 === 테스트진입_시퀀스){
+    테스트진입_버퍼 = '';
+    게스트로그인();
+  }
+}
+
+// 비로그인 테스트 세션 — Firebase 인증 없이 홈으로. 데이터는 로컬에만 존재(저장 안 됨).
+function 게스트로그인(){
+  현재UID = null;                 // Firestore 저장 경로 차단 유지
+  사용자.이름 = 사용자.이름 || '테스트';
+  사용자.이메일 = '(비로그인 테스트)';
+  userName = 사용자.이름;
+  document.getElementById('onboarding')?.classList.add('gone');
+  goNav('sh', null);
+  showToastMsg('🔓 비로그인 테스트 모드 — 저장은 되지 않습니다');
+}
+document.addEventListener('keydown', 테스트진입_키감지);
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    초기 실행 — 빌드1: 데이터 로드·plx 캐시·토큰 UI·개발자 네비
