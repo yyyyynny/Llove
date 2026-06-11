@@ -1339,12 +1339,13 @@ body.devnav .demo-offset{margin-top:80px}
 <!-- ⑥ 업적 -->
 <div id="sa" class="screen demo-offset has-bnav">
   <div class="top-bar"><div></div><div class="tbt">업적</div><div></div></div>
+  <!-- 빌드1 오류 수정: 3/5/12 하드코딩 → renderAchievements()가 실계산 주입 -->
   <div class="ach-sum">
-    <div class="ach-si"><div class="ach-sn">3</div><div class="ach-sl">획득</div></div>
+    <div class="ach-si"><div class="ach-sn" id="achSumDone">0</div><div class="ach-sl">획득</div></div>
     <div class="ach-divider"></div>
-    <div class="ach-si"><div class="ach-sn" style="color:var(--ok)">5</div><div class="ach-sl">진행 중</div></div>
+    <div class="ach-si"><div class="ach-sn" id="achSumProg" style="color:var(--ok)">0</div><div class="ach-sl">진행 중</div></div>
     <div class="ach-divider"></div>
-    <div class="ach-si"><div class="ach-sn" style="color:var(--txtm)">12</div><div class="ach-sl">미달성</div></div>
+    <div class="ach-si"><div class="ach-sn" id="achSumNone" style="color:var(--txtm)">0</div><div class="ach-sl">미달성</div></div>
   </div>
   <div class="ach-body" id="achBody">
     <!-- JS로 동적 생성 -->
@@ -1571,26 +1572,141 @@ const 사용자 = {
 /* 빌드1: 위 객체는 로그인 전 placeholder — 로그인 시 사용자데이터_적용()이 Firestore 값으로 덮어씀 */
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ⚠️ 데모 전용 — 복습 시스템 더미 데이터
-   Firebase 연동 시 서브컬렉션으로 교체 (KNOWLEDGE 13-1 참조)
+   보관함 데이터 — Firestore 서브컬렉션 미러 (KNOWLEDGE 13-1)
+   - 로그인 시 보관함_로드()가 복습대기열·즐겨찾기·휴지통을 채움
+   - 항목 id = Firestore 문서 ID (미로그인 시 '로컬N' 임시 ID, 세션 한정)
+   - 모든 변경은 보관함_문서추가/삭제/수정으로 Firestore에 즉시 반영
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 let 복습데이터 = {
-  대기열: [
-    {id:1, 단어:'가렴주구 (苛斂誅求)', 뜻:'세금을 혹독하게 거두고 재물을 강제로 빼앗음', 모드:'고사성어', 모드클래스:'ta', 연속정답수:2, 즐겨찾기:false},
-    {id:2, 단어:'필연 (必然)', 뜻:'사물의 관련이나 일의 결과가 반드시 그렇게 되는 것', 모드:'한자어', 모드클래스:'ta', 연속정답수:0, 즐겨찾기:false},
-    {id:3, 단어:'되 vs 돼', 뜻:'"되"는 어간, "돼"는 "되어"의 줄임말', 모드:'맞춤법', 모드클래스:'tg', 연속정답수:1, 즐겨찾기:false},
-    {id:4, 단어:'새옹지마 (塞翁之馬)', 뜻:'인생의 길흉화복은 변화가 많아 예측하기 어려움', 모드:'고사성어', 모드클래스:'ta', 연속정답수:1, 즐겨찾기:true},
-  ],
-  즐겨찾기: [
-    {id:101, 단어:'윤슬', 뜻:'햇빛이나 달빛에 비치어 반짝이는 잔물결', 모드:'우리말 🇰🇷', 모드클래스:'tp'},
-    {id:102, 단어:'새옹지마 (塞翁之馬)', 뜻:'인생의 길흉화복은 변화가 많아 예측하기 어려움', 모드:'고사성어', 모드클래스:'ta'},
-  ],
-  휴지통: [
-    {id:201, 단어:'언 발에 오줌 누기', 뜻:'잠깐의 미봉책으로 급한 것만 면하는 어리석음', 모드:'속담', 모드클래스:'ta', 잔여일:3},
-    {id:202, 단어:'는 vs 던', 뜻:'"는"은 현재, "던"은 과거의 회상', 모드:'맞춤법', 모드클래스:'tg', 잔여일:14},
-  ]
+  대기열: [],
+  즐겨찾기: [],
+  휴지통: []
 };
-let 복습데이터다음ID = 300;
+let 복습데이터다음ID = 1;  // 미로그인 임시 ID 발급용
+
+// 모드명 → 태그 색상 클래스 (Firestore에는 모드명만 저장 — KNOWLEDGE 13-1)
+function 모드클래스계산(모드){
+  if(!모드) return 'ta';
+  if(모드.includes('맞춤법')) return 'tg';
+  if(모드.includes('우리말')) return 'tp';
+  return 'ta';
+}
+
+// 임시 ID 발급 (Firestore 미연결 상태 전용)
+function 보관함_임시ID(){ return '로컬' + (복습데이터다음ID++); }
+
+// Firestore 서브컬렉션 문서 추가 — 성공 시 로컬 항목의 id를 문서 ID로 교체
+function 보관함_문서추가(컬렉션, 항목, 필드){
+  if(!fbDb || !현재UID) return;
+  fbDb.collection('users').doc(현재UID).collection(컬렉션).add({
+    ...필드,
+    추가일시: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(doc=>{ 항목.id = doc.id; })
+    .catch(e=> console.error(`[Firestore] ${컬렉션} 추가 실패`, e));
+}
+function 보관함_문서삭제(컬렉션, id){
+  if(!fbDb || !현재UID || String(id).startsWith('로컬')) return;
+  fbDb.collection('users').doc(현재UID).collection(컬렉션).doc(id).delete()
+    .catch(e=> console.error(`[Firestore] ${컬렉션} 삭제 실패`, e));
+}
+function 보관함_문서수정(컬렉션, id, 부분){
+  if(!fbDb || !현재UID || String(id).startsWith('로컬')) return;
+  fbDb.collection('users').doc(현재UID).collection(컬렉션).doc(id).set(부분, {merge:true})
+    .catch(e=> console.error(`[Firestore] ${컬렉션} 수정 실패`, e));
+}
+
+// 로그인 후 보관함 전체 로드 + 휴지통 20일 만료분 자동 삭제 (KNOWLEDGE 8)
+function 보관함_로드(){
+  if(!fbDb || !현재UID) return;
+  const ref = fbDb.collection('users').doc(현재UID);
+  Promise.all([
+    ref.collection('복습대기열').get(),
+    ref.collection('즐겨찾기').get(),
+    ref.collection('휴지통').get()
+  ]).then(([큐, 즐, 휴])=>{
+    const 시각 = v => (v && v.toDate) ? v.toDate().getTime() : 0;
+    복습데이터.대기열 = 큐.docs.map(d=>{
+      const v=d.data();
+      return {id:d.id, 단어:v.단어, 뜻:v.뜻, 모드:v.모드, 모드클래스:모드클래스계산(v.모드),
+              연속정답수:v.연속정답수||0, 즐겨찾기:false, 추가시각:시각(v.추가일시)};
+    }).sort((a,b)=>a.추가시각-b.추가시각);  // 오래된 순 — 상한 초과 자동 이동 기준
+    복습데이터.즐겨찾기 = 즐.docs.map(d=>{
+      const v=d.data();
+      return {id:d.id, 단어:v.단어, 뜻:v.뜻, 모드:v.모드, 모드클래스:모드클래스계산(v.모드)};
+    });
+    // 휴지통: 이동일시 + 20일 경과분은 Firestore에서도 제거 (들어온 순서대로 자동 삭제)
+    const 지금 = Date.now();
+    복습데이터.휴지통 = [];
+    휴.docs.forEach(d=>{
+      const v=d.data();
+      const 이동 = 시각(v.이동일시 || v.추가일시);
+      const 잔여일 = 이동 ? Math.max(0, 20 - Math.floor((지금-이동)/86400000)) : 20;
+      if(이동 && 잔여일 <= 0){
+        d.ref.delete().catch(()=>{});  // 20일 만료 — 영구 삭제
+      } else {
+        복습데이터.휴지통.push({id:d.id, 단어:v.단어, 뜻:v.뜻, 모드:v.모드,
+                               모드클래스:모드클래스계산(v.모드), 잔여일});
+      }
+    });
+    // 대기열 항목의 즐겨찾기 별 표시 동기화 (동일 단어 기준)
+    const 즐단어 = new Set(복습데이터.즐겨찾기.map(x=>x.단어));
+    복습데이터.대기열.forEach(x=>{ x.즐겨찾기 = 즐단어.has(x.단어); });
+    if(curScreen==='sr') renderReview();
+    console.log(`[보관함] 로드 — 대기열 ${복습데이터.대기열.length} · 즐겨찾기 ${복습데이터.즐겨찾기.length} · 휴지통 ${복습데이터.휴지통.length}`);
+  }).catch(e=> console.error('[Firestore] 보관함 로드 실패', e));
+}
+
+// 학습 흐름 → 대기열 추가 (오답·몰랐다·헷갈린다 시) — 상한 초과 시 가장 오래된 항목 휴지통 이동 (KNOWLEDGE 7)
+function 복습대기열_추가(단어, 뜻, 모드){
+  if(!단어) return;
+  // 이미 대기열에 있으면 연속정답수만 초기화 (몰랐다 규칙)
+  const 기존 = 복습데이터.대기열.find(x=>x.단어===단어);
+  if(기존){
+    if(기존.연속정답수 !== 0){
+      기존.연속정답수 = 0;
+      보관함_문서수정('복습대기열', 기존.id, {연속정답수:0});
+    }
+    return;
+  }
+  // 상한 초과 → 가장 오래된 항목(즐겨찾기 제외 — KNOWLEDGE 9) 휴지통 자동 이동
+  const 상한 = 개발자오버레이?.상한해제 ? Infinity : 사용자.복습대기열상한;
+  while(복습데이터.대기열.length >= 상한){
+    const 오래된idx = 복습데이터.대기열.findIndex(x=>!x.즐겨찾기);
+    if(오래된idx < 0) break;  // 전부 즐겨찾기면 이동 불가
+    const 옮김 = 복습데이터.대기열.splice(오래된idx,1)[0];
+    보관함_문서삭제('복습대기열', 옮김.id);
+    const 휴항목 = {id:보관함_임시ID(), 단어:옮김.단어, 뜻:옮김.뜻, 모드:옮김.모드, 모드클래스:옮김.모드클래스, 잔여일:20};
+    복습데이터.휴지통.push(휴항목);
+    보관함_문서추가('휴지통', 휴항목, {단어:옮김.단어, 뜻:옮김.뜻, 모드:옮김.모드,
+      이동일시: firebase?.firestore ? firebase.firestore.FieldValue.serverTimestamp() : null});
+    showToastMsg('📥 대기열 초과 — 가장 오래된 항목이 휴지통으로 이동');
+  }
+  const 항목 = {id:보관함_임시ID(), 단어, 뜻, 모드, 모드클래스:모드클래스계산(모드), 연속정답수:0, 즐겨찾기:false, 추가시각:Date.now()};
+  복습데이터.대기열.push(항목);
+  보관함_문서추가('복습대기열', 항목, {단어, 뜻, 모드, 연속정답수:0});
+  // 상한 5개 이내 경고 알람 (KNOWLEDGE 7)
+  const 남은자리 = 사용자.복습대기열상한 - 복습데이터.대기열.length;
+  if(남은자리 >= 0 && 남은자리 <= 5 && (사용자.알림설정 ?? true)){
+    showToastMsg(`⚠️ 복습 대기열 자리가 ${남은자리}개 남았습니다`);
+  }
+  if(curScreen==='sr') renderReview();
+}
+
+// 학습 흐름 → 정답 처리: 대기열에 있으면 연속정답수 +1, 3회 도달 시 졸업(영구 삭제 — KNOWLEDGE 7)
+function 복습대기열_정답처리(단어){
+  const idx = 복습데이터.대기열.findIndex(x=>x.단어===단어);
+  if(idx < 0) return;
+  const 항목 = 복습데이터.대기열[idx];
+  항목.연속정답수++;
+  if(항목.연속정답수 >= 3){
+    복습데이터.대기열.splice(idx,1);
+    보관함_문서삭제('복습대기열', 항목.id);
+    showToastMsg(`🎓 「${항목.단어}」 복습 졸업! (3연속 정답)`);
+  } else {
+    보관함_문서수정('복습대기열', 항목.id, {연속정답수:항목.연속정답수});
+  }
+  if(curScreen==='sr') renderReview();
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    상태 변수
@@ -1851,16 +1967,17 @@ function goNav(id, btn){
 
 function afterNav(id){
   if(id==='sh'){
-    // 홈 화면: 사용자 객체 기반 렌더링
-    const 등급 = 등급정보(curLv);
+    // 홈 화면: 사용자 객체 기반 렌더링 — 개발자 오버레이 표시 합성 (KNOWLEDGE 14)
+    const 표시Lv=표시레벨(), 표시Exp=표시EXP(), 표시Max=expForLevel(표시Lv);
+    const 등급 = 등급정보(표시Lv);
     document.getElementById('homeUser').textContent=userName;
     document.getElementById('homeAvatar').textContent=사용자.프로필이미지;
-    document.getElementById('homeLv').textContent='Lv.'+curLv;
+    document.getElementById('homeLv').textContent='Lv.'+표시Lv;
     document.getElementById('homeRank').textContent=등급.등급;
     document.getElementById('homeTitle').textContent='· '+등급.세부;
-    document.getElementById('homeExpTxt').textContent=`${curExp} / ${maxExp} EXP`;
+    document.getElementById('homeExpTxt').textContent=`${표시Exp} / ${표시Max} EXP`;
     document.getElementById('homeStreak').textContent='🔥 '+사용자.연속학습일;
-    document.getElementById('homeVocab').textContent='📚 '+사용자.총누적어휘수;
+    document.getElementById('homeVocab').textContent='📚 '+표시마스터리('총누적어휘수');
     document.getElementById('homeReview').textContent='📝 '+사용자.복습대기열수;
 
     // EXP 바 애니메이션 (transition:none → rAF 두 번 → transition 복구)
@@ -1869,30 +1986,31 @@ function afterNav(id){
     bar.style.width='0%';
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       bar.classList.remove('instant');
-      bar.style.width=(curExp/maxExp*100)+'%';
+      bar.style.width=(표시Exp/표시Max*100)+'%';
     }));
 
     // v3.7 항목11: 「오늘 한 문장」 슬라이드 빌더 호출 (KNOWLEDGE 24섹션)
     슬라이드빌드();
   }
   if(id==='ss'){
-    // 현황 탭: 사용자 객체 + 소칭호 계산
-    const 등급 = 등급정보(curLv);
+    // 현황 탭: 사용자 객체 + 소칭호 계산 — 개발자 오버레이 표시 합성
+    const 표시Lv = 표시레벨();
+    const 등급 = 등급정보(표시Lv);
     document.getElementById('statusUser').textContent=userName;
     document.getElementById('statusAvatar').textContent=사용자.프로필이미지;
     document.getElementById('statusTitle').textContent=등급.세부;
 
     // α1·α7·α8: 7단계 소칭호 + 색상 + 주신 글리치 일괄 적용
     const 소칭호엘 = document.getElementById('statusSubTitle');
-    소칭호적용(소칭호엘, curLv, 사용자.창조주달성);
+    소칭호적용(소칭호엘, 표시Lv, 사용자.창조주달성);
     // α5: 창조주 달성 시 소칭호 탭 → 칭호 선택 (폐하 ↔ 깨끗한 주신)
     소칭호엘.style.cursor = 사용자.창조주달성 ? 'pointer' : '';
     소칭호엘.onclick = 사용자.창조주달성 ? 칭호선택_모달 : null;
     // α4: Lv.70 도달 시 「주신의 경지」 메시지 노출 (창조주 달성 전까지)
     const jm=document.getElementById('jushinMsg');
-    if(jm) jm.style.display = (curLv >= 최대레벨 && !사용자.창조주달성) ? 'block' : 'none';
+    if(jm) jm.style.display = (표시Lv >= 최대레벨 && !사용자.창조주달성) ? 'block' : 'none';
 
-    document.getElementById('statusLv').textContent='Lv.'+curLv;
+    document.getElementById('statusLv').textContent='Lv.'+표시Lv;
     document.getElementById('statusGrade').textContent=등급.등급;
     renderTree();
   }
@@ -1938,6 +2056,7 @@ function goLearn(category, screenId, btn){
   // 빌드1: 현재 모드 기록 (EXP·마스터리 연결용) + 토큰 바 갱신
   현재학습모드 = category;
   현재학습모드필드 = 모드_마스터리맵[category] || '';
+  퀴즈세션 = {수:0, 오답:0};  // 퍼펙트 세션 카운터 — 모드 진입마다 초기화
   토큰표시_갱신();
   // 4지선다 화면(sq1) — 상식·어원 / 세계사·신화 분기 (β9: 출제_분기 경유)
   if(screenId==='sq1'){
@@ -2196,6 +2315,8 @@ function 사용자데이터_적용(data, authUser){
   토큰락_체크();
   토큰표시_갱신();
   갱신_개발자네비_표시();
+  보관함_로드();   // 복습대기열·즐겨찾기·휴지통 서브컬렉션 로드 (KNOWLEDGE 13-1)
+  업적_검사();     // 로드된 카운터 기준 업적 단계 정합화
 }
 
 // 신규 사용자 Firestore 루트 문서 생성 (KNOWLEDGE 13-1 기본값, 전부 한글 필드명)
@@ -2282,14 +2403,36 @@ function EXP획득(양, 사유){
   사용자.현재EXP = curExp;
   사용자데이터_저장({레벨:curLv, 현재EXP:curExp, 총누적EXP:사용자.총누적EXP});
   if(레벨업됨) 레벨업팝업(curLv);
+  밤학습_체크();   // [밤의 사색가] 00:00~04:00 학습 — 일 1회 카운트
+  탐닉_체크();     // [지식의 탐닉자] 세션 30분 연속 학습
+  업적_검사();     // 레벨·연속일 변동 → 업적 검사 (재귀는 내부 플래그로 차단)
   if(curScreen==='sh') afterNav('sh');  // 홈 EXP 바 즉시 갱신
   return 실획득;
+}
+
+// [밤의 사색가] — 00:00~04:00 사이 학습 기록 생성 시 +1 (일 1회, KNOWLEDGE 14)
+// 신규 한글 필드: 밤학습수·마지막밤기록일 (13-1 규칙에 따라 추가 — 보고됨)
+function 밤학습_체크(){
+  const 시 = new Date().getHours();
+  if(시 >= 4) return;
+  const 오늘 = 오늘날짜_로컬(0);
+  if(사용자.마지막밤기록일 === 오늘) return;
+  사용자.마지막밤기록일 = 오늘;
+  사용자.밤학습수 = (사용자.밤학습수 || 0) + 1;
+  사용자데이터_저장({밤학습수:사용자.밤학습수, 마지막밤기록일:오늘});
+}
+
+// [지식의 탐닉자] — 세션 시작부터 30분 이상 연속 학습 시 단발 달성 (KNOWLEDGE 14)
+const 세션시작시각 = Date.now();
+function 탐닉_체크(){
+  if(Date.now() - 세션시작시각 >= 30*60000) 업적_단발달성('deep');
 }
 
 // 마스터리 카운터 증가 + 저장 (KNOWLEDGE 13 한글 변수명 그대로)
 function 마스터리증가(필드, 증가량){
   사용자[필드] = (사용자[필드] || 0) + (증가량 ?? 1);
   사용자데이터_저장({[필드]: 사용자[필드]});
+  업적_검사();  // 빌드1: 카운터 변동 → 업적 단계 검사
 }
 
 // 로컬(기기 시간대) 기준 YYYY-MM-DD — toISOString()은 UTC라 한국 시간 자정 경계가 9시간 어긋남
@@ -2340,12 +2483,17 @@ function 학습데이터초기화_실행(){
     상식어원학습수:0, 언어의뿌리학습수:0, 세계사신화학습수:0, 아재개그학습수:0,
     맞춤법학습수:0, 구어교정횟수:0, 이의제기횟수:0, 반박성공횟수:0, 퍼펙트세션수:0, 총누적어휘수:0,
     보유토큰:1500, 토큰소진시각:null, 토큰락해제시각:null, 총소비토큰:0,
-    업적진행도:{}, 창조주달성:false, 개발자모드:false, 오늘질문횟수:0, 질문날짜:''
+    업적진행도:{}, 창조주달성:false, 개발자모드:false, 오늘질문횟수:0, 질문날짜:'',
+    밤학습수:0, 마지막밤기록일:'', 복습복구횟수:0, 복습복구날짜:'', 총질문수:0
   };
   Object.assign(사용자, 리셋);
   curLv=1; curExp=0; maxExp=expForLevel(1);
   토큰경고단계=0; 토큰로그세션=[]; 연속정답수세션=0;
-  복습데이터.대기열=[]; 복습데이터.휴지통=[];  // 즐겨찾기는 보존 (KNOWLEDGE 15)
+  개발자오버레이=null;
+  // 복습 대기열·휴지통 초기화 — Firestore 문서 포함 (즐겨찾기는 보존, KNOWLEDGE 15)
+  복습데이터.대기열.forEach(x=> 보관함_문서삭제('복습대기열', x.id));
+  복습데이터.휴지통.forEach(x=> 보관함_문서삭제('휴지통', x.id));
+  복습데이터.대기열=[]; 복습데이터.휴지통=[];
   사용자데이터_저장(리셋);
   토큰표시_갱신();
   갱신_개발자네비_표시();
@@ -2617,6 +2765,10 @@ let 현재퀴즈풀 = null;            // 「다음 문제」 재출제용 풀
 let 현재퀴즈화면 = '';            // sq1 / sq3
 let 현재아재풀 = null;            // 아재개그 재출제용 풀
 let AI대체안내함 = false;          // AI→DB 대체 토스트는 세션당 1회만
+let 현재퀴즈문제 = null;          // 복습 대기열 연동용 — 현재 표시 중인 퀴즈 문항
+let 현재플래시카드 = null;        // 복습 대기열 연동용 — 현재 표시 중인 카드
+let 퀴즈세션 = {수:0, 오답:0};    // 퍼펙트 세션 판정 — 5문제 단위, 전부 정답 시 +150 (KNOWLEDGE 12·14)
+let 최근결과 = [];                 // [불굴의 의지] 오답→오답→정답 패턴 감지용
 
 const 모드_마스터리맵 = {
   '상식·어원':'상식어원학습수', '세계사·신화':'세계사신화학습수',
@@ -2684,6 +2836,7 @@ function renderQuiz4(data){
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재퀴즈풀=data; 현재퀴즈화면='sq1';
   const q=data[Math.floor(Math.random()*data.length)];
+  현재퀴즈문제 = q;  // 복습 대기열 연동용
   현재문제_reasoning_note = q.reasoning_note || '';  // β3: DB 문제는 JSON에 직접 작성 (없으면 Grok fallback 예정)
   // 선택지 HTML 동적 생성 (1~4번)
   let optsHtml='';
@@ -2707,6 +2860,7 @@ function renderQuiz3(data){
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재퀴즈풀=data; 현재퀴즈화면='sq3';
   const q=data[Math.floor(Math.random()*data.length)];
+  현재퀴즈문제 = q;  // 복습 대기열 연동용
   현재문제_reasoning_note = q.reasoning_note || '';
   let optsHtml='';
   q.opts.forEach((o,i)=>{
@@ -2730,6 +2884,10 @@ function selAns(el, isCorrect){
   // 이미 선택된 상태면 무시
   if(el.parentElement.querySelector('.correct,.wrong')) return;
 
+  // 복습 대기열 연동 정보 — 정답 보기 텍스트를 「단어」, 문제를 「뜻」으로 기록
+  const 정답보기 = 현재퀴즈문제?.opts?.find(o=>o.c)?.t || '';
+  const 문제요약 = 현재퀴즈문제?.q || '';
+
   if(isCorrect){
     el.classList.add('correct');
     // 빌드1: 실제 EXP 획득 (+20, 꾸준한 발걸음 배율 적용) + Firestore 저장
@@ -2737,6 +2895,7 @@ function selAns(el, isCorrect){
     showExpFloat(el,'+'+획득);
     showToastMsg('✓ 정답입니다!');
     연속정답처리(true);  // 10연속 정답 → 토큰 +10
+    if(정답보기) 복습대기열_정답처리(정답보기);  // 대기열에 있으면 졸업 카운트 +1
   } else {
     el.classList.add('wrong');
     aopts.forEach(o=>{
@@ -2747,11 +2906,36 @@ function selAns(el, isCorrect){
     });
     showToastMsg('✗ 오답입니다');
     연속정답처리(false);
+    if(정답보기) 복습대기열_추가(정답보기, 문제요약, 현재퀴즈문제?.cat || 현재학습모드);  // 틀린 문제 → 복습 대기열
   }
   // 빌드1: 모드별 마스터리 +1 (문제 풀 때마다 — KNOWLEDGE 13) + 누적 어휘 +1
   if(현재학습모드필드) 마스터리증가(현재학습모드필드);
   마스터리증가('총누적어휘수');
+  세션결과_기록(isCorrect);  // 퍼펙트 세션 + [불굴의 의지] 패턴 감지
   aopts.forEach(o=>o.classList.add('disabled'));
+}
+
+/* 퍼펙트 세션(5문제 전원 정답 → +150, KNOWLEDGE 12) + [불굴의 의지](오답→오답→정답) 판정 */
+function 세션결과_기록(정답여부){
+  // 불굴의 의지 — 동일 세션 내 오답·오답·정답 패턴
+  최근결과.push(정답여부);
+  if(최근결과.length > 3) 최근결과.shift();
+  if(최근결과.length===3 && !최근결과[0] && !최근결과[1] && 최근결과[2]){
+    업적_단발달성('will');
+  }
+  // 퍼펙트 세션 — 5문제 단위
+  퀴즈세션.수++;
+  if(!정답여부) 퀴즈세션.오답++;
+  if(퀴즈세션.수 >= 5){
+    if(퀴즈세션.오답 === 0){
+      사용자.퍼펙트세션수 = (사용자.퍼펙트세션수||0) + 1;
+      사용자데이터_저장({퍼펙트세션수: 사용자.퍼펙트세션수});
+      EXP획득(150, '퍼펙트 세션');
+      showToastMsg('🏅 퍼펙트 세션! +150 EXP');
+      업적_검사();
+    }
+    퀴즈세션 = {수:0, 오답:0};
+  }
 }
 
 function showExpFloat(el, text){
@@ -2801,6 +2985,7 @@ const FC_HANJA=[
 function renderFlashcard(data){
   const body=document.getElementById('sq2Body');
   const c=data[Math.floor(Math.random()*data.length)];
+  현재플래시카드 = c;  // 복습 대기열 연동용
   현재문제_reasoning_note = c.reasoning_note || '';
   let hanjaHtml='';
   c.hanja.forEach(h=>{
@@ -2933,11 +3118,15 @@ function 유의어변별_선택(btn){
   if(선택kind === 'correct'){
     EXP획득(20, '유의어 변별 정답');
     연속정답처리(true);
+    복습대기열_정답처리(유의어현재.correct.w);
   } else {
     연속정답처리(false);
+    // 오답·근사 → 정답 단어를 복습 대기열에 (예문 맥락 포함)
+    복습대기열_추가(유의어현재.correct.w, `${유의어현재.correct.def} — 예문: ${유의어현재.예문}`, '유의어');
   }
   if(현재학습모드필드) 마스터리증가(현재학습모드필드);
   마스터리증가('총누적어휘수');
+  세션결과_기록(선택kind === 'correct');
 }
 
 function 유의어변별_다음(){
@@ -2972,13 +3161,19 @@ function judgeCard(type){
     'unknown':'몰랐다 — 복습 대기열 카운트 초기화'
   };
   showToastMsg('✓ ' + messages[type]);
+  // 복습 대기열 연동 — 카드 정보 (읽기 (한자) 형식)
+  const 카드단어 = 현재플래시카드 ? `${현재플래시카드.reading} (${현재플래시카드.word})` : '';
+  const 카드뜻 = 현재플래시카드?.meaning || '';
+  const 카드모드 = 현재플래시카드?.cat || 현재학습모드;
   // 빌드1: 실제 EXP 획득 — 알았다 +20 / 헷갈린다 +8 (KNOWLEDGE 12)
   if(type==='know'){
     const 획득 = EXP획득(20, '플래시카드 알았다');
     const btn=document.querySelector('.fc-jbtn.j-know');
     if(btn) showExpFloat(btn,'+'+획득);
-  } else if(type==='confused'){
-    EXP획득(8, '플래시카드 헷갈린다');
+    if(카드단어) 복습대기열_정답처리(카드단어);  // 알았다 → 졸업 카운트 +1 (KNOWLEDGE 7)
+  } else {
+    if(type==='confused') EXP획득(8, '플래시카드 헷갈린다');
+    if(카드단어) 복습대기열_추가(카드단어, 카드뜻, 카드모드);  // 헷갈린다·몰랐다 → 대기열 (몰랐다는 카운트 초기화)
   }
   // 모드별 마스터리(언어의뿌리학습수) + 누적 어휘 +1
   if(현재학습모드필드) 마스터리증가(현재학습모드필드);
@@ -3221,15 +3416,15 @@ function renderQueueTab(){
           </div>
         </div>
         <div class="rv-acts">
-          <div class="act-btn fav${item.즐겨찾기?' on':''}" onclick="대기열_즐겨찾기토글(${item.id})" title="즐겨찾기">${item.즐겨찾기?'★':'☆'}</div>
-          <div class="act-btn d" onclick="대기열_휴지통이동(${item.id})" title="삭제">🗑</div>
+          <div class="act-btn fav${item.즐겨찾기?' on':''}" onclick="대기열_즐겨찾기토글('${item.id}')" title="즐겨찾기">${item.즐겨찾기?'★':'☆'}</div>
+          <div class="act-btn d" onclick="대기열_휴지통이동('${item.id}')" title="삭제">🗑</div>
         </div>
       </div>
     `;
   });
 
-  // 복습 시작 버튼 — 복습 플레이 흐름은 서브컬렉션 동기화와 함께 다음 빌드에서 구현
-  html += `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="showInfoModal('🔁','복습 시작','복습 대기열의 항목들을 순차적으로 다시 풀어봅니다.<br><br>완료 시 토큰 +30 충전 (일 3회 한도 — KNOWLEDGE 32).<br><br>🔧 복습 플레이 흐름은 다음 빌드에서 구현됩니다.')">🔁 복습 시작</button>`;
+  // 복습 시작 — 대기열 순차 복습 플레이 (완료 시 토큰 +30, 일 3회 — KNOWLEDGE 32)
+  html += `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="복습시작()">🔁 복습 시작</button>`;
 
   wrap.innerHTML = html;
 }
@@ -3257,9 +3452,9 @@ function renderFavTab(){
           <div class="rv-meta"><span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span></div>
         </div>
         <div class="rv-acts">
-          <div class="act-btn" onclick="즐겨찾기_다시풀기(${item.id})" title="다시 풀기">↻</div>
-          <div class="act-btn" onclick="즐겨찾기_유사문제(${item.id})" title="유사 문제">✨</div>
-          <div class="act-btn d" onclick="즐겨찾기_해제(${item.id})" title="해제">★</div>
+          <div class="act-btn" onclick="즐겨찾기_다시풀기('${item.id}')" title="다시 풀기">↻</div>
+          <div class="act-btn" onclick="즐겨찾기_유사문제('${item.id}')" title="유사 문제">✨</div>
+          <div class="act-btn d" onclick="즐겨찾기_해제('${item.id}')" title="해제">★</div>
         </div>
       </div>
     `;
@@ -3294,8 +3489,8 @@ function renderBinTab(){
           </div>
         </div>
         <div class="rv-acts">
-          <div class="act-btn" onclick="휴지통_복구(${item.id})" title="복구">↩</div>
-          <div class="act-btn d" onclick="휴지통_영구삭제(${item.id})" title="영구삭제">✕</div>
+          <div class="act-btn" onclick="휴지통_복구('${item.id}')" title="복구">↩</div>
+          <div class="act-btn d" onclick="휴지통_영구삭제('${item.id}')" title="영구삭제">✕</div>
         </div>
       </div>
     `;
@@ -3305,6 +3500,91 @@ function renderBinTab(){
   html += `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="휴지통_전체비우기()">🗑️ 휴지통 비우기</button>`;
 
   wrap.innerHTML = html;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   복습 플레이 — 대기열 항목을 순차적으로 복습 (KNOWLEDGE 7)
+   - 기억남 → 연속정답수 +1 (3회 시 졸업) / 까먹음 → 0으로 초기화
+   - 1회 완주 시 토큰 +30 충전, 일 3회 한도 (KNOWLEDGE 32 복구 시스템)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 복습진행 = null;  // {목록, idx} — null이면 비진행
+
+function 복습시작(){
+  if(복습데이터.대기열.length === 0){
+    showToastMsg('📥 복습할 항목이 없습니다');
+    return;
+  }
+  복습진행 = { 목록: [...복습데이터.대기열], idx: 0 };
+  복습_카드렌더();
+}
+
+function 복습_카드렌더(){
+  const wrap = document.getElementById('rvQueue');
+  if(!wrap || !복습진행) return;
+  const 항목 = 복습진행.목록[복습진행.idx];
+  if(!항목){ 복습_완료(); return; }
+  wrap.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px">
+      <span style="font-size:11px;color:var(--txt2)">🔁 복습 ${복습진행.idx+1} / ${복습진행.목록.length}</span>
+      <button class="btn-g" style="padding:5px 10px;font-size:11px" onclick="복습_중단()">중단</button>
+    </div>
+    <div class="qcard" style="margin-top:8px">
+      <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
+      <div class="q-question">${항목.단어}</div>
+      <div id="rvAnswer" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--bdr);font-size:13px;color:var(--txt2);line-height:1.7">${항목.뜻}</div>
+    </div>
+    <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:10px" onclick="복습_뜻공개()">뜻 보기</button>
+    <div id="rvJudge" style="display:none;gap:8px;margin-top:10px">
+      <button class="btn-acc" style="flex:1" onclick="복습_판정(true)">기억남 ✓</button>
+      <button class="btn-g" style="flex:1" onclick="복습_판정(false)">까먹음 ✗</button>
+    </div>
+  `;
+}
+
+function 복습_뜻공개(){
+  const a=document.getElementById('rvAnswer'); if(a) a.style.display='block';
+  const b=document.getElementById('rvRevealBtn'); if(b) b.style.display='none';
+  const j=document.getElementById('rvJudge'); if(j) j.style.display='flex';
+}
+
+function 복습_판정(기억남){
+  if(!복습진행) return;
+  const 항목 = 복습진행.목록[복습진행.idx];
+  if(기억남){
+    복습대기열_정답처리(항목.단어);  // +1, 3회 시 졸업
+  } else {
+    // 까먹음 → 연속정답수 0으로 초기화
+    const 실항목 = 복습데이터.대기열.find(x=>x.단어===항목.단어);
+    if(실항목 && 실항목.연속정답수 !== 0){
+      실항목.연속정답수 = 0;
+      보관함_문서수정('복습대기열', 실항목.id, {연속정답수:0});
+    }
+  }
+  복습진행.idx++;
+  if(복습진행.idx >= 복습진행.목록.length) 복습_완료();
+  else 복습_카드렌더();
+}
+
+function 복습_중단(){
+  복습진행 = null;
+  renderReview();
+  showToastMsg('복습을 중단했습니다 (보상 없음)');
+}
+
+function 복습_완료(){
+  복습진행 = null;
+  학습일갱신();
+  // 토큰 +30 충전 — 일 3회 한도 (KNOWLEDGE 32). 한도 추적 필드는 한글 신규: 복습복구횟수·복습복구날짜
+  const 오늘 = 오늘날짜_로컬(0);
+  if(사용자.복습복구날짜 !== 오늘){ 사용자.복습복구날짜 = 오늘; 사용자.복습복구횟수 = 0; }
+  if((사용자.복습복구횟수||0) < 3){
+    사용자.복습복구횟수 = (사용자.복습복구횟수||0) + 1;
+    사용자데이터_저장({복습복구횟수:사용자.복습복구횟수, 복습복구날짜:사용자.복습복구날짜});
+    토큰복구(30, `복습 완료 ${사용자.복습복구횟수}/3`);
+  } else {
+    showToastMsg('🔁 복습 완료! (오늘 토큰 충전 한도 3회 소진)');
+  }
+  renderReview();
 }
 
 /* 탭 전환 */
@@ -3319,7 +3599,7 @@ function switchRvTab(idx){
 
 /* ━━━ 대기열 액션 ━━━ */
 
-/* 대기열 항목 즐겨찾기 토글 */
+/* 대기열 항목 즐겨찾기 토글 — Firestore 즐겨찾기 서브컬렉션 동기 기록 */
 function 대기열_즐겨찾기토글(id){
   const item = 복습데이터.대기열.find(x=>x.id===id);
   if(!item) return;
@@ -3329,17 +3609,20 @@ function 대기열_즐겨찾기토글(id){
     // 즐겨찾기 목록에 동일 단어가 없으면 추가
     const 중복 = 복습데이터.즐겨찾기.find(x=>x.단어===item.단어);
     if(!중복){
-      복습데이터.즐겨찾기.push({
-        id: 복습데이터다음ID++,
+      const 신규 = {
+        id: 보관함_임시ID(),
         단어: item.단어,
         뜻: item.뜻,
         모드: item.모드,
         모드클래스: item.모드클래스
-      });
+      };
+      복습데이터.즐겨찾기.push(신규);
+      보관함_문서추가('즐겨찾기', 신규, {단어:item.단어, 뜻:item.뜻, 모드:item.모드});
     }
     showToastMsg('⭐ 즐겨찾기에 추가됨');
   } else {
-    // 즐겨찾기 목록에서 동일 단어 제거
+    // 즐겨찾기 목록에서 동일 단어 제거 (Firestore 문서 포함)
+    복습데이터.즐겨찾기.filter(x=>x.단어===item.단어).forEach(x=> 보관함_문서삭제('즐겨찾기', x.id));
     복습데이터.즐겨찾기 = 복습데이터.즐겨찾기.filter(x=>x.단어!==item.단어);
     showToastMsg('즐겨찾기에서 제거됨');
   }
@@ -3347,24 +3630,28 @@ function 대기열_즐겨찾기토글(id){
   renderReview();
 }
 
-/* 대기열 항목 휴지통 이동 */
+/* 대기열 항목 휴지통 이동 — Firestore 양쪽 컬렉션 동기 기록 */
 function 대기열_휴지통이동(id){
   const idx = 복습데이터.대기열.findIndex(x=>x.id===id);
   if(idx<0) return;
   const item = 복습데이터.대기열[idx];
 
   // 휴지통으로 이동 (잔여일 20일로 시작)
-  복습데이터.휴지통.push({
-    id: 복습데이터다음ID++,
+  const 휴항목 = {
+    id: 보관함_임시ID(),
     단어: item.단어,
     뜻: item.뜻,
     모드: item.모드,
     모드클래스: item.모드클래스,
     잔여일: 20
-  });
+  };
+  복습데이터.휴지통.push(휴항목);
+  보관함_문서추가('휴지통', 휴항목, {단어:item.단어, 뜻:item.뜻, 모드:item.모드,
+    이동일시: (fbDb ? firebase.firestore.FieldValue.serverTimestamp() : null)});
 
-  // 대기열에서 제거
+  // 대기열에서 제거 (Firestore 문서 포함)
   복습데이터.대기열.splice(idx,1);
+  보관함_문서삭제('복습대기열', item.id);
 
   showToastMsg('🗑️ 휴지통으로 이동');
   renderReview();
@@ -3393,7 +3680,8 @@ function 즐겨찾기_해제(id){
   if(idx<0) return;
   const 단어 = 복습데이터.즐겨찾기[idx].단어;
 
-  // 즐겨찾기 목록에서 제거
+  // 즐겨찾기 목록에서 제거 (Firestore 문서 포함)
+  보관함_문서삭제('즐겨찾기', id);
   복습데이터.즐겨찾기.splice(idx,1);
 
   // 대기열에 동일 단어가 있으면 즐겨찾기 플래그 해제
@@ -3411,24 +3699,29 @@ function 휴지통_복구(id){
   if(idx<0) return;
   const item = 복습데이터.휴지통[idx];
 
-  // 대기열 상한 체크
-  if(복습데이터.대기열.length >= 사용자.복습대기열상한){
+  // 대기열 상한 체크 (개발자 모드 상한 해제 시 통과 — KNOWLEDGE 14)
+  const 상한 = 개발자오버레이?.상한해제 ? Infinity : 사용자.복습대기열상한;
+  if(복습데이터.대기열.length >= 상한){
     showInfoModal('🚫','복구 불가',`대기열이 가득 찼습니다 (${사용자.복습대기열상한}개).<br><br>먼저 대기열 항목을 줄여주세요.`);
     return;
   }
 
-  // 대기열로 복구 (연속정답수 0으로 초기화)
-  복습데이터.대기열.push({
-    id: 복습데이터다음ID++,
+  // 대기열로 복구 (연속정답수 0으로 초기화 — KNOWLEDGE 8)
+  const 신규 = {
+    id: 보관함_임시ID(),
     단어: item.단어,
     뜻: item.뜻,
     모드: item.모드,
     모드클래스: item.모드클래스,
     연속정답수: 0,
-    즐겨찾기: false
-  });
+    즐겨찾기: false,
+    추가시각: Date.now()
+  };
+  복습데이터.대기열.push(신규);
+  보관함_문서추가('복습대기열', 신규, {단어:item.단어, 뜻:item.뜻, 모드:item.모드, 연속정답수:0});
 
-  // 휴지통에서 제거
+  // 휴지통에서 제거 (Firestore 문서 포함)
+  보관함_문서삭제('휴지통', item.id);
   복습데이터.휴지통.splice(idx,1);
 
   showToastMsg('↩️ 대기열로 복구됨');
@@ -3439,6 +3732,7 @@ function 휴지통_영구삭제(id){
   const idx = 복습데이터.휴지통.findIndex(x=>x.id===id);
   if(idx<0) return;
 
+  보관함_문서삭제('휴지통', id);
   복습데이터.휴지통.splice(idx,1);
 
   showToastMsg('✕ 영구 삭제됨');
@@ -3450,8 +3744,10 @@ function 휴지통_전체비우기(){
     showToastMsg('휴지통이 비어있습니다');
     return;
   }
+  복습데이터.휴지통.forEach(x=> 보관함_문서삭제('휴지통', x.id));
   복습데이터.휴지통 = [];
-  showToastMsg('🧹 휴지통 비웠습니다 — [환경미화원] 카운트 +1');
+  showToastMsg('🧹 휴지통을 비웠습니다');
+  업적_단발달성('clean');  // [환경미화원] 단발 +80 (KNOWLEDGE 14)
   renderReview();
 }
 
@@ -3603,6 +3899,164 @@ const ACH_DATA=[
   ]}
 ];
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   빌드1: 업적 진행도 실계산 + 보상 지급 (KNOWLEDGE 12·14)
+   - 저장 형식(KNOWLEDGE 13-1): 업적진행도 map — 단발 0/1, 풀돌 0(미획득)~7(풀돌)
+   - 표시 stage(-1~6)와 저장값(0~7)은 +1 차이
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const 업적_한글명 = {
+  first:'첫걸음', growth:'성장의기록', steady:'꾸준한발걸음', perfect:'완벽주의자',
+  speech:'말의품격', know:'상식의탑', root:'언어의뿌리', history:'역사탐험가',
+  spell:'맞춤법수호자', dad:'아재력', vocab:'어휘대사전', clean:'환경미화원',
+  reb:'반박의화신', night:'밤의사색가', asker:'질문쟁이', abyss:'심연을들여다보는자',
+  will:'불굴의의지', deep:'지식의탐닉자', border:'경계를넘어서', creator:'창조주'
+};
+const 업적_단발EXP = { first:50, clean:80, abyss:150, will:120, deep:150, border:120, creator:2000 };
+const 업적_일반EXP = [50,70,90,120,150,200,300];      // 명함~풀돌 (KNOWLEDGE 12)
+const 업적_히든EXP = [120,150,200,250,300,400,500];
+const 업적_히든키 = ['reb','night','asker','abyss','will','deep','border'];
+
+// 풀돌 업적: 단계 임계표 + 현재 카운터 (KNOWLEDGE 14 조건표 그대로)
+const 업적_정의 = {
+  growth:  {임계:[5,10,20,30,40,55,70],       값:()=>curLv,                  단위:'Lv.', 앞단위:true},
+  steady:  {임계:[2,3,5,7,10,15,20],          값:()=>사용자.연속학습일||0,    단위:'일'},
+  perfect: {임계:[1,2,4,6,9,12,15],           값:()=>사용자.퍼펙트세션수||0,  단위:'회'},
+  speech:  {임계:[2,4,6,9,12,16,20],          값:()=>사용자.구어교정횟수||0,  단위:'회'},
+  know:    {임계:[3,5,10,20,30,45,60],        값:()=>사용자.상식어원학습수||0, 단위:'회'},
+  root:    {임계:[3,5,15,25,40,55,70],        값:()=>사용자.언어의뿌리학습수||0, 단위:'회'},
+  history: {임계:[3,5,10,20,30,45,60],        값:()=>사용자.세계사신화학습수||0, 단위:'회'},
+  spell:   {임계:[3,5,10,20,30,45,60],        값:()=>사용자.맞춤법학습수||0,  단위:'회'},
+  dad:     {임계:[3,5,8,12,18,24,30],         값:()=>사용자.아재개그학습수||0, 단위:'회'},
+  vocab:   {임계:[20,50,100,150,200,300,400], 값:()=>사용자.총누적어휘수||0,  단위:'개'},
+  reb:     {임계:[1,2,4,6,9,12,15],           값:()=>사용자.반박성공횟수||0,  단위:'회'},
+  night:   {임계:[1,2,3,5,7,9,10],            값:()=>사용자.밤학습수||0,      단위:'회'},
+  asker:   {임계:[2,5,8,12,16,19,23],         값:()=>사용자.총질문수||0,      단위:'회'}
+};
+// 계산형 단발 업적 (이벤트형 — clean·abyss·will·deep·border — 은 업적_단발달성()이 직접 처리)
+const 업적_단발조건 = {
+  first:   ()=> (사용자.총학습일||0) >= 1,
+  creator: ()=> !!사용자.창조주달성
+};
+
+function 업적_단계계산(key){  // 표시용 stage: -1(미획득) ~ 6(풀돌)
+  const d = 업적_정의[key];
+  if(!d) return -1;
+  const v = d.값();
+  let s = -1;
+  d.임계.forEach((임계,i)=>{ if(v >= 임계) s = i; });
+  return s;
+}
+
+// 이벤트형 단발 업적 달성 (감지 즉시 1회)
+function 업적_단발달성(key){
+  const 이름 = 업적_한글명[key];
+  if(!이름) return;
+  if(!사용자.업적진행도) 사용자.업적진행도 = {};
+  if(사용자.업적진행도[이름]) return;
+  사용자.업적진행도[이름] = 1;
+  사용자데이터_저장({업적진행도: 사용자.업적진행도});
+  const exp = 업적_단발EXP[key] || 0;
+  업적_팝업표시(key, null, exp);
+  업적로그_기록(이름, '달성', exp);
+  if(exp > 0) EXP획득(exp, '업적: ' + 이름);
+}
+
+// 업적 달성 팝업 (achOv 재사용) — 단계 null = 단발
+function 업적_팝업표시(key, 단계, exp){
+  const 항목 = ACH_DATA.flatMap(s=>s.items).find(a=>a.key===key);
+  if(!항목) return;
+  const ppIcon=document.getElementById('ppIcon'), ppTitle=document.getElementById('ppTitle'),
+        ppStage=document.getElementById('ppStage'), ppDesc=document.getElementById('ppDesc'),
+        ppStars=document.getElementById('ppStars'), ppExp=document.getElementById('ppExp');
+  if(!ppIcon) return;
+  ppIcon.textContent = 항목.icon;
+  ppTitle.textContent = 항목.name;
+  ppStage.textContent = (단계==null) ? '달성!' : stageLabel(단계) + ' 획득!';
+  ppDesc.textContent = 항목.zalgo ? '히든 업적' : (항목.cat || '');
+  ppStars.innerHTML = (단계==null)
+    ? '<span class="ach-star-filled" style="font-size:20px">☾</span>'
+    : buildStars(단계, false);
+  ppExp.textContent = '+' + exp + ' EXP';
+  document.getElementById('achOv').classList.add('show');
+}
+
+// 업적로그 서브컬렉션 기록 (KNOWLEDGE 13-1)
+function 업적로그_기록(업적명, 단계, 획득EXP){
+  if(!fbDb || !현재UID) return;
+  fbDb.collection('users').doc(현재UID).collection('업적로그').add({
+    업적명, 단계, 획득EXP,
+    달성일시: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(e=> console.error('[Firestore] 업적로그 기록 실패', e));
+}
+
+// 업적 전수 검사 — 카운터 변동 시 호출. 보상 EXP로 인한 연쇄 달성은 안정될 때까지 반복
+let 업적검사중 = false;
+function 업적_검사(){
+  if(업적검사중) return;
+  업적검사중 = true;
+  try{
+    if(!사용자.업적진행도) 사용자.업적진행도 = {};
+    let 변동 = true, 회 = 0, 저장필요 = false;
+    while(변동 && 회 < 5){
+      변동 = false; 회++;
+      // 풀돌 업적: 계산 단계가 저장 단계보다 높으면 구간별 EXP 합산 지급
+      for(const key in 업적_정의){
+        const 이름 = 업적_한글명[key];
+        const 계산 = 업적_단계계산(key) + 1;  // 저장 형식 0~7
+        const 저장 = 사용자.업적진행도[이름] || 0;
+        if(계산 > 저장){
+          const 표 = 업적_히든키.includes(key) ? 업적_히든EXP : 업적_일반EXP;
+          let 합 = 0;
+          for(let s=저장; s<계산; s++) 합 += 표[s] || 0;
+          사용자.업적진행도[이름] = 계산;
+          업적_팝업표시(key, 계산-1, 합);
+          업적로그_기록(이름, stageLabel(계산-1), 합);
+          if(합 > 0) EXP획득(합, '업적: ' + 이름);
+          변동 = true; 저장필요 = true;
+        }
+      }
+      // 계산형 단발 업적
+      for(const key in 업적_단발조건){
+        const 이름 = 업적_한글명[key];
+        if(!사용자.업적진행도[이름] && 업적_단발조건[key]()){
+          사용자.업적진행도[이름] = 1;
+          const exp = 업적_단발EXP[key] || 0;
+          업적_팝업표시(key, null, exp);
+          업적로그_기록(이름, '달성', exp);
+          if(exp > 0) EXP획득(exp, '업적: ' + 이름);
+          변동 = true; 저장필요 = true;
+        }
+      }
+    }
+    if(저장필요) 사용자데이터_저장({업적진행도: 사용자.업적진행도});
+  } finally {
+    업적검사중 = false;
+  }
+}
+
+// ACH_DATA 표시값을 실계산으로 동기화 (renderAchievements 직전 호출)
+function 업적_표시동기화(){
+  const 진행도 = 사용자.업적진행도 || {};
+  ACH_DATA.forEach(sec=> sec.items.forEach(a=>{
+    // 개발자 모드 「업적 풀돌 강제」 오버레이 — 표시만, 실DB·보상 미반영 (KNOWLEDGE 14)
+    if(개발자오버레이?.업적풀돌){
+      a.stage = a.single ? 'unl' : 6;
+      return;
+    }
+    if(a.single){
+      a.stage = 진행도[업적_한글명[a.key]] ? 'unl' : 'lck';
+      return;
+    }
+    const d = 업적_정의[a.key];
+    if(!d) return;
+    a.stage = 업적_단계계산(a.key);
+    const v = d.값();
+    const 다음 = d.임계[Math.min(a.stage+1, 6)];
+    const fmt = n => d.앞단위 ? (d.단위 + n) : (n + d.단위);
+    a.current = (a.stage >= 6) ? `${fmt(v)} (풀돌)` : `${fmt(v)} / ${fmt(다음)}`;
+  }));
+}
+
 /* 별/달 표시 생성 (v3.6: single 속성 기반으로 재구성)
    - single=true: 단발 업적, 달 기호 (☾ 획득 / ☽ 미획득)
    - single=false 또는 미지정: 풀돌 업적, 별 7개 (✦ 채움 / ✧ 빔)
@@ -3634,7 +4088,19 @@ function buildStars(stage, single){
 
 /* 업적 렌더 */
 function renderAchievements(){
+  업적_표시동기화();  // 빌드1: 정적 표시값 → 실계산 동기화
   const body=document.getElementById('achBody');
+  // 빌드1: 상단 요약(획득/진행 중/미달성) 실계산 — 3/5/12 하드코딩 제거
+  let 획득=0, 진행=0, 미달성=0;
+  ACH_DATA.forEach(sec=> sec.items.forEach(a=>{
+    if(a.single){ (a.stage==='unl') ? 획득++ : 미달성++; }
+    else if(a.stage >= 6) 획득++;
+    else if(a.stage >= 0) 진행++;
+    else 미달성++;
+  }));
+  const sd=document.getElementById('achSumDone'); if(sd) sd.textContent=획득;
+  const sp=document.getElementById('achSumProg'); if(sp) sp.textContent=진행;
+  const sn=document.getElementById('achSumNone'); if(sn) sn.textContent=미달성;
   let html='';
   ACH_DATA.forEach(sec=>{
     html+=`<div class="ach-sec"><div class="ach-sec-t">${sec.sec}</div><div class="ach-list">`;
@@ -3785,28 +4251,30 @@ function closeAchDetail(){
    현황 트리 (애니메이션)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function renderTree(){
-  // 모든 데이터를 사용자 객체에서 가져옴
+  // 모든 데이터를 사용자 객체에서 가져옴 — 개발자 오버레이 표시 합성 (표시레벨/표시마스터리)
   const wrap=document.getElementById('treeWrap');
-  const 등급 = 등급정보(curLv);
+  const 표시Lv=표시레벨(), 표시Exp=표시EXP(), 표시Max=expForLevel(표시Lv);
+  const 등급 = 등급정보(표시Lv);
+  const m = 표시마스터리;
   const lines=[
     {type:'sec', text:'📊 현황'},
     {key:'성장', sec:true, branch:'├──'},
-    {key:'레벨', val:String(curLv), branch:'│   ├──', highlight:true},
+    {key:'레벨', val:String(표시Lv), branch:'│   ├──', highlight:true},
     {key:'등급', val:`${등급.등급} · ${등급.세부}`, branch:'│   ├──'},
-    {key:'현재 EXP', val:`${curExp} / ${maxExp}`, branch:'│   ├──'},
+    {key:'현재 EXP', val:`${표시Exp} / ${표시Max}`, branch:'│   ├──'},
     {key:'연속 학습', val:`${사용자.연속학습일}일`, branch:'│   └──', valType: 사용자.연속학습일<5 ? 'warn' : ''},
     {key:'학습 기록', sec:true, branch:'├──'},
     {key:'총 학습일', val:`${사용자.총학습일}일`, branch:'│   ├──'},
-    {key:'누적 어휘', val:`${사용자.총누적어휘수}개`, branch:'│   ├──', highlight:true},
-    {key:'퍼펙트 세션', val:`${사용자.퍼펙트세션수}회`, branch:'│   ├──'},
-    {key:'이의 제기', val:`${사용자.이의제기횟수}회`, branch:'│   └──'},
+    {key:'누적 어휘', val:`${m('총누적어휘수')}개`, branch:'│   ├──', highlight:true},
+    {key:'퍼펙트 세션', val:`${m('퍼펙트세션수')}회`, branch:'│   ├──'},
+    {key:'이의 제기', val:`${m('이의제기횟수')}회`, branch:'│   └──'},
     {key:'모드별 현황', sec:true, branch:'├──'},
-    {key:'상식·어원', val:`${사용자.상식어원학습수}회`, branch:'│   ├──'},
-    {key:'고사성어·속담·한자·우리말', val:`${사용자.언어의뿌리학습수}회`, branch:'│   ├──', highlight:true},
-    {key:'세계사·신화', val:`${사용자.세계사신화학습수}회`, branch:'│   ├──', valType: 사용자.세계사신화학습수===0 ? 'warn' : ''},
-    {key:'아재개그', val:`${사용자.아재개그학습수}회`, branch:'│   ├──'},
-    {key:'맞춤법', val:`${사용자.맞춤법학습수}회`, branch:'│   ├──'},
-    {key:'구어 교정', val:`${사용자.구어교정횟수}회`, branch:'│   └──', valType: 사용자.구어교정횟수===0 ? 'warn' : ''},
+    {key:'상식·어원', val:`${m('상식어원학습수')}회`, branch:'│   ├──'},
+    {key:'고사성어·속담·한자·우리말', val:`${m('언어의뿌리학습수')}회`, branch:'│   ├──', highlight:true},
+    {key:'세계사·신화', val:`${m('세계사신화학습수')}회`, branch:'│   ├──', valType: m('세계사신화학습수')===0 ? 'warn' : ''},
+    {key:'아재개그', val:`${m('아재개그학습수')}회`, branch:'│   ├──'},
+    {key:'맞춤법', val:`${m('맞춤법학습수')}회`, branch:'│   ├──'},
+    {key:'구어 교정', val:`${m('구어교정횟수')}회`, branch:'│   └──', valType: m('구어교정횟수')===0 ? 'warn' : ''},
     {key:'보관함', sec:true, branch:'└──'},
     {key:'복습 대기열', val:`${사용자.복습대기열수}개 / ${사용자.복습대기열상한}개`, branch:'    ├──', valType:'ok'},
     {key:'즐겨찾기', val:`${사용자.즐겨찾기수}개`, branch:'    ├──'},
@@ -3832,7 +4300,8 @@ function renderTree(){
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 /* 레벨업 팝업 미리보기 — 개발자 네비 전용 버튼 (실제 레벨업은 EXP획득() → 레벨업팝업()) */
 function triggerLvUp(){
-  레벨업팝업(Math.min(curLv + 1, 최대레벨));
+  const 캡 = 사용자.개발자모드 ? 120 : 최대레벨;  // 개발자 모드: Lv.120 확장 (KNOWLEDGE 14)
+  레벨업팝업(Math.min(표시레벨() + 1, 캡));
 }
 function closeLvUp(){ document.getElementById('lvupOv').classList.remove('show'); }
 function closeAchOv(){ document.getElementById('achOv').classList.remove('show'); }
@@ -3982,10 +4451,8 @@ function 창조주달성(){
   사용자.창조주달성 = true;
   사용자.개발자모드 = true;
 
-  // v3.7 항목14: 봉인 시 회수할 「실제 계정 DB 값」을 미리 저장 (오버레이 진입 직전)
-  // TODO Claude Code: Firebase 연결 후 실제 계정 DB와 오버레이 레이어를 분리 관리하면
-  //                   이 스냅샷은 불필요. 데모에선 강제 부여값 회수만 시늉.
-  개발자모드_스냅샷_저장();
+  // 빌드1: 오버레이 레이어 초기화 — 이후 개발자 패널 조작값은 이 객체에만 기록 (실DB 분리)
+  개발자오버레이 = {};
 
   // 업적 데이터에서 [창조주] 항목을 'unl'(달성)로 변경
   ACH_DATA.forEach(sec=>{
@@ -4026,9 +4493,10 @@ function 창조주종료(){
   창조주진행중 = false;
   창조주달성진행중 = false;  // 달성 완료 → 토큰 차감 재개 (KNOWLEDGE 32)
   창조주단계 = 0;
-  // 빌드1: 창조주 달성 사항 Firestore 반영 + 개발자 네비 노출
+  // 빌드1: 창조주 달성 사항 Firestore 반영 + 개발자 네비 노출 + [창조주] 업적(+2000) 검사
   사용자데이터_저장({창조주달성:true, 개발자모드:true});
   갱신_개발자네비_표시();
+  업적_검사();
 
   // 입력창 복구
   const 입력영역 = document.getElementById('askInputArea');
@@ -4074,28 +4542,13 @@ function 갱신_설정_개발자모드_UI(){
   }
 }
 
-/* 개발자 모드 항목 탭 처리 */
+/* 개발자 모드 항목 탭 처리 — 빌드1: 오버레이 조작 패널로 직행 */
 function 개발자모드_탭(){
   if(!사용자.개발자모드){
     showInfoModal('🔒','개발자 모드','[창조주] 업적을 달성하면 활성화됩니다.');
     return;
   }
-  // v3.7 항목14: 활성화 상태 안내 + 「봉인하기」 버튼 추가
-  // TODO Claude Code: 실제 동작 — Firebase 계정 DB와 오버레이 레이어 분리 후 본격 구현
-  showInfoModal('🔓','개발자 모드',
-    `현재 활성화 상태입니다.<br><br>` +
-    `실제 개발자 패널은 Claude Code 단계에서 구현됩니다.<br><br>` +
-    `지금은 [창조주] 달성을 시연한 상태입니다.<br><br>` +
-    `<b>「봉인하기」</b> 버튼을 누르면 강제 부여된 스택이 회수되고 정당하게 얻은 기록만 남습니다.`
-  );
-  // 봉인 버튼을 안내 모달에 동적 부착 (기존 「확인」버튼 옆)
-  const btnArea = document.getElementById('infoBtns');
-  if(btnArea){
-    btnArea.innerHTML = `
-      <button class="btn-g" style="flex:1" onclick="closeInfoModal()">닫기</button>
-      <button class="btn-acc" style="flex:1.4;background:linear-gradient(135deg,#5030a0,#8060c0);border-color:#8060c0" onclick="개발자모드_봉인_실행()">🔒 봉인하기</button>
-    `;
-  }
+  개발자패널_열기();
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -4168,6 +4621,9 @@ function sendAsk(){
   const q=inp.value.trim();
   if(!q) return;
 
+  // [심연을 들여다보는 자] — 자아·존재·너는 누구냐 키워드 감지 (KNOWLEDGE 14 히든)
+  if(/자아|존재|너는 누구/.test(q)) 업적_단발달성('abyss');
+
   // 창조주 키 감지 (정규화 후 비교)
   if(키정규화(q) === 키정규화(창조주키)){
     inp.value='';
@@ -4228,11 +4684,13 @@ function sendAsk(){
     if(사고전개모드 && 비용===100) 사고전개시작차감됨 = false;  // 차감 실패 시 시작 차감 상태 되돌림
     return;
   }
-  // 질문하기 통계 (KNOWLEDGE 13-1)
+  // 질문하기 통계 (KNOWLEDGE 13-1) + [질문쟁이] 누적 카운터
   const 오늘 = 오늘날짜_로컬(0);
   if(사용자.질문날짜 !== 오늘){ 사용자.질문날짜=오늘; 사용자.오늘질문횟수=0; }
   사용자.오늘질문횟수++;
-  사용자데이터_저장({오늘질문횟수:사용자.오늘질문횟수, 질문날짜:오늘});
+  사용자.총질문수 = (사용자.총질문수||0) + 1;
+  사용자데이터_저장({오늘질문횟수:사용자.오늘질문횟수, 질문날짜:오늘, 총질문수:사용자.총질문수});
+  업적_검사();
 
   grok호출(기능, {질문:q}).then(res=>{
     const a=document.createElement('div');
@@ -4595,59 +5053,115 @@ function 단어로이동(단어){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   v3.7 항목14: 개발자 모드 봉인 (KNOWLEDGE 14섹션 오버레이 구조)
-   - 봉인 시 「오버레이 레이어」만 제거, 실제 계정 DB는 유지
-   - 데모 수준: 진입 시점 스냅샷 → 봉인 시 그 시점으로 롤백
+   빌드1: 개발자 모드 — 오버레이/실DB 분리 (KNOWLEDGE 14섹션 확정 구조)
+   - 강제 조작값은 「개발자오버레이」 세션 객체에만 존재 (Firebase 미저장)
+   - 실제 계정 DB(사용자·curLv·curExp)는 개발자 모드 중에도 정상 학습으로 계속 갱신됨
+   - 화면 표시 = 오버레이 값 ?? 실제 값 (표시레벨/표시EXP/표시마스터리)
+   - 봉인 = 오버레이 제거뿐 — 실DB는 그동안 쌓인 그대로 유지 (구 스냅샷 롤백 폐기)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-let 개발자모드_진입스냅샷 = null;  // 활성화 시 저장, 봉인 시 사용
+let 개발자오버레이 = null;  // null = 비활성. {레벨, 현재EXP, 마스터리증분, 업적풀돌, 상한해제}
 
-// 개발자 모드 활성화 시 호출되는 진입점 — KNOWLEDGE 14섹션 「달성 즉시」 처리
-// 기존 「창조주_달성_처리」 함수가 있다면 거기서 호출. 데모는 봉인 시 사용할 스냅샷만 저장.
-function 개발자모드_스냅샷_저장(){
-  // 봉인 시 복원할 「실제 계정 DB 값」 = 강제 부여 전 값
-  개발자모드_진입스냅샷 = {
-    레벨: curLv,
-    경험치: curExp,
-    창조주달성: 사용자.창조주달성  // 봉인 시 false로
-  };
+// 표시용 합성 값 — 오버레이 활성 시 오버레이 값 우선
+function 표시레벨(){
+  return (사용자.개발자모드 && 개발자오버레이 && 개발자오버레이.레벨 != null) ? 개발자오버레이.레벨 : curLv;
+}
+function 표시EXP(){
+  const lv = 표시레벨();
+  const v = (사용자.개발자모드 && 개발자오버레이 && 개발자오버레이.현재EXP != null) ? 개발자오버레이.현재EXP : curExp;
+  return Math.min(v, expForLevel(lv));
+}
+function 표시마스터리(필드){
+  const 실값 = 사용자[필드] || 0;
+  return 실값 + ((사용자.개발자모드 && 개발자오버레이?.마스터리증분) || 0);
 }
 
-// v3.7 항목14: 봉인 실행
-function 개발자모드_봉인_실행(){
-  // 오버레이 레이어 제거 = 강제 부여값 회수
-  if(개발자모드_진입스냅샷){
-    curLv = 개발자모드_진입스냅샷.레벨;
-    curExp = 개발자모드_진입스냅샷.경험치;
-    // 진입 시점이 「창조주 달성 시점 이전」이라면 false, 이미 정당히 달성했다면 그 상태 유지
-    // 그러나 KNOWLEDGE 14섹션의 「[창조주] 달성 흐름」특성상 데모에서는 false로 되돌림
+// 개발자 패널 — 오버레이 조작 컨트롤 (KNOWLEDGE 14 「수정 가능」 목록)
+function 개발자패널_열기(){
+  if(!개발자오버레이) 개발자오버레이 = {};
+  const o = 개발자오버레이;
+  showInfoModal('🔓','개발자 모드',
+    `<div style="text-align:left;font-size:12px;line-height:2.1">` +
+    `<b>오버레이 레이어</b> — 조작값은 화면에만 반영되고 실DB는 계속 실시간 기록됩니다.<br>` +
+    `봉인 시 오버레이만 제거되며, 정당하게 얻은 기록은 유지됩니다.<br>` +
+    `<hr style="border-color:var(--bdr)">` +
+    `레벨 (현재 표시 Lv.${표시레벨()} / 실제 Lv.${curLv}) — 확장 Lv.120까지<br>` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_레벨조정(-10)">-10</button> ` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_레벨조정(-1)">-1</button> ` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_레벨조정(1)">+1</button> ` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_레벨조정(10)">+10</button><br>` +
+    `EXP (표시 ${표시EXP()}) <button class="btn-g" style="padding:5px 11px" onclick="개발자_EXP추가(500)">+500</button> ` +
+    `마스터리 증분 (+${o.마스터리증분||0}) <button class="btn-g" style="padding:5px 11px" onclick="개발자_마스터리증분(10)">+10</button><br>` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_업적풀돌토글()">업적 풀돌 강제: ${o.업적풀돌?'ON':'OFF'}</button> ` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_상한해제토글()">상한 해제: ${o.상한해제?'ON':'OFF'}</button><br>` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_오버레이초기화()">오버레이 값 전체 초기화</button><br>` +
+    `<span style="color:var(--txt2);font-size:11px">※ 토큰은 개발자 모드 중 자동 무제한 (KNOWLEDGE 14)</span>` +
+    `</div>`);
+  const btnArea = document.getElementById('infoBtns');
+  if(btnArea){
+    btnArea.innerHTML = `
+      <button class="btn-g" style="flex:1" onclick="closeInfoModal()">닫기</button>
+      <button class="btn-acc" style="flex:1.4;background:linear-gradient(135deg,#5030a0,#8060c0);border-color:#8060c0" onclick="개발자모드_봉인_실행()">🔒 봉인하기</button>
+    `;
   }
+}
+function 개발자_화면갱신(){
+  if(['sh','ss','sg','sa'].includes(curScreen)) afterNav(curScreen);
+  개발자패널_열기();  // 패널 수치 갱신
+}
+function 개발자_레벨조정(d){
+  const o = 개발자오버레이 || (개발자오버레이 = {});
+  o.레벨 = Math.max(1, Math.min(120, (o.레벨 ?? curLv) + d));  // 확장 Lv.71~120 (KNOWLEDGE 14)
+  개발자_화면갱신();
+}
+function 개발자_EXP추가(n){
+  const o = 개발자오버레이 || (개발자오버레이 = {});
+  o.현재EXP = (o.현재EXP ?? curExp) + n;
+  개발자_화면갱신();
+}
+function 개발자_마스터리증분(n){
+  const o = 개발자오버레이 || (개발자오버레이 = {});
+  o.마스터리증분 = (o.마스터리증분 || 0) + n;
+  개발자_화면갱신();
+}
+function 개발자_업적풀돌토글(){
+  const o = 개발자오버레이 || (개발자오버레이 = {});
+  o.업적풀돌 = !o.업적풀돌;
+  개발자_화면갱신();
+}
+function 개발자_상한해제토글(){
+  const o = 개발자오버레이 || (개발자오버레이 = {});
+  o.상한해제 = !o.상한해제;
+  개발자_화면갱신();
+}
+function 개발자_오버레이초기화(){
+  개발자오버레이 = {};
+  개발자_화면갱신();
+  showToastMsg('오버레이 값이 초기화되었습니다 (실DB 무관)');
+}
+
+// 봉인 실행 — 오버레이 레이어만 제거. 실DB(레벨·EXP·기록)는 쌓인 그대로 유지 (KNOWLEDGE 14)
+function 개발자모드_봉인_실행(){
+  개발자오버레이 = null;
   사용자.개발자모드 = false;
-  사용자.창조주달성 = false;  // 재달성 흐름 트리거 위해
-  // 빌드1: 봉인 결과 Firestore 반영 + 개발자 네비 숨김
-  사용자데이터_저장({개발자모드:false, 창조주달성:false, 레벨:curLv, 현재EXP:curExp});
+  사용자.창조주달성 = false;  // 재활성화는 [창조주] 달성 흐름을 처음부터 (KNOWLEDGE 14)
+  사용자데이터_저장({개발자모드:false, 창조주달성:false});
   갱신_개발자네비_표시();
 
   // 갱신
   갱신_설정_개발자모드_UI();
-  // 현재 화면이 설정이면 즉시 UI 갱신, 다른 화면이면 다음 진입 시 자동 갱신
-  if(curScreen === 'sse') 갱신_설정_개발자모드_UI();
-  if(curScreen === 'ss') afterNav('ss');  // 빌드1: 소칭호 색상·글리치 포함 재렌더
-  if(curScreen === 'sh'){
-    // 홈 화면 EXP·레벨 갱신
-    afterNav('sh');
-  }
+  if(curScreen === 'ss') afterNav('ss');  // 소칭호 색상·글리치 포함 재렌더
+  if(curScreen === 'sh') afterNav('sh');  // 홈 EXP·레벨 갱신
 
   // 봉인 멘트 표시 (KNOWLEDGE 14섹션 「최상위 성위 [이름]이 봉인됩니다.」)
   closeInfoModal();
   setTimeout(()=>{
     showInfoModal('🔒','봉인 완료',
       `「최상위 성위 ${userName}이(가) 봉인됩니다.」<br><br>` +
-      `개발자 모드 진입 후 강제 부여된 스택은 회수되었습니다.<br>` +
+      `오버레이 레이어가 제거되었습니다.<br>` +
       `정당하게 얻은 학습 기록과 업적은 그대로 유지됩니다.<br><br>` +
       `재활성화하려면 [창조주] 달성 흐름을 처음부터 진행해야 합니다.`
     );
   }, 300);
-  개발자모드_진입스냅샷 = null;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -4747,14 +5261,16 @@ function 고급커스터마이징_탭(){
 function 렌더_성장상세(){
   const body=document.getElementById('sgBody');
   if(!body) return;
-  const 칭호 = 소칭호계산(curLv, 사용자.창조주달성);
+  // 개발자 오버레이 표시 합성
+  const 표시Lv=표시레벨(), 표시Exp=표시EXP(), 표시Max=expForLevel(표시Lv);
+  const 칭호 = 소칭호계산(표시Lv, 사용자.창조주달성);
   // Lv.1→70 총 필요 EXP 대비 현재 위치 (α3 보정 공식 합산)
   let 총필요=0, 누적=0;
   for(let l=1; l<최대레벨; l++){
     총필요 += expForLevel(l);
-    if(l < curLv) 누적 += expForLevel(l);
+    if(l < 표시Lv) 누적 += expForLevel(l);
   }
-  const 전체진행 = Math.min(100, ((누적 + curExp) / 총필요) * 100);
+  const 전체진행 = Math.min(100, ((누적 + 표시Exp) / 총필요) * 100);
   const 로드맵=[
     {t:'필멸자',  r:'Lv.1~15',  min:1},
     {t:'초월자',  r:'Lv.16~25', min:16},
@@ -4770,7 +5286,7 @@ function 렌더_성장상세(){
     <div class="sg-sec fu">
       <div class="sg-sec-t">현재 상태</div>
       <div style="font-size:15px;font-weight:700">${userName} <span style="font-size:12px;color:${소칭호색상표[색상키(칭호)]||'var(--accl)'}">(${칭호})</span></div>
-      <div style="font-size:12px;color:var(--txt2);margin-top:4px">Lv.${curLv} — EXP ${curExp} / ${maxExp} · 총누적 ${(사용자.총누적EXP||0).toLocaleString('ko-KR')}</div>
+      <div style="font-size:12px;color:var(--txt2);margin-top:4px">Lv.${표시Lv} — EXP ${표시Exp} / ${표시Max} · 총누적 ${(사용자.총누적EXP||0).toLocaleString('ko-KR')}</div>
     </div>
     <div class="sg-sec fu s1">
       <div class="sg-sec-t">전체 성장 진행 (Lv.1 → 70)</div>
@@ -4780,7 +5296,7 @@ function 렌더_성장상세(){
     <div class="sg-sec fu s2">
       <div class="sg-sec-t">소칭호 로드맵</div>
       ${로드맵.map(it=>{
-        const 달성 = (it.min===Infinity) ? !!사용자.창조주달성 : curLv >= it.min;
+        const 달성 = (it.min===Infinity) ? !!사용자.창조주달성 : 표시Lv >= it.min;
         const 현재구간 = (칭호 === it.t);
         return `<div class="sg-road-item">
           <span style="color:${소칭호색상표[색상키(it.t)]||'#a8a8b8'};font-weight:700${현재구간?';text-decoration:underline':''}">(${it.t})</span>
