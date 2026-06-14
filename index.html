@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- v3.7 항목2: 음성 입력 차단 - 키보드 마이크 권한 자체 차단 (지보드·구글 음성) -->
 <meta http-equiv="Permissions-Policy" content="microphone=()">
-<title>코드네임 언어 — 정식 빌드1</title>
+<title>Llove</title>
+<meta name="application-name" content="Llove">
+<meta property="og:title" content="Llove">
+<meta property="og:description" content="한국어 어휘력과 표현력을 게임처럼 키우는 학습 앱">
+<meta name="description" content="한국어 어휘력과 표현력을 게임처럼 키우는 학습 앱">
 
 <!-- v3.7 항목6: 확정 폰트 CDN 4개 (KNOWLEDGE 19섹션) -->
 <link href="https://cdn.jsdelivr.net/font-nanum/1.0/nanumgothic/nanumgothic.css" rel="stylesheet">
@@ -587,12 +591,15 @@ html{scrollbar-gutter:stable}
 
 /* 폰트 선택 */
 .fo-list{display:flex;flex-direction:column;gap:6px}
-.fo{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:11px 13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between}
+.fo{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:13px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between}
 .fo:hover{border-color:var(--accd)}
-.fo.on{border-color:var(--acc);background:rgba(128,128,128,.07)}
-.fo-nm{font-size:9px;color:var(--txtm);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
-.fo-sm{font-size:15px;color:var(--txt)}
-.fo-ck{font-size:13px;color:var(--acc);opacity:0;transition:opacity .2s}
+/* 항목1: 선택 상태를 명확히 — 굵은 강조 테두리 + 포인트색 배경 */
+.fo.on{border-color:var(--acc);background:rgba(184,149,106,.12);box-shadow:inset 0 0 0 1px var(--acc)}
+/* 항목1: 폰트 이름 가독성 개선 — 9px 대문자/자간확대 → 14px 일반 표기 + 본문색 굵게 */
+.fo-nm{font-size:14px;color:var(--txt);font-weight:700;letter-spacing:0;margin-bottom:4px}
+.fo.on .fo-nm{color:var(--acc)}
+.fo-sm{font-size:16px;color:var(--txt2);line-height:1.5}
+.fo-ck{font-size:18px;color:var(--acc);opacity:0;transition:opacity .2s;flex-shrink:0;margin-left:10px}
 .fo.on .fo-ck{opacity:1}
 
 /* 셀렉트 모달 */
@@ -749,7 +756,7 @@ body.devnav .demo-offset{margin-top:80px}
       <div class="ob-bg"><div class="ob-aura"></div></div>
       <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
         <div class="ob-icon">📖</div>
-        <div class="ob-title">언어에<br>오신 것을 환영합니다</div>
+        <div class="ob-title">Llove에<br>오신 것을 환영합니다</div>
         <div class="ob-div"></div>
         <div class="ob-sub">고사성어부터 구어 교정까지<br><b>한국어 어휘력</b>을 게임처럼 키워가는<br>당신만의 학습 연대기입니다</div>
       </div>
@@ -886,9 +893,9 @@ body.devnav .demo-offset{margin-top:80px}
       <div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bdr)">
         🎵 가사 © 음율 (피차일반) · © ユイリ (Betelgeuse) · 각 아티스트 저작권 보유
       </div>
-      <div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bdr);color:var(--txtm);font-size:9px;line-height:1.6">
-        ⚠️ 광고 적용 시점에 상업적 사용 가능 여부(가사 사용 라이선스 포함) 재확인 필요
-      </div>
+      <!-- 항목2: 상업적 이용 관련 경고 문구는 사용자 UI에서 제거.
+           (내부 관리 메모) 광고 적용 시점에 폰트·가사 라이선스의 상업적 사용 가능 여부를 재확인할 것. -->
+
     </div>
     <div class="modal-btns" style="margin-top:14px">
       <button class="btn-g" style="flex:1" onclick="closeFont()">닫기</button>
@@ -960,7 +967,7 @@ body.devnav .demo-offset{margin-top:80px}
   <button class="demb" onclick="goNav('sa',this)">⑥ 업적</button>
   <button class="demb" onclick="goNav('ss',this)">⑦ 현황</button>
   <button class="demb" onclick="goNav('sse',this)">⑧ 설정</button>
-  <button class="demb sp" onclick="showOb()">📖 온보딩</button>
+  <!-- 항목5: 데모 네비의 '📖 온보딩' 재진입 바로가기 제거 (최고 관리자님 지시) -->
   <button class="demb sp" onclick="triggerLvUp()">🎉 레벨업</button>
 </div>
 
@@ -973,8 +980,8 @@ body.devnav .demo-offset{margin-top:80px}
   <div class="lg-bg"><div class="lg-aura"></div></div>
   <div class="lg-content">
     <div class="lg-icon-wrap fu">📖</div>
-    <div class="lg-title fu s1">언어</div>
-    <div class="lg-sub fu s2">CODENAME · LANGUAGE</div>
+    <div class="lg-title fu s1">Llove</div>
+    <div class="lg-sub fu s2">한국어 어휘 학습</div>
     <div class="lg-desc fu s3"><p>한국어 어휘력과 표현력을<br>게임처럼 키워가는<br>당신만의 학습 연대기</p></div>
     <button class="btn-google fu s4" onclick="구글로그인()"><span style="font-size:20px">🔵</span>Google 계정으로 시작하기</button>
     <div class="fu s5" style="font-size:11px;color:var(--txtm);text-align:center;line-height:1.6">로그인 시 서비스 이용약관 및<br>개인정보 처리방침에 동의하게 됩니다</div>
@@ -1450,11 +1457,7 @@ body.devnav .demo-offset{margin-top:80px}
         <div style="flex:1"><div class="srl">토큰</div><div class="srs" id="tokenSetTxt">1,500 / 1,500</div></div>
         <span class="sra">›</span>
       </div>
-      <div class="set-row" onclick="showOb()">
-        <span class="sri">📖</span>
-        <div style="flex:1"><div class="srl">앱 안내 다시 보기</div></div>
-        <span class="sra">›</span>
-      </div>
+      <!-- 항목5: '앱 안내 다시 보기'(온보딩 재진입 바로가기) 제거 (최고 관리자님 지시) -->
     </div>
 
     <div class="set-sec fu s4">
@@ -1829,10 +1832,11 @@ const FONTS=[
   // 라틴은 Mona12 → 한글 글리프는 Mona12 Text KR로 글자 단위 폴백되는 스택으로 교정.
   {key:'mona',           name:'모나 (Mona)',        css:"'Mona12','Mona12 Text KR',sans-serif",  sample:'Language & 언어 1234', src:'CDN · jsDelivr · 한글 지원 커스텀(MonadABXY)', credit:'OFL'},
   // ━━━ 눈누 CDN 6종 (상단 <style> @font-face) ━━━
-  {key:'asummer',        name:'Asummerflowertree', css:"'EarlySummerFloweringTreeV20JangHyeri',sans-serif",       sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 스스로넷 · 상업 사용 가능', credit:'스스로넷'},
-  {key:'round',          name:'라운드앤라운드',    css:"'RoundedKimGyuri',sans-serif",           sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 스스로넷 · 상업 사용 가능', credit:'스스로넷'},
+  // 항목2: 사용자 노출 출처에서 '상업 사용 가능' 등 상업적 이용 문구 제거 (라이선스 관리는 내부 주석/문서로)
+  {key:'asummer',        name:'Asummerflowertree', css:"'EarlySummerFloweringTreeV20JangHyeri',sans-serif",       sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 스스로넷', credit:'스스로넷'},
+  {key:'round',          name:'라운드앤라운드',    css:"'RoundedKimGyuri',sans-serif",           sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 스스로넷', credit:'스스로넷'},
   {key:'taebaek',        name:'태백체',            css:"'TaebaekMilkyWay',sans-serif",                 sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 태백시 · 공공누리 1유형', credit:'공공누리 1유형'},
-  {key:'leeseoyun',      name:'이서윤체',          css:"'IsYun',sans-serif",               sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 흥국생명 · 상업 사용 가능', credit:'흥국생명'},
+  {key:'leeseoyun',      name:'이서윤체',          css:"'IsYun',sans-serif",               sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 흥국생명', credit:'흥국생명'},
   {key:'songam',         name:'송암 이형식',       css:"'SongamLeeHyeongSik',serif",            sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 공유마당 · 공공누리', credit:'공공누리'},
   {key:'pyeongchang',    name:'평창평화체 Light',  css:"'PyeongchangPeace',sans-serif",   weight:300, sample:'한국어 어휘력과 표현력을', src:'눈누 CDN · 평창군 · 공공누리', credit:'공공누리'},
 ];
