@@ -80,13 +80,23 @@
   --fn:'Noto Sans KR',sans-serif;
   --mono:'JetBrains Mono',monospace;
 }
+/* 항목3: 커스텀 테마 — 사용자가 고른 4색(배경/카드/포인트/텍스트)에서
+   나머지 톤(입체·테두리·강조 명암·보조 텍스트)을 color-mix로 자동 파생한다.
+   color-mix 미지원 브라우저는 각 var()의 폴백 색으로 동작. */
 [data-theme="custom"]{
-  --bg:var(--c-bg,#0e0e14);--card:var(--c-card,#161620);
-  --elev:var(--c-elev,#1e1e2a);--bdr:var(--c-bdr,#28283a);--bdrg:var(--c-bdrg,#38384a);
-  --acc:var(--c-acc,#8080ff);--accl:var(--c-accl,#a0a0ff);--accd:var(--c-accd,#404090);
-  --txt:var(--c-txt,#e8e8f0);--txt2:#8888a8;--txtm:#404058;
+  --bg:var(--c-bg,#0e0e14);
+  --card:var(--c-card,#161620);
+  --elev:color-mix(in srgb, var(--c-card,#161620) 84%, var(--c-txt,#e8e8f0) 9%);
+  --bdr:color-mix(in srgb, var(--c-card,#161620) 70%, var(--c-txt,#e8e8f0) 20%);
+  --bdrg:color-mix(in srgb, var(--c-card,#161620) 55%, var(--c-acc,#8080ff) 32%);
+  --acc:var(--c-acc,#8080ff);
+  --accl:color-mix(in srgb, var(--c-acc,#8080ff) 62%, #ffffff 38%);
+  --accd:color-mix(in srgb, var(--c-acc,#8080ff) 64%, #000000 30%);
+  --txt:var(--c-txt,#e8e8f0);
+  --txt2:color-mix(in srgb, var(--c-txt,#e8e8f0) 60%, var(--c-bg,#0e0e14) 40%);
+  --txtm:color-mix(in srgb, var(--c-txt,#e8e8f0) 38%, var(--c-bg,#0e0e14) 62%);
   --ok:#60d890;--err:#d86070;--inf:#60b8e8;--warn:#e09060;
-  --exp:linear-gradient(90deg,var(--c-acc,#8080ff),var(--c-accl,#a0a0ff));
+  --exp:linear-gradient(90deg,var(--c-acc,#8080ff),color-mix(in srgb, var(--c-acc,#8080ff) 62%, #ffffff 38%));
   --fn:var(--c-fn,'Noto Sans KR',sans-serif);
   --mono:'JetBrains Mono',monospace;
 }
@@ -563,6 +573,28 @@ html{scrollbar-gutter:stable}
 .sri{font-size:18px;width:26px;text-align:center;flex-shrink:0}
 .srl{font-size:13px;font-weight:500}
 .srs{font-size:12px;color:var(--txt2);margin-top:2px}
+/* 항목3: 커스텀 테마 에디터 */
+.ct-preview{margin:4px 0 8px;border:1px solid var(--bdr);border-radius:10px;overflow:hidden}
+.ct-prev-card{padding:18px;display:flex;flex-direction:column;gap:9px;align-items:flex-start}
+.ct-prev-title{font-size:16px;font-weight:700}
+.ct-prev-sub{font-size:13px}
+.ct-prev-btn{padding:8px 16px;border:none;border-radius:8px;font-weight:700;font-family:var(--fn);font-size:13px;cursor:default}
+.ct-contrast{font-size:11px;margin-bottom:8px;text-align:center;min-height:15px;line-height:1.5}
+.ct-contrast.warn{color:var(--warn)}
+.ct-contrast.ok{color:var(--ok)}
+.ct-channels{display:flex;gap:6px;flex-wrap:wrap}
+.ct-ch{flex:1;min-width:62px;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;border:1px solid var(--bdr);border-radius:8px;background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.ct-ch.on{border-color:var(--acc);color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.ct-sw{width:14px;height:14px;border-radius:4px;border:1px solid rgba(128,128,128,.45);flex-shrink:0}
+.ct-palette{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:12px}
+.ct-sw-opt{width:100%;aspect-ratio:1;border-radius:6px;border:1px solid rgba(128,128,128,.35);cursor:pointer;transition:transform .12s;padding:0}
+.ct-sw-opt:hover{transform:scale(1.12)}
+.ct-sw-opt.on{outline:2px solid var(--acc);outline-offset:1px}
+.ct-slots-lbl{font-size:11px;color:var(--txt2);margin:14px 0 6px;line-height:1.5}
+.ct-slots{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ct-slot{aspect-ratio:1;border-radius:8px;border:1px dashed var(--bdr);background:var(--elev);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--txtm);position:relative;overflow:hidden}
+.ct-slot.filled{border-style:solid;font-size:0}
+.ct-slot-clear{position:absolute;top:0;right:2px;font-size:11px;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;line-height:1.2}
 /* 항목9: 글자 크기 조절 칩 */
 .fs-opts{display:flex;flex-wrap:wrap;gap:6px}
 .fs-opt{padding:7px 12px;border:1px solid var(--bdr);border-radius:8px;background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
@@ -923,6 +955,39 @@ body.devnav .demo-offset{margin-top:80px}
     </div>
     <div class="modal-btns" style="margin-top:14px">
       <button class="btn-g" style="flex:1" onclick="closeFont()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 항목3: 커스텀 테마 에디터 (4색 직접 설정·32색 팔레트·실시간 미리보기·대비 경고·랜덤·10슬롯 프로필) -->
+<div class="modal-bg" id="customThemeBg" onclick="closeCustomTheme()">
+  <div class="modal-bx" onclick="event.stopPropagation()" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-title">🎨 커스텀 테마</div>
+    <div class="ct-preview" id="ctPreview">
+      <div class="ct-prev-card" id="ctPrevCard">
+        <div class="ct-prev-title" id="ctPrevTitle">미리보기 · 가나다 Llove</div>
+        <div class="ct-prev-sub" id="ctPrevSub">텍스트 색상 미리보기 ABC 123</div>
+        <button class="ct-prev-btn" id="ctPrevBtn">포인트 버튼</button>
+      </div>
+    </div>
+    <div class="ct-contrast" id="ctContrast"></div>
+    <div class="ct-channels">
+      <button class="ct-ch on" data-ch="bg" onclick="커스텀_채널선택('bg',this)">배경 <span class="ct-sw" id="ctSwBg"></span></button>
+      <button class="ct-ch" data-ch="card" onclick="커스텀_채널선택('card',this)">카드 <span class="ct-sw" id="ctSwCard"></span></button>
+      <button class="ct-ch" data-ch="acc" onclick="커스텀_채널선택('acc',this)">포인트 <span class="ct-sw" id="ctSwAcc"></span></button>
+      <button class="ct-ch" data-ch="txt" onclick="커스텀_채널선택('txt',this)">텍스트 <span class="ct-sw" id="ctSwTxt"></span></button>
+    </div>
+    <div class="ct-palette" id="ctPalette"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input class="nm-inp" id="ctName" placeholder="테마 이름(선택)" maxlength="16" style="flex:1;margin:0">
+      <button class="btn-g" onclick="커스텀_랜덤()">🎲 랜덤</button>
+    </div>
+    <button class="btn-acc" style="width:100%;margin-top:10px" onclick="커스텀_적용()">이 색으로 적용</button>
+    <div class="ct-slots-lbl">💾 프로필 슬롯 (최대 10) — 채워진 슬롯 탭: 불러오기 / ✕: 비우기</div>
+    <div class="ct-slots" id="ctSlots"></div>
+    <button class="btn-g" style="width:100%;margin-top:8px" onclick="커스텀_슬롯_현재저장()">＋ 현재 색을 빈 슬롯에 저장</button>
+    <div class="modal-btns" style="margin-top:12px">
+      <button class="btn-g" style="flex:1" onclick="closeCustomTheme()">닫기</button>
     </div>
   </div>
 </div>
@@ -1486,7 +1551,7 @@ body.devnav .demo-offset{margin-top:80px}
         <div class="tc" id="th-midnight" onclick="setTheme('midnight')"><div class="tp-bg tp-m"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">🌌 미드나이트</span><span class="tck">✓</span></div></div>
         <div class="tc" id="th-paper" onclick="setTheme('paper')"><div class="tp-bg tp-p"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr" style="background:#ede8df;border-top-color:#d8d0c0"><span class="tnm" style="color:#281e12">📄 페이퍼</span><span class="tck" style="color:#7a5228">✓</span></div></div>
         <div class="tc" id="th-forest" onclick="setTheme('forest')"><div class="tp-bg tp-f"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">🌲 포레스트</span><span class="tck">✓</span></div></div>
-        <div class="tc" onclick="showInfoModal('🎨','커스텀 테마','커스텀 테마 자체는 색상·폰트를 직접 설정할 수 있는 에디터로 곧 구현됩니다.<br><br>10슬롯 프로필 저장 기능만 Claude Code 단계로 보류 중입니다.')"><div class="tp-bg" style="height:48px;background:linear-gradient(135deg,var(--bg),var(--elev),var(--accd));position:relative"><div class="tdots"><div class="td" style="background:#8080ff"></div><div class="td" style="background:#e8e8f0"></div><div class="td" style="background:#404090"></div></div></div><div class="tnr"><span class="tnm">🎨 커스텀</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-custom" onclick="openCustomTheme()"><div class="tp-bg" style="height:48px;background:linear-gradient(135deg,var(--bg),var(--elev),var(--accd));position:relative"><div class="tdots"><div class="td" style="background:#8080ff"></div><div class="td" style="background:#e8e8f0"></div><div class="td" style="background:#404090"></div></div></div><div class="tnr"><span class="tnm">🎨 커스텀</span><span class="tck">✓</span></div></div>
       </div>
     </div>
 
@@ -2406,6 +2471,9 @@ function 사용자데이터_적용(data, authUser){
   curExp = 사용자.현재EXP ?? curExp;
   maxExp = expForLevel(curLv);
   // 빌드1: 설정 데이터 복원 — Firestore 값 우선 (KNOWLEDGE 13-1 설정 데이터)
+  // 항목3: Firestore 커스텀 색·슬롯 복원 (테마 적용 전에 변수 세팅)
+  if(data.커스텀슬롯 && Array.isArray(data.커스텀슬롯)) 커스텀슬롯 = data.커스텀슬롯.filter(Boolean).slice(0,10);
+  if(data.커스텀테마) 커스텀_복원(data.커스텀테마);
   if(data.테마) setTheme(data.테마, true);
   if(data.글자배율) setFontScale(data.글자배율, true);  // 항목9: Firestore 글자 크기 복원
   if(data.폰트) applyFont(data.폰트, true);
@@ -5310,6 +5378,196 @@ function setFontScale(pct, 조용히){
   showToastMsg('글자 크기: ' + pct + '%');
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   항목3: 커스텀 테마 에디터 (KNOWLEDGE 19 사양)
+   - 4색 직접 설정(배경/카드/포인트/텍스트) · 32색 팔레트 · 실시간 미리보기
+   - 대비 경고(4.5:1 미만) · 랜덤 생성 · 테마 이름 · 10슬롯 프로필
+   - 자동 저장: localStorage(plx_커스텀·plx_커스텀슬롯) + Firestore
+   기존엔 '곧 구현' 안내 모달만 떠 동작하지 않던 부분(최고 관리자님 지적)을 실제 구현으로 대체.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const 커스텀팔레트 = [
+  // 선명 16
+  '#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#e84393',
+  '#c0392b','#d35400','#f39c12','#27ae60','#16a085','#2980b9','#8e44ad','#fd79a8',
+  // 파스텔 + 명도 단계 16
+  '#ffb3ba','#ffdfba','#fff5ba','#baffc9','#bae1ff','#c9c9ff','#e0baff','#ffc9e3',
+  '#0a0a10','#161620','#242430','#3a3a4a','#6a6a80','#a8a8c0','#e0e0ec','#fafaff'
+];
+const 커스텀랜덤프리셋 = [
+  {bg:'#0e0e14',card:'#161620',acc:'#8080ff',txt:'#e8e8f0'},
+  {bg:'#0a0f0a',card:'#121a12',acc:'#52a868',txt:'#d0e8d4'},
+  {bg:'#1a0e0e',card:'#241616',acc:'#e07a5a',txt:'#f0dcd0'},
+  {bg:'#0e1420',card:'#16203a',acc:'#5aa0f0',txt:'#d8e8ff'},
+  {bg:'#140e1a',card:'#201628',acc:'#b070e0',txt:'#e8d8f0'},
+  {bg:'#faf6ef',card:'#ffffff',acc:'#c0392b',txt:'#2a1e16'},
+  {bg:'#f0f4f8',card:'#ffffff',acc:'#2980b9',txt:'#1a2430'},
+  {bg:'#101010',card:'#1c1c1c',acc:'#f1c40f',txt:'#f0f0f0'},
+  {bg:'#0c1414',card:'#142020',acc:'#1abc9c',txt:'#d0eee8'},
+  {bg:'#1a1410',card:'#241c14',acc:'#d4af37',txt:'#efe4cf'}
+];
+let 커스텀색 = {bg:'#0e0e14', card:'#161620', acc:'#8080ff', txt:'#e8e8f0'};
+let 커스텀이름 = '';
+let 커스텀슬롯 = [];          // [{이름,bg,card,acc,txt}] 최대 10
+let 커스텀선택채널 = 'bg';
+
+// WCAG 상대 휘도 & 대비비율
+function _색휘도(hex){
+  const c = hex.replace('#','');
+  if(c.length < 6) return 0;
+  const v = i => { const x = parseInt(c.substr(i,2),16)/255; return x<=0.03928 ? x/12.92 : Math.pow((x+0.055)/1.055,2.4); };
+  return 0.2126*v(0) + 0.7152*v(2) + 0.0722*v(4);
+}
+function 대비비율(h1,h2){ const a=_색휘도(h1)+0.05, b=_색휘도(h2)+0.05; return Math.max(a,b)/Math.min(a,b); }
+
+function openCustomTheme(){
+  커스텀_팔레트렌더();
+  커스텀_채널선택(커스텀선택채널, null);
+  커스텀_슬롯렌더();
+  커스텀_미리보기갱신();
+  document.getElementById('ctName').value = 커스텀이름 || '';
+  document.getElementById('customThemeBg').classList.add('show');
+}
+function closeCustomTheme(){
+  document.getElementById('customThemeBg').classList.remove('show');
+  활성입력_blur();
+}
+
+function 커스텀_팔레트렌더(){
+  const wrap = document.getElementById('ctPalette');
+  if(!wrap) return;
+  wrap.innerHTML = 커스텀팔레트.map(h=>
+    `<button type="button" class="ct-sw-opt" style="background:${h}" data-hex="${h}" onclick="커스텀_색선택('${h}')"></button>`
+  ).join('');
+  커스텀_팔레트강조();
+}
+function 커스텀_팔레트강조(){
+  const 현재 = 커스텀색[커스텀선택채널];
+  document.querySelectorAll('#ctPalette .ct-sw-opt').forEach(b=>{
+    b.classList.toggle('on', (b.dataset.hex||'').toLowerCase() === (현재||'').toLowerCase());
+  });
+}
+function 커스텀_채널선택(ch, btn){
+  커스텀선택채널 = ch;
+  document.querySelectorAll('.ct-ch').forEach(b=>b.classList.toggle('on', b.dataset.ch===ch));
+  커스텀_팔레트강조();
+}
+function 커스텀_색선택(hex){
+  커스텀색[커스텀선택채널] = hex;
+  커스텀_미리보기갱신();
+  커스텀_팔레트강조();
+}
+function 커스텀_미리보기갱신(){
+  const card = document.getElementById('ctPrevCard');
+  if(card){
+    document.getElementById('ctPreview').style.background = 커스텀색.bg;
+    card.style.background = 커스텀색.card;
+    document.getElementById('ctPrevTitle').style.color = 커스텀색.txt;
+    document.getElementById('ctPrevSub').style.color = 커스텀색.txt;
+    const btn = document.getElementById('ctPrevBtn');
+    btn.style.background = 커스텀색.acc;
+    btn.style.color = (대비비율(커스텀색.acc,'#ffffff') >= 대비비율(커스텀색.acc,'#000000')) ? '#ffffff' : '#000000';
+  }
+  // 채널 버튼 스와치
+  const sw = {bg:'ctSwBg', card:'ctSwCard', acc:'ctSwAcc', txt:'ctSwTxt'};
+  Object.keys(sw).forEach(k=>{ const el=document.getElementById(sw[k]); if(el) el.style.background = 커스텀색[k]; });
+  커스텀_대비갱신();
+}
+function 커스텀_대비갱신(){
+  const el = document.getElementById('ctContrast');
+  if(!el) return;
+  const r = 대비비율(커스텀색.txt, 커스텀색.bg);
+  if(r >= 4.5){ el.className='ct-contrast ok'; el.textContent = `✓ 텍스트 대비 ${r.toFixed(1)}:1 (읽기 좋음)`; }
+  else { el.className='ct-contrast warn'; el.textContent = `⚠️ 텍스트 대비 ${r.toFixed(1)}:1 — 4.5:1 미만이라 읽기 어려울 수 있습니다`; }
+}
+function 커스텀_랜덤(){
+  const p = 커스텀랜덤프리셋[Math.floor(Math.random()*커스텀랜덤프리셋.length)];
+  커스텀색 = {bg:p.bg, card:p.card, acc:p.acc, txt:p.txt};
+  커스텀_미리보기갱신();
+  커스텀_팔레트강조();
+}
+function 커스텀_색적용DOM(){
+  // 선택한 4색을 루트 변수로 반영 (custom 테마 CSS가 나머지 톤을 파생)
+  const root = document.documentElement.style;
+  root.setProperty('--c-bg', 커스텀색.bg);
+  root.setProperty('--c-card', 커스텀색.card);
+  root.setProperty('--c-acc', 커스텀색.acc);
+  root.setProperty('--c-txt', 커스텀색.txt);
+}
+function 커스텀_적용(){
+  커스텀이름 = (document.getElementById('ctName')?.value || '').trim();
+  커스텀_색적용DOM();
+  setTheme('custom');           // data-theme=custom 적용 + plx_테마 저장 + 테마칩 동기화
+  커스텀_저장persist();
+  showToastMsg('🎨 커스텀 테마 적용' + (커스텀이름 ? ` · ${커스텀이름}` : ''));
+}
+function 커스텀_저장persist(){
+  try{
+    localStorage.setItem('plx_커스텀', JSON.stringify({이름:커스텀이름, ...커스텀색}));
+    localStorage.setItem('plx_커스텀슬롯', JSON.stringify(커스텀슬롯));
+  }catch(e){ /* 무시 */ }
+  사용자.커스텀테마 = {이름:커스텀이름, ...커스텀색};
+  사용자.커스텀슬롯 = 커스텀슬롯;
+  사용자데이터_저장({커스텀테마:사용자.커스텀테마, 커스텀슬롯:커스텀슬롯});
+}
+
+/* 10슬롯 프로필 */
+function 커스텀_슬롯렌더(){
+  const wrap = document.getElementById('ctSlots');
+  if(!wrap) return;
+  let html = '';
+  for(let i=0;i<10;i++){
+    const s = 커스텀슬롯[i];
+    if(s){
+      const bg = `linear-gradient(135deg, ${s.bg} 0 38%, ${s.card} 38% 64%, ${s.acc} 64%)`;
+      html += `<div class="ct-slot filled" title="${(s.이름||'슬롯 '+(i+1)).replace(/"/g,'')}" style="background:${bg}" onclick="커스텀_슬롯로드(${i})"><span class="ct-slot-clear" onclick="event.stopPropagation();커스텀_슬롯비우기(${i})">✕</span></div>`;
+    } else {
+      html += `<div class="ct-slot" onclick="커스텀_슬롯_현재저장(${i})">＋</div>`;
+    }
+  }
+  wrap.innerHTML = html;
+}
+function 커스텀_슬롯_현재저장(i){
+  // i(슬롯 번호) 미지정이면 첫 빈 슬롯을 찾는다
+  let idx = (typeof i === 'number') ? i : -1;
+  if(idx < 0){ for(let k=0;k<10;k++){ if(!커스텀슬롯[k]){ idx=k; break; } } }
+  if(idx < 0){ showToastMsg('빈 슬롯이 없습니다 (✕로 비운 뒤 저장)'); return; }
+  커스텀슬롯[idx] = {이름:(document.getElementById('ctName')?.value||'').trim(), ...커스텀색};
+  커스텀_슬롯렌더();
+  커스텀_저장persist();
+  showToastMsg(`슬롯 ${idx+1}에 저장했습니다`);
+}
+function 커스텀_슬롯로드(i){
+  const s = 커스텀슬롯[i];
+  if(!s) return;
+  커스텀색 = {bg:s.bg, card:s.card, acc:s.acc, txt:s.txt};
+  커스텀이름 = s.이름 || '';
+  const nm = document.getElementById('ctName'); if(nm) nm.value = 커스텀이름;
+  커스텀_미리보기갱신();
+  커스텀_팔레트강조();
+  showToastMsg(`슬롯 ${i+1} 불러옴 — 「적용」을 누르면 반영됩니다`);
+}
+function 커스텀_슬롯비우기(i){
+  커스텀슬롯[i] = null;
+  // 뒤쪽 null 정리(배열 길이 안정화)
+  while(커스텀슬롯.length && 커스텀슬롯[커스텀슬롯.length-1] == null) 커스텀슬롯.pop();
+  커스텀_슬롯렌더();
+  커스텀_저장persist();
+}
+
+/* 저장된 커스텀 색·슬롯 복원 (앱 시작 시) */
+function 커스텀_복원(객체){
+  try{
+    const 색 = 객체 || JSON.parse(localStorage.getItem('plx_커스텀') || 'null');
+    if(색 && 색.bg){
+      커스텀색 = {bg:색.bg, card:색.card, acc:색.acc, txt:색.txt};
+      커스텀이름 = 색.이름 || '';
+      커스텀_색적용DOM();  // 테마가 custom이면 즉시 반영되도록 변수 세팅
+    }
+    const 슬롯 = JSON.parse(localStorage.getItem('plx_커스텀슬롯') || 'null');
+    if(Array.isArray(슬롯)) 커스텀슬롯 = 슬롯.filter(Boolean).slice(0,10);
+  }catch(e){ /* 무시 */ }
+}
+
 /* 폰트 선택 */
 // 빌드1: 글꼴 미리보기 가사 2세트 — 모달 열 때마다 A ↔ B 교체 (KNOWLEDGE 19 확정표)
 // 세트 A: 피차일반 (음율, 幸福論 2023) / 세트 B: Betelgeuse (ユイリ 유우리)
@@ -5792,6 +6050,7 @@ renderObDots();
 음성입력_차단_부착();      // v3.7 항목2: 구어 교정 텍스트 입력 음성 차단
 // plx_ 로컬 캐시 적용 — 로그인 전·새로고침 대비 (Firestore 로드 시 그 값으로 다시 덮어씀)
 try{
+  커스텀_복원();  // 항목3: 저장된 커스텀 색·슬롯 먼저 복원(테마가 custom일 때 변수 세팅 선행)
   const 저장테마 = localStorage.getItem('plx_테마'); if(저장테마) setTheme(저장테마, true);
   const 저장폰트 = localStorage.getItem('plx_폰트'); if(저장폰트) applyFont(저장폰트, true);
   const 저장배율 = localStorage.getItem('plx_글자배율'); if(저장배율) setFontScale(parseInt(저장배율,10), true);  // 항목9: 글자 크기 복원
