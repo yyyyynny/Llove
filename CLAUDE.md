@@ -101,7 +101,7 @@ xAI 크레딧 미구매 상태. `index.html`의 **`GROK_활성화 = false`** 상
 - 바텀 네비 `#g-bnav`: `.screen` 밖 독립 위치 (z-index:200)
 - 플래시카드 ①~⑥ 번호·레이블: 수정 금지
 - Firebase 변수명: KNOWLEDGE 13섹션 한글 변수명
-- localStorage 키: `plx_` 접두사 (현재 `plx_테마`·`plx_폰트` 사용 중)
+- localStorage 키: `plx_` 접두사 (`plx_테마`·`plx_폰트`·`plx_글자배율`·`plx_커스텀`·`plx_커스텀슬롯`)
 - API 키: Cloudflare Workers만 (프론트 노출 금지)
 - **`GROK_활성화` 플래그: 승인 없이 변경 금지**
 
