@@ -1371,6 +1371,17 @@ body.devnav .demo-offset{margin-top:80px}
   <div id="rvBin" class="rv-body" style="display:none"></div>
 </div>
 
+<!-- 항목10: 복습 '하기' 전용 화면 — 좁은 복습칸 인라인 진행으로 인한 시각 피로 해소.
+     복습시작() 시 이 화면으로 이동해 카드 1장에 집중하도록 분리 (바텀 네비 숨김). -->
+<div id="srp" class="screen demo-offset">
+  <div class="top-bar">
+    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="복습_중단()">← 복습 중단</button>
+    <div class="tbt">복습 진행</div>
+    <div></div>
+  </div>
+  <div id="srpBody" class="rv-body" style="padding:16px 18px"></div>
+</div>
+
 <!-- ⑥ 업적 -->
 <div id="sa" class="screen demo-offset has-bnav">
   <div class="top-bar"><div></div><div class="tbt">업적</div><div></div></div>
@@ -3916,26 +3927,30 @@ function 복습시작(){
     return;
   }
   복습진행 = { 목록: [...복습데이터.대기열], idx: 0 };
+  // 항목10: 좁은 복습칸 인라인이 아니라 전용 화면(srp)으로 이동해 카드에 집중
+  goNav('srp', null);
   복습_카드렌더();
 }
 
 function 복습_카드렌더(){
-  const wrap = document.getElementById('rvQueue');
+  // 항목10: 전용 복습 화면(srpBody)에 렌더 (기존 rvQueue 인라인 → 분리)
+  const wrap = document.getElementById('srpBody');
   if(!wrap || !복습진행) return;
   const 항목 = 복습진행.목록[복습진행.idx];
   if(!항목){ 복습_완료(); return; }
+  const 진행률 = Math.round((복습진행.idx / 복습진행.목록.length) * 100);
   wrap.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px">
-      <span style="font-size:11px;color:var(--txt2)">🔁 복습 ${복습진행.idx+1} / ${복습진행.목록.length}</span>
-      <button class="btn-g" style="padding:5px 10px;font-size:11px" onclick="복습_중단()">중단</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 8px">
+      <span style="font-size:13px;color:var(--txt2);font-weight:600">🔁 복습 ${복습진행.idx+1} / ${복습진행.목록.length}</span>
     </div>
-    <div class="qcard" style="margin-top:8px">
+    <div class="exp-track" style="margin-bottom:14px"><div class="exp-fill instant" style="width:${진행률}%"></div></div>
+    <div class="qcard" style="margin-top:4px;padding:26px 20px">
       <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
-      <div class="q-question">${항목.단어}</div>
-      <div id="rvAnswer" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--bdr);font-size:13px;color:var(--txt2);line-height:1.7">${항목.뜻}</div>
+      <div class="q-question" style="font-size:20px;margin-top:6px">${항목.단어}</div>
+      <div id="rvAnswer" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--bdr);font-size:14px;color:var(--txt2);line-height:1.8">${항목.뜻}</div>
     </div>
-    <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:10px" onclick="복습_뜻공개()">뜻 보기</button>
-    <div id="rvJudge" style="display:none;gap:8px;margin-top:10px">
+    <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:14px" onclick="복습_뜻공개()">뜻 보기</button>
+    <div id="rvJudge" style="display:none;gap:8px;margin-top:12px">
       <button class="btn-acc" style="flex:1" onclick="복습_판정(true)">기억남 ✓</button>
       <button class="btn-g" style="flex:1" onclick="복습_판정(false)">까먹음 ✗</button>
     </div>
@@ -3968,6 +3983,7 @@ function 복습_판정(기억남){
 
 function 복습_중단(){
   복습진행 = null;
+  goNav('sr', null);   // 항목10: 전용 화면 → 복습 관리 화면으로 복귀
   renderReview();
   showToastMsg('복습을 중단했습니다 (보상 없음)');
 }
@@ -3985,6 +4001,7 @@ function 복습_완료(){
   } else {
     showToastMsg('🔁 복습 완료! (오늘 토큰 충전 한도 3회 소진)');
   }
+  goNav('sr', null);   // 항목10: 전용 화면 → 복습 관리 화면으로 복귀
   renderReview();
 }
 
