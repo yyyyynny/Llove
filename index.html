@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- v3.7 항목2: 음성 입력 차단 - 키보드 마이크 권한 자체 차단 (지보드·구글 음성) -->
-<meta http-equiv="Permissions-Policy" content="microphone=()">
+<!-- 항목8: 구어 교정 음성 입력 구현을 위해 마이크 차단(microphone=()) 메타 제거.
+     이전 빌드는 음성 입력을 의도적으로 막았으나, 최고 관리자님 지시로 Web Speech API 음성 입력을 허용한다. -->
 <title>Llove</title>
 <meta name="application-name" content="Llove">
 <meta property="og:title" content="Llove">
@@ -417,6 +417,15 @@ html{scrollbar-gutter:stable}
 .spk-not-impl-icon{font-size:34px;opacity:.5}
 .spk-not-impl-text{font-size:12px;color:var(--warn);font-weight:700}
 .spk-not-impl-desc{font-size:11px;color:var(--txt2);line-height:1.6}
+/* 항목8: 음성 입력 UI */
+.spk-voice{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+.spk-mic-btn{display:flex;align-items:center;justify-content:center;gap:9px;padding:14px;border-radius:11px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt);font-family:var(--fn);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.spk-mic-btn.rec{border-color:var(--err);color:var(--err);background:rgba(192,112,112,.08)}
+.spk-mic-ico{font-size:18px}
+.spk-mic-btn.rec .spk-mic-ico{animation:pulse 1s ease-in-out infinite}
+.spk-voice-status{font-size:12px;color:var(--txt2);line-height:1.6;text-align:center}
+.spk-voice-transcript{min-height:60px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-size:13px;line-height:1.7;white-space:pre-wrap}
+.spk-voice-transcript .interim{color:var(--txtm)}
 .spk-submit{width:100%;margin-top:8px}
 .spk-result{background:var(--card);border:1px solid var(--accd);border-radius:14px;padding:16px;display:none}
 .spk-result.show{display:block;animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both}
@@ -1312,10 +1321,14 @@ body.devnav .demo-offset{margin-top:80px}
         <textarea class="spk-textarea" id="spkInput" placeholder="위 예문(또는 다듬고 싶은 말)을 격식체로 바꿔 입력하세요."></textarea>
       </div>
       <div id="spkVoiceArea" style="display:none">
-        <div class="spk-not-impl">
-          <div class="spk-not-impl-icon">🎤</div>
-          <div class="spk-not-impl-text">음성 입력은 미구현 상태입니다</div>
-          <div class="spk-not-impl-desc">Whisper.js 연동은 다음 빌드에서<br>검토 예정입니다.</div>
+        <!-- 항목8: 브라우저 Web Speech API(SpeechRecognition) 기반 한국어 음성 입력 -->
+        <div class="spk-voice">
+          <button type="button" class="spk-mic-btn" id="spkMicBtn" onclick="음성인식_토글()">
+            <span class="spk-mic-ico" id="spkMicIco">🎤</span>
+            <span id="spkMicLabel">말하기 시작</span>
+          </button>
+          <div class="spk-voice-status" id="spkVoiceStatus">마이크 버튼을 누르고 또박또박 말해 보세요. 인식된 말이 아래에 채워집니다.</div>
+          <div class="spk-voice-transcript" id="spkVoiceTranscript"></div>
         </div>
       </div>
       <button class="btn-acc spk-submit" onclick="submitSpk()">분석하기</button>
@@ -3503,12 +3516,111 @@ function switchSpkMode(mode){
     document.getElementById('spkMVoice').classList.remove('on');
     document.getElementById('spkTextArea').style.display='block';
     document.getElementById('spkVoiceArea').style.display='none';
+    음성인식_중지();  // 텍스트 탭으로 전환 시 진행 중 인식 정리
   } else {
     document.getElementById('spkMVoice').classList.add('on');
     document.getElementById('spkMText').classList.remove('on');
     document.getElementById('spkTextArea').style.display='none';
     document.getElementById('spkVoiceArea').style.display='block';
+    // 항목8: 미지원 브라우저 안내 (Firefox 등 SpeechRecognition 미구현 환경)
+    if(!음성인식_지원()){
+      const st=document.getElementById('spkVoiceStatus');
+      const btn=document.getElementById('spkMicBtn');
+      if(st) st.textContent='이 브라우저는 음성 인식을 지원하지 않습니다. Chrome·Edge·Safari에서 사용하거나 텍스트 입력을 이용해 주세요.';
+      if(btn) btn.disabled=true;
+    }
   }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   항목8: 구어 교정 음성 입력 (Web Speech API · SpeechRecognition)
+   - 브라우저 내장 음성 인식 사용(별도 서버/키 불필요). 언어: 한국어(ko-KR).
+   - 지원: Chrome·Edge(데스크톱/안드로이드), Safari(iOS 14.5+). Firefox는 미지원.
+   - 제약: HTTPS(또는 localhost)에서만 동작, 마이크 권한 허용 필요, 인식 정확도는 환경 의존.
+   - 인식된 최종 텍스트는 spkInput에도 반영되어 「분석하기(submitSpk)」가 그대로 동작한다.
+   - 채점은 현 단계 불필요(Grok 봉인) — 입력 확보까지가 이번 구현 범위.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 음성인식객체 = null;
+let 음성인식중 = false;
+let 음성인식_확정텍스트 = '';
+
+function 음성인식_지원(){
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+
+function 음성인식_UI갱신(){
+  const btn=document.getElementById('spkMicBtn');
+  const lbl=document.getElementById('spkMicLabel');
+  if(!btn || !lbl) return;
+  btn.classList.toggle('rec', 음성인식중);
+  lbl.textContent = 음성인식중 ? '인식 중… (누르면 종료)' : '말하기 시작';
+}
+
+function 음성인식_토글(){
+  if(!음성인식_지원()){
+    showToastMsg('이 브라우저는 음성 인식을 지원하지 않습니다');
+    return;
+  }
+  if(음성인식중){ 음성인식_중지(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  음성인식객체 = new SR();
+  음성인식객체.lang = 'ko-KR';
+  음성인식객체.interimResults = true;   // 중간 결과 실시간 표시
+  음성인식객체.continuous = false;       // 한 발화 단위로 인식
+  음성인식객체.maxAlternatives = 1;
+
+  음성인식_확정텍스트 = (document.getElementById('spkVoiceTranscript')?.dataset.final) || '';
+
+  음성인식객체.onstart = ()=>{
+    음성인식중 = true;
+    음성인식_UI갱신();
+    const st=document.getElementById('spkVoiceStatus');
+    if(st) st.textContent='🔴 듣고 있습니다… 말이 끝나면 자동으로 정리됩니다.';
+  };
+  음성인식객체.onresult = (e)=>{
+    let interim = '';
+    for(let i=e.resultIndex; i<e.results.length; i++){
+      const 조각 = e.results[i][0].transcript;
+      if(e.results[i].isFinal) 음성인식_확정텍스트 += 조각;
+      else interim += 조각;
+    }
+    const box=document.getElementById('spkVoiceTranscript');
+    if(box){
+      box.dataset.final = 음성인식_확정텍스트;
+      box.innerHTML = 음성인식_확정텍스트.replace(/</g,'&lt;') + (interim ? `<span class="interim">${interim.replace(/</g,'&lt;')}</span>` : '');
+    }
+    // 분석하기(submitSpk)가 읽는 spkInput에도 최종 텍스트 반영
+    const inp=document.getElementById('spkInput');
+    if(inp) inp.value = 음성인식_확정텍스트;
+  };
+  음성인식객체.onerror = (e)=>{
+    음성인식중 = false;
+    음성인식_UI갱신();
+    const st=document.getElementById('spkVoiceStatus');
+    let 메시지 = '음성 인식 중 오류가 발생했습니다.';
+    if(e.error === 'not-allowed' || e.error === 'service-not-allowed') 메시지 = '마이크 권한이 거부되었습니다. 브라우저 설정에서 마이크를 허용해 주세요.';
+    else if(e.error === 'no-speech') 메시지 = '말소리가 감지되지 않았습니다. 다시 시도해 주세요.';
+    else if(e.error === 'network') 메시지 = '네트워크 문제로 음성 인식에 실패했습니다.';
+    if(st) st.textContent = 메시지;
+  };
+  음성인식객체.onend = ()=>{
+    음성인식중 = false;
+    음성인식_UI갱신();
+    const st=document.getElementById('spkVoiceStatus');
+    if(st && 음성인식_확정텍스트.trim()) st.textContent='인식 완료 — 「분석하기」를 누르거나 마이크로 이어 말할 수 있습니다.';
+  };
+
+  try{ 음성인식객체.start(); }
+  catch(e){ showToastMsg('음성 인식을 시작할 수 없습니다'); }
+}
+
+function 음성인식_중지(){
+  if(음성인식객체 && 음성인식중){
+    try{ 음성인식객체.stop(); }catch(e){ /* 이미 종료된 경우 무시 */ }
+  }
+  음성인식중 = false;
+  음성인식_UI갱신();
 }
 /* β8: 구어 교정 출제 — 정령왕 JSON 구어_교정 27건에서 랜덤 예문 제시 */
 function 구어교정_예문표시(){
@@ -5434,21 +5546,13 @@ function 개발자모드_봉인_실행(){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   v3.7 항목2: 음성 입력 차단 (KNOWLEDGE 6-1섹션)
-   - Permissions-Policy 메타로 키보드 음성 권한 차단 (이미 head에 적용)
-   - beforeinput 이벤트 inputType 차단 (Android·iOS 보강)
-   - 붙여넣기(insertFromPaste)는 허용 — 정상 입력
+   (구) 음성 입력 차단 — 항목8에서 정책 변경: 음성 입력을 허용한다.
+   실제 음성 인식은 switchSpkMode/음성인식_토글(Web Speech API)에서 처리한다.
+   아래 함수는 호출 위치 호환을 위해 남겨두되 동작은 비활성화한다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function 음성입력_차단_부착(){
-  const target = document.getElementById('spkInput');
-  if(!target) return;
-  target.addEventListener('beforeinput', (ev)=>{
-    if(ev.inputType === 'insertFromSpeech' || ev.inputType === 'insertFromDictation'){
-      ev.preventDefault();
-      showToastMsg('음성 입력은 차단되어 있습니다. 텍스트로 입력해 주세요.');
-    }
-    // insertFromPaste 등 다른 입력은 통과
-  });
+  // 항목8: 음성 입력을 허용하도록 정책 변경 — 더 이상 텍스트 필드의 받아쓰기를 차단하지 않는다.
+  //   (호출 위치는 그대로 두고 동작만 무력화. 이전 차단 로직은 git 이력에서 확인 가능)
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
