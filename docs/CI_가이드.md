@@ -12,11 +12,21 @@
 
 CI는 **빌드 없이 정적 검증만** 수행한다. (단일 HTML 파일 프로젝트)
 
+CI는 두 개의 잡으로 구성된다.
+
+### 잡 1) `HTML / JS 기본 검증`
 | 단계 | 스크립트/도구 | 검사 내용 | 실패 조건 |
 |---|---|---|---|
 | JavaScript 문법 검증 | `scripts/check-inline-js.mjs` (`node --check`) | index.html 인라인 `<script>`의 JS 문법 | 문법 오류(괄호 짝, 세미콜론 등) |
 | HTML 구조 검증 | `htmlhint` + `.htmlhintrc` | 태그 짝(tag-pair), id 중복, DOCTYPE, title 등 | 닫히지 않은 태그, 중복 id, doctype 누락 등 |
 | 배포 전 점검 | `scripts/check-deploy.mjs` | 진입점 존재, 병합 충돌 마커, 골격 태그, GROK 게이트 플래그 | 충돌 마커 잔존, 골격 태그 누락 등 |
+
+### 잡 2) `기능 동작 테스트 (jsdom)`
+| 단계 | 도구 | 검사 내용 | 실패 조건 |
+|---|---|---|---|
+| 기능 테스트 | `npm ci` → `npm test` (`tests/run-all.cjs`, jsdom) | 학습 모드 5방식·구어 교정 진입·커서 blur·음성 입력·글자 크기·복습 전용 화면·커스텀 테마 | 해당 UI 로직이 기대대로 동작하지 않음 |
+
+> 기능 테스트는 `tests/` 폴더의 jsdom 시나리오로, 네트워크/Firebase 없이 인라인 스크립트를 실행해 DOM 결과를 단언한다.
 
 ### 실행 트리거
 - **Pull Request 생성/갱신 시 자동 실행** (요구사항)
@@ -78,7 +88,8 @@ CI가 실패하면 머지되지 않도록 막으려면 GitHub 저장소에서 �
      - (선택) Require approvals — 리뷰 승인 인원 지정
    - ✅ **Require status checks to pass before merging**
      - **Require branches to be up to date before merging** 체크 권장
-     - 검색창에서 상태 체크 **`HTML / JS 기본 검증`** (= ci.yml의 job name) 을 선택
+     - 검색창에서 상태 체크 **`HTML / JS 기본 검증`** 과 **`기능 동작 테스트 (jsdom)`**
+       (= ci.yml의 두 job name) 을 모두 선택
        - ⚠️ 이 체크는 **CI가 최소 1회 실행된 뒤**에야 목록에 나타난다.
          PR을 한 번 올려 CI가 돌게 한 뒤 설정하면 된다.
    - (권장) ✅ **Do not allow bypassing the above settings** — 관리자도 우회 불가

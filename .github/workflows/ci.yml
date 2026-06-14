@@ -54,3 +54,24 @@ jobs:
       - name: 검증 완료 안내
         if: success()
         run: echo "✅ 모든 기본 검증을 통과했습니다. (JS 문법 · HTML 구조 · 배포 정합성)"
+
+  functional-tests:
+    name: 기능 동작 테스트 (jsdom)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 학습 모드·테마·복습·음성·글자크기·커서 동작 테스트
+        run: |
+          echo "::group::jsdom 기능 테스트"
+          npm test
+          echo "::endgroup::"
