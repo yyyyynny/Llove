@@ -614,12 +614,23 @@ html{scrollbar-gutter:stable}
 /* FAB 스타일 v3.4부터 미사용 — 학습 화면 하단 AI 챗 바로 통합 */
 .ask-fab{display:none}
 
-.ask-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.62);opacity:0;pointer-events:none;transition:opacity .3s}
+/* 항목6: 문제 영역 가림 최소화 — 배경 딤을 옅게(리퀴드 글래스에서 뒤가 비치도록) */
+.ask-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .3s}
 .ask-bg.show{opacity:1;pointer-events:all}
-.ask-panel{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--card);border-top:1px solid var(--bdr);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column}
+/* 항목6: 하단 시트를 반투명 리퀴드 글래스로 전환 (backdrop-filter 블러 + 반투명 배경).
+   color-mix 미지원 브라우저는 첫 줄(var(--card))로 폴백된다. */
+.ask-panel{position:fixed;bottom:0;left:0;right:0;z-index:301;
+  background:var(--card);
+  background:color-mix(in srgb, var(--card) 76%, transparent);
+  -webkit-backdrop-filter:blur(20px) saturate(150%);
+  backdrop-filter:blur(20px) saturate(150%);
+  border-top:1px solid color-mix(in srgb, var(--acc) 32%, transparent);
+  border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.28);
+  transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1);max-height:80vh;overflow-y:auto;display:flex;flex-direction:column}
 .ask-panel.show{transform:translateY(0)}
-.ask-handle{width:34px;height:4px;background:var(--bdr);border-radius:2px;margin:11px auto 0;flex-shrink:0}
-.ask-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px 11px;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:var(--card);z-index:5;flex-shrink:0}
+.ask-handle{width:38px;height:4px;background:var(--bdr);border-radius:2px;margin:11px auto 0;flex-shrink:0;opacity:.7}
+/* 글래스 위 헤더는 투명 처리(불투명 카드색을 덮으면 유리 효과가 깨짐) */
+.ask-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px 11px;border-bottom:1px solid color-mix(in srgb, var(--bdr) 60%, transparent);position:sticky;top:0;background:transparent;z-index:5;flex-shrink:0}
 .ask-title{font-size:15px;font-weight:700}
 .ask-quota{font-size:10px;color:var(--txt2);background:var(--elev);padding:3px 8px;border-radius:10px}
 .ask-cls{width:30px;height:30px;border-radius:50%;background:var(--elev);border:1px solid var(--bdr);color:var(--txt2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -1923,11 +1934,21 @@ const ASK_FAB_SCREENS=['sq1','sq2','sq3','sq4','sq5'];
    - curScreen에서 id로 이동
    - btn은 데모 네비 버튼 활성화 표시용 (선택)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* 항목4 수정: 현재 포커스된 입력(textarea/input)의 네이티브 커서(caret) 잔존 방지.
+   ask·이의있음 패널은 display:none이 아니라 transform으로 숨겨져, 닫아도 입력이 포커스를
+   유지하면 커서가 계속 깜빡인다. 화면 전환·패널 닫기 시 이 함수로 명시적 blur 처리한다.
+   (CSS로 커서를 숨기는 임시방편이 아니라, 포커스 자체를 해제하는 근본 수정) */
+function 활성입력_blur(){
+  const ae = document.activeElement;
+  if(ae && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) ae.blur();
+}
+
 function goNav(id, btn){
   if(id===curScreen) return;
   const prev=document.getElementById(curScreen);
   const next=document.getElementById(id);
   if(!next) return;
+  활성입력_blur();  // 항목4: 이전 화면의 입력 포커스(깜빡이는 커서) 해제
 
   // 이전 화면: 슬라이드아웃 후 active 제거
   if(prev){
@@ -4834,6 +4855,7 @@ function openAsk(){
 function closeAsk(){
   document.getElementById('askBg').classList.remove('show');
   document.getElementById('askPanel').classList.remove('show');
+  활성입력_blur();  // 항목4: 패널을 닫아도 입력 포커스가 남아 커서가 깜빡이던 문제 해소
 
   // 시나리오 진행 중 강제 종료 = 중도 포기
   if(창조주진행중){
@@ -4974,6 +4996,7 @@ function openObj(컨텍스트){
 function closeObj(){
   document.getElementById('objBg').classList.remove('show');
   document.getElementById('objInp').value='';
+  활성입력_blur();  // 항목4: 이의있음 모달 닫을 때 입력 포커스(커서) 해제
   // 버그E 수정: 닫을 때 컨텍스트를 general로 복귀 → 다음 호출 시 잔존 컨텍스트(synonym/speak) 방지
   이의제기_컨텍스트_설정('general');
 }
