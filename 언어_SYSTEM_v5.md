@@ -64,6 +64,7 @@ KNOWLEDGE 업데이트 필요 여부 함께 언급.
 - API 키는 Cloudflare Workers에서만 관리 (프론트 노출 금지) — Grok 4.1 Fast 키 포함
 - EXP 바 애니메이션: `transition:none → rAF 두 번 → transition 복구 → 목표값`
 - node --check 의무화 (JS 문법 검증)
+- CI/Node.js 버전: **Node 24** (최신 LTS, 최고 관리자님 지시 2026-06-15) — `.github/workflows/ci.yml`의 `node-version`
 
 ---
 

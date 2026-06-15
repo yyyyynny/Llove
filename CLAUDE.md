@@ -104,6 +104,7 @@ xAI 크레딧 미구매 상태. `index.html`의 **`GROK_활성화 = false`** 상
 - localStorage 키: `plx_` 접두사 (`plx_테마`·`plx_폰트`·`plx_글자배율`·`plx_커스텀`·`plx_커스텀슬롯`)
 - API 키: Cloudflare Workers만 (프론트 노출 금지)
 - **`GROK_활성화` 플래그: 승인 없이 변경 금지**
+- **CI/Node.js 버전: `Node 24`** (최신 LTS) — `.github/workflows/ci.yml`. 최고 관리자님 지시(2026-06-15)로 고정. 앞으로 CI 작업은 Node 24 기준.
 
 ---
 
