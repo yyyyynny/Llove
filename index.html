@@ -728,6 +728,14 @@ html{scrollbar-gutter:stable}
 .modal-bg.show{opacity:1;pointer-events:all}
 .modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px;max-width:340px;width:100%;transform:scale(.85);transition:transform .35s cubic-bezier(.22,1,.36,1);max-height:80vh;overflow-y:auto}
 .modal-bg.show .modal-bx{transform:scale(1)}
+/* 추가기능: 음성 생성(콜롬비나 TTS) 테스트 벤치 — 회전 금지(점 불투명도 펄스)·세로 전개만 */
+.vc-lbl{display:block;font-size:11px;color:var(--txt2);font-weight:700;margin-top:8px}
+.vc-ta{width:100%;min-height:62px;resize:vertical;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;padding:9px 11px;color:var(--txt);font-family:var(--fn);font-size:13px;line-height:1.6;box-sizing:border-box;margin:4px 0}
+.vc-loading{display:flex;align-items:center;gap:5px;margin-top:12px;padding:8px 11px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px}
+.vc-dot{width:7px;height:7px;border-radius:50%;background:var(--acc);animation:pulse 1s ease-in-out infinite}
+.vc-dot:nth-child(2){animation-delay:.2s}
+.vc-dot:nth-child(3){animation-delay:.4s}
+.vc-loading-txt{font-size:11.5px;color:var(--txt2);margin-left:4px}
 .modal-icon{font-size:32px;text-align:center;margin-bottom:8px}
 .modal-title{font-size:15px;font-weight:700;text-align:center;margin-bottom:8px}
 .modal-desc{font-size:12px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:16px}
@@ -988,6 +996,38 @@ body.devnav .demo-offset{margin-top:80px}
     <button class="btn-g" style="width:100%;margin-top:8px" onclick="커스텀_슬롯_현재저장()">＋ 현재 색을 빈 슬롯에 저장</button>
     <div class="modal-btns" style="margin-top:12px">
       <button class="btn-g" style="flex:1" onclick="closeCustomTheme()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 추가기능: 콜롬비나 음성 생성(TTS) — 창조주 전용 테스트 벤치 (봉인 골격) -->
+<div class="modal-bg" id="음성생성Bg" onclick="음성생성패널_닫기()">
+  <div class="modal-bx" onclick="event.stopPropagation()" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-title">🎙 음성 생성 (실험)</div>
+    <div class="modal-desc" style="font-size:11.5px;line-height:1.7">
+      텍스트를 외부 음성 서버로 보내 음성으로 받아 재생합니다.<br>
+      <b>창조주 전용</b> · 서버 주소는 직접 입력(코드에 저장하지 않음).
+    </div>
+    <!-- 봉인 안내 — 음성생성_활성화=false 동안 노출 -->
+    <div id="음성봉인안내" style="margin:10px 0;padding:9px 11px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;font-size:11px;color:var(--txt2);line-height:1.7">
+      🔒 현재 봉인 상태입니다(서버 미준비). 서버 준비 후 코드의 <code>음성생성_활성화</code>를 켜면 동작합니다.
+    </div>
+    <label class="vc-lbl" for="음성엔드포인트입력">서버 엔드포인트 주소</label>
+    <input class="nm-inp" id="음성엔드포인트입력" placeholder="https://... (로컬 터널 또는 클라우드 GPU)" style="width:100%;margin:4px 0 8px;box-sizing:border-box">
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <button class="btn-g" style="flex:1" onclick="음성엔드포인트_저장()">주소 저장</button>
+      <button class="btn-g" style="flex:1" onclick="음성엔드포인트_지우기()">주소 지우기</button>
+    </div>
+    <label class="vc-lbl" for="음성테스트입력">테스트 문장</label>
+    <textarea id="음성테스트입력" class="vc-ta" placeholder="예) 안녕하세요, 끝말잇기 시작할게요" maxlength="120"></textarea>
+    <!-- 로딩 표시(회전 금지 — 점 불투명도 펄스) -->
+    <div id="음성로딩" class="vc-loading" style="display:none">
+      <span class="vc-dot"></span><span class="vc-dot"></span><span class="vc-dot"></span>
+      <span class="vc-loading-txt">🎙 음성 생성 중… (3~8초)</span>
+    </div>
+    <button class="btn-acc" id="음성생성버튼" style="width:100%;margin-top:10px" onclick="음성_테스트생성()">음성 생성 · 재생</button>
+    <div class="modal-btns" style="margin-top:12px">
+      <button class="btn-g" style="flex:1" onclick="음성생성패널_닫기()">닫기</button>
     </div>
   </div>
 </div>
@@ -1623,6 +1663,12 @@ body.devnav .demo-offset{margin-top:80px}
         <div style="flex:1"><div class="srl" id="devModeLabel" style="color:var(--txtm)">개발자 모드</div><div class="srs" id="devModeDesc">[창조주] 달성 후 활성화</div></div>
         <span class="sra" id="devModeArrow" style="color:var(--txtm)">›</span>
       </div>
+      <!-- 추가기능: 음성 생성(콜롬비나 TTS) — 창조주 전용. 기본 숨김, 창조주 달성 시 갱신_음성설정_UI()로 노출 -->
+      <div class="set-row" id="음성설정Row" onclick="음성설정_탭()" style="display:none">
+        <span class="sri">🎙</span>
+        <div style="flex:1"><div class="srl">음성 생성 (실험)</div><div class="srs">창조주 전용 · 외부 음성 서버 연결</div></div>
+        <span class="sra">›</span>
+      </div>
     </div>
   </div>
 </div>
@@ -2168,6 +2214,7 @@ function afterNav(id){
 
     // v3.5: 창조주 달성 시 개발자 모드 항목 활성화 표시
     갱신_설정_개발자모드_UI();
+    갱신_음성설정_UI();  // 추가기능: 창조주 전용 음성 생성 행 노출/숨김
   }
   if(id==='sa'){
     renderAchievements();
@@ -2477,6 +2524,8 @@ function 사용자데이터_적용(data, authUser){
   if(data.테마) setTheme(data.테마, true);
   if(data.글자배율) setFontScale(data.글자배율, true);  // 항목9: Firestore 글자 크기 복원
   if(data.폰트) applyFont(data.폰트, true);
+  // 추가기능: 음성 생성 서버 주소 복원 (창조주 전용, 코드 비저장)
+  if(typeof data.음성엔드포인트 === 'string') 음성엔드포인트 = data.음성엔드포인트;
   if(data.히스토리필터){
     histFilter = data.히스토리필터;
     const t=document.getElementById('histFilterTxt');
@@ -2522,6 +2571,7 @@ function 신규사용자_생성(){
     // 설정
     테마: 'antique', 폰트: 'nanum_square',
     히스토리필터: 'off', AI문제만: false, 복습상한: 50, 알림설정: true,
+    음성엔드포인트: '',   // 추가기능: 음성 생성 서버 주소(창조주가 입력) — 기본 빈 값
     // 업적
     업적진행도: {}, 창조주달성: false, 개발자모드: false,
     // 질문하기 (통계)
@@ -2728,6 +2778,131 @@ async function grok호출(기능명, payload){
     showToastMsg(UI_TEXT.rate_limit.문구); // KNOWLEDGE 5 rate limit 문구
     return null;
   }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   추가기능: 콜롬비나 음성 생성(TTS) — 창조주 전용 봉인 골격
+   - 파이썬 So-VITS 모델은 외부 GPU 서버에서 돈다(브라우저·끝사용자 기기 불가).
+     Llove는 텍스트를 보내고 완성된 음성만 받아 재생한다.
+     끝말잇기 게임이 완성되면 음성생성호출(단어) 한 줄로 연결한다.
+   ⚠️ Grok과 동일한 봉인 정책: 서버 준비 전까지 음성생성_활성화=false 유지.
+      최고 관리자님 승인 없이 true로 변경 금지 (네트워크 호출·재생 전부 차단).
+   - 서버 주소는 코드에 박지 않고 창조주가 설정 패널에서 입력(plx_음성엔드포인트 + Firestore).
+     비밀키는 프론트·레포에 두지 않음 — 서버/Cloudflare Worker에서만 관리.
+   - 모델·음성 파일은 레포에 절대 커밋하지 않음 (저작권: 호요버스 캐릭터/성우 목소리).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const 음성생성_활성화 = false;   // ⚠️ 봉인 — 승인 없이 true 금지 (서버 준비 후에만)
+let 음성엔드포인트 = '';          // 창조주가 설정에서 입력 (로컬 터널 또는 클라우드 GPU 주소)
+
+// 텍스트 → 외부 음성 서버 → 음성 데이터(Blob). 봉인/미설정 시 null 반환(호출 자체 차단).
+async function 음성생성호출(텍스트){
+  if(!음성생성_활성화){
+    // 봉인 상태 — 어떤 경우에도 네트워크 호출하지 않음 (서버 미준비)
+    console.warn('[음성] 봉인 상태(음성생성_활성화=false) — 호출 차단');
+    return null;
+  }
+  if(!음성엔드포인트){
+    console.warn('[음성] 엔드포인트 미설정 — 호출 불가');
+    return null;
+  }
+  const 보낼텍스트 = (텍스트 || '').trim();
+  if(!보낼텍스트) return null;
+  try{
+    const res = await fetch(음성엔드포인트, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ 텍스트: 보낼텍스트 })
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.blob();   // 서버가 audio/wav|mp3 반환
+  }catch(e){
+    console.error('[음성] 생성 실패', e);
+    showToastMsg('음성 생성 실패 — 서버 주소·상태를 확인해 주세요');
+    return null;
+  }
+}
+
+// 음성 재생 — Blob 또는 URL 문자열 모두 허용 (프로젝트 최초 오디오 재생 인프라)
+function 음성재생(소스){
+  try{
+    let url = 소스;
+    if(소스 && typeof 소스 !== 'string'){
+      // Blob → 객체 URL (지원 환경에서만; 미지원이면 그대로 전달)
+      url = (window.URL && URL.createObjectURL) ? URL.createObjectURL(소스) : 소스;
+    }
+    const audio = new Audio(url);
+    const p = audio.play();
+    if(p && p.catch) p.catch(e=> console.warn('[음성] 재생 차단/실패', e));
+    return audio;
+  }catch(e){
+    console.error('[음성] 재생 오류', e);
+    showToastMsg('음성 재생을 시작할 수 없습니다');
+    return null;
+  }
+}
+
+// 로딩 표시 토글 (회전 금지 — 점 불투명도 펄스)
+function 음성생성_로딩(켜기){
+  const el = document.getElementById('음성로딩');
+  const btn = document.getElementById('음성생성버튼');
+  if(el) el.style.display = 켜기 ? 'flex' : 'none';
+  if(btn) btn.disabled = !!켜기;
+}
+
+/* ── 창조주 전용 설정 진입점 + 테스트 벤치 ── */
+// 설정 화면의 음성 생성 행 표시 갱신 — 창조주만 노출 (비창조주는 행 자체가 숨김)
+function 갱신_음성설정_UI(){
+  const row = document.getElementById('음성설정Row');
+  if(!row) return;
+  row.style.display = 사용자.창조주달성 ? 'flex' : 'none';
+}
+function 음성설정_탭(){
+  if(!사용자.창조주달성){
+    showInfoModal('🔒','음성 생성','[창조주] 업적을 달성하면 사용할 수 있습니다.');
+    return;
+  }
+  음성생성패널_열기();
+}
+function 음성생성패널_열기(){
+  const inp = document.getElementById('음성엔드포인트입력');
+  if(inp) inp.value = 음성엔드포인트 || '';
+  const 안내 = document.getElementById('음성봉인안내');
+  if(안내) 안내.style.display = 음성생성_활성화 ? 'none' : 'block';
+  음성생성_로딩(false);
+  document.getElementById('음성생성Bg').classList.add('show');
+}
+function 음성생성패널_닫기(){
+  document.getElementById('음성생성Bg').classList.remove('show');
+}
+// 엔드포인트 저장/지우기 — plx_음성엔드포인트 + Firestore (setTheme 패턴)
+function 음성엔드포인트_저장(){
+  const inp = document.getElementById('음성엔드포인트입력');
+  const 값 = (inp ? inp.value : '').trim();
+  음성엔드포인트 = 값;
+  try{ localStorage.setItem('plx_음성엔드포인트', 값); }catch(e){ /* localStorage 차단 환경 무시 */ }
+  사용자.음성엔드포인트 = 값;
+  사용자데이터_저장({음성엔드포인트: 값});  // Firestore 동기화
+  showToastMsg(값 ? '서버 주소 저장됨' : '서버 주소 비움');
+}
+function 음성엔드포인트_지우기(){
+  const inp = document.getElementById('음성엔드포인트입력');
+  if(inp) inp.value = '';
+  음성엔드포인트_저장();
+}
+// 테스트 벤치: 텍스트 → 생성 → 재생 (봉인 중엔 안내만)
+async function 음성_테스트생성(){
+  const ta = document.getElementById('음성테스트입력');
+  const 텍스트 = (ta ? ta.value : '').trim();
+  if(!텍스트){ showToastMsg('테스트 문장을 입력해 주세요'); return; }
+  if(!음성생성_활성화){
+    showToastMsg('🔒 음성 생성은 서버 준비 후 활성화됩니다');
+    return;
+  }
+  if(!음성엔드포인트){ showToastMsg('서버 주소를 먼저 저장해 주세요'); return; }
+  음성생성_로딩(true);
+  const 데이터 = await 음성생성호출(텍스트);
+  음성생성_로딩(false);
+  if(데이터) 음성재생(데이터);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -4996,7 +5171,7 @@ function 창조주종료(){
   // 현재 표시 중인 화면이 업적/현황/설정이면 즉시 갱신
   if(curScreen==='sa') renderAchievements();
   if(curScreen==='ss') afterNav('ss');  // 빌드1: 소칭호·칭호 선택·주신 메시지 일괄 재렌더
-  if(curScreen==='sse') 갱신_설정_개발자모드_UI();
+  if(curScreen==='sse'){ 갱신_설정_개발자모드_UI(); 갱신_음성설정_UI(); }  // 추가기능: 음성 생성 행도 즉시 노출
 
   showToastMsg('🔓 개발자 모드가 활성화됩니다.');
 }
@@ -6054,6 +6229,7 @@ try{
   const 저장테마 = localStorage.getItem('plx_테마'); if(저장테마) setTheme(저장테마, true);
   const 저장폰트 = localStorage.getItem('plx_폰트'); if(저장폰트) applyFont(저장폰트, true);
   const 저장배율 = localStorage.getItem('plx_글자배율'); if(저장배율) setFontScale(parseInt(저장배율,10), true);  // 항목9: 글자 크기 복원
+  const 저장음성EP = localStorage.getItem('plx_음성엔드포인트'); if(저장음성EP) 음성엔드포인트 = 저장음성EP;  // 추가기능: 음성 서버 주소 복원
 }catch(e){ /* localStorage 차단 환경 무시 */ }
 예문데이터_로드();          // β8: 정령왕 JSON (구어 27 · 유의어 18 · 한문장 7)
 모드DB_로드();              // β9: 모드별 DB JSON 6종 (현재 빈 파일 — 채워지면 자동 출제)

@@ -65,6 +65,7 @@ KNOWLEDGE 업데이트 필요 여부 함께 언급.
 - EXP 바 애니메이션: `transition:none → rAF 두 번 → transition 복구 → 목표값`
 - node --check 의무화 (JS 문법 검증)
 - CI/Node.js 버전: **Node 24** (최신 LTS, 최고 관리자님 지시 2026-06-15) — `.github/workflows/ci.yml`의 `node-version`
+- **`음성생성_활성화=false` 봉인 유지** (콜롬비나 음성 TTS 골격, Grok과 동일 정책) — 외부 GPU 서버 준비 후에만 승인받아 true. 모델·음성 파일은 레포 미포함(`.gitignore`). 상세 `docs/음성생성_봉인골격.md`
 
 ---
 
