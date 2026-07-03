@@ -144,7 +144,8 @@ html{scrollbar-gutter:stable}
 .screen.active{display:flex}
 .screen.entering{animation:slideIn .35s cubic-bezier(.22,1,.36,1) both}
 .screen.leaving{animation:slideOut .25s cubic-bezier(.22,1,.36,1) both;pointer-events:none}
-.has-bnav{padding-bottom:72px}
+/* 세션5: 바텀 네비(72px)에 마지막 버튼이 가리지 않도록 여유 확보 */
+.has-bnav{padding-bottom:96px}
 
 /* ━━━ 바텀 네비 ━━━ */
 #g-bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bdr);display:flex;padding:8px 0 16px;z-index:200;transition:background .4s,border-color .4s,transform .3s cubic-bezier(.22,1,.36,1)}
@@ -294,12 +295,12 @@ html{scrollbar-gutter:stable}
 .lset-hdr{padding:10px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;color:var(--txt2);user-select:none}
 .lset-hdr:hover{color:var(--acc)}
 .lset-hdr-left{display:flex;align-items:center;gap:6px}
-.lset-toggle{font-size:11px;color:var(--txtm);transition:transform .3s}
-.lset-panel.open .lset-toggle{transform:rotate(180deg)}
+/* 세션5 버그8: 회전 금지 규칙 준수 — 화살표는 rotate 대신 JS가 ▼/▲ 글자를 교체 */
+.lset-toggle{font-size:11px;color:var(--txtm)}
 /* v3.7 항목10: max-height 480px로 확장 (4방식 + 2행 추가 대응)
-   부자연스러움 해소: cubic-bezier 곡선 유지, 컨텐츠 양에 여유 확보 */
-.lset-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.22,1,.36,1);padding:0 18px}
-.lset-panel.open .lset-body{max-height:480px;padding:6px 18px 12px}
+   세션5 버그8: 펼침·접힘 부자연 해소 — 높이·여백·투명도를 함께 전환(수직 전개, fadeUp 계열) */
+.lset-body{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s cubic-bezier(.22,1,.36,1),padding .35s cubic-bezier(.22,1,.36,1),opacity .3s ease;padding:0 18px}
+.lset-panel.open .lset-body{max-height:480px;padding:6px 18px 12px;opacity:1}
 .lset-row{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px}
 /* v3.7 항목9: 「방식」 라벨 가시성 개선 / 항목9(가독성): 글자 크기 상향 */
 .lset-row-lbl{color:var(--txt);min-width:64px;font-weight:600;font-size:13px}
@@ -525,7 +526,8 @@ html{scrollbar-gutter:stable}
 .st-ttl{font-size:12px;color:var(--acc);margin-bottom:6px}
 /* v3.5: 소칭호 가독성 강화 (이전엔 너무 연하고 작았음) */
 /* α6: 소칭호 12px → 14.5px 상향 (KNOWLEDGE 11) / α7: 색상은 JS 소칭호적용()이 인라인 지정 — color !important 제거 */
-.status-sub-title{font-size:14.5px !important;color:var(--accl);font-weight:600 !important;letter-spacing:.3px}
+/* 세션5 버그4: 어떤 테마 배경에서도 또렷하도록 얇은 그림자(외곽선 효과) 부여 */
+.status-sub-title{font-size:14.5px !important;color:var(--accl);font-weight:600 !important;letter-spacing:.3px;text-shadow:0 1px 3px rgba(0,0,0,.38)}
 /* 창조주 달성 시 소칭호 황금빛으로 강조 */
 .status-sub-title.creator{color:#ffd700 !important;text-shadow:0 0 8px rgba(255,215,0,.4);animation:starGlow 2s ease-in-out infinite}
 .st-lv-row{display:flex;align-items:center;gap:7px}
@@ -686,7 +688,8 @@ html{scrollbar-gutter:stable}
 .ask-input:focus{border-color:var(--acc)}
 .ask-send{padding:11px 18px;background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fn)}
 .ask-msg{padding:12px 14px;border-radius:9px;font-size:13px;line-height:1.7}
-.ask-msg.user{background:var(--elev);color:var(--txt2);text-align:right;margin-left:32px;border:1px solid var(--bdr)}
+/* 세션5 버그3: 보조색(--txt2)이 어두운 테마에서 배경에 묻힘 — 본문은 기본 글자색 사용 */
+.ask-msg.user{background:var(--elev);color:var(--txt);text-align:right;margin-left:32px;border:1px solid var(--bdr)}
 .ask-msg.ai{background:rgba(120,180,255,.06);border:1px solid rgba(120,180,255,.2);margin-right:32px}
 .ask-msg.ai::before{content:'🤖 AI';font-size:10px;color:var(--inf);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
 .ask-objection-btn{margin-top:6px;background:transparent;border:1px solid var(--err);color:var(--err);padding:6px 14px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700;transition:all .2s}
@@ -742,7 +745,8 @@ html{scrollbar-gutter:stable}
 .modal-desc{font-size:12px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:16px}
 .modal-btns{display:flex;gap:8px}
 
-.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--elev);border:1px solid var(--bdr);border-radius:28px;padding:9px 18px;font-size:12px;font-weight:500;color:var(--txt);white-space:nowrap;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.38)}
+/* 세션5: 긴 메시지가 화면을 넘치지 않도록 줄바꿈 허용 + 최대폭 제한 */
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--elev);border:1px solid var(--bdr);border-radius:28px;padding:9px 18px;font-size:12px;font-weight:500;color:var(--txt);white-space:normal;max-width:86vw;text-align:center;line-height:1.5;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.38)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* 정식 빌드1: 데모 네비는 기본 숨김 — 개발자 모드 활성화 시에만 노출 (body.devnav) */
@@ -787,7 +791,8 @@ body.devnav .demo-offset{margin-top:80px}
 .spk-prompt-diff{font-size:9px;color:var(--txtm);margin-top:6px}
 
 /* ━━━ 빌드1 β3: 이의있음! reasoning_note 패널 (KNOWLEDGE 33) ━━━ */
-.obj-note{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;margin:10px 0;font-size:11px;color:var(--txt2);line-height:1.7;text-align:left}
+/* 세션5 버그3: 사고전개·출제근거는 중요 콘텐츠 — 보조색 대신 기본 글자색으로 가독성 확보 */
+.obj-note{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;margin:10px 0;font-size:12px;color:var(--txt);line-height:1.7;text-align:left}
 .obj-note-lbl{color:var(--acc);font-weight:700;font-size:10px;margin-bottom:4px}
 
 /* ━━━ 빌드1 α4: Lv.70 「주신의 경지」 메시지 (현황 탭 상단) ━━━ */
@@ -796,6 +801,33 @@ body.devnav .demo-offset{margin-top:80px}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+
+/* ━━━ 세션5 버그1: 「글자 크기」 — 읽기 텍스트 전용 배율(--글자배율).
+   화면 전체를 키우는 「화면 크기」(zoom)와 분리. 앱 틀(네비·버튼·아이콘)은 그대로 두고
+   학습 콘텐츠(문제·선택지·카드·뜻풀이·채팅·예문)의 글자만 커진다.
+   ※ 원본 규칙보다 뒤에 선언되어 같은 특이도에서 이 블록이 우선 적용된다. ━━━ */
+:root{--글자배율:1}
+.q-question{font-size:calc(15px*var(--글자배율))}
+.q-hint{font-size:calc(12px*var(--글자배율))}
+.otxt{font-size:calc(13px*var(--글자배율))}
+.fc-word{font-size:calc(36px*var(--글자배율))}
+.fc-reading{font-size:calc(18px*var(--글자배율))}
+.fc-meaning{font-size:calc(14px*var(--글자배율))}
+.fc-hanja-item{font-size:calc(18px*var(--글자배율))}
+.fc-direct{font-size:calc(13px*var(--글자배율))}
+.fc-example{font-size:calc(13px*var(--글자배율))}
+.fc-mnemonic{font-size:calc(12px*var(--글자배율))}
+.dad-q{font-size:calc(18px*var(--글자배율))}
+.dad-a-text{font-size:calc(20px*var(--글자배율))}
+.dad-a-explain{font-size:calc(12px*var(--글자배율))}
+.syn-q{font-size:calc(14px*var(--글자배율))}
+.syn-opt{font-size:calc(13px*var(--글자배율))}
+.syn-result{font-size:calc(12px*var(--글자배율))}
+.spk-prompt-text{font-size:calc(14px*var(--글자배율))}
+.spk-textarea{font-size:calc(13px*var(--글자배율))}
+.ask-msg{font-size:calc(13px*var(--글자배율))}
+.obj-note{font-size:calc(12px*var(--글자배율))}
+.rv-word{font-size:calc(14px*var(--글자배율))}
 </style>
 
 <!-- Firebase Compat SDK (KNOWLEDGE 13·28 — 구글 로그인 + Firestore 동기화). compat 방식: 전역 firebase 객체 사용 -->
@@ -1565,11 +1597,11 @@ body.devnav .demo-offset{margin-top:80px}
           <span class="ml" id="lblL">라이트</span>
         </div>
       </div>
-      <!-- 항목9: 글자 크기 조절 (80~200%) — 앱 전체 배율, 설정 저장·재실행 유지 -->
+      <!-- 세션5 버그1: 「화면 크기」(구 글자 크기) — 앱 전체 zoom 배율. 저장·재실행 유지 -->
       <div class="set-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:9px">
         <div style="display:flex;align-items:center;gap:11px;width:100%">
-          <span class="sri">🔠</span>
-          <div style="flex:1"><div class="srl">글자 크기</div><div class="srs" id="fontScaleTxt">100%</div></div>
+          <span class="sri">🖥️</span>
+          <div style="flex:1"><div class="srl">화면 크기</div><div class="srs" id="fontScaleTxt">100% — 화면 전체를 확대/축소</div></div>
         </div>
         <div class="fs-opts" id="fontScaleOpts">
           <button class="fs-opt" onclick="setFontScale(80)">80%</button>
@@ -1580,6 +1612,21 @@ body.devnav .demo-offset{margin-top:80px}
           <button class="fs-opt" onclick="setFontScale(150)">150%</button>
           <button class="fs-opt" onclick="setFontScale(175)">175%</button>
           <button class="fs-opt" onclick="setFontScale(200)">200%</button>
+        </div>
+      </div>
+      <!-- 세션5 버그1: 「글자 크기」 신설 — 학습 콘텐츠 글자만 배율(--글자배율). 화면 크기와 독립 -->
+      <div class="set-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:9px">
+        <div style="display:flex;align-items:center;gap:11px;width:100%">
+          <span class="sri">🔠</span>
+          <div style="flex:1"><div class="srl">글자 크기</div><div class="srs" id="textScaleTxt">100% — 문제·카드·채팅 글자만 확대</div></div>
+        </div>
+        <div class="fs-opts" id="textScaleOpts">
+          <button class="fs-opt" onclick="set글자크기(80)">80%</button>
+          <button class="fs-opt" onclick="set글자크기(90)">90%</button>
+          <button class="fs-opt on" onclick="set글자크기(100)">100%</button>
+          <button class="fs-opt" onclick="set글자크기(110)">110%</button>
+          <button class="fs-opt" onclick="set글자크기(125)">125%</button>
+          <button class="fs-opt" onclick="set글자크기(150)">150%</button>
         </div>
       </div>
     </div>
@@ -1739,6 +1786,7 @@ const 사용자 = {
   업적진행도: {},
   창조주달성: false,
   개발자모드: false,
+  선택칭호: '',   // 세션5: 창조주 칭호 선택(폐하/주신) — 초기값 명시
 };
 /* 빌드1: 위 객체는 로그인 전 placeholder — 로그인 시 사용자데이터_적용()이 Firestore 값으로 덮어씀 */
 
@@ -1766,9 +1814,26 @@ function 모드클래스계산(모드){
 // 임시 ID 발급 (Firestore 미연결 상태 전용)
 function 보관함_임시ID(){ return '로컬' + (복습데이터다음ID++); }
 
+/* 세션5: 게스트(비로그인) 보관함 localStorage 폴백 — 새로고침 시 복습 데이터 전량 소실 방지 */
+function 게스트보관함_저장(){
+  if(현재UID) return;  // 로그인 상태에선 Firestore가 원본
+  try{
+    localStorage.setItem('plx_게스트보관함', JSON.stringify({
+      대기열:복습데이터.대기열, 즐겨찾기:복습데이터.즐겨찾기, 휴지통:복습데이터.휴지통
+    }));
+  }catch(e){ /* localStorage 차단 환경 무시 */ }
+}
+function 게스트보관함_복원(){
+  try{
+    const d = JSON.parse(localStorage.getItem('plx_게스트보관함')||'null');
+    if(d) ['대기열','즐겨찾기','휴지통'].forEach(k=>{ if(Array.isArray(d[k])) 복습데이터[k]=d[k]; });
+  }catch(e){ /* 무시 */ }
+}
+
 // Firestore 서브컬렉션 문서 추가 — 성공 시 로컬 항목의 id를 문서 ID로 교체
+// 세션5: 비로그인 시 localStorage 폴백 저장(게스트 데이터 소실 방지)
 function 보관함_문서추가(컬렉션, 항목, 필드){
-  if(!fbDb || !현재UID) return;
+  if(!fbDb || !현재UID){ 게스트보관함_저장(); return; }
   fbDb.collection('users').doc(현재UID).collection(컬렉션).add({
     ...필드,
     추가일시: firebase.firestore.FieldValue.serverTimestamp()
@@ -1776,18 +1841,20 @@ function 보관함_문서추가(컬렉션, 항목, 필드){
     .catch(e=> console.error(`[Firestore] ${컬렉션} 추가 실패`, e));
 }
 function 보관함_문서삭제(컬렉션, id){
-  if(!fbDb || !현재UID || String(id).startsWith('로컬')) return;
+  if(!fbDb || !현재UID || String(id).startsWith('로컬')){ 게스트보관함_저장(); return; }
   fbDb.collection('users').doc(현재UID).collection(컬렉션).doc(id).delete()
     .catch(e=> console.error(`[Firestore] ${컬렉션} 삭제 실패`, e));
 }
 function 보관함_문서수정(컬렉션, id, 부분){
-  if(!fbDb || !현재UID || String(id).startsWith('로컬')) return;
+  if(!fbDb || !현재UID || String(id).startsWith('로컬')){ 게스트보관함_저장(); return; }
   fbDb.collection('users').doc(현재UID).collection(컬렉션).doc(id).set(부분, {merge:true})
     .catch(e=> console.error(`[Firestore] ${컬렉션} 수정 실패`, e));
 }
 
 // 로그인 후 보관함 전체 로드 + 휴지통 20일 만료분 자동 삭제 (KNOWLEDGE 8)
+// 세션5: ①uid별 구어 교정 완료 기록 복원 ②로드 완료 전 학습으로 추가된 로컬 항목을 덮어쓰지 않고 병합
 function 보관함_로드(){
+  구어완료_복원();  // 세션5: EXP 재획득 방지 기록 (uid별)
   if(!fbDb || !현재UID) return;
   const ref = fbDb.collection('users').doc(현재UID);
   Promise.all([
@@ -1796,6 +1863,8 @@ function 보관함_로드(){
     ref.collection('휴지통').get()
   ]).then(([큐, 즐, 휴])=>{
     const 시각 = v => (v && v.toDate) ? v.toDate().getTime() : 0;
+    // 세션5: 서버 응답 대기 중 사용자가 학습해서 생긴 로컬 항목(id '로컬…') 보존
+    const 로드전로컬 = 복습데이터.대기열.filter(x=>String(x.id).startsWith('로컬'));
     복습데이터.대기열 = 큐.docs.map(d=>{
       const v=d.data();
       return {id:d.id, 단어:v.단어, 뜻:v.뜻, 모드:v.모드, 모드클래스:모드클래스계산(v.모드),
@@ -1817,6 +1886,13 @@ function 보관함_로드(){
       } else {
         복습데이터.휴지통.push({id:d.id, 단어:v.단어, 뜻:v.뜻, 모드:v.모드,
                                모드클래스:모드클래스계산(v.모드), 잔여일});
+      }
+    });
+    // 세션5: 로드 중 추가된 로컬 항목 병합 — 서버에 같은 단어가 없으면 되살리고 Firestore에도 기록
+    로드전로컬.forEach(x=>{
+      if(!복습데이터.대기열.some(y=>y.단어===x.단어)){
+        복습데이터.대기열.push(x);
+        보관함_문서추가('복습대기열', x, {단어:x.단어, 뜻:x.뜻, 모드:x.모드, 연속정답수:x.연속정답수||0});
       }
     });
     // 대기열 항목의 즐겨찾기 별 표시 동기화 (동일 단어 기준)
@@ -1934,9 +2010,10 @@ function 소칭호계산(lv, 창조주달성){
 
 // α7: 소칭호 7단계 색상표 (KNOWLEDGE 11 — 기본 10팔레트 회피색)
 // 주҉신҉은 색상 대신 CSS 무지개 글리치 클래스(.sub-jushin)로 처리
+// 세션5 버그4: 어두운 테마 배경에 묻히던 저명도 색(시련·최고신 등) 명도 상향 — 계열 색감은 유지
 const 소칭호색상표 = {
-  '필멸자':'#a8a8b8', '초월자':'#4ec9b0', '시련':'#b53854', '하급신':'#c5c5d8',
-  '중급신':'#d4af37', '최고신':'#8b3e9c', '폐하':'#ffd700', '주신':'#ffd700'
+  '필멸자':'#b4b4c4', '초월자':'#58dcc2', '시련':'#e06080', '하급신':'#cdcde0',
+  '중급신':'#e3c455', '최고신':'#c078d8', '폐하':'#ffd700', '주신':'#ffd700'
 };
 
 // 소칭호를 화면 요소에 적용 — 텍스트 + 색상 + 주신 글리치 (α7·α8)
@@ -2048,6 +2125,15 @@ let 유의어출제풀 = 유의어변별데이터;
 let 구어교정풀 = [];           // 정령왕 구어_교정 27건
 let 구어교정현재 = null;       // 현재 출제 중인 구어 교정 예문
 let 구어교정완료ID = {};       // 같은 예문 반복 제출로 EXP 중복 획득 방지
+/* 세션5: 구어 교정 완료 기록을 uid별 localStorage에 영속 — 새로고침 후 EXP 재획득 차단 */
+function 구어완료_키(){ return 'plx_구어완료_' + (현재UID || '게스트'); }
+function 구어완료_복원(){
+  try{ 구어교정완료ID = JSON.parse(localStorage.getItem(구어완료_키())||'{}') || {}; }
+  catch(e){ 구어교정완료ID = {}; }
+}
+function 구어완료_저장(){
+  try{ localStorage.setItem(구어완료_키(), JSON.stringify(구어교정완료ID)); }catch(e){ /* 무시 */ }
+}
 const DB문제 = {};             // 모드명 → JSON items (β9 DB 출제 풀)
 const DB파일맵 = {
   '상식·어원':'상식어원', '고사성어·속담':'고사성어속담', '세계사·신화':'세계사신화',
@@ -2239,6 +2325,8 @@ function goLearn(category, screenId, btn){
   // 빌드1: 현재 모드 기록 (EXP·마스터리 연결용) + 토큰 바 갱신
   현재학습모드 = category;
   현재학습모드필드 = 모드_마스터리맵[category] || '';
+  // 세션5: 매핑 실패 시 마스터리가 조용히 누락되는 문제 — 콘솔 경고로 표면화
+  if(!현재학습모드필드) console.warn('[마스터리] 모드 매핑 없음 — 학습 수가 집계되지 않습니다:', category);
   퀴즈세션 = {수:0, 오답:0};  // 퍼펙트 세션 카운터 — 모드 진입마다 초기화
   토큰표시_갱신();
   // 4지선다 화면(sq1) — 상식·어원 / 세계사·신화 분기 (β9: 출제_분기 경유)
@@ -2389,6 +2477,7 @@ function openNmModal(){
 }
 function closeNmModal(){
   document.getElementById('nmModalBg').classList.remove('show');
+  활성입력_blur();  // 세션5 버그9: 이름 입력 커서 잔존 방지
 }
 function applyNmChange(){
   const v=document.getElementById('nmModalInp').value.trim();
@@ -2523,7 +2612,8 @@ function 사용자데이터_적용(data, authUser){
   if(data.커스텀슬롯 && Array.isArray(data.커스텀슬롯)) 커스텀슬롯 = data.커스텀슬롯.filter(Boolean).slice(0,10);
   if(data.커스텀테마) 커스텀_복원(data.커스텀테마);
   if(data.테마) setTheme(data.테마, true);
-  if(data.글자배율) setFontScale(data.글자배율, true);  // 항목9: Firestore 글자 크기 복원
+  if(data.화면배율) setFontScale(data.화면배율, true);  // 세션5: Firestore 화면 크기 복원
+  if(data.글자배율) set글자크기(data.글자배율, true);   // 세션5: Firestore 글자 크기 복원(텍스트 전용)
   if(data.폰트) applyFont(data.폰트, true);
   // 추가기능: 음성 생성 서버 주소 복원 (창조주 전용, 코드 비저장)
   if(typeof data.음성엔드포인트 === 'string') 음성엔드포인트 = data.음성엔드포인트;
@@ -2574,7 +2664,7 @@ function 신규사용자_생성(){
     히스토리필터: 'off', AI문제만: false, 복습상한: 50, 알림설정: true,
     음성엔드포인트: '',   // 추가기능: 음성 생성 서버 주소(창조주가 입력) — 기본 빈 값
     // 업적
-    업적진행도: {}, 창조주달성: false, 개발자모드: false,
+    업적진행도: {}, 창조주달성: false, 개발자모드: false, 선택칭호: '',
     // 질문하기 (통계)
     오늘질문횟수: 0, 질문날짜: ''
   };
@@ -2711,7 +2801,7 @@ function 학습데이터초기화_실행(){
     상식어원학습수:0, 언어의뿌리학습수:0, 세계사신화학습수:0, 아재개그학습수:0,
     맞춤법학습수:0, 구어교정횟수:0, 이의제기횟수:0, 반박성공횟수:0, 퍼펙트세션수:0, 총누적어휘수:0,
     보유토큰:1500, 토큰소진시각:null, 토큰락해제시각:null, 총소비토큰:0,
-    업적진행도:{}, 창조주달성:false, 개발자모드:false, 오늘질문횟수:0, 질문날짜:'',
+    업적진행도:{}, 창조주달성:false, 개발자모드:false, 선택칭호:'', 오늘질문횟수:0, 질문날짜:'',
     밤학습수:0, 마지막밤기록일:'', 복습복구횟수:0, 복습복구날짜:'', 총질문수:0
   };
   Object.assign(사용자, 리셋);
@@ -2874,6 +2964,7 @@ function 음성생성패널_열기(){
 }
 function 음성생성패널_닫기(){
   document.getElementById('음성생성Bg').classList.remove('show');
+  활성입력_blur();  // 세션5 버그9: 엔드포인트/테스트 입력 커서 잔존 방지
 }
 // 엔드포인트 저장/지우기 — plx_음성엔드포인트 + Firestore (setTheme 패턴)
 function 음성엔드포인트_저장(){
@@ -3191,6 +3282,19 @@ function renderQuiz4(data){
   const q=data[Math.floor(Math.random()*data.length)];
   현재퀴즈문제 = q;  // 복습 대기열 연동용
   현재문제_reasoning_note = q.reasoning_note || '';  // β3: DB 문제는 JSON에 직접 작성 (없으면 Grok fallback 예정)
+  // 세션5 버그7: 「직접입력」 실구현 — 선택지 대신 답 타이핑 + 정답 비교
+  if(학습설정.sq1 === '직접입력'){
+    body.innerHTML=`
+      <div class="qcard">
+        <div class="qcat">${q.ai?'<span class="tag-ai">🤖 AI 출제</span>':''}<span class="tag tb">${q.cat}</span></div>
+        <div class="q-question">${q.q}</div>
+      </div>
+      ${직접입력_HTML('sq1')}
+      <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
+      <button class="btn-acc" style="width:100%" onclick="다음문제()">다음 문제 →</button>
+    `;
+    return;
+  }
   // 선택지 HTML 동적 생성 (1~4번)
   let optsHtml='';
   q.opts.forEach((o,i)=>{
@@ -3215,6 +3319,20 @@ function renderQuiz3(data){
   const q=data[Math.floor(Math.random()*data.length)];
   현재퀴즈문제 = q;  // 복습 대기열 연동용
   현재문제_reasoning_note = q.reasoning_note || '';
+  // 세션5 버그7: 「직접입력」 실구현 — 선택지 대신 답 타이핑 + 정답 비교
+  if(학습설정.sq3 === '직접입력'){
+    body.innerHTML=`
+      <div class="qcard">
+        <div class="qcat"><span class="tag tg">${q.cat}</span></div>
+        <div class="q-question">${q.q}</div>
+        <div class="q-hint">${q.hint||''}</div>
+      </div>
+      ${직접입력_HTML('sq3')}
+      <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
+      <button class="btn-acc" style="width:100%" onclick="다음문제()">다음 문제 →</button>
+    `;
+    return;
+  }
   let optsHtml='';
   q.opts.forEach((o,i)=>{
     optsHtml+=`<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`;
@@ -3266,6 +3384,54 @@ function selAns(el, isCorrect){
   마스터리증가('총누적어휘수');
   세션결과_기록(isCorrect);  // 퍼펙트 세션 + [불굴의 의지] 패턴 감지
   aopts.forEach(o=>o.classList.add('disabled'));
+}
+
+/* ━━━ 세션5 버그7: 「직접입력」 공용 구현 (sq1 상식·세계사 / sq3 맞춤법) ━━━ */
+// 입력칸 + 제출 버튼 HTML (renderQuiz4/renderQuiz3의 직접입력 분기에서 사용)
+function 직접입력_HTML(screenId){
+  return `
+    <div style="display:flex;gap:8px;margin:4px 0 10px">
+      <input class="nm-inp" id="${screenId}DirectInp" placeholder="정답을 직접 입력하세요" style="flex:1;margin:0"
+             onkeydown="if(event.key==='Enter')직접입력_제출('${screenId}')">
+      <button class="btn-acc" style="padding:11px 18px" id="${screenId}DirectBtn" onclick="직접입력_제출('${screenId}')">제출</button>
+    </div>
+    <div id="${screenId}DirectResult"></div>`;
+}
+// 느슨한 비교 — 공백·문장부호 제거 + 소문자화 (한 글자라도 다르면 오답)
+function 직접입력_규격(s){
+  return String(s||'').toLowerCase().replace(/[\s.,!?'"“”‘’()\[\]~\-·:;]/g,'');
+}
+// 제출 처리 — selAns와 동일한 후처리(EXP·복습·마스터리·세션 기록), 문제당 1회 잠금
+function 직접입력_제출(screenId){
+  const inp = document.getElementById(screenId+'DirectInp');
+  if(!inp || inp.dataset.제출완료) return;
+  const 입력 = (inp.value||'').trim();
+  if(!입력){ showToastMsg('답을 입력해 주세요'); return; }
+  inp.dataset.제출완료='1'; inp.disabled = true;
+  const btn = document.getElementById(screenId+'DirectBtn'); if(btn) btn.disabled = true;
+  활성입력_blur();  // 세션5 버그9: 제출 후 커서 잔존 방지
+
+  const 정답 = 현재퀴즈문제?.opts?.find(o=>o.c)?.t || '';
+  const 문제요약 = 현재퀴즈문제?.q || '';
+  const 정답여부 = 직접입력_규격(입력) !== '' && 직접입력_규격(입력) === 직접입력_규격(정답);
+  const 결과 = document.getElementById(screenId+'DirectResult');
+
+  if(정답여부){
+    if(결과) 결과.innerHTML = `<div class="syn-result show"><div class="syn-result-title ok">✓ 정답입니다!</div><div class="syn-result-def">${정답}</div></div>`;
+    const 획득 = EXP획득(20, '퀴즈 정답');
+    if(결과) showExpFloat(결과,'+'+획득);
+    showToastMsg('✓ 정답입니다!');
+    연속정답처리(true);
+    if(정답) 복습대기열_정답처리(정답);
+  } else {
+    if(결과) 결과.innerHTML = `<div class="syn-result show"><div class="syn-result-title err">✗ 오답입니다</div><div class="syn-result-def">정답: <b>${정답}</b></div></div>`;
+    showToastMsg('✗ 오답입니다');
+    연속정답처리(false);
+    if(정답) 복습대기열_추가(정답, 문제요약, 현재퀴즈문제?.cat || 현재학습모드);
+  }
+  if(현재학습모드필드) 마스터리증가(현재학습모드필드);
+  마스터리증가('총누적어휘수');
+  세션결과_기록(정답여부);
 }
 
 /* 퍼펙트 세션(5문제 전원 정답 → +150, KNOWLEDGE 12) + [불굴의 의지](오답→오답→정답) 판정 */
@@ -3694,6 +3860,8 @@ function initFlashcard(){
   document.getElementById('fcBack')?.classList.remove('show');
   document.getElementById('fcMore')?.classList.remove('show');
   document.getElementById('fcMoreBtn')?.classList.remove('opened');
+  // 세션5: 이전 카드의 판정 1회 잠금 해제 — 미해제 시 다음 카드에서 판정 버튼이 먹통이 됨
+  document.querySelector('#sq2Body .fc-judge')?.removeAttribute('data-판정완료');
 }
 /* 플래시카드 앞면 → 뒷면 공개 (① 읽기, ② 뜻) */
 function flipCard(){
@@ -3745,12 +3913,36 @@ function judgeCard(type){
 const DAD_GAGS=[
   {q:'세상에서 가장 빠른 닭은?', a:'치타', e:'치타는 동물 중 가장 빠른 육상동물(시속 약 110km). "치킨"의 "치"와 발음이 같아서 생긴 말장난이다.'}
 ];
+let 현재아재문제 = null;   // 세션5: 직접입력 비교용 현재 문항
+let 아재정답공개됨 = false; // 세션5: revealDad 중복 호출 → EXP 반복 획득 방지
 function renderDad(data){
   const body=document.getElementById('sq4Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재아재풀=data;
   const g=data[Math.floor(Math.random()*data.length)];
+  현재아재문제 = g;
+  아재정답공개됨 = false;
   현재문제_reasoning_note = g.reasoning_note || '';
+  // 세션5 버그7: 입력 방식 「직접입력」 — 답을 타이핑한 뒤 정답 공개·비교
+  if(학습설정.sq4_input === '직접입력'){
+    body.innerHTML=`
+      <div class="dad-card">
+        <div class="qcat" style="margin-bottom:8px"><span class="tag tp">아재개그</span></div>
+        <div class="dad-q">${g.q}</div>
+        <div style="display:flex;gap:8px;margin:4px 0 10px">
+          <input class="nm-inp" id="dadDirectInp" placeholder="정답을 맞혀보세요" style="flex:1;margin:0"
+                 onkeydown="if(event.key==='Enter')아재_직접제출()">
+          <button class="btn-acc" style="padding:11px 18px" id="dadDirectBtn" onclick="아재_직접제출()">제출</button>
+        </div>
+        <div class="dad-answer" id="dadAns">
+          <div class="dad-a-text">${g.a}</div>
+          <div class="dad-a-explain">${g.e}</div>
+        </div>
+      </div>
+      <button class="btn-acc" style="width:100%" onclick="아재_다음문제()">다음 문제 →</button>
+    `;
+    return;
+  }
   body.innerHTML=`
     <div class="dad-card">
       <div class="qcat" style="margin-bottom:8px"><span class="tag tp">아재개그</span></div>
@@ -3775,13 +3967,30 @@ function initDad(){
   if(btn) btn.style.display='block';
 }
 function revealDad(){
+  // 세션5: 문제당 1회만 — 중복 호출 시 EXP 반복 획득 차단
+  if(아재정답공개됨) return;
+  아재정답공개됨 = true;
   document.getElementById('dadAns').classList.add('show');
-  document.getElementById('dadBtn').style.display='none';
+  const btn=document.getElementById('dadBtn');
+  if(btn) btn.style.display='none';
   // 빌드1: 실제 EXP 획득 + 마스터리(아재개그학습수) +1
   const 획득 = EXP획득(20, '아재개그');
   showExpFloat(document.querySelector('.dad-card'),'+'+획득);
   마스터리증가('아재개그학습수');
   마스터리증가('총누적어휘수');
+}
+/* 세션5 버그7: 아재개그 직접입력 제출 — 느슨 비교 후 정답 공개(EXP는 revealDad 1회 잠금 공유) */
+function 아재_직접제출(){
+  const inp=document.getElementById('dadDirectInp');
+  if(!inp || inp.dataset.제출완료) return;
+  const 입력=(inp.value||'').trim();
+  if(!입력){ showToastMsg('답을 입력해 주세요'); return; }
+  inp.dataset.제출완료='1'; inp.disabled=true;
+  const btn=document.getElementById('dadDirectBtn'); if(btn) btn.disabled=true;
+  활성입력_blur();
+  const 맞음 = 직접입력_규격(입력)!=='' && 직접입력_규격(입력)===직접입력_규격(현재아재문제?.a);
+  showToastMsg(맞음 ? '🎉 정답! 센스가 대단합니다' : '😄 아쉽! 정답을 확인하세요');
+  revealDad();
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3942,6 +4151,7 @@ function submitSpk(){
   const id = (구어교정현재 && 구어교정현재.id) || '자유입력';
   if(!구어교정완료ID[id]){
     구어교정완료ID[id] = true;
+    구어완료_저장();  // 세션5: 새로고침 후 재획득 차단 (uid별 영속)
     EXP획득(60, '구어 교정 완료');
     마스터리증가('구어교정횟수');
   }
@@ -3965,25 +4175,39 @@ let 학습설정 = {
   sq4_input: '선택지'    // 선택지 / 직접입력 (v3.7 항목13)
 };
 
-/* 패널 펼치기/접기 토글 */
+/* 패널 펼치기/접기 토글 — 세션5 버그8: 회전 대신 ▼/▲ 글자 교체(회전 금지 규칙) */
 function toggleLset(id){
   const panel = document.getElementById(id);
-  if(panel) panel.classList.toggle('open');
+  if(!panel) return;
+  panel.classList.toggle('open');
+  const t = panel.querySelector('.lset-toggle');
+  if(t) t.textContent = panel.classList.contains('open') ? '▲' : '▼';
+}
+
+/* 세션5 버그7: 저장된 학습설정을 패널 버튼 활성 상태(.on)에 반영 (새로고침 복원 시) */
+function 학습설정_UI동기화(){
+  document.querySelectorAll('.lset-opt').forEach(b=>{
+    const m = (b.getAttribute('onclick')||'').match(/setLsetMode\('([^']+)','([^']+)'/);
+    if(m) b.classList.toggle('on', 학습설정[m[1]] === m[2]);
+  });
 }
 
 /* 모드 선택 */
 // v3.7 항목9: sq1·sq2·sq3 동작 미연동 해소 — 각 모드별 분기 처리
+// 세션5 버그7: ①plx_학습설정 저장(새로고침 유지) ②sq1·sq3·sq4_input도 즉시 재출제로 실반영
 function setLsetMode(screenId, mode, btn){
   학습설정[screenId] = mode;
+  try{ localStorage.setItem('plx_학습설정', JSON.stringify(학습설정)); }catch(e){ /* localStorage 차단 환경 무시 */ }
 
   // 같은 행 내 다른 버튼 활성화 해제 (행 단위 토글: sq4의 「난이도」·「입력 방식」 독립 토글)
   const row = btn.closest('.lset-row');
   if(row) row.querySelectorAll('.lset-opt').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
 
-  // v3.7 항목9: 분기 처리 — 데모 수준에서 토스트로 변경 확인 + 가능한 즉시 갱신
+  // 분기 처리 — 설정 변경 즉시 현재 문제를 새 방식으로 다시 출제
   if(screenId==='sq1'){
-    // 상식·어원, 세계사·신화 (4지선다) — 데모는 토스트만, 실제 출제는 동일 데이터
+    // 상식·어원, 세계사·신화 — 선택지/직접입력 즉시 반영
+    if(현재퀴즈풀 && 현재퀴즈화면==='sq1') renderQuiz4(현재퀴즈풀);
     showToastMsg(`상식·세계사 출제 방식: ${mode}`);
   } else if(screenId==='sq2'){
     // 고사성어·속담 / 한자·우리말 (5방식: 4지선다 기본값)
@@ -3991,14 +4215,17 @@ function setLsetMode(screenId, mode, btn){
     sq2_출제_렌더(document.getElementById('sq2Title').textContent);
     showToastMsg(`출제 방식: ${mode}`);
   } else if(screenId==='sq3'){
-    // 맞춤법 (3지선다)
+    // 맞춤법 — 선택지/직접입력 즉시 반영
+    if(현재퀴즈풀 && 현재퀴즈화면==='sq3') renderQuiz3(현재퀴즈풀);
     showToastMsg(`맞춤법 출제 방식: ${mode}`);
   } else if(screenId==='sq4'){
     // 아재개그 난이도 즉시 갱신
     renderDad(DAD_GAGS_BY_DIFFICULTY[mode] || DAD_GAGS_BY_DIFFICULTY['아↗그거!']);
+    setTimeout(initDad,30);
     showToastMsg(`난이도: ${mode}`);
   } else if(screenId==='sq4_input'){
-    // 아재개그 입력 방식 (선택지 / 직접입력)
+    // 아재개그 입력 방식 (선택지 / 직접입력) — 즉시 반영
+    if(현재아재풀){ renderDad(현재아재풀); setTimeout(initDad,30); }
     showToastMsg(`입력 방식: ${mode}`);
   } else {
     showToastMsg(`설정 변경: ${mode}`);
@@ -5289,6 +5516,14 @@ function sendAsk(){
 
   // 창조주 키 감지 (정규화 후 비교)
   if(키정규화(q) === 키정규화(창조주키)){
+    // 세션5 버그6(방식A — 완전 차단): 이미 창조주면 퀘스트 재진입 불가.
+    // ※ 재감상 허용(방식B)으로 바꾸려면 이 if 블록만 제거하고 창조주달성()에 멱등 처리를 넣으면 된다.
+    if(사용자.창조주달성){
+      inp.value='';
+      inp.style.height='auto';
+      showInfoModal('👑','이미 창조주입니다','창조주의 권한은 이미 당신의 것입니다.<br>이 퀘스트는 최초 1회만 진행됩니다.');
+      return;
+    }
     inp.value='';
     inp.style.height='auto';  // 버그4: 전송 후 입력창 높이 초기화
     const body=document.getElementById('askBody');
@@ -5536,17 +5771,35 @@ function toggleMode(){
   else setTheme(마지막다크테마);
 }
 
-/* 항목9: 글자 크기(앱 전체 배율) 설정 — 80~200% 8단계.
-   px 기반 디자인이라 레이아웃 비율을 유지한 채 전체를 확대/축소하도록 root에 zoom을 적용한다.
-   (Chrome·Edge·Safari·Firefox(126+) 지원. zoom은 글자뿐 아니라 UI 전체를 같은 비율로 키워 깨짐을 방지) */
-const 글자크기단계 = [80,90,100,110,125,150,175,200];
+/* 세션5 버그1: 「화면 크기」·「글자 크기」 분리 (KNOWLEDGE — 사용자 검토 지시)
+   - setFontScale = 화면 크기: root zoom으로 UI 전체 확대/축소 (구 「글자 크기」의 실체.
+     함수명은 기존 테스트·복원 경로 호환을 위해 유지, 의미만 화면 배율로 변경)
+   - set글자크기 = 글자 크기: CSS 변수 --글자배율로 학습 콘텐츠 텍스트만 확대 (레이아웃 불변)
+   - 저장 키: 화면=plx_화면배율/Firestore 화면배율 · 글자=plx_글자배율/Firestore 글자배율
+     (기존 plx_글자배율 사용자는 그 %가 글자 배율로 이어짐 — 기본 100이라 체감 차이 없음) */
+const 화면크기단계 = [80,90,100,110,125,150,175,200];
 function setFontScale(pct, 조용히){
-  pct = 글자크기단계.includes(pct) ? pct : 100;
-  // 앱 전체 배율 적용
+  pct = 화면크기단계.includes(pct) ? pct : 100;
+  // 앱 전체 배율 적용 (zoom: Chrome·Edge·Safari·Firefox 126+)
   document.documentElement.style.zoom = (pct/100).toString();
   const txt = document.getElementById('fontScaleTxt');
-  if(txt) txt.textContent = pct + '%';
+  if(txt) txt.textContent = pct + '% — 화면 전체를 확대/축소';
   document.querySelectorAll('#fontScaleOpts .fs-opt').forEach(b=>b.classList.toggle('on', b.textContent.trim() === pct + '%'));
+  try{ localStorage.setItem('plx_화면배율', String(pct)); }catch(e){ /* localStorage 차단 환경 무시 */ }
+  if(조용히) return;
+  사용자.화면배율 = pct;
+  사용자데이터_저장({화면배율: pct});  // Firestore 동기화
+  showToastMsg('화면 크기: ' + pct + '%');
+}
+
+const 글자크기단계 = [80,90,100,110,125,150];
+function set글자크기(pct, 조용히){
+  pct = 글자크기단계.includes(pct) ? pct : 100;
+  // 읽기 텍스트 전용 배율 — CSS calc(원본px * --글자배율) 블록이 소비
+  document.documentElement.style.setProperty('--글자배율', String(pct/100));
+  const txt = document.getElementById('textScaleTxt');
+  if(txt) txt.textContent = pct + '% — 문제·카드·채팅 글자만 확대';
+  document.querySelectorAll('#textScaleOpts .fs-opt').forEach(b=>b.classList.toggle('on', b.textContent.trim() === pct + '%'));
   try{ localStorage.setItem('plx_글자배율', String(pct)); }catch(e){ /* localStorage 차단 환경 무시 */ }
   if(조용히) return;
   사용자.글자배율 = pct;
@@ -5676,11 +5929,17 @@ function 커스텀_적용(){
   커스텀_저장persist();
   showToastMsg('🎨 커스텀 테마 적용' + (커스텀이름 ? ` · ${커스텀이름}` : ''));
 }
+/* 세션5 버그2: 커스텀 이름을 테마 선택 칩 라벨에 반영 — 이름 없으면 「커스텀」 유지 */
+function 커스텀칩_라벨갱신(){
+  const el = document.querySelector('#th-custom .tnm');
+  if(el) el.textContent = '🎨 ' + (커스텀이름 || '커스텀');
+}
 function 커스텀_저장persist(){
   try{
     localStorage.setItem('plx_커스텀', JSON.stringify({이름:커스텀이름, ...커스텀색}));
     localStorage.setItem('plx_커스텀슬롯', JSON.stringify(커스텀슬롯));
   }catch(e){ /* 무시 */ }
+  커스텀칩_라벨갱신();  // 세션5 버그2: 저장 시점에 칩 라벨 동기화
   사용자.커스텀테마 = {이름:커스텀이름, ...커스텀색};
   사용자.커스텀슬롯 = 커스텀슬롯;
   사용자데이터_저장({커스텀테마:사용자.커스텀테마, 커스텀슬롯:커스텀슬롯});
@@ -5742,6 +6001,7 @@ function 커스텀_복원(객체){
     const 슬롯 = JSON.parse(localStorage.getItem('plx_커스텀슬롯') || 'null');
     if(Array.isArray(슬롯)) 커스텀슬롯 = 슬롯.filter(Boolean).slice(0,10);
   }catch(e){ /* 무시 */ }
+  커스텀칩_라벨갱신();  // 세션5 버그2: 복원 시점에도 칩 라벨 동기화
 }
 
 /* 폰트 선택 */
@@ -6128,6 +6388,7 @@ function 렌더_성장상세(){
   // 개발자 오버레이 표시 합성
   const 표시Lv=표시레벨(), 표시Exp=표시EXP(), 표시Max=expForLevel(표시Lv);
   const 칭호 = 소칭호계산(표시Lv, 사용자.창조주달성);
+  const 등급 = 등급정보(표시Lv);  // 세션5 버그5: 현황 탭과 동일한 등급 표시 (강림자 등 불일치 해소)
   // Lv.1→70 총 필요 EXP 대비 현재 위치 (α3 보정 공식 합산)
   let 총필요=0, 누적=0;
   for(let l=1; l<최대레벨; l++){
@@ -6149,7 +6410,8 @@ function 렌더_성장상세(){
   body.innerHTML = `
     <div class="sg-sec fu">
       <div class="sg-sec-t">현재 상태</div>
-      <div style="font-size:15px;font-weight:700">${userName} <span style="font-size:12px;color:${소칭호색상표[색상키(칭호)]||'var(--accl)'}">(${칭호})</span></div>
+      <div style="font-size:15px;font-weight:700">${userName} <span style="font-size:12px;color:${소칭호색상표[색상키(칭호)]||'var(--accl)'};text-shadow:0 1px 3px rgba(0,0,0,.38)">(${칭호})</span></div>
+      <div style="font-size:12px;color:var(--txt);margin-top:4px">🏷️ 등급: <b>${등급.등급}</b>${등급.세부!==등급.등급?` · ${등급.세부}`:''}</div>
       <div style="font-size:12px;color:var(--txt2);margin-top:4px">Lv.${표시Lv} — EXP ${표시Exp} / ${표시Max} · 총누적 ${(사용자.총누적EXP||0).toLocaleString('ko-KR')}</div>
     </div>
     <div class="sg-sec fu s1">
@@ -6163,7 +6425,7 @@ function 렌더_성장상세(){
         const 달성 = (it.min===Infinity) ? !!사용자.창조주달성 : 표시Lv >= it.min;
         const 현재구간 = (칭호 === it.t);
         return `<div class="sg-road-item">
-          <span style="color:${소칭호색상표[색상키(it.t)]||'#a8a8b8'};font-weight:700${현재구간?';text-decoration:underline':''}">(${it.t})</span>
+          <span style="color:${소칭호색상표[색상키(it.t)]||'#b4b4c4'};font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.38)${현재구간?';text-decoration:underline':''}">(${it.t})</span>
           <span class="sg-road-range">${it.r}</span>
           <span class="sg-road-state" style="color:${달성?'var(--ok)':'var(--txtm)'}">${달성?'달성':'미달성'}</span>
         </div>`;
@@ -6210,6 +6472,8 @@ function 테스트진입_키감지(ev){
 // 비로그인 테스트 세션 — Firebase 인증 없이 홈으로. 데이터는 로컬에만 존재(저장 안 됨).
 function 게스트로그인(){
   현재UID = null;                 // Firestore 저장 경로 차단 유지
+  게스트보관함_복원();            // 세션5: 게스트 복습 데이터 localStorage 복원
+  구어완료_복원();                // 세션5: 게스트 구어 교정 완료 기록 복원
   사용자.이름 = 사용자.이름 || '테스트';
   사용자.이메일 = '(비로그인 테스트)';
   userName = 사용자.이름;
@@ -6229,7 +6493,9 @@ try{
   커스텀_복원();  // 항목3: 저장된 커스텀 색·슬롯 먼저 복원(테마가 custom일 때 변수 세팅 선행)
   const 저장테마 = localStorage.getItem('plx_테마'); if(저장테마) setTheme(저장테마, true);
   const 저장폰트 = localStorage.getItem('plx_폰트'); if(저장폰트) applyFont(저장폰트, true);
-  const 저장배율 = localStorage.getItem('plx_글자배율'); if(저장배율) setFontScale(parseInt(저장배율,10), true);  // 항목9: 글자 크기 복원
+  const 저장화면 = localStorage.getItem('plx_화면배율'); if(저장화면) setFontScale(parseInt(저장화면,10), true);   // 세션5: 화면 크기 복원
+  const 저장배율 = localStorage.getItem('plx_글자배율'); if(저장배율) set글자크기(parseInt(저장배율,10), true);     // 세션5: 글자 크기 복원(텍스트 전용)
+  const 저장학습 = JSON.parse(localStorage.getItem('plx_학습설정')||'null'); if(저장학습){ Object.assign(학습설정, 저장학습); 학습설정_UI동기화(); }  // 세션5 버그7: 학습 설정 복원
   const 저장음성EP = localStorage.getItem('plx_음성엔드포인트'); if(저장음성EP) 음성엔드포인트 = 저장음성EP;  // 추가기능: 음성 서버 주소 복원
 }catch(e){ /* localStorage 차단 환경 무시 */ }
 예문데이터_로드();          // β8: 정령왕 JSON (구어 27 · 유의어 18 · 한문장 7)
