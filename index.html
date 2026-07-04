@@ -104,7 +104,12 @@
 
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden}
-body{font-family:var(--fn);background:var(--bg);color:var(--txt);transition:background .4s,color .4s}
+/* 세션6 버그1(근본): 비입력 요소 탭 시 텍스트 캐럿 깜빡임 차단 —
+   전역은 선택 불가 + 캐럿 투명, 입력창(input/textarea)만 예외 복원 */
+body{font-family:var(--fn);background:var(--bg);color:var(--txt);transition:background .4s,color .4s;user-select:none;-webkit-user-select:none;caret-color:transparent}
+input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
+/* 세션6 항목11: 아바타 이미지 프로필 지원 — 원형 틀 밖으로 이미지가 새지 않게 */
+.hav,.st-av,.set-av,.nm-av{overflow:hidden}
 /* v3.5: 모달 열림 시 레이아웃 쉬프트 방지 — 스크롤바 폭 보정 */
 html{scrollbar-gutter:stable}
 
@@ -276,14 +281,15 @@ html{scrollbar-gutter:stable}
 .kc-word{color:var(--acc);font-weight:700;cursor:pointer;border-bottom:1px dashed var(--accd);padding-bottom:1px;transition:color .2s,border-color .2s}
 .kc-word:hover{color:var(--accl);border-bottom-color:var(--acc)}
 .hs{padding:0 20px 20px}
-.sec-t{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px;margin-top:18px}
-.mc{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:9px;transition:transform .2s,border-color .2s,background .4s;position:relative;overflow:hidden}
-.mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc);transition:width .25s}
-.mc:hover{transform:translateX(3px);border-color:var(--bdrg)}
-.mc:hover::before{width:5px}
+/* 세션6 항목8: 「학습 모드」 라벨·카드 강조 — 터치에선 hover가 없으므로 상시 강조로 전환 */
+.sec-t{font-size:12px;font-weight:700;color:var(--txt);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px;margin-top:18px}
+.mc{background:var(--card);border:1px solid var(--bdrg);border-radius:12px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:9px;transition:transform .2s,border-color .2s,background .4s;position:relative;overflow:hidden}
+.mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc);transition:width .25s}
+.mc:hover{transform:translateX(3px);border-color:var(--acc)}
+.mc:hover::before{width:6px}
 .mc:hover .mc-arrow{transform:translateX(3px);color:var(--acc)}
 .mc-icon{font-size:24px;width:40px;text-align:center;flex-shrink:0}
-.mc-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.mc-name{font-size:15px;font-weight:700;margin-bottom:2px;color:var(--accl)}
 .mc-desc{font-size:11px;color:var(--txt2)}
 .mc-arrow{color:var(--txtm);font-size:19px;transition:transform .2s,color .2s}
 
@@ -691,6 +697,8 @@ html{scrollbar-gutter:stable}
 /* 세션5 버그3: 보조색(--txt2)이 어두운 테마에서 배경에 묻힘 — 본문은 기본 글자색 사용 */
 .ask-msg.user{background:var(--elev);color:var(--txt);text-align:right;margin-left:32px;border:1px solid var(--bdr)}
 .ask-msg.ai{background:rgba(120,180,255,.06);border:1px solid rgba(120,180,255,.2);margin-right:32px}
+/* 세션6 항목2: 채팅 내 사고 전개 블록 — 중요 콘텐츠라 기본 글자색(--txt)으로 (모든 테마 가독) */
+.ask-think{background:var(--elev);border:1px solid var(--bdr);border-left:3px solid var(--acc);border-radius:8px;padding:9px 11px;margin-bottom:9px;font-size:12px;color:var(--txt);line-height:1.7;text-align:left}
 .ask-msg.ai::before{content:'🤖 AI';font-size:10px;color:var(--inf);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
 .ask-objection-btn{margin-top:6px;background:transparent;border:1px solid var(--err);color:var(--err);padding:6px 14px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700;transition:all .2s}
 .ask-objection-btn:hover{background:rgba(192,112,112,.1)}
@@ -928,7 +936,7 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 업적 상세 모달 -->
-<div class="ach-detail-bg" id="achDetailBg" onclick="closeAchDetail()">
+<div class="ach-detail-bg" id="achDetailBg" onclick="배경클릭_닫기(event, closeAchDetail)">
   <div class="ach-detail" onclick="event.stopPropagation()">
     <div class="ach-d-icon" id="adIcon">🌱</div>
     <div class="ach-d-name" id="adName">[첫걸음]</div>
@@ -940,7 +948,7 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 일반 모달 -->
-<div class="modal-bg" id="infoBg" onclick="closeInfoModal()">
+<div class="modal-bg" id="infoBg" onclick="배경클릭_닫기(event, closeInfoModal)">
   <div class="modal-bx" onclick="event.stopPropagation()">
     <div class="modal-icon" id="infoIcon">ℹ️</div>
     <div class="modal-title" id="infoTitle">안내</div>
@@ -953,7 +961,7 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 이름 변경 모달 -->
-<div class="modal-bg" id="nmModalBg" onclick="closeNmModal()">
+<div class="modal-bg" id="nmModalBg" onclick="배경클릭_닫기(event, closeNmModal)">
   <div class="modal-bx" onclick="event.stopPropagation()">
     <div class="modal-icon">✏️</div>
     <div class="modal-title">이름 변경</div>
@@ -966,7 +974,7 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 셀렉트 모달 -->
-<div class="modal-bg" id="selBg" onclick="closeSelect()">
+<div class="modal-bg" id="selBg" onclick="배경클릭_닫기(event, closeSelect)">
   <div class="modal-bx" onclick="event.stopPropagation()">
     <div class="modal-title" id="selTitle">선택</div>
     <div class="modal-desc" id="selDesc"></div>
@@ -978,7 +986,7 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 폰트 선택 모달 — v3.7 항목6,8: 확정 폰트 11종 + 출처 표기 -->
-<div class="modal-bg" id="fontBg" onclick="closeFont()">
+<div class="modal-bg" id="fontBg" onclick="배경클릭_닫기(event, closeFont)">
   <div class="modal-bx" onclick="event.stopPropagation()">
     <div class="modal-title">🔤 글꼴</div>
     <div class="fo-list" id="fontList"></div>
@@ -1001,7 +1009,7 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 항목3: 커스텀 테마 에디터 (4색 직접 설정·32색 팔레트·실시간 미리보기·대비 경고·랜덤·10슬롯 프로필) -->
-<div class="modal-bg" id="customThemeBg" onclick="closeCustomTheme()">
+<div class="modal-bg" id="customThemeBg" onclick="배경클릭_닫기(event, closeCustomTheme)">
   <div class="modal-bx" onclick="event.stopPropagation()" style="max-height:88vh;overflow-y:auto">
     <div class="modal-title">🎨 커스텀 테마</div>
     <div class="ct-preview" id="ctPreview">
@@ -1034,7 +1042,7 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 추가기능: 콜롬비나 음성 생성(TTS) — 창조주 전용 테스트 벤치 (봉인 골격) -->
-<div class="modal-bg" id="음성생성Bg" onclick="음성생성패널_닫기()">
+<div class="modal-bg" id="음성생성Bg" onclick="배경클릭_닫기(event, 음성생성패널_닫기)">
   <div class="modal-bx" onclick="event.stopPropagation()" style="max-height:88vh;overflow-y:auto">
     <div class="modal-title">🎙 음성 생성 (실험)</div>
     <div class="modal-desc" style="font-size:11.5px;line-height:1.7">
@@ -1066,7 +1074,7 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 질문하기 -->
-<div class="ask-bg" id="askBg" onclick="closeAsk()"></div>
+<div class="ask-bg" id="askBg" onclick="배경클릭_닫기(event, closeAsk)"></div>
 <div class="ask-panel" id="askPanel">
   <div class="ask-handle"></div>
   <div class="ask-hdr">
@@ -1076,8 +1084,10 @@ body.devnav .demo-offset{margin-top:80px}
       <div class="ask-quota" id="askQuota">💎 <span id="askQuotaNow">1,500</span></div>
     </div>
     <div style="display:flex;gap:6px;align-items:center">
-      <!-- β7: 사고전개 탭 — 기본 OFF, 매번 수동 ON (KNOWLEDGE 5-1) -->
-      <button id="thinkToggle" onclick="사고전개_토글()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt2);padding:5px 10px;border-radius:7px;font-size:10px;cursor:pointer;font-family:var(--fn)">🧠 사고전개 OFF</button>
+      <!-- 세션6 항목4: 새 대화 — 현재 대화를 기록으로 보관하고 채팅창 초기화 -->
+      <button id="askNewBtn" onclick="새대화_시작()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">🆕 새 대화</button>
+      <!-- β7: 사고전개 탭 — 기본 OFF, 매번 수동 ON (KNOWLEDGE 5-1) / 세션6 항목2: 가시성 상향(--txt·11px) -->
+      <button id="thinkToggle" onclick="사고전개_토글()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">🧠 사고전개 OFF</button>
       <button id="askCls창조주" onclick="closeAsk()" style="display:none;background:rgba(192,112,112,.15);border:1px solid var(--err);color:var(--err);padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700">중도 포기</button>
       <button class="ask-cls" onclick="closeAsk()">✕</button>
     </div>
@@ -1097,7 +1107,7 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 이의있음! -->
-<div class="obj-bg" id="objBg" onclick="closeObj()">
+<div class="obj-bg" id="objBg" onclick="배경클릭_닫기(event, closeObj)">
   <div class="obj-modal" onclick="event.stopPropagation()">
     <div class="obj-icon">⚖️</div>
     <div class="obj-title">이의있음!</div>
@@ -1159,7 +1169,7 @@ body.devnav .demo-offset{margin-top:80px}
       <input class="nm-inp" id="nmInp" type="text" placeholder="이름을 입력하세요" maxlength="12" oninput="updateNmPreview()">
     </div>
     <div class="nm-prev fu s2" id="nmPrev">
-      <div class="nm-av">⚔️</div>
+      <div class="nm-av" id="nmAvatar">⚔️</div>
       <div><div class="nm-pname" id="nmPrevName">이름을 입력해 주세요</div><div class="nm-rank">🌱 새싹 · Lv.1 견습생</div></div>
     </div>
     <button class="btn-acc fu s3" style="width:100%" onclick="applyName()">학습 시작하기 →</button>
@@ -1173,7 +1183,8 @@ body.devnav .demo-offset{margin-top:80px}
     <div class="hh-top">
       <!-- v3.4: 하드코딩 제거. JS afterNav('sh')에서 사용자 객체로 주입 -->
       <div class="fu"><div class="hg">오늘도 학습해 볼까요?</div><div class="hun" id="homeUser"></div></div>
-      <div class="hav fu s1" id="homeAvatar"></div>
+      <!-- 세션6 항목11: 홈 아바타도 탭 가능(프로필 선택) — 무반응 결함 해소 -->
+      <div class="hav fu s1" id="homeAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
     </div>
     <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px" class="fu s2">
       <div class="lbdg" id="homeLv"></div>
@@ -1213,6 +1224,8 @@ body.devnav .demo-offset{margin-top:80px}
     <div class="mc fu s5" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 4지선다</div></div><div class="mc-arrow">›</div></div>
     <div class="mc fu s6" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
     <div class="mc fu s7" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
+    <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 -->
+    <div class="mc fu s7" style="border-style:dashed" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><div class="mc-arrow">›</div></div>
   </div>
 </div>
 
@@ -1544,7 +1557,7 @@ body.devnav .demo-offset{margin-top:80px}
     <div class="jushin-msg" id="jushinMsg" style="display:none" onclick="주신의경지_탭()">「주҉신҉의 경지」</div>
     <div class="st-prof fu">
       <!-- α9: 아바타 탭 → 고급 커스터마이징 -->
-      <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="고급커스터마이징_탭()"></div>
+      <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
       <div style="flex:1">
         <!-- v3.4: 하드코딩 제거. JS afterNav('ss')에서 사용자 객체로 주입 -->
         <div class="st-name" id="statusUser"></div>
@@ -1576,7 +1589,7 @@ body.devnav .demo-offset{margin-top:80px}
   <div class="set-body">
     <div class="set-prof fu">
       <!-- α9: 아바타 탭 → 고급 커스터마이징 (초월자 {wait!} / 필멸자 [권한 부족]) -->
-      <div class="set-av" id="settingsAvatar" style="cursor:pointer" onclick="고급커스터마이징_탭()"></div>
+      <div class="set-av" id="settingsAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
       <div style="flex:1">
         <!-- v3.4: 하드코딩 제거. JS afterNav('sse')에서 사용자 객체로 주입 -->
         <div class="set-nm" id="settingsUser"></div>
@@ -1628,6 +1641,8 @@ body.devnav .demo-offset{margin-top:80px}
           <button class="fs-opt" onclick="set글자크기(125)">125%</button>
           <button class="fs-opt" onclick="set글자크기(150)">150%</button>
         </div>
+        <!-- 세션6 항목10: 실시간 미리보기 — 설정 화면엔 배율 대상이 없어 "작동 안 함"으로 보이던 문제 -->
+        <div id="textScalePreview" style="background:var(--elev);border:1px dashed var(--bdr);border-radius:9px;padding:9px 12px;font-size:calc(14px*var(--글자배율));line-height:1.6;transition:font-size .2s">미리보기 — 한국어 어휘력, 가나다 ABC 123</div>
       </div>
     </div>
 
@@ -1655,9 +1670,16 @@ body.devnav .demo-offset{margin-top:80px}
         <div style="flex:1"><div class="srl">AI 문제만 출제</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
         <div class="mtw"><label class="mt"><input type="checkbox" id="aiOnlyToggle" onchange="toggleAiOnly()"><div class="mtt"><div class="mtth"></div></div></label></div>
       </div>
-      <div class="set-row" onclick="showInfoModal('📜','히스토리 확인','각 모드별 최근 출제된 문제 목록을 확인할 수 있습니다. (읽기 전용)<br><br>실제 앱에서는 카테고리별 아코디언으로 표시됩니다.')">
-        <span class="sri">📜</span>
-        <div style="flex:1"><div class="srl">히스토리 확인</div><div class="srs">최근 출제 문제 보기</div></div>
+      <!-- 세션6 항목4: placeholder 「히스토리 확인」 → 실기능 「채팅 내역」으로 교체 -->
+      <div class="set-row" onclick="채팅내역_열기()">
+        <span class="sri">💬</span>
+        <div style="flex:1"><div class="srl">채팅 내역</div><div class="srs">AI와의 최근 대화 30개 보기</div></div>
+        <span class="sra">›</span>
+      </div>
+      <!-- 세션6 항목5: AI 지침(통합 메모리) — 공백 포함 500자, AI 호출 시 항상 전달 -->
+      <div class="set-row" onclick="AI지침_열기()">
+        <span class="sri">🧭</span>
+        <div style="flex:1"><div class="srl">AI 지침</div><div class="srs" id="ai지침상태">없음</div></div>
         <span class="sra">›</span>
       </div>
       <!-- β2: 질문하기 일일 100회 행 폐기 → 토큰 행으로 교체 (KNOWLEDGE 22·32·35) -->
@@ -1787,6 +1809,8 @@ const 사용자 = {
   창조주달성: false,
   개발자모드: false,
   선택칭호: '',   // 세션5: 창조주 칭호 선택(폐하/주신) — 초기값 명시
+  AI지침: '',        // 세션6: AI 통합 지침 (500자)
+  개발자네비표시: false,  // 세션6: 상단 개발자 바로가기 — 기본 숨김(패널 토글로만)
 };
 /* 빌드1: 위 객체는 로그인 전 placeholder — 로그인 시 사용자데이터_적용()이 Firestore 값으로 덮어씀 */
 
@@ -1855,6 +1879,7 @@ function 보관함_문서수정(컬렉션, id, 부분){
 // 세션5: ①uid별 구어 교정 완료 기록 복원 ②로드 완료 전 학습으로 추가된 로컬 항목을 덮어쓰지 않고 병합
 function 보관함_로드(){
   구어완료_복원();  // 세션5: EXP 재획득 방지 기록 (uid별)
+  채팅기록_로드();  // 세션6: 채팅 기록 (uid별 서브컬렉션 / 게스트 localStorage)
   if(!fbDb || !현재UID) return;
   const ref = fbDb.collection('users').doc(현재UID);
   Promise.all([
@@ -1888,13 +1913,26 @@ function 보관함_로드(){
                                모드클래스:모드클래스계산(v.모드), 잔여일});
       }
     });
-    // 세션5: 로드 중 추가된 로컬 항목 병합 — 서버에 같은 단어가 없으면 되살리고 Firestore에도 기록
+    // 세션5: 로드 중 추가된 로컬 항목 병합 — 서버에 같은 단어가 없으면 메모리에 되살림
+    // 세션6: 여기서 Firestore add를 재발사하지 않음 — 최초 추가 시 이미 add가 발사되어
+    //        진행 중이므로, 재기록하면 문서가 중복 생성된다(중복 방지).
     로드전로컬.forEach(x=>{
-      if(!복습데이터.대기열.some(y=>y.단어===x.단어)){
-        복습데이터.대기열.push(x);
-        보관함_문서추가('복습대기열', x, {단어:x.단어, 뜻:x.뜻, 모드:x.모드, 연속정답수:x.연속정답수||0});
-      }
+      if(!복습데이터.대기열.some(y=>y.단어===x.단어)) 복습데이터.대기열.push(x);
     });
+    // 세션6: 게스트 시절 보관함(plx_게스트보관함) 승계 — 서버에 없는 단어만 추가 후 정리
+    try{
+      const 게스트 = JSON.parse(localStorage.getItem('plx_게스트보관함')||'null');
+      if(게스트 && Array.isArray(게스트.대기열)){
+        게스트.대기열.forEach(x=>{
+          if(x && x.단어 && !복습데이터.대기열.some(y=>y.단어===x.단어)){
+            복습데이터.대기열.push(x);
+            보관함_문서추가('복습대기열', x, {단어:x.단어, 뜻:x.뜻, 모드:x.모드, 연속정답수:x.연속정답수||0});
+          }
+        });
+        localStorage.removeItem('plx_게스트보관함');
+        console.log('[보관함] 게스트 데이터 승계 완료');
+      }
+    }catch(e){ /* 무시 */ }
     // 대기열 항목의 즐겨찾기 별 표시 동기화 (동일 단어 기준)
     const 즐단어 = new Set(복습데이터.즐겨찾기.map(x=>x.단어));
     복습데이터.대기열.forEach(x=>{ x.즐겨찾기 = 즐단어.has(x.단어); });
@@ -2130,9 +2168,16 @@ function 구어완료_키(){ return 'plx_구어완료_' + (현재UID || '게스�
 function 구어완료_복원(){
   try{ 구어교정완료ID = JSON.parse(localStorage.getItem(구어완료_키())||'{}') || {}; }
   catch(e){ 구어교정완료ID = {}; }
+  // 세션6 수정: '자유입력'은 영속 제외 — 예문 풀 미로드 시 모든 자유 제출의 EXP가
+  // 영구히 잠기던 부작용(세션5 영속화의 회귀) 해소. 자유입력은 세션 내 1회만 제한.
+  delete 구어교정완료ID['자유입력'];
 }
 function 구어완료_저장(){
-  try{ localStorage.setItem(구어완료_키(), JSON.stringify(구어교정완료ID)); }catch(e){ /* 무시 */ }
+  try{
+    const 영속 = {...구어교정완료ID};
+    delete 영속['자유입력'];   // 세션6: 자유입력은 세션 한정 (영구 잠금 방지)
+    localStorage.setItem(구어완료_키(), JSON.stringify(영속));
+  }catch(e){ /* 무시 */ }
 }
 const DB문제 = {};             // 모드명 → JSON items (β9 DB 출제 풀)
 const DB파일맵 = {
@@ -2186,6 +2231,30 @@ function 활성입력_blur(){
   if(ae && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) ae.blur();
 }
 
+/* 세션6 항목12: 모달 드래그-아웃 오작동 방지 —
+   모달 안에서 드래그를 시작해 밖에서 손을 떼면 click이 배경에서 발생해 닫히던 문제.
+   포인터다운 시작 지점을 추적해, 「누름·뗌 모두 배경」일 때만 닫는다. */
+let 마지막포인터다운타깃 = null;
+document.addEventListener('mousedown', ev => { 마지막포인터다운타깃 = ev.target; }, true);
+document.addEventListener('touchstart', ev => { 마지막포인터다운타깃 = ev.target; }, true);
+
+/* 세션6 신규: 안드로이드 뒤로가기 = 앱 종료 문제 — popstate로 이전 화면 복귀
+   (홈 이전까지 히스토리가 없으면 브라우저 기본 동작 = 종료 유지) */
+let 뒤로가기_이동중 = false;
+window.addEventListener('popstate', ev => {
+  const 화면 = ev.state && ev.state.화면;
+  if(화면 && document.getElementById(화면)){
+    뒤로가기_이동중 = true;
+    goNav(화면, null);
+    뒤로가기_이동중 = false;
+  }
+});
+function 배경클릭_닫기(ev, 닫기fn){
+  if(ev.target !== ev.currentTarget) return;                 // 내부 요소 클릭은 무시
+  if(마지막포인터다운타깃 && 마지막포인터다운타깃 !== ev.currentTarget) return;  // 드래그 시작이 안쪽이면 무시
+  닫기fn();
+}
+
 function goNav(id, btn){
   if(id===curScreen) return;
   const prev=document.getElementById(curScreen);
@@ -2211,6 +2280,11 @@ function goNav(id, btn){
   }));
 
   curScreen=id;
+
+  // 세션6 신규: 모바일 뒤로가기 지원 — 화면 전환마다 히스토리 push (뒤로가기로 온 경우 제외)
+  if(!뒤로가기_이동중){
+    try{ history.pushState({화면:id}, '', ''); }catch(e){ /* file:// 등 미지원 환경 무시 */ }
+  }
 
   const bnav=document.getElementById('g-bnav');
   if(SHOW_NAV.includes(id)){
@@ -2239,7 +2313,7 @@ function afterNav(id){
     const 표시Lv=표시레벨(), 표시Exp=표시EXP(), 표시Max=expForLevel(표시Lv);
     const 등급 = 등급정보(표시Lv);
     document.getElementById('homeUser').textContent=userName;
-    document.getElementById('homeAvatar').textContent=사용자.프로필이미지;
+    아바타_적용(document.getElementById('homeAvatar'), 사용자.프로필이미지);  // 세션6: 이미지/이모지 겸용
     document.getElementById('homeLv').textContent='Lv.'+표시Lv;
     document.getElementById('homeRank').textContent=등급.등급;
     document.getElementById('homeTitle').textContent='· '+등급.세부;
@@ -2265,7 +2339,7 @@ function afterNav(id){
     const 표시Lv = 표시레벨();
     const 등급 = 등급정보(표시Lv);
     document.getElementById('statusUser').textContent=userName;
-    document.getElementById('statusAvatar').textContent=사용자.프로필이미지;
+    아바타_적용(document.getElementById('statusAvatar'), 사용자.프로필이미지);  // 세션6: 이미지/이모지 겸용
     document.getElementById('statusTitle').textContent=등급.세부;
 
     // α1·α7·α8: 7단계 소칭호 + 색상 + 주신 글리치 일괄 적용
@@ -2294,7 +2368,7 @@ function afterNav(id){
     // 설정: 사용자 객체 기반
     const 등급 = 등급정보(curLv);
     document.getElementById('settingsUser').textContent=userName;
-    document.getElementById('settingsAvatar').textContent=사용자.프로필이미지;
+    아바타_적용(document.getElementById('settingsAvatar'), 사용자.프로필이미지);  // 세션6: 이미지/이모지 겸용
     document.getElementById('settingsTitle').textContent=등급.세부;
     document.getElementById('settingsEmail').textContent=사용자.이메일;
     document.getElementById('settingsEmail2').textContent=사용자.이메일;
@@ -2323,6 +2397,8 @@ function afterNav(id){
 function goLearn(category, screenId, btn){
   goNav(screenId, btn);
   // 빌드1: 현재 모드 기록 (EXP·마스터리 연결용) + 토큰 바 갱신
+  // 세션6 항목4: 카테고리가 바뀌면 진행 중 채팅을 기록으로 보관하고 채팅창을 비운다
+  if(현재학습모드 && 현재학습모드 !== category) 채팅세션_마감('카테고리 이동');
   현재학습모드 = category;
   현재학습모드필드 = 모드_마스터리맵[category] || '';
   // 세션5: 매핑 실패 시 마스터리가 조용히 누락되는 문제 — 콘솔 경고로 표면화
@@ -2390,14 +2466,27 @@ function sq2_출제_렌더(category){
 }
 
 /* v3.6 신규: 학습 설정 패널 진입 시 버튼 활성 상태를 학습설정 값과 동기화
-   현재는 sq4(아재개그 난이도)만 사용하지만 향후 sq1/sq2/sq3 확장 시 동일 패턴 적용 가능 */
-function 동기화_학습설정_버튼(screenId, 현재값){
+   세션6 버그6(근본): 기존엔 패널 전체 버튼을 「텍스트==단일 값」으로 토글해, 행이 2개인
+   sq4 패널에서 '입력 방식' 행의 기본 on('선택지')을 벗겨버렸다. 이제 각 버튼의 onclick에서
+   (screenId, mode)를 읽어 행 무관하게 정확히 동기화한다. (두 번째 인자는 호환용으로 유지) */
+function 동기화_학습설정_버튼(screenId, _현재값){
   const 패널 = document.getElementById('lset' + screenId.charAt(0).toUpperCase() + screenId.slice(1));
   if(!패널) return;
   패널.querySelectorAll('.lset-opt').forEach(b=>{
-    // 버튼 텍스트가 현재값과 일치하면 on, 아니면 off
-    b.classList.toggle('on', b.textContent.trim() === 현재값);
+    const m = (b.getAttribute('onclick')||'').match(/setLsetMode\('([^']+)','([^']+)'/);
+    if(m) b.classList.toggle('on', 학습설정[m[1]] === m[2]);
   });
+}
+
+/* 세션6 항목7: 랜덤 학습 — 홈 카드와 동일한 모드 목록에서 임의 선택 후 goLearn 위임 */
+const 랜덤학습_모드목록 = [
+  ['상식·어원','sq1'], ['고사성어·속담','sq2'], ['세계사·신화','sq1'],
+  ['아재개그','sq4'], ['한자·우리말','sq2'], ['맞춤법','sq3'], ['구어 교정','sq5']
+];
+function 랜덤학습(){
+  const [카테고리, 화면] = 랜덤학습_모드목록[Math.floor(Math.random()*랜덤학습_모드목록.length)];
+  showToastMsg('🎲 오늘의 랜덤: ' + 카테고리);
+  goLearn(카테고리, 화면, null);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2617,6 +2706,9 @@ function 사용자데이터_적용(data, authUser){
   if(data.폰트) applyFont(data.폰트, true);
   // 추가기능: 음성 생성 서버 주소 복원 (창조주 전용, 코드 비저장)
   if(typeof data.음성엔드포인트 === 'string') 음성엔드포인트 = data.음성엔드포인트;
+  // 세션6: AI 지침·개발자 네비 표시 복원
+  if(typeof data.AI지침 === 'string'){ 사용자.AI지침 = data.AI지침; AI지침_상태갱신(); }
+  if(typeof data.개발자네비표시 === 'boolean') 사용자.개발자네비표시 = data.개발자네비표시;
   if(data.히스토리필터){
     histFilter = data.히스토리필터;
     const t=document.getElementById('histFilterTxt');
@@ -2665,6 +2757,8 @@ function 신규사용자_생성(){
     음성엔드포인트: '',   // 추가기능: 음성 생성 서버 주소(창조주가 입력) — 기본 빈 값
     // 업적
     업적진행도: {}, 창조주달성: false, 개발자모드: false, 선택칭호: '',
+    // 세션6: AI 지침·개발자 네비 표시
+    AI지침: '', 개발자네비표시: false,
     // 질문하기 (통계)
     오늘질문횟수: 0, 질문날짜: ''
   };
@@ -2859,6 +2953,7 @@ async function grok호출(기능명, payload){
       body: JSON.stringify({
         기능: 기능명,
         reasoning_effort: GROK_리즈닝레벨[기능명] ?? 'none',
+        지침: 사용자.AI지침 || '',   // 세션6 항목5: 사용자 통합 지침 — 전 기능 공통 전달
         ...payload
       })
     });
@@ -3650,7 +3745,7 @@ function sq2_역방향_렌더(category){
   let optsHtml = '';
   보기.forEach((c,i)=>{
     // 역방향도 동일하게 boolean 전달 (selAns의 'true' 문자열 탐지 규약)
-    optsHtml += `<div class="aopt" onclick="selAns(this,${c.word===정답.word ? 'true' : 'false'})"><div class="onum">${i+1}</div><div class="otxt" style="font-size:13px;line-height:1.5">${c.meaning}</div></div>`;
+    optsHtml += `<div class="aopt" onclick="selAns(this,${c.word===정답.word ? 'true' : 'false'})"><div class="onum">${i+1}</div><div class="otxt" style="line-height:1.5">${c.meaning}</div></div>`;
   });
   body.innerHTML = `
     <div class="qcard">
@@ -4417,7 +4512,7 @@ function 복습_카드렌더(){
     <div class="exp-track" style="margin-bottom:14px"><div class="exp-fill instant" style="width:${진행률}%"></div></div>
     <div class="qcard" style="margin-top:4px;padding:26px 20px">
       <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
-      <div class="q-question" style="font-size:20px;margin-top:6px">${항목.단어}</div>
+      <div class="q-question" style="font-size:calc(20px*var(--글자배율));margin-top:6px">${항목.단어}</div>
       <div id="rvAnswer" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--bdr);font-size:14px;color:var(--txt2);line-height:1.8">${항목.뜻}</div>
     </div>
     <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:14px" onclick="복습_뜻공개()">뜻 보기</button>
@@ -5448,6 +5543,179 @@ let 사고전개모드 = false;
 let 질문턴수 = 0;   // 질문하기 차감 계산용 — 1턴 시작 차감, 4턴부터 추가 차감 (KNOWLEDGE 32)
 let 사고전개시작차감됨 = false;  // 오류 수정: 턴 중간에 사고전개를 켜도 시작 100토큰이 1회 차감되도록 추적
 
+/* ━━━ 세션6 항목4: 채팅 기록 — 세션 단위 저장 (최고 관리자님 확정 사양)
+   - 세션 = 한 카테고리에서의 연속 대화. 카테고리 이동·「새 대화」 시 마감 후 기록으로 보관.
+   - 세션당 메시지(나+AI 합계) 최대 100 — 도달 시 자동 마감 후 새 세션.
+   - 보존: 최근 30세션. 로그인 시 Firestore 서브컬렉션 「채팅기록」(문서=세션),
+     게스트는 plx_채팅기록(localStorage). 뷰어는 설정 「채팅 내역」 팝업. ━━━ */
+let 채팅기록 = [];        // [{카테고리, 시작시각, 메시지:[{역할,내용,시각}], 문서ID?}] — 오래된 순
+let 현재채팅세션 = null;  // 진행 중 세션 (마감 전, 미저장)
+const 채팅기록_최대세션 = 30;
+const 채팅세션_최대메시지 = 100;
+
+// HTML 삽입용 이스케이프 (채팅 뷰어·지침 편집 등 사용자 텍스트 공용)
+function 문자열_이스케이프(s){
+  return String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function 채팅기록_추가메시지(역할, 내용){
+  if(!내용) return;
+  if(!현재채팅세션){
+    현재채팅세션 = {카테고리: 현재학습모드 || '일반', 시작시각: Date.now(), 메시지: []};
+  }
+  현재채팅세션.메시지.push({역할, 내용: String(내용), 시각: Date.now()});
+  if(현재채팅세션.메시지.length >= 채팅세션_최대메시지){
+    채팅세션_마감('상한 도달');
+    showToastMsg('💬 대화가 100개에 도달해 기록으로 보관하고 새 대화를 시작합니다');
+  }
+}
+
+// 진행 중 세션을 기록으로 보관하고 채팅창을 초기화
+function 채팅세션_마감(사유){
+  if(현재채팅세션 && 현재채팅세션.메시지.length){
+    채팅기록.push(현재채팅세션);
+    채팅기록_세션저장(현재채팅세션);
+    while(채팅기록.length > 채팅기록_최대세션){
+      const 제거 = 채팅기록.shift();               // 가장 오래된 세션 삭제 (30개 보존)
+      if(제거 && 제거.문서ID) 채팅기록_문서삭제(제거.문서ID);
+    }
+    if(!현재UID) 채팅기록_게스트저장();             // 게스트는 배열 전체를 localStorage에
+  }
+  현재채팅세션 = null;
+  채팅창_초기화();
+}
+
+function 채팅창_초기화(){
+  const body = document.getElementById('askBody');
+  if(body) body.innerHTML = '<div class="ask-msg ai">안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요. Grok이 답변드립니다.</div>';
+}
+
+function 새대화_시작(){
+  if(현재채팅세션 && 현재채팅세션.메시지.length){
+    채팅세션_마감('새 대화');
+    showToastMsg('🆕 이전 대화를 기록에 보관했습니다');
+  } else {
+    채팅창_초기화();
+    showToastMsg('🆕 새 대화를 시작합니다');
+  }
+}
+
+// 저장/로드 — 토큰로그_기록 패턴 (로그인: Firestore / 게스트: localStorage)
+function 채팅기록_세션저장(세션){
+  if(fbDb && 현재UID){
+    fbDb.collection('users').doc(현재UID).collection('채팅기록').add({
+      카테고리: 세션.카테고리, 시작시각: 세션.시작시각, 메시지: 세션.메시지,
+      보관일시: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(doc=>{ 세션.문서ID = doc.id; })
+      .catch(e=> console.error('[Firestore] 채팅기록 저장 실패', e));
+  } else {
+    채팅기록_게스트저장();
+  }
+}
+function 채팅기록_게스트저장(){
+  try{ localStorage.setItem('plx_채팅기록', JSON.stringify(채팅기록.slice(-채팅기록_최대세션))); }catch(e){ /* 무시 */ }
+}
+function 채팅기록_문서삭제(id){
+  if(!fbDb || !현재UID || !id) return;
+  fbDb.collection('users').doc(현재UID).collection('채팅기록').doc(id).delete().catch(()=>{});
+}
+function 채팅기록_로드(){
+  if(fbDb && 현재UID){
+    fbDb.collection('users').doc(현재UID).collection('채팅기록').get().then(스냅=>{
+      채팅기록 = 스냅.docs.map(d=>({문서ID:d.id, ...d.data()}))
+        .sort((a,b)=>(a.시작시각||0)-(b.시작시각||0)).slice(-채팅기록_최대세션);
+    }).catch(e=> console.error('[Firestore] 채팅기록 로드 실패', e));
+  } else {
+    try{
+      const d = JSON.parse(localStorage.getItem('plx_채팅기록')||'null');
+      if(Array.isArray(d)) 채팅기록 = d.slice(-채팅기록_최대세션);
+    }catch(e){ /* 무시 */ }
+  }
+}
+
+// 뷰어 — 설정 「채팅 내역」: 세션 목록 → 탭하면 해당 세션 전문
+function 채팅세션_전체(){
+  const 전체 = [...채팅기록];
+  if(현재채팅세션 && 현재채팅세션.메시지.length) 전체.push({...현재채팅세션, 진행중:true});
+  return 전체;
+}
+function 채팅내역_열기(){
+  const esc = 문자열_이스케이프;
+  const 전체 = 채팅세션_전체();
+  if(!전체.length){
+    showInfoModal('💬','채팅 내역','저장된 대화가 없습니다.<br>학습 화면의 AI 챗에서 대화하면 자동으로 기록됩니다.<br><span style="font-size:11px;color:var(--txt2)">(최근 30개 대화 보존 · 대화당 메시지 100개 상한)</span>');
+    return;
+  }
+  const 목록 = 전체.slice().reverse().map((s, i)=>{
+    const 실idx = 전체.length - 1 - i;
+    const 첫질문 = (s.메시지.find(m=>m.역할==='나')||{}).내용 || '(질문 없음)';
+    const 일시 = s.시작시각 ? new Date(s.시작시각).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div style="padding:8px 2px;border-bottom:1px solid var(--bdr);cursor:pointer;text-align:left" onclick="채팅세션_보기(${실idx})">
+      <div style="font-size:12px;font-weight:700">${s.진행중?'🟢 ':''}${esc(s.카테고리||'일반')} <span style="font-weight:400;color:var(--txt2)">· ${일시} · ${s.메시지.length}개</span></div>
+      <div style="font-size:11px;color:var(--txt2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(첫질문)}</div>
+    </div>`;
+  }).join('');
+  showInfoModal('💬','채팅 내역', `<div style="max-height:300px;overflow-y:auto">${목록}</div><div style="font-size:10px;color:var(--txtm);margin-top:6px">최근 ${채팅기록_최대세션}개 대화 보존 · 대화당 ${채팅세션_최대메시지}개 상한</div>`);
+}
+/* ━━━ 세션6 항목5: AI 지침(통합 메모리) — 공백 포함 500자 제한 (최고 관리자님 확정 사양)
+   - 자동 수집 없음. 사용자가 직접 작성한 지침 하나를 모든 AI 호출(grok호출 공통 body)에 전달.
+   - 500자 초과 시 카운터가 빨간 음수로 표시되고, 저장을 누르면 「저장 실패」 팝업 + 원인 안내. ━━━ */
+const AI지침_최대길이 = 500;
+function AI지침_열기(){
+  const esc = 문자열_이스케이프;
+  showInfoModal('🧭','AI 지침',
+    `<div style="text-align:left;font-size:11px;color:var(--txt2);margin-bottom:6px">AI에게 항상 함께 전달되는 통합 지침입니다. (공백 포함 ${AI지침_최대길이}자)</div>
+     <textarea id="ai지침입력" oninput="AI지침_카운터갱신()" placeholder="예: 답변은 존댓말로, 예시는 2개씩 들어줘" style="width:100%;min-height:110px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:10px;color:var(--txt);font-family:var(--fn);font-size:12px;line-height:1.6;resize:vertical;outline:none">${esc(사용자.AI지침||'')}</textarea>
+     <div id="ai지침카운터" style="text-align:right;font-size:11px;margin-top:4px;color:var(--txt2)"></div>`);
+  const btns = document.getElementById('infoBtns');
+  if(btns) btns.innerHTML = `<button class="btn-g" style="flex:1" onclick="closeInfoModal()">닫기</button><button class="btn-acc" style="flex:1" onclick="AI지침_저장()">저장</button>`;
+  AI지침_카운터갱신();
+}
+function AI지침_카운터갱신(){
+  const t = document.getElementById('ai지침입력');
+  const c = document.getElementById('ai지침카운터');
+  if(!t || !c) return;
+  const 남은 = AI지침_최대길이 - t.value.length;
+  if(남은 >= 0){
+    c.textContent = `${t.value.length} / ${AI지침_최대길이}자`;
+    c.style.color = ''; c.style.fontWeight = '';
+  } else {
+    // 확정 사양: 초과 시 오버플로우가 아니라 빨간 음수로 표시
+    c.textContent = `${남은}자 (제한 초과)`;
+    c.style.color = 'var(--err)'; c.style.fontWeight = '700';
+  }
+}
+function AI지침_저장(){
+  const t = document.getElementById('ai지침입력');
+  if(!t) return;
+  const 값 = t.value;
+  if(값.length > AI지침_최대길이){
+    // 확정 사양: 저장 실패 팝업 + 원인
+    showInfoModal('❌','저장 실패', `지침이 <b>${AI지침_최대길이}자 제한을 ${값.length - AI지침_최대길이}자 초과</b>했습니다.<br>내용을 줄인 뒤 다시 저장해 주세요.`);
+    return;
+  }
+  사용자.AI지침 = 값;
+  try{ localStorage.setItem('plx_AI지침', 값); }catch(e){ /* 무시 */ }
+  사용자데이터_저장({AI지침: 값});
+  AI지침_상태갱신();
+  closeInfoModal();
+  showToastMsg('🧭 AI 지침 저장 완료');
+}
+function AI지침_상태갱신(){
+  const s = document.getElementById('ai지침상태');
+  if(s) s.textContent = (사용자.AI지침 && 사용자.AI지침.length) ? `${사용자.AI지침.length}자 저장됨` : '없음';
+}
+
+function 채팅세션_보기(idx){
+  const esc = 문자열_이스케이프;
+  const s = 채팅세션_전체()[idx];
+  if(!s) return;
+  const 본문 = s.메시지.map(m=>
+    `<div style="margin:6px 0;text-align:${m.역할==='나'?'right':'left'}"><span style="display:inline-block;max-width:92%;padding:7px 10px;border-radius:8px;background:var(--elev);border:1px solid var(--bdr);font-size:12px;line-height:1.6;text-align:left;color:var(--txt)">${m.역할==='나'?'🙋':'🤖'} ${esc(m.내용)}</span></div>`
+  ).join('');
+  showInfoModal('💬', esc(s.카테고리||'일반') + ' 대화', `<div style="max-height:300px;overflow-y:auto;text-align:left">${본문}</div><div style="margin-top:8px"><button class="btn-g" style="width:100%;padding:9px" onclick="채팅내역_열기()">← 목록으로</button></div>`);
+}
+
 function 사고전개_토글(){
   사고전개모드 = !사고전개모드;
   const b=document.getElementById('thinkToggle');
@@ -5521,7 +5789,8 @@ function sendAsk(){
     if(사용자.창조주달성){
       inp.value='';
       inp.style.height='auto';
-      showInfoModal('👑','이미 창조주입니다','창조주의 권한은 이미 당신의 것입니다.<br>이 퀘스트는 최초 1회만 진행됩니다.');
+      // 세션6 항목3: 최고 관리자님 지정 문구로 교체 (맞춤법 교정 반영)
+      showInfoModal('👑','알현','시스템의 창조자이자 최고 권력자이신, 드높으신 폐하를 알현합니다.<br><br><span style="font-size:11px;color:var(--txt2)">창조주 퀘스트는 최초 1회만 진행됩니다.</span>');
       return;
     }
     inp.value='';
@@ -5550,15 +5819,20 @@ function sendAsk(){
   inp.value='';
   inp.style.height='auto';  // 버그4: 전송 후 입력창 높이 초기화
   body.scrollTop=body.scrollHeight;
+  채팅기록_추가메시지('나', q);  // 세션6 항목4: 대화 기록 축적
 
   if(!GROK_활성화){
     // 크레딧 미구매 단계: 호출·토큰 차감 없이 안내만 출력
     setTimeout(()=>{
       const a=document.createElement('div');
       a.className='ask-msg ai';
-      a.innerHTML='🔌 Grok 연동 준비 중입니다.<br>API 크레딧 구매 후 활성화되면 실제 답변이 제공됩니다. (토큰 차감 없음)';
+      // 세션6 항목2: 사고전개 ON 상태 안내 병기
+      const 안내 = '🔌 Grok 연동 준비 중입니다.<br>API 크레딧 구매 후 활성화되면 실제 답변이 제공됩니다. (토큰 차감 없음)'
+        + (사고전개모드 ? '<br><br>🧠 사고전개가 켜져 있습니다 — 활성화 후 답변과 함께 사고 과정이 표시됩니다.' : '');
+      a.innerHTML = 안내;
       body.appendChild(a);
       body.scrollTop=body.scrollHeight;
+      채팅기록_추가메시지('AI', 'Grok 연동 준비 중 안내');  // 세션6: 게이트 응답도 기록
     },400);
     return;
   }
@@ -5594,10 +5868,16 @@ function sendAsk(){
     const a=document.createElement('div');
     a.className='ask-msg ai';
     if(res && res.답변){
+      // 세션6 항목2: 사고전개 블록 — 응답에 사고전개가 오면 답변 위에 접힌 형태로 표시 (기본 글자색으로 가독 확보)
+      const 사고블록 = (사고전개모드 && res.사고전개)
+        ? `<div class="ask-think">🧠 <b>사고 전개</b><br>${res.사고전개}</div>`
+        : '';
       // 이의있음! 버튼은 답변 생성 후에만 노출 (KNOWLEDGE 5 표시 조건)
-      a.innerHTML = res.답변 + '<br><br><button class="ask-objection-btn" onclick="openObj()">⚖️ 이의있음!</button>';
+      a.innerHTML = 사고블록 + res.답변 + '<br><br><button class="ask-objection-btn" onclick="openObj()">⚖️ 이의있음!</button>';
+      채팅기록_추가메시지('AI', (res.사고전개 ? '[사고전개] ' + res.사고전개 + '\n' : '') + res.답변);  // 세션6 항목4
     } else {
       a.textContent = UI_TEXT.rate_limit.문구;
+      채팅기록_추가메시지('AI', UI_TEXT.rate_limit.문구);
     }
     body.appendChild(a);
     body.scrollTop=body.scrollHeight;
@@ -6225,8 +6505,10 @@ function 개발자패널_열기(){
     `마스터리 증분 (+${o.마스터리증분||0}) <button class="btn-g" style="padding:5px 11px" onclick="개발자_마스터리증분(10)">+10</button><br>` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_업적풀돌토글()">업적 풀돌 강제: ${o.업적풀돌?'ON':'OFF'}</button> ` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_상한해제토글()">상한 해제: ${o.상한해제?'ON':'OFF'}</button><br>` +
-    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_오버레이초기화()">오버레이 값 전체 초기화</button><br>` +
-    `<span style="color:var(--txt2);font-size:11px">※ 토큰은 개발자 모드 중 자동 무제한 (KNOWLEDGE 14)</span>` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_오버레이초기화()">오버레이 값 전체 초기화</button> ` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_네비토글()">상단 바로가기: ${사용자.개발자네비표시?'ON':'OFF'}</button><br>` +
+    `<span style="color:var(--txt2);font-size:11px">※ 토큰은 개발자 모드 중 자동 무제한 (KNOWLEDGE 14)<br>` +
+    `※ 오버레이 값은 새로고침 시 사라집니다(표시 전용 — 실제 달성 기록은 유지)</span>` +
     `</div>`);
   const btnArea = document.getElementById('infoBtns');
   if(btnArea){
@@ -6369,14 +6651,90 @@ function 칭호선택_모달(){
   document.getElementById('selBg').classList.add('show');
 }
 
-// α9: 고급 커스터마이징 진입 — 초월자(Lv.16) 이상 {wait!} / 필멸자 [권한 부족] (KNOWLEDGE 11)
-function 고급커스터마이징_탭(){
-  if(사용자.개발자모드 || curLv >= 16){
-    showInfoModal('🎨','고급 커스터마이징','{wait!}<br><br>안정화 후 정비 예정입니다.');
+/* ━━━ 세션6 항목11: 프로필 커스터마이징 개방 (최고 관리자님 확정 사양)
+   - 전원: 이모지 프리셋 + assets/프로필/ 이미지 프리셋 자유 선택.
+   - 직접 업로드만 고급(초월자 Lv.16+ 또는 개발자모드) — 미달 시 [권한 부족] 경고.
+   - 이미지 프리셋은 assets/프로필/목록.json에 등록된 것만 노출(파일 추가 → 자동 반영).
+     출처 표기·삭제 정책은 assets/프로필/출처.md 참조. ━━━ */
+const 프로필_이모지프리셋 = ['⚔️','📚','🦉','🌙','🔥','🌊','🌸','⭐','🎯','🐺','🐱','🐰'];
+let 프로필_이미지프리셋 = [];   // [{파일, 이름, 출처}] — 목록.json에서 로드
+function 프로필프리셋_로드(){
+  fetch('assets/프로필/목록.json')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if(d && Array.isArray(d.items)) 프로필_이미지프리셋 = d.items; })
+    .catch(()=>{ /* 폴더 없음/오프라인 — 이모지 프리셋만 노출 */ });
+}
+
+// 아바타 렌더 — 값이 이미지(assets/·data:·http)면 <img>, 아니면 이모지 텍스트
+function 아바타_적용(el, 값){
+  if(!el) return;
+  const v = 값 || '⚔️';
+  if(/^(assets\/|data:|https?:)/.test(v)){
+    el.innerHTML = `<img src="${문자열_이스케이프(v)}" alt="프로필" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`;
   } else {
-    showInfoModal('🔒','고급 커스터마이징','[권한 부족]<br><br>초월자(Lv.16) 달성 시 해금됩니다.');
+    el.textContent = v;
   }
 }
+
+function 프로필선택_열기(){
+  const esc = 문자열_이스케이프;
+  const 이모지들 = 프로필_이모지프리셋.map(e =>
+    `<button style="font-size:22px;width:44px;height:44px;background:var(--elev);border:1px solid var(--bdr);border-radius:10px;cursor:pointer" onclick="프로필_적용선택('${e}')">${e}</button>`
+  ).join('');
+  const 이미지들 = 프로필_이미지프리셋.length
+    ? 프로필_이미지프리셋.map(it =>
+        `<img src="assets/프로필/${esc(it.파일)}" title="${esc(it.이름||'')}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;cursor:pointer;border:1px solid var(--bdr)" onclick="프로필_적용선택('assets/프로필/${esc(it.파일)}')">`
+      ).join('')
+    : `<div style="font-size:11px;color:var(--txt2)">등록된 이미지가 아직 없습니다.<br>(assets/프로필/ 폴더에 이미지 + 목록.json 등록 시 표시)</div>`;
+  const 업로드가능 = 사용자.개발자모드 || curLv >= 16;
+  showInfoModal('🖼️','프로필 선택',
+    `<div style="text-align:left">
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:5px">기본 이모지 — 누구나 사용 가능</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${이모지들}</div>
+      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">이미지 프리셋 — 누구나 사용 가능</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${이미지들}</div>
+      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '🔒 초월자(Lv.16) 해금'}</div>
+      <button class="btn-g" style="width:100%;padding:9px" onclick="프로필_업로드시도()">📁 내 사진 선택…</button>
+      <input type="file" id="프로필파일입력" accept="image/*" style="display:none" onchange="프로필_파일처리(this)">
+    </div>`);
+}
+function 프로필_적용선택(v){
+  사용자.프로필이미지 = v;
+  사용자데이터_저장({프로필이미지: v});
+  ['homeAvatar','statusAvatar','settingsAvatar','nmAvatar'].forEach(id => 아바타_적용(document.getElementById(id), v));
+  closeInfoModal();
+  showToastMsg('프로필 변경 완료');
+}
+function 프로필_업로드시도(){
+  // 확정 사양: 직접 업로드만 고급 게이트 — 미달자는 경고 팝업
+  if(!(사용자.개발자모드 || curLv >= 16)){
+    showInfoModal('🔒','고급 커스터마이징','[권한 부족]<br><br>직접 업로드는 초월자(Lv.16) 달성 시 해금됩니다.<br>기본 이모지·이미지 프리셋은 지금도 자유롭게 사용할 수 있습니다.');
+    return;
+  }
+  document.getElementById('프로필파일입력')?.click();
+}
+function 프로필_파일처리(inp){
+  const f = inp.files && inp.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      // canvas 128px 정사각 리사이즈 → dataURL(약 10~30KB) — Firestore 문서(1MB) 한도 내 저장
+      const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+      const x = c.getContext('2d');
+      const s = Math.min(img.width, img.height);
+      x.drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, 128, 128);
+      프로필_적용선택(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+  inp.value = '';
+}
+
+// α9 호환: 기존 진입점은 프로필 선택으로 위임 (개방 정책 반영)
+function 고급커스터마이징_탭(){ 프로필선택_열기(); }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    빌드1 β10: 성장 상세 화면 sg 렌더 (KNOWLEDGE 17-1)
@@ -6445,7 +6803,16 @@ function 렌더_성장상세(){
    빌드1: 개발자 네비 표시 제어 — 개발자 모드에서만 상단 데모 네비 노출
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function 갱신_개발자네비_표시(){
-  document.body.classList.toggle('devnav', !!사용자.개발자모드);
+  // 세션6 항목9: 창조주 달성 시 상단 바로가기가 자동 노출되던 문제 —
+  // 개발자 모드 + 「상단 바로가기 표시」 토글(개발자네비표시)이 모두 켜져야 노출.
+  document.body.classList.toggle('devnav', !!(사용자.개발자모드 && 사용자.개발자네비표시));
+}
+// 세션6 항목9: 개발자 패널의 상단 바로가기 토글
+function 개발자_네비토글(){
+  사용자.개발자네비표시 = !사용자.개발자네비표시;
+  사용자데이터_저장({개발자네비표시: 사용자.개발자네비표시});
+  갱신_개발자네비_표시();
+  개발자패널_열기();  // 패널 라벨 갱신
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -6474,6 +6841,7 @@ function 게스트로그인(){
   현재UID = null;                 // Firestore 저장 경로 차단 유지
   게스트보관함_복원();            // 세션5: 게스트 복습 데이터 localStorage 복원
   구어완료_복원();                // 세션5: 게스트 구어 교정 완료 기록 복원
+  채팅기록_로드();                // 세션6: 게스트 채팅 기록 복원
   사용자.이름 = 사용자.이름 || '테스트';
   사용자.이메일 = '(비로그인 테스트)';
   userName = 사용자.이름;
@@ -6495,7 +6863,13 @@ try{
   const 저장폰트 = localStorage.getItem('plx_폰트'); if(저장폰트) applyFont(저장폰트, true);
   const 저장화면 = localStorage.getItem('plx_화면배율'); if(저장화면) setFontScale(parseInt(저장화면,10), true);   // 세션5: 화면 크기 복원
   const 저장배율 = localStorage.getItem('plx_글자배율'); if(저장배율) set글자크기(parseInt(저장배율,10), true);     // 세션5: 글자 크기 복원(텍스트 전용)
-  const 저장학습 = JSON.parse(localStorage.getItem('plx_학습설정')||'null'); if(저장학습){ Object.assign(학습설정, 저장학습); 학습설정_UI동기화(); }  // 세션5 버그7: 학습 설정 복원
+  const 저장학습 = JSON.parse(localStorage.getItem('plx_학습설정')||'null'); if(저장학습) Object.assign(학습설정, 저장학습);  // 세션5 버그7: 학습 설정 복원
+  학습설정_UI동기화();  // 세션6 버그6: 저장값 유무와 무관하게 기본값 기준으로도 항상 버튼 동기화
+  const 저장지침 = localStorage.getItem('plx_AI지침'); if(저장지침 !== null){ 사용자.AI지침 = 저장지침; }  // 세션6 항목5
+  AI지침_상태갱신();
+  프로필프리셋_로드();   // 세션6 항목11: assets/프로필/목록.json (없으면 조용히 무시)
+  채팅기록_로드();       // 세션6 항목4: 게스트 채팅 기록 복원 (로그인 시 보관함_로드가 다시 로드)
+  아바타_적용(document.getElementById('nmAvatar'), 사용자.프로필이미지);  // 세션6: 이름 화면 아바타도 바인딩
   const 저장음성EP = localStorage.getItem('plx_음성엔드포인트'); if(저장음성EP) 음성엔드포인트 = 저장음성EP;  // 추가기능: 음성 서버 주소 복원
 }catch(e){ /* localStorage 차단 환경 무시 */ }
 예문데이터_로드();          // β8: 정령왕 JSON (구어 27 · 유의어 18 · 한문장 7)

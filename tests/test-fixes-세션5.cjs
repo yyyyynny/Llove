@@ -89,9 +89,9 @@ load((window) => {
   ev('closeNmModal();');
   assert('버그9: 이름 모달 닫기 → blur', doc.activeElement !== doc.getElementById('nmModalInp'));
 
-  /* ── 버그6(방식A): 이미 창조주면 퀘스트 재진입 차단 ── */
+  /* ── 버그6(방식A): 이미 창조주면 퀘스트 재진입 차단 (세션6: 문구 「알현」으로 교체됨) ── */
   ev("사용자.창조주달성=true; document.getElementById('askInp').value=창조주키; sendAsk();");
-  assert('버그6: 재진입 차단 안내 모달', doc.getElementById('infoBg').classList.contains('show') && doc.getElementById('infoTitle').textContent.includes('이미 창조주'));
+  assert('버그6: 재진입 차단 안내 모달', doc.getElementById('infoBg').classList.contains('show') && doc.getElementById('infoTitle').textContent.includes('알현'));
   assert('버그6: 시나리오 미진입', ev('창조주진행중') !== true);
   ev('closeInfoModal(); 사용자.창조주달성=false;');
 

@@ -11,7 +11,8 @@ const 테스트들 = [
   ['항목10 복습 전용 화면', 'test-review.cjs'],
   ['항목3 커스텀 테마', 'test-customtheme.cjs'],
   ['추가기능 음성 생성', 'test-voice.cjs'],
-  ['세션5 실사용 검토 수정', 'test-fixes-세션5.cjs']
+  ['세션5 실사용 검토 수정', 'test-fixes-세션5.cjs'],
+  ['세션6 실기기 2차 수정', 'test-fixes-세션6.cjs']
 ];
 
 let 실패 = 0;
