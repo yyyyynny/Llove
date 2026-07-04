@@ -160,31 +160,31 @@ html{scrollbar-gutter:stable}
 .nv-btn.on{color:var(--acc)}
 .nv-btn.on .nv-icon{transform:scale(1.08)}
 .nv-btn:active{transform:scale(.86)}
-.nv-icon{font-size:21px;transition:transform .25s cubic-bezier(.22,1,.36,1)}
+.nv-icon{font-size:23px;transition:transform .25s cubic-bezier(.22,1,.36,1)}
 
 /* ━━━ 공통 컴포넌트 ━━━ */
-.btn-acc{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;padding:13px 22px;border-radius:10px;font-family:var(--fn);font-weight:700;font-size:14px;cursor:pointer;transition:transform .2s,box-shadow .2s;letter-spacing:.3px}
+.btn-acc{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;padding:13px 22px;border-radius:10px;font-family:var(--fn);font-weight:700;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;letter-spacing:.3px}
 .btn-acc:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .btn-acc:active{transform:scale(.97)}
-.btn-g{background:transparent;color:var(--txt2);border:1px solid var(--bdr);padding:9px 15px;border-radius:8px;font-family:var(--fn);font-size:13px;cursor:pointer;transition:all .2s}
+.btn-g{background:transparent;color:var(--txt2);border:1px solid var(--bdr);padding:9px 15px;border-radius:8px;font-family:var(--fn);font-size:14px;cursor:pointer;transition:all .2s}
 .btn-g:hover{border-color:var(--accd);color:var(--acc)}
 
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--card);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:50;transition:background .4s,border-color .4s;flex-shrink:0}
-.tbt{font-family:var(--fn);font-size:16px;color:var(--acc);letter-spacing:.8px}
+.tbt{font-family:var(--fn);font-size:18px;color:var(--acc);letter-spacing:.8px}
 
-.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .ta{background:rgba(184,149,106,.12);color:var(--acc);border:1px solid rgba(184,149,106,.28)}
 .tg{background:rgba(90,184,90,.12);color:var(--ok);border:1px solid rgba(90,184,90,.25)}
 .tb{background:rgba(90,152,200,.12);color:var(--inf);border:1px solid rgba(90,152,200,.25)}
 .tp{background:rgba(180,100,210,.12);color:#c39bd3;border:1px solid rgba(180,100,210,.25)}
-.tag-ai{background:rgba(120,180,255,.15);color:var(--inf);border:1px solid rgba(120,180,255,.35);padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+.tag-ai{background:rgba(120,180,255,.15);color:var(--inf);border:1px solid rgba(120,180,255,.35);padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
 
 .exp-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--bdr)}
 .exp-fill{height:100%;background:var(--exp);border-radius:4px;width:0;transition:width 1.1s cubic-bezier(.22,1,.36,1)}
 .exp-fill.instant{transition:none}
 
 .seg{display:flex;background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0;overflow-x:auto}
-.seg-btn{flex:1;padding:12px 8px;text-align:center;font-size:13px;font-weight:500;color:var(--txt2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;font-family:var(--fn)}
+.seg-btn{flex:1;padding:12px 8px;text-align:center;font-size:14px;font-weight:500;color:var(--txt2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;font-family:var(--fn)}
 .seg-btn.on{color:var(--acc);border-bottom-color:var(--acc)}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -193,7 +193,7 @@ html{scrollbar-gutter:stable}
 #onboarding{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
 #onboarding.gone{display:none}
 .ob-prog{position:absolute;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accd),var(--acc));transition:width .4s cubic-bezier(.22,1,.36,1);z-index:5}
-.ob-skip{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--txtm);font-size:12px;cursor:pointer;font-family:var(--fn);padding:4px 8px;z-index:6}
+.ob-skip{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--txtm);font-size:13px;cursor:pointer;font-family:var(--fn);padding:4px 8px;z-index:6}
 .ob-skip:hover{color:var(--txt2)}
 .ob-slides{position:relative;flex:1;overflow:hidden}
 .ob-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 28px 20px;opacity:0;transform:translateX(32px);transition:opacity .42s cubic-bezier(.22,1,.36,1),transform .42s cubic-bezier(.22,1,.36,1);pointer-events:none;overflow-y:auto}
@@ -201,24 +201,24 @@ html{scrollbar-gutter:stable}
 .ob-slide.exit{opacity:0;transform:translateX(-32px)}
 .ob-bg{position:absolute;inset:0;pointer-events:none}
 .ob-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
-.ob-icon{font-size:50px;margin-bottom:18px;animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both}
-.ob-title{font-family:'Nanum Myeongjo',serif;font-size:23px;font-weight:800;color:var(--acc);text-align:center;margin-bottom:8px;line-height:1.38;letter-spacing:.4px}
+.ob-icon{font-size:55px;margin-bottom:18px;animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both}
+.ob-title{font-family:'Nanum Myeongjo',serif;font-size:25px;font-weight:800;color:var(--acc);text-align:center;margin-bottom:8px;line-height:1.38;letter-spacing:.4px}
 .ob-div{width:40px;height:2px;background:linear-gradient(90deg,transparent,var(--accd),transparent);margin:14px auto}
-.ob-sub{font-size:13px;color:var(--txt2);text-align:center;line-height:1.85;max-width:300px}
+.ob-sub{font-size:14px;color:var(--txt2);text-align:center;line-height:1.85;max-width:300px}
 .ob-sub b{color:var(--accl);font-weight:700}
 .ob-feats{display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;margin-top:10px}
 .ob-feat{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:11px 14px;display:flex;align-items:center;gap:12px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 .ob-feat:nth-child(1){animation-delay:.05s}.ob-feat:nth-child(2){animation-delay:.10s}.ob-feat:nth-child(3){animation-delay:.15s}.ob-feat:nth-child(4){animation-delay:.20s}.ob-feat:nth-child(5){animation-delay:.25s}.ob-feat:nth-child(6){animation-delay:.30s}.ob-feat:nth-child(7){animation-delay:.35s}
-.ob-fi{font-size:22px;width:32px;text-align:center}
-.ob-fn{font-size:13px;font-weight:700;margin-bottom:2px}
-.ob-fd{font-size:11px;color:var(--txt2)}
-.ob-start-btn{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;padding:14px 40px;border-radius:11px;font-family:'Nanum Myeongjo',serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:22px;transition:transform .2s,box-shadow .2s;animation:fadeUp .5s .35s cubic-bezier(.22,1,.36,1) both}
+.ob-fi{font-size:24px;width:32px;text-align:center}
+.ob-fn{font-size:14px;font-weight:700;margin-bottom:2px}
+.ob-fd{font-size:12px;color:var(--txt2)}
+.ob-start-btn{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;padding:14px 40px;border-radius:11px;font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:700;cursor:pointer;margin-top:22px;transition:transform .2s,box-shadow .2s;animation:fadeUp .5s .35s cubic-bezier(.22,1,.36,1) both}
 .ob-start-btn:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(184,149,106,.35)}
 .ob-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 26px 34px;flex-shrink:0}
 .ob-dots{display:flex;gap:5px}
 .ob-dot{width:6px;height:6px;border-radius:3px;background:var(--bdr);transition:all .3s cubic-bezier(.22,1,.36,1)}
 .ob-dot.on{width:18px;background:var(--acc)}
-.ob-nb{background:var(--card);border:1px solid var(--bdr);color:var(--txt2);padding:8px 17px;border-radius:8px;font-family:var(--fn);font-size:13px;cursor:pointer;transition:all .2s}
+.ob-nb{background:var(--card);border:1px solid var(--bdr);color:var(--txt2);padding:8px 17px;border-radius:8px;font-family:var(--fn);font-size:14px;cursor:pointer;transition:all .2s}
 .ob-nb:hover{border-color:var(--accd);color:var(--acc)}
 .ob-nb.pri{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border-color:transparent;font-weight:700}
 .ob-nb.inv{opacity:0;pointer-events:none}
@@ -228,44 +228,44 @@ html{scrollbar-gutter:stable}
 .lg-bg{position:absolute;inset:0;pointer-events:none}
 .lg-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
 .lg-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:340px}
-.lg-icon-wrap{width:76px;height:76px;background:linear-gradient(135deg,#1e2535,#2a3550);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:36px}
-.lg-title{font-family:'Nanum Myeongjo',serif;font-size:24px;color:var(--acc);letter-spacing:3px}
-.lg-sub{font-size:10px;color:var(--txtm);letter-spacing:3px;text-transform:uppercase}
+.lg-icon-wrap{width:76px;height:76px;background:linear-gradient(135deg,#1e2535,#2a3550);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:40px}
+.lg-title{font-family:'Nanum Myeongjo',serif;font-size:26px;color:var(--acc);letter-spacing:3px}
+.lg-sub{font-size:11px;color:var(--txtm);letter-spacing:3px;text-transform:uppercase}
 .lg-desc{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;width:100%;text-align:center}
-.lg-desc p{font-size:13px;color:var(--txt2);line-height:1.75}
-.btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:15px;color:var(--txt);font-family:var(--fn);font-size:14px;font-weight:500;cursor:pointer;transition:border-color .2s,transform .2s}
+.lg-desc p{font-size:14px;color:var(--txt2);line-height:1.75}
+.btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:15px;color:var(--txt);font-family:var(--fn);font-size:15px;font-weight:500;cursor:pointer;transition:border-color .2s,transform .2s}
 .btn-google:hover{border-color:var(--accd);transform:translateY(-1px)}
 
 /* ━━━ 이름 입력 ━━━ */
 #sn{justify-content:center;align-items:center;padding:40px 24px;overflow-y:auto}
-.nm-inp{background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:14px 16px;color:var(--txt);font-family:var(--fn);font-size:15px;outline:none;width:100%;transition:border-color .2s}
+.nm-inp{background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:14px 16px;color:var(--txt);font-family:var(--fn);font-size:17px;outline:none;width:100%;transition:border-color .2s}
 .nm-inp:focus{border-color:var(--acc)}
 .nm-prev{background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:14px;display:flex;align-items:center;gap:12px;transition:border-color .3s}
 .nm-prev.has{border-color:var(--accd)}
-.nm-av{width:46px;height:46px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px}
-.nm-pname{font-weight:700;font-size:14px}
+.nm-av{width:46px;height:46px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px}
+.nm-pname{font-weight:700;font-size:15px}
 .nm-prev.has .nm-pname{color:var(--acc)}
-.nm-rank{font-size:11px;color:var(--acc)}
+.nm-rank{font-size:12px;color:var(--acc)}
 
 /* ━━━ 홈 ━━━ */
 .hh{background:var(--card);border-bottom:1px solid var(--bdr);padding:20px;flex-shrink:0;transition:background .4s,border-color .4s}
 .hh-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.hg{font-size:12px;color:var(--txt2)}
-.hun{font-size:19px;font-weight:700}
-.hav{width:46px;height:46px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .2s}
+.hg{font-size:13px;color:var(--txt2)}
+.hun{font-size:21px;font-weight:700}
+.hav{width:46px;height:46px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:transform .2s}
 .hav:active{transform:scale(.9)}
-.lbdg{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);font-weight:900;font-size:11px;padding:3px 9px;border-radius:18px}
-.rn{font-size:13px;color:var(--acc);font-weight:600}
-.exp-row{display:flex;justify-content:space-between;font-size:10px;color:var(--txtm);margin-top:5px}
+.lbdg{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);font-weight:900;font-size:12px;padding:3px 9px;border-radius:18px}
+.rn{font-size:14px;color:var(--acc);font-weight:600}
+.exp-row{display:flex;justify-content:space-between;font-size:11px;color:var(--txtm);margin-top:5px}
 .stat-row{display:flex;gap:9px;margin-top:12px}
 .stat-chip{flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:9px;padding:9px;text-align:center;transition:transform .2s,border-color .2s}
 .stat-chip:hover{transform:translateY(-2px);border-color:var(--accd)}
-.sc-val{font-size:17px;font-weight:700;color:var(--acc)}
-.sc-lbl{font-size:9px;color:var(--txtm);margin-top:2px}
+.sc-val{font-size:19px;font-weight:700;color:var(--acc)}
+.sc-lbl{font-size:10px;color:var(--txtm);margin-top:2px}
 .kc{margin:14px 20px;background:linear-gradient(135deg,var(--card),var(--elev));border:1px solid var(--accd);border-radius:12px;padding:14px;cursor:pointer;position:relative;overflow:hidden;min-height:96px}
-.kl{font-size:10px;color:var(--acc);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:7px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
-.kt{font-size:14px;line-height:1.78;font-style:italic}
-.kt-author{font-size:11px;color:var(--txt2);text-align:right;margin-top:6px;font-style:normal}
+.kl{font-size:11px;color:var(--acc);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:7px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.kt{font-size:15px;line-height:1.78;font-style:italic}
+.kt-author{font-size:12px;color:var(--txt2);text-align:right;margin-top:6px;font-style:normal}
 /* ━━━ v3.7 항목11: 「오늘 한 문장」슬라이드 배너 (KNOWLEDGE 24섹션) ━━━
    - CSS opacity 페이드, JS는 setInterval 시간 기반(프레임 개념 X)
    - 카드 내부 빈 곳 탭 → 다음 문장 즉시 전환 + 자동 타이머 리셋(항목12)
@@ -282,49 +282,50 @@ html{scrollbar-gutter:stable}
 .kc-word:hover{color:var(--accl);border-bottom-color:var(--acc)}
 .hs{padding:0 20px 20px}
 /* 세션6 항목8: 「학습 모드」 라벨·카드 강조 — 터치에선 hover가 없으므로 상시 강조로 전환 */
-.sec-t{font-size:12px;font-weight:700;color:var(--txt);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px;margin-top:18px}
+.sec-t{font-size:13px;font-weight:700;color:var(--txt);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px;margin-top:18px}
 .mc{background:var(--card);border:1px solid var(--bdrg);border-radius:12px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:9px;transition:transform .2s,border-color .2s,background .4s;position:relative;overflow:hidden}
 .mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc);transition:width .25s}
 .mc:hover{transform:translateX(3px);border-color:var(--acc)}
 .mc:hover::before{width:6px}
 .mc:hover .mc-arrow{transform:translateX(3px);color:var(--acc)}
-.mc-icon{font-size:24px;width:40px;text-align:center;flex-shrink:0}
-.mc-name{font-size:15px;font-weight:700;margin-bottom:2px;color:var(--accl)}
-.mc-desc{font-size:11px;color:var(--txt2)}
-.mc-arrow{color:var(--txtm);font-size:19px;transition:transform .2s,color .2s}
+.mc-icon{font-size:26px;width:40px;text-align:center;flex-shrink:0}
+.mc-name{font-size:17px;font-weight:700;margin-bottom:2px;color:var(--accl)}
+.mc-desc{font-size:12px;color:var(--txt2)}
+.mc-arrow{color:var(--txtm);font-size:21px;transition:transform .2s,color .2s}
 
 /* ━━━ 학습 - 4지선다 / 3지선다 ━━━ */
 .qprog-wrap{padding:14px 20px;background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0}
 
 /* v3.5: 학습 화면 상단 설정 패널 (접이식) */
 .lset-panel{background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0;transition:all .3s cubic-bezier(.22,1,.36,1)}
-.lset-hdr{padding:10px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;color:var(--txt2);user-select:none}
+/* 세션7 항목9: 학습 설정 헤더 강조 — 배경 톤·강조 바·기본 글자색으로 눈에 띄게 */
+.lset-hdr{padding:10px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:14px;color:var(--txt);font-weight:700;user-select:none;background:var(--elev);border-left:3px solid var(--acc)}
 .lset-hdr:hover{color:var(--acc)}
 .lset-hdr-left{display:flex;align-items:center;gap:6px}
 /* 세션5 버그8: 회전 금지 규칙 준수 — 화살표는 rotate 대신 JS가 ▼/▲ 글자를 교체 */
-.lset-toggle{font-size:11px;color:var(--txtm)}
+.lset-toggle{font-size:12px;color:var(--txtm)}
 /* v3.7 항목10: max-height 480px로 확장 (4방식 + 2행 추가 대응)
    세션5 버그8: 펼침·접힘 부자연 해소 — 높이·여백·투명도를 함께 전환(수직 전개, fadeUp 계열) */
 .lset-body{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s cubic-bezier(.22,1,.36,1),padding .35s cubic-bezier(.22,1,.36,1),opacity .3s ease;padding:0 18px}
 .lset-panel.open .lset-body{max-height:480px;padding:6px 18px 12px;opacity:1}
-.lset-row{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px}
+.lset-row{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:14px}
 /* v3.7 항목9: 「방식」 라벨 가시성 개선 / 항목9(가독성): 글자 크기 상향 */
-.lset-row-lbl{color:var(--txt);min-width:64px;font-weight:600;font-size:13px}
+.lset-row-lbl{color:var(--txt);min-width:64px;font-weight:600;font-size:14px}
 .lset-opts{display:flex;gap:6px;flex-wrap:wrap}
-.lset-opt{padding:6px 12px;border:1px solid var(--bdr);border-radius:6px;background:var(--elev);color:var(--txt2);font-size:12px;cursor:pointer;font-family:var(--fn);transition:all .15s}
+.lset-opt{padding:6px 12px;border:1px solid var(--bdr);border-radius:6px;background:var(--elev);color:var(--txt2);font-size:13px;cursor:pointer;font-family:var(--fn);transition:all .15s}
 .lset-opt:hover{border-color:var(--accd)}
 .lset-opt.on{background:rgba(184,149,106,.1);border-color:var(--acc);color:var(--acc);font-weight:700}
 .qpr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
-.qmb{font-size:12px;font-weight:700;color:var(--acc)}
-.qct{font-size:12px;color:var(--txt2)}
+.qmb{font-size:13px;font-weight:700;color:var(--acc)}
+.qct{font-size:13px;color:var(--txt2)}
 .qpbar{height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
 .qpfill{height:100%;background:linear-gradient(90deg,var(--inf),#80d8ff);border-radius:3px;transition:width .5s cubic-bezier(.22,1,.36,1)}
 .qbody{padding:18px;display:flex;flex-direction:column;gap:16px}
 .qcard{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:22px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 .qcat{margin-bottom:11px;display:flex;gap:6px;flex-wrap:wrap}
-.q-word{font-size:23px;font-weight:700;color:var(--acc);letter-spacing:2px;margin-bottom:9px}
-.q-question{font-size:15px;line-height:1.7;margin-bottom:6px}
-.q-hint{font-size:12px;color:var(--txt2);line-height:1.75}
+.q-word{font-size:25px;font-weight:700;color:var(--acc);letter-spacing:2px;margin-bottom:9px}
+.q-question{font-size:17px;line-height:1.7;margin-bottom:6px}
+.q-hint{font-size:13px;color:var(--txt2);line-height:1.75}
 .aopts{display:flex;flex-direction:column;gap:8px}
 .aopt{background:var(--elev);border:1px solid var(--bdr);border-radius:10px;padding:12px 15px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:transform .15s,border-color .2s;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 .aopt:nth-child(1){animation-delay:.05s}.aopt:nth-child(2){animation-delay:.10s}.aopt:nth-child(3){animation-delay:.15s}.aopt:nth-child(4){animation-delay:.20s}
@@ -336,42 +337,42 @@ html{scrollbar-gutter:stable}
 .onum{width:26px;height:26px;background:var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--txt2);flex-shrink:0;transition:background .2s,color .2s}
 .aopt.correct .onum{background:var(--ok);color:#fff}
 .aopt.wrong .onum{background:var(--err);color:#fff}
-.otxt{font-size:13px;font-weight:500;line-height:1.5}
+.otxt{font-size:14px;font-weight:500;line-height:1.5}
 .exp-gain{background:rgba(184,149,106,.08);border:1px solid rgba(184,149,106,.22);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
-.egl{font-size:12px;color:var(--txt2)}
-.egv{font-size:16px;font-weight:900;color:var(--acc)}
-.exp-float{position:fixed;z-index:999;font-size:17px;font-weight:900;color:var(--accl);pointer-events:none;animation:expFloat 1.1s ease forwards;text-shadow:0 0 10px rgba(184,149,106,.8)}
+.egl{font-size:13px;color:var(--txt2)}
+.egv{font-size:18px;font-weight:900;color:var(--acc)}
+.exp-float{position:fixed;z-index:999;font-size:19px;font-weight:900;color:var(--accl);pointer-events:none;animation:expFloat 1.1s ease forwards;text-shadow:0 0 10px rgba(184,149,106,.8)}
 
 /* ━━━ 플래시카드 ━━━ */
 .fc-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:0;overflow:hidden;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 .fc-front{padding:48px 24px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:200px;justify-content:center}
 .fc-front-tag{margin-bottom:8px}
-.fc-word{font-size:36px;font-weight:700;color:var(--acc);letter-spacing:3px;font-family:'Nanum Myeongjo',serif}
-.fc-hanja-mark{font-size:14px;color:var(--txt2);margin-top:4px}
-.fc-hint{font-size:11px;color:var(--txtm);margin-top:18px}
+.fc-word{font-size:40px;font-weight:700;color:var(--acc);letter-spacing:3px;font-family:'Nanum Myeongjo',serif}
+.fc-hanja-mark{font-size:15px;color:var(--txt2);margin-top:4px}
+.fc-hint{font-size:12px;color:var(--txtm);margin-top:18px}
 .fc-back{display:none;padding:20px}
 .fc-back.show{display:block;animation:fadeUp .35s cubic-bezier(.22,1,.36,1) both}
 .fc-row{padding:12px 0;border-bottom:1px solid var(--bdr)}
 .fc-row:last-child{border-bottom:none}
-.fc-row-num{font-size:10px;color:var(--txtm);margin-bottom:4px;letter-spacing:1px}
-.fc-reading{font-size:18px;color:var(--acc);font-weight:700;letter-spacing:2px}
-.fc-meaning{font-size:14px;line-height:1.7}
-.fc-more-btn{background:transparent;border:1px dashed var(--bdr);color:var(--txt2);padding:11px;width:100%;border-radius:9px;cursor:pointer;font-size:12px;font-family:var(--fn);margin-top:12px;transition:all .2s}
+.fc-row-num{font-size:11px;color:var(--txtm);margin-bottom:4px;letter-spacing:1px}
+.fc-reading{font-size:20px;color:var(--acc);font-weight:700;letter-spacing:2px}
+.fc-meaning{font-size:15px;line-height:1.7}
+.fc-more-btn{background:transparent;border:1px dashed var(--bdr);color:var(--txt2);padding:11px;width:100%;border-radius:9px;cursor:pointer;font-size:13px;font-family:var(--fn);margin-top:12px;transition:all .2s}
 .fc-more-btn:hover{border-color:var(--acc);color:var(--acc)}
 .fc-more-btn.opened{display:none}
 .fc-more{display:none;margin-top:12px;flex-direction:column;gap:10px}
 .fc-more.show{display:flex;animation:fadeUp .35s cubic-bezier(.22,1,.36,1) both}
 .fc-hanja-list{display:flex;flex-direction:column;gap:6px;background:var(--elev);padding:14px;border-radius:9px;border:1px solid var(--bdr)}
-.fc-hanja-item{font-size:18px;font-weight:700;color:var(--acc);letter-spacing:2px;font-family:'Nanum Myeongjo',serif}
-.fc-hanja-item small{font-size:11px;color:var(--txt2);font-weight:400;margin-left:8px;letter-spacing:0}
-.fc-direct{background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:14px;padding:12px 16px;font-size:13px;line-height:1.65;color:var(--inf);font-weight:500;position:relative}
-.fc-direct::before{content:'💬';position:absolute;left:-4px;top:-12px;font-size:18px;background:var(--card);padding:2px}
-.fc-example{background:var(--elev);border-left:3px solid var(--acc);padding:10px 14px;font-size:13px;line-height:1.7;color:var(--txt2);font-style:italic;border-radius:0 8px 8px 0}
+.fc-hanja-item{font-size:20px;font-weight:700;color:var(--acc);letter-spacing:2px;font-family:'Nanum Myeongjo',serif}
+.fc-hanja-item small{font-size:12px;color:var(--txt2);font-weight:400;margin-left:8px;letter-spacing:0}
+.fc-direct{background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:14px;padding:12px 16px;font-size:14px;line-height:1.65;color:var(--inf);font-weight:500;position:relative}
+.fc-direct::before{content:'💬';position:absolute;left:-4px;top:-12px;font-size:20px;background:var(--card);padding:2px}
+.fc-example{background:var(--elev);border-left:3px solid var(--acc);padding:10px 14px;font-size:14px;line-height:1.7;color:var(--txt2);font-style:italic;border-radius:0 8px 8px 0}
 .fc-example::before{content:'❝ ';color:var(--acc);font-weight:700;font-style:normal}
 .fc-example::after{content:' ❞';color:var(--acc);font-weight:700;font-style:normal}
-.fc-mnemonic{background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.3);border-radius:9px;padding:10px 14px;font-size:12px;line-height:1.65;color:var(--accl)}
+.fc-mnemonic{background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.3);border-radius:9px;padding:10px 14px;font-size:13px;line-height:1.65;color:var(--accl)}
 .fc-judge{display:flex;gap:6px;margin-top:14px}
-.fc-jbtn{flex:1;padding:11px;border-radius:9px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:12px;cursor:pointer;font-weight:700;transition:all .15s}
+.fc-jbtn{flex:1;padding:11px;border-radius:9px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:13px;cursor:pointer;font-weight:700;transition:all .15s}
 .fc-jbtn.j-know{color:var(--ok);border-color:rgba(120,184,120,.3)}
 .fc-jbtn.j-confused{color:var(--warn);border-color:rgba(224,144,96,.3)}
 .fc-jbtn.j-unknown{color:var(--err);border-color:rgba(192,112,112,.3)}
@@ -380,93 +381,93 @@ html{scrollbar-gutter:stable}
 
 /* ━━━ v3.7 B안: 유의어 변별 출제 UI (KNOWLEDGE 3-2섹션, 3단계 색 분기) ━━━ */
 .syn-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
-.syn-q{font-size:14px;line-height:1.85;text-align:center;padding:10px 4px 14px;color:var(--txt);font-style:italic}
+.syn-q{font-size:15px;line-height:1.85;text-align:center;padding:10px 4px 14px;color:var(--txt);font-style:italic}
 .syn-q .syn-blank{display:inline-block;min-width:60px;padding:2px 10px;border-bottom:2px solid var(--acc);color:var(--acc);font-style:normal;font-weight:700}
 .syn-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-.syn-opt{padding:13px 10px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:13px;font-weight:700;color:var(--txt);text-align:center;transition:all .15s;position:relative}
+.syn-opt{padding:13px 10px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;font-weight:700;color:var(--txt);text-align:center;transition:all .15s;position:relative}
 .syn-opt:hover{border-color:var(--acc);transform:translateY(-1px)}
 .syn-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok)}
 .syn-opt.acceptable{background:rgba(224,144,96,.18);border-color:var(--warn);color:var(--warn)}
 .syn-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7}
 .syn-opt.dim{opacity:.45;pointer-events:none}
-.syn-result{margin-top:14px;padding:13px 14px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);font-size:12px;line-height:1.7;display:none}
+.syn-result{margin-top:14px;padding:13px 14px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);font-size:13px;line-height:1.7;display:none}
 .syn-result.show{display:block;animation:fadeUp .3s cubic-bezier(.22,1,.36,1) both}
-.syn-result-title{font-weight:700;margin-bottom:6px;font-size:12px}
+.syn-result-title{font-weight:700;margin-bottom:6px;font-size:13px}
 .syn-result-title.ok{color:var(--ok)}
 .syn-result-title.warn{color:var(--warn)}
 .syn-result-title.err{color:var(--err)}
 .syn-result-def{color:var(--txt);margin-bottom:5px}
-.syn-result-reason{color:var(--txt2);font-size:11px;line-height:1.65;background:rgba(224,144,96,.08);border-left:2px solid var(--warn);padding:7px 10px;border-radius:5px;margin-top:6px}
+.syn-result-reason{color:var(--txt2);font-size:12px;line-height:1.65;background:rgba(224,144,96,.08);border-left:2px solid var(--warn);padding:7px 10px;border-radius:5px;margin-top:6px}
 .syn-actions{display:flex;gap:6px;margin-top:12px}
-.syn-actions .btn-g, .syn-actions .btn-acc{flex:1;padding:10px;font-size:12px}
+.syn-actions .btn-g, .syn-actions .btn-acc{flex:1;padding:10px;font-size:13px}
 /* 버그3 수정: 선택 후 4개 보기 전부의 설명을 나열 공개 */
 .syn-result-all{margin-top:4px}
 .syn-result-item{padding-top:9px;margin-top:9px;border-top:1px solid var(--bdr)}
 .syn-result-item:first-child{border-top:none;margin-top:6px;padding-top:0}
 .syn-result-item.picked{background:rgba(184,149,106,.08);margin-left:-6px;margin-right:-6px;padding:8px 6px;border-radius:6px;border-top:none}
-.syn-ri-head{font-weight:700;font-size:12px;margin-bottom:3px}
+.syn-ri-head{font-weight:700;font-size:13px;margin-bottom:3px}
 .syn-ri-head.ok{color:var(--ok)}
 .syn-ri-head.warn{color:var(--warn)}
 .syn-ri-head.err{color:var(--err)}
-.syn-ri-pick{font-size:10px;color:var(--acc);font-weight:700;margin-left:2px}
+.syn-ri-pick{font-size:11px;color:var(--acc);font-weight:700;margin-left:2px}
 
 /* ━━━ 아재개그 ━━━ */
 .dad-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
-.dad-q{font-size:18px;line-height:1.7;font-weight:500;text-align:center;padding:24px 12px}
-.dad-reveal-btn{width:100%;padding:14px;background:var(--elev);border:1px dashed var(--bdr);border-radius:11px;color:var(--txt2);font-family:var(--fn);font-size:13px;cursor:pointer;transition:all .2s}
+.dad-q{font-size:20px;line-height:1.7;font-weight:500;text-align:center;padding:24px 12px}
+.dad-reveal-btn{width:100%;padding:14px;background:var(--elev);border:1px dashed var(--bdr);border-radius:11px;color:var(--txt2);font-family:var(--fn);font-size:14px;cursor:pointer;transition:all .2s}
 .dad-reveal-btn:hover{border-color:var(--acc);color:var(--acc)}
 .dad-answer{display:none;padding:16px;background:var(--elev);border-radius:11px;border:1px solid var(--accd);margin-top:12px}
 .dad-answer.show{display:block;animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both}
-.dad-a-text{font-size:20px;font-weight:700;color:var(--acc);text-align:center;margin-bottom:12px;font-family:'Nanum Myeongjo',serif}
-.dad-a-explain{font-size:12px;color:var(--txt2);line-height:1.6;padding-top:12px;border-top:1px solid var(--bdr)}
+.dad-a-text{font-size:22px;font-weight:700;color:var(--acc);text-align:center;margin-bottom:12px;font-family:'Nanum Myeongjo',serif}
+.dad-a-explain{font-size:13px;color:var(--txt2);line-height:1.6;padding-top:12px;border-top:1px solid var(--bdr)}
 .dad-a-explain::before{content:'💡 ';margin-right:4px}
 
 /* ━━━ 구어 교정 ━━━ */
 .spk-info{padding:14px 18px;background:var(--card);border-bottom:1px solid var(--bdr)}
-.spk-info-text{font-size:12px;color:var(--txt2);line-height:1.7}
+.spk-info-text{font-size:13px;color:var(--txt2);line-height:1.7}
 .spk-body{padding:18px;display:flex;flex-direction:column;gap:14px}
 .spk-input-area{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:16px}
 .spk-mode-tabs{display:flex;gap:6px;margin-bottom:12px}
-.spk-mode-btn{flex:1;padding:10px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;color:var(--txt2);font-family:var(--fn);font-size:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.spk-mode-btn{flex:1;padding:10px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;color:var(--txt2);font-family:var(--fn);font-size:13px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
 .spk-mode-btn.on{border-color:var(--acc);color:var(--acc);background:rgba(184,149,106,.05)}
-.spk-textarea{width:100%;min-height:90px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-family:var(--fn);font-size:13px;outline:none;resize:vertical;line-height:1.6}
+.spk-textarea{width:100%;min-height:90px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-family:var(--fn);font-size:14px;outline:none;resize:vertical;line-height:1.6}
 .spk-textarea:focus{border-color:var(--acc)}
 .spk-not-impl{background:var(--elev);border:1px dashed var(--warn);border-radius:9px;padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
-.spk-not-impl-icon{font-size:34px;opacity:.5}
-.spk-not-impl-text{font-size:12px;color:var(--warn);font-weight:700}
-.spk-not-impl-desc{font-size:11px;color:var(--txt2);line-height:1.6}
+.spk-not-impl-icon{font-size:37px;opacity:.5}
+.spk-not-impl-text{font-size:13px;color:var(--warn);font-weight:700}
+.spk-not-impl-desc{font-size:12px;color:var(--txt2);line-height:1.6}
 /* 항목8: 음성 입력 UI */
 .spk-voice{display:flex;flex-direction:column;align-items:stretch;gap:10px}
-.spk-mic-btn{display:flex;align-items:center;justify-content:center;gap:9px;padding:14px;border-radius:11px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt);font-family:var(--fn);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.spk-mic-btn{display:flex;align-items:center;justify-content:center;gap:9px;padding:14px;border-radius:11px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt);font-family:var(--fn);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
 .spk-mic-btn.rec{border-color:var(--err);color:var(--err);background:rgba(192,112,112,.08)}
-.spk-mic-ico{font-size:18px}
+.spk-mic-ico{font-size:20px}
 .spk-mic-btn.rec .spk-mic-ico{animation:pulse 1s ease-in-out infinite}
-.spk-voice-status{font-size:12px;color:var(--txt2);line-height:1.6;text-align:center}
-.spk-voice-transcript{min-height:60px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-size:13px;line-height:1.7;white-space:pre-wrap}
+.spk-voice-status{font-size:13px;color:var(--txt2);line-height:1.6;text-align:center}
+.spk-voice-transcript{min-height:60px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-size:14px;line-height:1.7;white-space:pre-wrap}
 .spk-voice-transcript .interim{color:var(--txtm)}
 .spk-submit{width:100%;margin-top:8px}
 .spk-result{background:var(--card);border:1px solid var(--accd);border-radius:14px;padding:16px;display:none}
 .spk-result.show{display:block;animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both}
-.spk-result-title{font-size:11px;color:var(--acc);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
-.spk-orig{padding:10px;background:var(--elev);border-radius:8px;font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.6}
+.spk-result-title{font-size:12px;color:var(--acc);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.spk-orig{padding:10px;background:var(--elev);border-radius:8px;font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.6}
 .spk-orig::before{content:'입력: ';color:var(--txtm);font-weight:700}
-.spk-fix{padding:12px;background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:8px;font-size:13px;color:var(--inf);margin-bottom:10px;line-height:1.65}
-.spk-fix::before{content:'개선: ';color:var(--inf);font-weight:700;font-size:11px}
-.spk-tip{padding:10px;background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.25);border-radius:8px;font-size:11px;color:var(--accl);line-height:1.6}
+.spk-fix{padding:12px;background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:8px;font-size:14px;color:var(--inf);margin-bottom:10px;line-height:1.65}
+.spk-fix::before{content:'개선: ';color:var(--inf);font-weight:700;font-size:12px}
+.spk-tip{padding:10px;background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.25);border-radius:8px;font-size:12px;color:var(--accl);line-height:1.6}
 .spk-tip::before{content:'💡 '}
 
 /* ━━━ 복습 ━━━ */
 .rv-body{padding:14px 18px;display:flex;flex-direction:column;gap:9px}
 .rv-cap{background:var(--card);border:1px solid var(--bdr);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.rv-cap-lbl{font-size:12px;color:var(--txt2);white-space:nowrap}
+.rv-cap-lbl{font-size:13px;color:var(--txt2);white-space:nowrap}
 .cap-bar{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
 .cap-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--ok),#5dde8f);transition:width .5s}
-.rv-cap-val{font-size:12px;font-weight:700;cursor:pointer;color:var(--acc)}
+.rv-cap-val{font-size:13px;font-weight:700;cursor:pointer;color:var(--acc)}
 .rv-cap-val:hover{text-decoration:underline}
 .rv-item{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:11px;animation:fadeUp .35s cubic-bezier(.22,1,.36,1) both;transition:opacity .3s}
 .rv-idx{width:26px;height:26px;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--txtm);flex-shrink:0}
-.rv-word{font-size:14px;font-weight:700;margin-bottom:2px}
-.rv-desc{font-size:11px;color:var(--txt2);line-height:1.5}
+.rv-word{font-size:15px;font-weight:700;margin-bottom:2px}
+.rv-desc{font-size:12px;color:var(--txt2);line-height:1.5}
 .rv-meta{display:flex;align-items:center;gap:7px;margin-top:5px}
 .rv-dots{display:flex;gap:3px}
 .rv-dot{width:8px;height:8px;border-radius:50%;background:var(--bdr);transition:background .3s}
@@ -476,30 +477,30 @@ html{scrollbar-gutter:stable}
 .act-btn:hover{border-color:var(--accd);color:var(--acc);transform:scale(1.08)}
 .act-btn.d:hover{border-color:var(--err);color:var(--err)}
 .act-btn.fav.on{color:#ffd060;border-color:rgba(255,208,96,.3)}
-.bin-info{font-size:11px;color:var(--txtm);padding:8px 12px;background:rgba(255,144,80,.05);border:1px dashed rgba(255,144,80,.2);border-radius:8px;line-height:1.6;margin-bottom:8px}
+.bin-info{font-size:12px;color:var(--txtm);padding:8px 12px;background:rgba(255,144,80,.05);border:1px dashed rgba(255,144,80,.2);border-radius:8px;line-height:1.6;margin-bottom:8px}
 
 /* ━━━ 업적 ━━━ */
 .ach-sum{background:var(--card);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;gap:14px;flex-shrink:0}
 .ach-si{text-align:center;flex:1}
-.ach-sn{font-size:20px;font-weight:900;color:var(--acc)}
-.ach-sl{font-size:10px;color:var(--txtm)}
+.ach-sn{font-size:22px;font-weight:900;color:var(--acc)}
+.ach-sl{font-size:11px;color:var(--txtm)}
 .ach-divider{width:1px;background:var(--bdr)}
 .ach-body{padding:14px 18px}
 .ach-sec{margin-bottom:22px}
-.ach-sec-t{font-size:11px;font-weight:700;color:var(--txtm);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px}
+.ach-sec-t{font-size:12px;font-weight:700;color:var(--txtm);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px}
 .ach-list{display:flex;flex-direction:column;gap:7px}
 .ach-item{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:transform .2s,border-color .2s;animation:fadeUp .35s cubic-bezier(.22,1,.36,1) both}
 .ach-item:hover{transform:translateY(-2px);border-color:var(--bdrg)}
 .ach-item.unl{border-color:rgba(184,149,106,.28)}
-.ach-icon{width:44px;height:44px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.ach-icon{width:44px;height:44px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;transition:transform .3s cubic-bezier(.22,1,.36,1)}
 .ach-item:hover .ach-icon{transform:scale(1.1)}
 .ach-item.unl .ach-icon{border-color:rgba(184,149,106,.28);background:rgba(184,149,106,.07)}
-.ach-nm{font-size:13px;font-weight:700;margin-bottom:2px}
-.ach-ds{font-size:11px;color:var(--txt2);line-height:1.5}
-.ach-ds.zalgo{font-size:10px;color:var(--txtm);font-family:var(--mono);letter-spacing:.3px;line-height:1.6;opacity:.7;word-break:break-all}
+.ach-nm{font-size:14px;font-weight:700;margin-bottom:2px}
+.ach-ds{font-size:12px;color:var(--txt2);line-height:1.5}
+.ach-ds.zalgo{font-size:11px;color:var(--txtm);font-family:var(--mono);letter-spacing:.3px;line-height:1.6;opacity:.7;word-break:break-all}
 
 /* 별 표시 — 통합된 ✦ ★ 사용 */
-.ach-stars{font-size:12px;letter-spacing:2px;margin-top:3px;font-weight:700}
+.ach-stars{font-size:13px;letter-spacing:2px;margin-top:3px;font-weight:700}
 .ach-star-filled{color:var(--accl)}
 .ach-star-empty{color:var(--txtm);opacity:.4}
 .ach-star-mark{color:var(--acc)}
@@ -509,13 +510,13 @@ html{scrollbar-gutter:stable}
 .ach-detail-bg.show{opacity:1;pointer-events:all}
 .ach-detail{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:26px 22px;max-width:340px;width:100%;transform:scale(.85);transition:transform .38s cubic-bezier(.22,1,.36,1);max-height:85vh;overflow-y:auto}
 .ach-detail-bg.show .ach-detail{transform:scale(1)}
-.ach-d-icon{font-size:48px;text-align:center;margin-bottom:10px}
-.ach-d-name{font-size:18px;font-weight:900;color:var(--acc);text-align:center;margin-bottom:6px}
-.ach-d-cat{font-size:11px;color:var(--txt2);text-align:center;margin-bottom:14px}
-.ach-d-desc{font-size:13px;color:var(--txt2);line-height:1.7;text-align:center;margin-bottom:14px;padding:10px;background:var(--elev);border-radius:9px}
-.ach-d-desc.zalgo{font-family:var(--mono);font-size:11px;letter-spacing:.3px;color:var(--txtm);word-break:break-all;line-height:1.7}
-.ach-d-stars{font-size:18px;letter-spacing:3px;text-align:center;margin:8px 0;font-weight:700}
-.ach-d-table{width:100%;font-size:12px;margin-top:10px;border-collapse:collapse}
+.ach-d-icon{font-size:53px;text-align:center;margin-bottom:10px}
+.ach-d-name{font-size:20px;font-weight:900;color:var(--acc);text-align:center;margin-bottom:6px}
+.ach-d-cat{font-size:12px;color:var(--txt2);text-align:center;margin-bottom:14px}
+.ach-d-desc{font-size:14px;color:var(--txt2);line-height:1.7;text-align:center;margin-bottom:14px;padding:10px;background:var(--elev);border-radius:9px}
+.ach-d-desc.zalgo{font-family:var(--mono);font-size:12px;letter-spacing:.3px;color:var(--txtm);word-break:break-all;line-height:1.7}
+.ach-d-stars{font-size:20px;letter-spacing:3px;text-align:center;margin:8px 0;font-weight:700}
+.ach-d-table{width:100%;font-size:13px;margin-top:10px;border-collapse:collapse}
 .ach-d-table tr{border-bottom:1px solid var(--bdr)}
 .ach-d-table tr:last-child{border-bottom:none}
 .ach-d-table td{padding:8px 4px}
@@ -527,21 +528,25 @@ html{scrollbar-gutter:stable}
 /* ━━━ 현황 (CMD tree) ━━━ */
 .st-body{padding:14px 18px;display:flex;flex-direction:column;gap:13px}
 .st-prof{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px}
-.st-av{width:60px;height:60px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
-.st-name{font-size:18px;font-weight:900;margin-bottom:3px}
-.st-ttl{font-size:12px;color:var(--acc);margin-bottom:6px}
+.st-av{width:60px;height:60px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:31px;flex-shrink:0}
+/* 세션7 항목12: 이름 강조 확대(전역 +10%와 별도) */
+.st-name{font-size:24px;font-weight:900;margin-bottom:3px}
+/* 세션7 항목12: 현황 배너 — 기본은 테마 그라디언트, 이미지 선택 시 cover */
+.st-banner{height:72px;border-radius:14px;border:1px solid var(--bdr);background:linear-gradient(135deg,var(--accd),var(--acc));overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.st-banner img{width:100%;height:100%;object-fit:cover}
+.st-ttl{font-size:13px;color:var(--acc);margin-bottom:6px}
 /* v3.5: 소칭호 가독성 강화 (이전엔 너무 연하고 작았음) */
 /* α6: 소칭호 12px → 14.5px 상향 (KNOWLEDGE 11) / α7: 색상은 JS 소칭호적용()이 인라인 지정 — color !important 제거 */
 /* 세션5 버그4: 어떤 테마 배경에서도 또렷하도록 얇은 그림자(외곽선 효과) 부여 */
-.status-sub-title{font-size:14.5px !important;color:var(--accl);font-weight:600 !important;letter-spacing:.3px;text-shadow:0 1px 3px rgba(0,0,0,.38)}
+.status-sub-title{font-size:16px !important;color:var(--accl);font-weight:600 !important;letter-spacing:.3px;text-shadow:0 1px 3px rgba(0,0,0,.38)}
 /* 창조주 달성 시 소칭호 황금빛으로 강조 */
 .status-sub-title.creator{color:#ffd700 !important;text-shadow:0 0 8px rgba(255,215,0,.4);animation:starGlow 2s ease-in-out infinite}
 .st-lv-row{display:flex;align-items:center;gap:7px}
-.st-lv{font-size:10px;color:var(--txtm)}
+.st-lv{font-size:11px;color:var(--txtm)}
 
 .tree-wrap{
   background:var(--card);border:1px solid var(--bdr);border-radius:12px;
-  padding:18px 16px;font-family:var(--mono);font-size:12.5px;line-height:2;
+  padding:18px 16px;font-family:var(--mono);font-size:14px;line-height:2;
   overflow-x:auto;
 }
 .tree-line{
@@ -554,7 +559,7 @@ html{scrollbar-gutter:stable}
   padding:6px 8px;background:rgba(184,149,106,.08);
   border-left:3px solid var(--acc);border-radius:0 6px 6px 0;
   margin:8px 0 4px;display:inline-block;
-  font-size:13px;letter-spacing:.5px;
+  font-size:14px;letter-spacing:.5px;
 }
 .tree-line:first-child .tree-section{margin-top:0}
 .tree-branch{color:var(--accd);user-select:none;font-weight:700}
@@ -567,52 +572,52 @@ html{scrollbar-gutter:stable}
 /* ━━━ 설정 ━━━ */
 .set-body{padding:14px 18px;display:flex;flex-direction:column;gap:13px}
 .set-prof{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;transition:background .4s,border-color .4s}
-.set-av{width:57px;height:57px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;flex-shrink:0}
-.set-nm{font-size:18px;font-weight:700;margin-bottom:3px}
-.set-ttl{font-size:11px;color:var(--acc);margin-bottom:2px}
-.set-em{font-size:11px;color:var(--txt2)}
-.set-eb{background:transparent;border:1px solid var(--bdr);color:var(--txt2);padding:7px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);transition:all .2s}
+.set-av{width:57px;height:57px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:29px;cursor:pointer;flex-shrink:0}
+.set-nm{font-size:20px;font-weight:700;margin-bottom:3px}
+.set-ttl{font-size:12px;color:var(--acc);margin-bottom:2px}
+.set-em{font-size:12px;color:var(--txt2)}
+.set-eb{background:transparent;border:1px solid var(--bdr);color:var(--txt2);padding:7px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--fn);transition:all .2s}
 .set-eb:hover{border-color:var(--accd);color:var(--acc)}
 
 .set-sec{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:14px 16px;transition:background .4s,border-color .4s}
-.set-lbl{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px}
+.set-lbl{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px}
 .set-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--bdr);cursor:pointer;transition:opacity .2s}
 .set-row:last-child{border-bottom:none}
 .set-row:hover{opacity:.85}
-.sri{font-size:18px;width:26px;text-align:center;flex-shrink:0}
-.srl{font-size:13px;font-weight:500}
-.srs{font-size:12px;color:var(--txt2);margin-top:2px}
+.sri{font-size:20px;width:26px;text-align:center;flex-shrink:0}
+.srl{font-size:14px;font-weight:500}
+.srs{font-size:13px;color:var(--txt2);margin-top:2px}
 /* 항목3: 커스텀 테마 에디터 */
 .ct-preview{margin:4px 0 8px;border:1px solid var(--bdr);border-radius:10px;overflow:hidden}
 .ct-prev-card{padding:18px;display:flex;flex-direction:column;gap:9px;align-items:flex-start}
-.ct-prev-title{font-size:16px;font-weight:700}
-.ct-prev-sub{font-size:13px}
-.ct-prev-btn{padding:8px 16px;border:none;border-radius:8px;font-weight:700;font-family:var(--fn);font-size:13px;cursor:default}
-.ct-contrast{font-size:11px;margin-bottom:8px;text-align:center;min-height:15px;line-height:1.5}
+.ct-prev-title{font-size:18px;font-weight:700}
+.ct-prev-sub{font-size:14px}
+.ct-prev-btn{padding:8px 16px;border:none;border-radius:8px;font-weight:700;font-family:var(--fn);font-size:14px;cursor:default}
+.ct-contrast{font-size:12px;margin-bottom:8px;text-align:center;min-height:15px;line-height:1.5}
 .ct-contrast.warn{color:var(--warn)}
 .ct-contrast.ok{color:var(--ok)}
 .ct-channels{display:flex;gap:6px;flex-wrap:wrap}
-.ct-ch{flex:1;min-width:62px;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;border:1px solid var(--bdr);border-radius:8px;background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.ct-ch{flex:1;min-width:62px;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;border:1px solid var(--bdr);border-radius:8px;background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
 .ct-ch.on{border-color:var(--acc);color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
 .ct-sw{width:14px;height:14px;border-radius:4px;border:1px solid rgba(128,128,128,.45);flex-shrink:0}
 .ct-palette{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:12px}
 .ct-sw-opt{width:100%;aspect-ratio:1;border-radius:6px;border:1px solid rgba(128,128,128,.35);cursor:pointer;transition:transform .12s;padding:0}
 .ct-sw-opt:hover{transform:scale(1.12)}
 .ct-sw-opt.on{outline:2px solid var(--acc);outline-offset:1px}
-.ct-slots-lbl{font-size:11px;color:var(--txt2);margin:14px 0 6px;line-height:1.5}
+.ct-slots-lbl{font-size:12px;color:var(--txt2);margin:14px 0 6px;line-height:1.5}
 .ct-slots{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.ct-slot{aspect-ratio:1;border-radius:8px;border:1px dashed var(--bdr);background:var(--elev);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--txtm);position:relative;overflow:hidden}
+.ct-slot{aspect-ratio:1;border-radius:8px;border:1px dashed var(--bdr);background:var(--elev);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--txtm);position:relative;overflow:hidden}
 .ct-slot.filled{border-style:solid;font-size:0}
-.ct-slot-clear{position:absolute;top:0;right:2px;font-size:11px;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;line-height:1.2}
+.ct-slot-clear{position:absolute;top:0;right:2px;font-size:12px;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;line-height:1.2}
 /* 항목9: 글자 크기 조절 칩 */
 .fs-opts{display:flex;flex-wrap:wrap;gap:6px}
-.fs-opt{padding:7px 12px;border:1px solid var(--bdr);border-radius:8px;background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.fs-opt{padding:7px 12px;border:1px solid var(--bdr);border-radius:8px;background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
 .fs-opt.on{border-color:var(--acc);color:var(--acc);background:rgba(184,149,106,.12);box-shadow:inset 0 0 0 1px var(--acc)}
-.sra{color:var(--txtm);font-size:18px}
+.sra{color:var(--txtm);font-size:20px}
 
 /* 토글 */
 .mtw{display:flex;align-items:center;gap:8px}
-.ml{font-size:10px;color:var(--txt2);transition:color .2s}
+.ml{font-size:11px;color:var(--txt2);transition:color .2s}
 .mt{position:relative;display:inline-block;width:38px;height:22px}
 .mt input{opacity:0;width:0;height:0}
 .mtt{position:absolute;cursor:pointer;inset:0;background:var(--elev);border:1px solid var(--bdr);transition:.3s;border-radius:22px}
@@ -639,8 +644,8 @@ html{scrollbar-gutter:stable}
 .tp-p .d1{background:#7a5228}.tp-p .d2{background:#281e12}.tp-p .d3{background:#b89868}
 .tp-f .d1{background:#52a868}.tp-f .d2{background:#d0e8d4}.tp-f .d3{background:#2e6040}
 .tnr{padding:7px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border-top:1px solid var(--bdr)}
-.tnm{font-size:11px;font-weight:700}
-.tck{font-size:11px;color:var(--acc);opacity:0;font-weight:700}
+.tnm{font-size:12px;font-weight:700}
+.tck{font-size:12px;color:var(--acc);opacity:0;font-weight:700}
 .tc.on .tck{opacity:1}
 
 /* 폰트 선택 */
@@ -650,18 +655,18 @@ html{scrollbar-gutter:stable}
 /* 항목1: 선택 상태를 명확히 — 굵은 강조 테두리 + 포인트색 배경 */
 .fo.on{border-color:var(--acc);background:rgba(184,149,106,.12);box-shadow:inset 0 0 0 1px var(--acc)}
 /* 항목1: 폰트 이름 가독성 개선 — 9px 대문자/자간확대 → 14px 일반 표기 + 본문색 굵게 */
-.fo-nm{font-size:14px;color:var(--txt);font-weight:700;letter-spacing:0;margin-bottom:4px}
+.fo-nm{font-size:15px;color:var(--txt);font-weight:700;letter-spacing:0;margin-bottom:4px}
 .fo.on .fo-nm{color:var(--acc)}
-.fo-sm{font-size:16px;color:var(--txt2);line-height:1.5}
-.fo-ck{font-size:18px;color:var(--acc);opacity:0;transition:opacity .2s;flex-shrink:0;margin-left:10px}
+.fo-sm{font-size:18px;color:var(--txt2);line-height:1.5}
+.fo-ck{font-size:20px;color:var(--acc);opacity:0;transition:opacity .2s;flex-shrink:0;margin-left:10px}
 .fo.on .fo-ck{opacity:1}
 
 /* 셀렉트 모달 */
 .select-modal-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.select-opt{padding:11px 14px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s;font-size:13px}
+.select-opt{padding:11px 14px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s;font-size:14px}
 .select-opt:hover{border-color:var(--accd)}
 .select-opt.on{border-color:var(--acc);background:rgba(184,149,106,.05);color:var(--acc)}
-.select-opt-ck{font-size:13px;color:var(--acc);opacity:0}
+.select-opt-ck{font-size:14px;color:var(--acc);opacity:0}
 .select-opt.on .select-opt-ck{opacity:1}
 
 /* ━━━ 질문하기 FAB ━━━ */
@@ -685,32 +690,33 @@ html{scrollbar-gutter:stable}
 .ask-handle{width:38px;height:4px;background:var(--bdr);border-radius:2px;margin:11px auto 0;flex-shrink:0;opacity:.7}
 /* 글래스 위 헤더는 투명 처리(불투명 카드색을 덮으면 유리 효과가 깨짐) */
 .ask-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px 11px;border-bottom:1px solid color-mix(in srgb, var(--bdr) 60%, transparent);position:sticky;top:0;background:transparent;z-index:5;flex-shrink:0}
-.ask-title{font-size:15px;font-weight:700}
-.ask-quota{font-size:10px;color:var(--txt2);background:var(--elev);padding:3px 8px;border-radius:10px}
-.ask-cls{width:30px;height:30px;border-radius:50%;background:var(--elev);border:1px solid var(--bdr);color:var(--txt2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ask-title{font-size:17px;font-weight:700}
+.ask-quota{font-size:11px;color:var(--txt2);background:var(--elev);padding:3px 8px;border-radius:10px}
+.ask-cls{width:30px;height:30px;border-radius:50%;background:var(--elev);border:1px solid var(--bdr);color:var(--txt2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .ask-body{padding:14px 18px;display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto}
 .ask-input-row{display:flex;gap:8px}
-.ask-input{flex:1;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:11px 14px;color:var(--txt);font-family:var(--fn);font-size:13px;outline:none;transition:border-color .2s}
+.ask-input{flex:1;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:11px 14px;color:var(--txt);font-family:var(--fn);font-size:14px;outline:none;transition:border-color .2s}
 .ask-input:focus{border-color:var(--acc)}
-.ask-send{padding:11px 18px;background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fn)}
-.ask-msg{padding:12px 14px;border-radius:9px;font-size:13px;line-height:1.7}
+.ask-send{padding:11px 18px;background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn)}
+/* 세션7: 전역 user-select:none의 예외 — AI 답변·설명은 복사할 수 있어야 함 */
+.ask-msg{padding:12px 14px;border-radius:9px;font-size:14px;line-height:1.7;user-select:text;-webkit-user-select:text}
 /* 세션5 버그3: 보조색(--txt2)이 어두운 테마에서 배경에 묻힘 — 본문은 기본 글자색 사용 */
 .ask-msg.user{background:var(--elev);color:var(--txt);text-align:right;margin-left:32px;border:1px solid var(--bdr)}
 .ask-msg.ai{background:rgba(120,180,255,.06);border:1px solid rgba(120,180,255,.2);margin-right:32px}
 /* 세션6 항목2: 채팅 내 사고 전개 블록 — 중요 콘텐츠라 기본 글자색(--txt)으로 (모든 테마 가독) */
-.ask-think{background:var(--elev);border:1px solid var(--bdr);border-left:3px solid var(--acc);border-radius:8px;padding:9px 11px;margin-bottom:9px;font-size:12px;color:var(--txt);line-height:1.7;text-align:left}
-.ask-msg.ai::before{content:'🤖 AI';font-size:10px;color:var(--inf);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
-.ask-objection-btn{margin-top:6px;background:transparent;border:1px solid var(--err);color:var(--err);padding:6px 14px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700;transition:all .2s}
+.ask-think{background:var(--elev);border:1px solid var(--bdr);border-left:3px solid var(--acc);border-radius:8px;padding:9px 11px;margin-bottom:9px;font-size:13px;color:var(--txt);line-height:1.7;text-align:left}
+.ask-msg.ai::before{content:'🤖 AI';font-size:11px;color:var(--inf);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
+.ask-objection-btn{margin-top:6px;background:transparent;border:1px solid var(--err);color:var(--err);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--fn);font-weight:700;transition:all .2s}
 .ask-objection-btn:hover{background:rgba(192,112,112,.1)}
 
 .obj-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
 .obj-bg.show{opacity:1;pointer-events:all}
 .obj-modal{background:var(--card);border:1px solid var(--err);border-radius:16px;padding:22px;max-width:320px;width:100%;transform:scale(.85);transition:transform .35s cubic-bezier(.22,1,.36,1)}
 .obj-bg.show .obj-modal{transform:scale(1)}
-.obj-icon{font-size:36px;text-align:center;margin-bottom:8px}
-.obj-title{font-size:16px;font-weight:900;color:var(--err);text-align:center;margin-bottom:6px}
-.obj-desc{font-size:12px;color:var(--txt2);text-align:center;line-height:1.6;margin-bottom:14px}
-.obj-input{width:100%;min-height:80px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-family:var(--fn);font-size:12px;outline:none;resize:vertical;line-height:1.6;margin-bottom:12px}
+.obj-icon{font-size:40px;text-align:center;margin-bottom:8px}
+.obj-title{font-size:18px;font-weight:900;color:var(--err);text-align:center;margin-bottom:6px}
+.obj-desc{font-size:13px;color:var(--txt2);text-align:center;line-height:1.6;margin-bottom:14px}
+.obj-input{width:100%;min-height:80px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-family:var(--fn);font-size:13px;outline:none;resize:vertical;line-height:1.6;margin-bottom:12px}
 .obj-input:focus{border-color:var(--err)}
 .obj-btns{display:flex;gap:8px}
 
@@ -719,21 +725,21 @@ html{scrollbar-gutter:stable}
 .ov-bg.show{opacity:1;pointer-events:all}
 .ach-popup{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:28px 22px;text-align:center;max-width:295px;width:100%;box-shadow:0 0 36px rgba(184,149,106,.18);transform:scale(.85);transition:transform .38s cubic-bezier(.22,1,.36,1)}
 .ov-bg.show .ach-popup{transform:scale(1)}
-.pp-icon{font-size:50px;margin-bottom:10px}
-.pp-title{font-size:17px;font-weight:900;color:var(--acc);margin-bottom:5px}
-.pp-stage{font-size:13px;color:var(--accl);margin-bottom:5px;font-weight:700}
-.pp-desc{font-size:13px;color:var(--txt2);margin-bottom:13px}
-.pp-stars{font-size:24px;letter-spacing:4px;margin-bottom:13px;font-weight:700}
-.pp-exp{font-size:24px;font-weight:900;color:var(--accl);margin-bottom:18px}
+.pp-icon{font-size:55px;margin-bottom:10px}
+.pp-title{font-size:19px;font-weight:900;color:var(--acc);margin-bottom:5px}
+.pp-stage{font-size:14px;color:var(--accl);margin-bottom:5px;font-weight:700}
+.pp-desc{font-size:14px;color:var(--txt2);margin-bottom:13px}
+.pp-stars{font-size:26px;letter-spacing:4px;margin-bottom:13px;font-weight:700}
+.pp-exp{font-size:26px;font-weight:900;color:var(--accl);margin-bottom:18px}
 
 .lvup-popup{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:28px 22px;text-align:center;max-width:295px;width:100%;box-shadow:0 0 36px rgba(184,149,106,.18);transform:scale(.85);transition:transform .4s cubic-bezier(.22,1,.36,1)}
 .ov-bg.show .lvup-popup{transform:scale(1)}
-.lvup-burst{font-size:64px;animation:bounce 1s ease-in-out infinite}
-.lvup-txt{font-family:'Nanum Myeongjo',serif;font-size:27px;font-weight:700;color:var(--accl);letter-spacing:2px;text-shadow:0 0 28px rgba(184,149,106,.7)}
-.lvup-new{font-size:14px;color:var(--txt2);margin-top:6px}
+.lvup-burst{font-size:70px;animation:bounce 1s ease-in-out infinite}
+.lvup-txt{font-family:'Nanum Myeongjo',serif;font-size:30px;font-weight:700;color:var(--accl);letter-spacing:2px;text-shadow:0 0 28px rgba(184,149,106,.7)}
+.lvup-new{font-size:15px;color:var(--txt2);margin-top:6px}
 .lvup-badge{display:inline-flex;align-items:center;gap:9px;background:rgba(184,149,106,.1);border:2px solid var(--acc);border-radius:40px;padding:10px 20px;margin:13px 0}
-.lvup-lv{font-size:22px;font-weight:900;color:var(--acc)}
-.lvup-rk{font-size:14px;color:var(--txt)}
+.lvup-lv{font-size:24px;font-weight:900;color:var(--acc)}
+.lvup-rk{font-size:15px;color:var(--txt)}
 
 /* 일반 모달 */
 .modal-bg{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -741,16 +747,16 @@ html{scrollbar-gutter:stable}
 .modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px;max-width:340px;width:100%;transform:scale(.85);transition:transform .35s cubic-bezier(.22,1,.36,1);max-height:80vh;overflow-y:auto}
 .modal-bg.show .modal-bx{transform:scale(1)}
 /* 추가기능: 음성 생성(콜롬비나 TTS) 테스트 벤치 — 회전 금지(점 불투명도 펄스)·세로 전개만 */
-.vc-lbl{display:block;font-size:11px;color:var(--txt2);font-weight:700;margin-top:8px}
-.vc-ta{width:100%;min-height:62px;resize:vertical;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;padding:9px 11px;color:var(--txt);font-family:var(--fn);font-size:13px;line-height:1.6;box-sizing:border-box;margin:4px 0}
+.vc-lbl{display:block;font-size:12px;color:var(--txt2);font-weight:700;margin-top:8px}
+.vc-ta{width:100%;min-height:62px;resize:vertical;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;padding:9px 11px;color:var(--txt);font-family:var(--fn);font-size:14px;line-height:1.6;box-sizing:border-box;margin:4px 0}
 .vc-loading{display:flex;align-items:center;gap:5px;margin-top:12px;padding:8px 11px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px}
 .vc-dot{width:7px;height:7px;border-radius:50%;background:var(--acc);animation:pulse 1s ease-in-out infinite}
 .vc-dot:nth-child(2){animation-delay:.2s}
 .vc-dot:nth-child(3){animation-delay:.4s}
-.vc-loading-txt{font-size:11.5px;color:var(--txt2);margin-left:4px}
-.modal-icon{font-size:32px;text-align:center;margin-bottom:8px}
-.modal-title{font-size:15px;font-weight:700;text-align:center;margin-bottom:8px}
-.modal-desc{font-size:12px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:16px}
+.vc-loading-txt{font-size:13px;color:var(--txt2);margin-left:4px}
+.modal-icon{font-size:35px;text-align:center;margin-bottom:8px}
+.modal-title{font-size:17px;font-weight:700;text-align:center;margin-bottom:8px}
+.modal-desc{font-size:13px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:16px}
 .modal-btns{display:flex;gap:8px}
 
 /* 세션5: 긴 메시지가 화면을 넘치지 않도록 줄바꿈 허용 + 최대폭 제한 */
@@ -760,7 +766,7 @@ html{scrollbar-gutter:stable}
 /* 정식 빌드1: 데모 네비는 기본 숨김 — 개발자 모드 활성화 시에만 노출 (body.devnav) */
 #demo-nav{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.93);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.07);padding:7px 10px;display:none;gap:5px;flex-wrap:wrap;z-index:9998}
 body.devnav #demo-nav{display:flex}
-.demb{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);padding:4px 9px;border-radius:5px;font-size:10px;cursor:pointer;transition:all .2s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
+.demb{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;transition:all .2s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
 .demb:hover,.demb.on{border-color:rgba(255,255,255,.32);color:#fff}
 .demb.sp{border-color:rgba(184,149,106,.38);color:rgba(184,149,106,.75)}
 .demb.sp:hover{border-color:var(--acc);color:var(--acc)}
@@ -774,37 +780,37 @@ body.devnav .demo-offset{margin-top:80px}
 /* ━━━ 빌드1 β5: 토큰 UI — 잔량 바 + 드롭다운 + 차감 안내 (KNOWLEDGE 32·35) ━━━ */
 .tkb{margin:8px 18px 0;background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:9px 12px;cursor:pointer;flex-shrink:0}
 .tkb-row{display:flex;align-items:center;gap:8px}
-.tkb-icon{font-size:13px}
+.tkb-icon{font-size:14px}
 .tkb-bar{flex:1;height:7px;background:var(--elev);border-radius:4px;overflow:hidden}
 .tkb-fill{height:100%;width:100%;background:#4caf50;border-radius:4px;transition:width .5s ease,background .4s}
-.tkb-val{font-size:10px;color:var(--txt2);font-family:var(--mono);white-space:nowrap}
-.tkb-info{background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:6px;padding:3px 7px;font-size:9px;cursor:pointer;font-family:var(--fn);white-space:nowrap}
-.tkb-drop{display:none;margin-top:8px;border-top:1px solid var(--bdr);padding-top:7px;font-size:10px;color:var(--txt2);line-height:1.8}
+.tkb-val{font-size:11px;color:var(--txt2);font-family:var(--mono);white-space:nowrap}
+.tkb-info{background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:6px;padding:3px 7px;font-size:10px;cursor:pointer;font-family:var(--fn);white-space:nowrap}
+.tkb-drop{display:none;margin-top:8px;border-top:1px solid var(--bdr);padding-top:7px;font-size:11px;color:var(--txt2);line-height:1.8}
 .tkb.open .tkb-drop{display:block}
 .tkb-lock .tkb-fill{background:#666 !important}
 
 /* ━━━ 빌드1 β10: 성장 상세 화면 sg (KNOWLEDGE 17-1) ━━━ */
 .sg-body{flex:1;overflow-y:auto;padding:14px 18px 90px;display:flex;flex-direction:column;gap:12px}
 .sg-sec{background:var(--card);border:1px solid var(--bdr);border-radius:13px;padding:14px 16px}
-.sg-sec-t{font-size:11px;color:var(--acc);font-weight:700;letter-spacing:.5px;margin-bottom:10px}
-.sg-road-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--bdr);font-size:13px}
+.sg-sec-t{font-size:12px;color:var(--acc);font-weight:700;letter-spacing:.5px;margin-bottom:10px}
+.sg-road-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--bdr);font-size:14px}
 .sg-road-item:last-child{border-bottom:none}
-.sg-road-range{margin-left:auto;font-size:10px;color:var(--txtm);font-family:var(--mono)}
-.sg-road-state{font-size:10px;font-weight:700}
+.sg-road-range{margin-left:auto;font-size:11px;color:var(--txtm);font-family:var(--mono)}
+.sg-road-state{font-size:11px;font-weight:700}
 
 /* ━━━ 빌드1 β8: 구어 교정 예문 출제 카드 (정령왕 JSON 27건) ━━━ */
 .spk-prompt{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:12px 14px;margin-bottom:10px}
-.spk-prompt-lbl{font-size:10px;color:var(--acc);font-weight:700;margin-bottom:6px}
-.spk-prompt-text{font-size:14px;color:var(--txt);line-height:1.6}
-.spk-prompt-diff{font-size:9px;color:var(--txtm);margin-top:6px}
+.spk-prompt-lbl{font-size:11px;color:var(--acc);font-weight:700;margin-bottom:6px}
+.spk-prompt-text{font-size:15px;color:var(--txt);line-height:1.6}
+.spk-prompt-diff{font-size:10px;color:var(--txtm);margin-top:6px}
 
 /* ━━━ 빌드1 β3: 이의있음! reasoning_note 패널 (KNOWLEDGE 33) ━━━ */
 /* 세션5 버그3: 사고전개·출제근거는 중요 콘텐츠 — 보조색 대신 기본 글자색으로 가독성 확보 */
-.obj-note{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;margin:10px 0;font-size:12px;color:var(--txt);line-height:1.7;text-align:left}
-.obj-note-lbl{color:var(--acc);font-weight:700;font-size:10px;margin-bottom:4px}
+.obj-note{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;margin:10px 0;font-size:13px;color:var(--txt);line-height:1.7;text-align:left}
+.obj-note-lbl{color:var(--acc);font-weight:700;font-size:11px;margin-bottom:4px}
 
 /* ━━━ 빌드1 α4: Lv.70 「주신의 경지」 메시지 (현황 탭 상단) ━━━ */
-.jushin-msg{background:linear-gradient(135deg,rgba(80,48,160,.25),rgba(128,96,192,.15));border:1px solid #8060c0;border-radius:13px;padding:13px 16px;margin-bottom:12px;cursor:pointer;text-align:center;font-size:14px;font-weight:700;color:#c0a0e0}
+.jushin-msg{background:linear-gradient(135deg,rgba(80,48,160,.25),rgba(128,96,192,.15));border:1px solid #8060c0;border-radius:13px;padding:13px 16px;margin-bottom:12px;cursor:pointer;text-align:center;font-size:15px;font-weight:700;color:#c0a0e0}
 
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -815,27 +821,40 @@ body.devnav .demo-offset{margin-top:80px}
    학습 콘텐츠(문제·선택지·카드·뜻풀이·채팅·예문)의 글자만 커진다.
    ※ 원본 규칙보다 뒤에 선언되어 같은 특이도에서 이 블록이 우선 적용된다. ━━━ */
 :root{--글자배율:1}
-.q-question{font-size:calc(15px*var(--글자배율))}
-.q-hint{font-size:calc(12px*var(--글자배율))}
-.otxt{font-size:calc(13px*var(--글자배율))}
-.fc-word{font-size:calc(36px*var(--글자배율))}
-.fc-reading{font-size:calc(18px*var(--글자배율))}
-.fc-meaning{font-size:calc(14px*var(--글자배율))}
-.fc-hanja-item{font-size:calc(18px*var(--글자배율))}
-.fc-direct{font-size:calc(13px*var(--글자배율))}
-.fc-example{font-size:calc(13px*var(--글자배율))}
-.fc-mnemonic{font-size:calc(12px*var(--글자배율))}
-.dad-q{font-size:calc(18px*var(--글자배율))}
-.dad-a-text{font-size:calc(20px*var(--글자배율))}
-.dad-a-explain{font-size:calc(12px*var(--글자배율))}
-.syn-q{font-size:calc(14px*var(--글자배율))}
-.syn-opt{font-size:calc(13px*var(--글자배율))}
-.syn-result{font-size:calc(12px*var(--글자배율))}
-.spk-prompt-text{font-size:calc(14px*var(--글자배율))}
-.spk-textarea{font-size:calc(13px*var(--글자배율))}
-.ask-msg{font-size:calc(13px*var(--글자배율))}
-.obj-note{font-size:calc(12px*var(--글자배율))}
-.rv-word{font-size:calc(14px*var(--글자배율))}
+.q-question{font-size:calc(17px*var(--글자배율))}
+.q-hint{font-size:calc(13px*var(--글자배율))}
+.otxt{font-size:calc(14px*var(--글자배율))}
+.fc-word{font-size:calc(40px*var(--글자배율))}
+.fc-reading{font-size:calc(20px*var(--글자배율))}
+.fc-meaning{font-size:calc(15px*var(--글자배율))}
+.fc-hanja-item{font-size:calc(20px*var(--글자배율))}
+.fc-direct{font-size:calc(14px*var(--글자배율))}
+.fc-example{font-size:calc(14px*var(--글자배율))}
+.fc-mnemonic{font-size:calc(13px*var(--글자배율))}
+.dad-q{font-size:calc(20px*var(--글자배율))}
+.dad-a-text{font-size:calc(22px*var(--글자배율))}
+.dad-a-explain{font-size:calc(13px*var(--글자배율))}
+.syn-q{font-size:calc(15px*var(--글자배율))}
+.syn-opt{font-size:calc(14px*var(--글자배율))}
+.syn-result{font-size:calc(13px*var(--글자배율))}
+.spk-prompt-text{font-size:calc(15px*var(--글자배율))}
+.spk-textarea{font-size:calc(14px*var(--글자배율))}
+.ask-msg{font-size:calc(14px*var(--글자배율))}
+.obj-note{font-size:calc(13px*var(--글자배율))}
+.rv-word{font-size:calc(15px*var(--글자배율))}
+
+/* ━━━ 세션7 항목10: 글자 크기 「전체 적용」 — html[data-글자범위="전체"]일 때
+   학습 콘텐츠 외 주요 UI 텍스트에도 배율 적용 (기준값 = +10% 반영된 새 기본) ━━━ */
+html[data-글자범위="전체"] .srl{font-size:calc(14px*var(--글자배율))}
+html[data-글자범위="전체"] .srs{font-size:calc(13px*var(--글자배율))}
+html[data-글자범위="전체"] .set-lbl{font-size:calc(12px*var(--글자배율))}
+html[data-글자범위="전체"] .mc-name{font-size:calc(17px*var(--글자배율))}
+html[data-글자범위="전체"] .mc-desc{font-size:calc(12px*var(--글자배율))}
+html[data-글자범위="전체"] .sec-t{font-size:calc(13px*var(--글자배율))}
+html[data-글자범위="전체"] .tbt{font-size:calc(18px*var(--글자배율))}
+html[data-글자범위="전체"] .st-name{font-size:calc(24px*var(--글자배율))}
+html[data-글자범위="전체"] .modal-desc{font-size:calc(13px*var(--글자배율))}
+html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율))}
 </style>
 
 <!-- Firebase Compat SDK (KNOWLEDGE 13·28 — 구글 로그인 + Firestore 동기화). compat 방식: 전역 firebase 객체 사용 -->
@@ -1074,7 +1093,8 @@ body.devnav .demo-offset{margin-top:80px}
 </div>
 
 <!-- 질문하기 -->
-<div class="ask-bg" id="askBg" onclick="배경클릭_닫기(event, closeAsk)"></div>
+<!-- 세션7: 창조주 시나리오 중엔 배경 탭으로 중도 포기되지 않게 가드(전용 버튼만 유효) -->
+<div class="ask-bg" id="askBg" onclick="배경클릭_닫기(event, ask배경닫기)"></div>
 <div class="ask-panel" id="askPanel">
   <div class="ask-handle"></div>
   <div class="ask-hdr">
@@ -1225,7 +1245,8 @@ body.devnav .demo-offset{margin-top:80px}
     <div class="mc fu s6" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
     <div class="mc fu s7" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
     <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 -->
-    <div class="mc fu s7" style="border-style:dashed" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><div class="mc-arrow">›</div></div>
+    <!-- 세션7 항목8: ⚙ = 모드별 확률·제외 설정 (카드 클릭과 분리 — stopPropagation) -->
+    <div class="mc fu s7" style="border-style:dashed" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()">⚙</span><div class="mc-arrow">›</div></div>
   </div>
 </div>
 
@@ -1260,8 +1281,11 @@ body.devnav .demo-offset{margin-top:80px}
       <div class="lset-row">
         <span class="lset-row-lbl">방식</span>
         <div class="lset-opts">
-          <button class="lset-opt on" onclick="setLsetMode('sq1','선택지',this)">선택지</button>
+          <!-- 세션7 항목7: '선택지'→'4지선다' 통일 + 플래시카드·역방향 확장 -->
+          <button class="lset-opt on" onclick="setLsetMode('sq1','4지선다',this)">4지선다</button>
           <button class="lset-opt" onclick="setLsetMode('sq1','직접입력',this)">직접입력</button>
+          <button class="lset-opt" onclick="setLsetMode('sq1','플래시카드',this)">플래시카드</button>
+          <button class="lset-opt" onclick="setLsetMode('sq1','역방향',this)">역방향</button>
         </div>
       </div>
     </div>
@@ -1363,8 +1387,11 @@ body.devnav .demo-offset{margin-top:80px}
       <div class="lset-row">
         <span class="lset-row-lbl">방식</span>
         <div class="lset-opts">
-          <button class="lset-opt on" onclick="setLsetMode('sq3','선택지',this)">선택지</button>
+          <!-- 세션7 항목7: '선택지'→'4지선다' 통일 + 플래시카드·역방향 확장 -->
+          <button class="lset-opt on" onclick="setLsetMode('sq3','4지선다',this)">4지선다</button>
           <button class="lset-opt" onclick="setLsetMode('sq3','직접입력',this)">직접입력</button>
+          <button class="lset-opt" onclick="setLsetMode('sq3','플래시카드',this)">플래시카드</button>
+          <button class="lset-opt" onclick="setLsetMode('sq3','역방향',this)">역방향</button>
         </div>
       </div>
     </div>
@@ -1421,8 +1448,10 @@ body.devnav .demo-offset{margin-top:80px}
       <div class="lset-row">
         <span class="lset-row-lbl">입력 방식</span>
         <div class="lset-opts">
-          <button class="lset-opt on" onclick="setLsetMode('sq4_input','선택지',this)">선택지</button>
+          <!-- 세션7 항목7: 구 '선택지'(탭→공개)의 실체는 플래시카드 — 정직하게 개명 + 진짜 4지선다 신설 -->
+          <button class="lset-opt" onclick="setLsetMode('sq4_input','4지선다',this)">4지선다</button>
           <button class="lset-opt" onclick="setLsetMode('sq4_input','직접입력',this)">직접입력</button>
+          <button class="lset-opt on" onclick="setLsetMode('sq4_input','플래시카드',this)">플래시카드</button>
         </div>
       </div>
     </div>
@@ -1530,6 +1559,30 @@ body.devnav .demo-offset{margin-top:80px}
     <div class="tbt">복습 진행</div>
     <div></div>
   </div>
+  <!-- 세션7 항목5: 복습에도 학습 설정 — 복습 방식·순서 선택 (srpBody 형제 배치로 접힘 상태 보존) -->
+  <div class="lset-panel" id="lsetSrp">
+    <div class="lset-hdr" onclick="toggleLset('lsetSrp')">
+      <div class="lset-hdr-left">⚙ 학습 설정</div>
+      <span class="lset-toggle">▼</span>
+    </div>
+    <div class="lset-body">
+      <div class="lset-row">
+        <span class="lset-row-lbl">복습 방식</span>
+        <div class="lset-opts">
+          <button class="lset-opt on" onclick="setLsetMode('srp','카드 보기',this)">카드 보기</button>
+          <button class="lset-opt" onclick="setLsetMode('srp','4지선다',this)">4지선다</button>
+          <button class="lset-opt" onclick="setLsetMode('srp','직접입력',this)">직접입력</button>
+        </div>
+      </div>
+      <div class="lset-row">
+        <span class="lset-row-lbl">순서</span>
+        <div class="lset-opts">
+          <button class="lset-opt on" onclick="setLsetMode('srp_순서','등록순',this)">등록순</button>
+          <button class="lset-opt" onclick="setLsetMode('srp_순서','섞기',this)">섞기</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="srpBody" class="rv-body" style="padding:16px 18px"></div>
 </div>
 
@@ -1555,9 +1608,11 @@ body.devnav .demo-offset{margin-top:80px}
   <div class="st-body">
     <!-- α4: Lv.70 도달 시 「주신의 경지」 메시지 UI (KNOWLEDGE 11) -->
     <div class="jushin-msg" id="jushinMsg" style="display:none" onclick="주신의경지_탭()">「주҉신҉의 경지」</div>
+    <!-- 세션7 항목12: 프로필 배너 — 탭하여 변경 (기본: 테마 그라디언트, 프리셋 자유·업로드 Lv.16) -->
+    <div class="st-banner fu" id="statusBanner" onclick="배너선택_열기()"></div>
     <div class="st-prof fu">
       <!-- α9: 아바타 탭 → 고급 커스터마이징 -->
-      <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
+      <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div><!-- 세션7 항목12: 배너는 st-prof 위에 삽입됨 -->
       <div style="flex:1">
         <!-- v3.4: 하드코딩 제거. JS afterNav('ss')에서 사용자 객체로 주입 -->
         <div class="st-name" id="statusUser"></div>
@@ -1632,6 +1687,11 @@ body.devnav .demo-offset{margin-top:80px}
         <div style="display:flex;align-items:center;gap:11px;width:100%">
           <span class="sri">🔠</span>
           <div style="flex:1"><div class="srl">글자 크기</div><div class="srs" id="textScaleTxt">100% — 문제·카드·채팅 글자만 확대</div></div>
+          <!-- 세션7 항목10: 적용 범위 — 학습 콘텐츠만 / 앱 전체 -->
+          <div style="display:flex;gap:5px">
+            <button class="fs-opt on" id="글자범위학습" onclick="set글자범위('학습')">학습만</button>
+            <button class="fs-opt" id="글자범위전체" onclick="set글자범위('전체')">전체</button>
+          </div>
         </div>
         <div class="fs-opts" id="textScaleOpts">
           <button class="fs-opt" onclick="set글자크기(80)">80%</button>
@@ -1734,6 +1794,12 @@ body.devnav .demo-offset{margin-top:80px}
         <span class="sra" id="devModeArrow" style="color:var(--txtm)">›</span>
       </div>
       <!-- 추가기능: 음성 생성(콜롬비나 TTS) — 창조주 전용. 기본 숨김, 창조주 달성 시 갱신_음성설정_UI()로 노출 -->
+      <!-- 세션7 항목2: 실험실 — 예정·실험 기능을 미리 보여주는 티저 공간 (전원 노출) -->
+      <div class="set-row" onclick="실험실_열기()">
+        <span class="sri">🧪</span>
+        <div style="flex:1"><div class="srl">실험실</div><div class="srs">준비 중인 기능 미리 보기</div></div>
+        <span class="sra">›</span>
+      </div>
       <div class="set-row" id="음성설정Row" onclick="음성설정_탭()" style="display:none">
         <span class="sri">🎙</span>
         <div style="flex:1"><div class="srl">음성 생성 (실험)</div><div class="srs">창조주 전용 · 외부 음성 서버 연결</div></div>
@@ -1811,6 +1877,8 @@ const 사용자 = {
   선택칭호: '',   // 세션5: 창조주 칭호 선택(폐하/주신) — 초기값 명시
   AI지침: '',        // 세션6: AI 통합 지침 (500자)
   개발자네비표시: false,  // 세션6: 상단 개발자 바로가기 — 기본 숨김(패널 토글로만)
+  배너이미지: '',    // 세션7: 현황 배너 (''=테마 그라디언트 기본)
+  글자범위: '학습',  // 세션7: 글자 크기 적용 범위 (학습/전체)
 };
 /* 빌드1: 위 객체는 로그인 전 placeholder — 로그인 시 사용자데이터_적용()이 Firestore 값으로 덮어씀 */
 
@@ -1977,16 +2045,17 @@ function 복습대기열_추가(단어, 뜻, 모드){
   if(curScreen==='sr') renderReview();
 }
 
-// 학습 흐름 → 정답 처리: 대기열에 있으면 연속정답수 +1, 3회 도달 시 졸업(영구 삭제 — KNOWLEDGE 7)
+/// 학습 흐름 → 정답 처리: 대기열에 있으면 정답 1회로 즉시 졸업(영구 삭제)
+// 세션7 항목5: 최고 관리자님 지시 — 졸업 기준 3연속 → 1회로 완화
 function 복습대기열_정답처리(단어){
   const idx = 복습데이터.대기열.findIndex(x=>x.단어===단어);
   if(idx < 0) return;
   const 항목 = 복습데이터.대기열[idx];
   항목.연속정답수++;
-  if(항목.연속정답수 >= 3){
+  if(항목.연속정답수 >= 1){
     복습데이터.대기열.splice(idx,1);
     보관함_문서삭제('복습대기열', 항목.id);
-    showToastMsg(`🎓 「${항목.단어}」 복습 졸업! (3연속 정답)`);
+    showToastMsg(`🎓 「${항목.단어}」 복습 졸업!`);
   } else {
     보관함_문서수정('복습대기열', 항목.id, {연속정답수:항목.연속정답수});
   }
@@ -2243,12 +2312,22 @@ document.addEventListener('touchstart', ev => { 마지막포인터다운타깃 =
 let 뒤로가기_이동중 = false;
 window.addEventListener('popstate', ev => {
   const 화면 = ev.state && ev.state.화면;
-  if(화면 && document.getElementById(화면)){
-    뒤로가기_이동중 = true;
+  if(!화면 || !document.getElementById(화면)) return;
+  뒤로가기_이동중 = true;
+  // 세션7: 학습 화면으로 복귀할 땐 goLearn 재진입 — 화면만 바꾸면 현재학습모드가 어긋나
+  // EXP·마스터리가 엉뚱한 카테고리로 집계되고 문제도 갱신되지 않던 문제 해소
+  if(/^sq\d/.test(화면) && ev.state.카테고리){
+    goLearn(ev.state.카테고리, 화면, null);
+  } else {
     goNav(화면, null);
-    뒤로가기_이동중 = false;
   }
+  뒤로가기_이동중 = false;
 });
+// 세션7: 창조주 시나리오 진행 중엔 배경 탭 무시 — 실수 탭으로 시나리오가 통째로 취소되는 함정 방지
+function ask배경닫기(){
+  if(창조주진행중) return;
+  closeAsk();
+}
 function 배경클릭_닫기(ev, 닫기fn){
   if(ev.target !== ev.currentTarget) return;                 // 내부 요소 클릭은 무시
   if(마지막포인터다운타깃 && 마지막포인터다운타깃 !== ev.currentTarget) return;  // 드래그 시작이 안쪽이면 무시
@@ -2279,11 +2358,18 @@ function goNav(id, btn){
     setTimeout(()=>next.classList.remove('entering'),400);
   }));
 
+  const 이전화면ID = curScreen;
   curScreen=id;
 
-  // 세션6 신규: 모바일 뒤로가기 지원 — 화면 전환마다 히스토리 push (뒤로가기로 온 경우 제외)
+  // 세션6 신규: 모바일 뒤로가기 지원 (뒤로가기로 온 경우 제외)
+  // 세션7: 바텀 네비 화면끼리 오갈 땐 replace — 탭 왕복으로 히스토리가 무한히 쌓여
+  //        "뒤로가기를 수십 번 눌러야 나가지는" 문제 방지
   if(!뒤로가기_이동중){
-    try{ history.pushState({화면:id}, '', ''); }catch(e){ /* file:// 등 미지원 환경 무시 */ }
+    try{
+      const 네비간이동 = SHOW_NAV.includes(id) && SHOW_NAV.includes(이전화면ID);
+      if(네비간이동) history.replaceState({화면:id}, '', '');
+      else history.pushState({화면:id}, '', '');
+    }catch(e){ /* file:// 등 미지원 환경 무시 */ }
   }
 
   const bnav=document.getElementById('g-bnav');
@@ -2340,6 +2426,7 @@ function afterNav(id){
     const 등급 = 등급정보(표시Lv);
     document.getElementById('statusUser').textContent=userName;
     아바타_적용(document.getElementById('statusAvatar'), 사용자.프로필이미지);  // 세션6: 이미지/이모지 겸용
+    배너_적용(document.getElementById('statusBanner'), 사용자.배너이미지);      // 세션7: 프로필 배너
     document.getElementById('statusTitle').textContent=등급.세부;
 
     // α1·α7·α8: 7단계 소칭호 + 색상 + 주신 글리치 일괄 적용
@@ -2400,6 +2487,8 @@ function goLearn(category, screenId, btn){
   // 세션6 항목4: 카테고리가 바뀌면 진행 중 채팅을 기록으로 보관하고 채팅창을 비운다
   if(현재학습모드 && 현재학습모드 !== category) 채팅세션_마감('카테고리 이동');
   현재학습모드 = category;
+  // 세션7: 뒤로가기 복귀용 — 히스토리 상태에 카테고리를 덧붙임 (popstate 시 goLearn 재진입 근거)
+  try{ history.replaceState({화면:screenId, 카테고리:category}, '', ''); }catch(e){ /* 무시 */ }
   현재학습모드필드 = 모드_마스터리맵[category] || '';
   // 세션5: 매핑 실패 시 마스터리가 조용히 누락되는 문제 — 콘솔 경고로 표면화
   if(!현재학습모드필드) console.warn('[마스터리] 모드 매핑 없음 — 학습 수가 집계되지 않습니다:', category);
@@ -2483,10 +2572,41 @@ const 랜덤학습_모드목록 = [
   ['상식·어원','sq1'], ['고사성어·속담','sq2'], ['세계사·신화','sq1'],
   ['아재개그','sq4'], ['한자·우리말','sq2'], ['맞춤법','sq3'], ['구어 교정','sq5']
 ];
+/* 세션7 항목8: 랜덤 설정 — 모드별 가중치(0=제외/1/2/3), plx_랜덤설정+Firestore 영속 */
+let 랜덤설정 = {가중치:{}};
+function 랜덤_가중치(모드){
+  const v = 랜덤설정.가중치[모드];
+  return (v === 0 || v) ? v : 1;   // 미설정 = 기본 1
+}
 function 랜덤학습(){
-  const [카테고리, 화면] = 랜덤학습_모드목록[Math.floor(Math.random()*랜덤학습_모드목록.length)];
+  // 가중치 추첨 — 0(제외)은 후보에서 빠짐
+  const 풀 = [];
+  랜덤학습_모드목록.forEach(m => { for(let i=0;i<랜덤_가중치(m[0]);i++) 풀.push(m); });
+  if(!풀.length){ showToastMsg('⚙ 모든 모드가 제외되어 있습니다 — 랜덤 설정을 확인하세요'); return; }
+  const [카테고리, 화면] = 풀[Math.floor(Math.random()*풀.length)];
   showToastMsg('🎲 오늘의 랜덤: ' + 카테고리);
   goLearn(카테고리, 화면, null);
+}
+function 랜덤설정_열기(){
+  const 행들 = 랜덤학습_모드목록.map(m=>{
+    const 모드 = m[0], 현재 = 랜덤_가중치(모드);
+    const 버튼 = [0,1,2,3].map(v=>
+      `<button class="fs-opt${현재===v?' on':''}" style="padding:5px 9px" onclick="랜덤_가중치설정('${모드}',${v})">${v===0?'제외':'×'+v}</button>`
+    ).join('');
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bdr)">
+      <span style="flex:1;font-size:13px;font-weight:600;text-align:left;${현재===0?'opacity:.45;text-decoration:line-through':''}">${모드}</span>
+      <div style="display:flex;gap:4px">${버튼}</div>
+    </div>`;
+  }).join('');
+  showInfoModal('🎲','랜덤 설정',
+    `<div style="text-align:left;font-size:11px;color:var(--txt2);margin-bottom:6px">모드별 등장 확률(×배수)을 정하거나 제외할 수 있습니다.</div>${행들}`);
+}
+function 랜덤_가중치설정(모드, v){
+  랜덤설정.가중치[모드] = v;
+  try{ localStorage.setItem('plx_랜덤설정', JSON.stringify(랜덤설정)); }catch(e){ /* 무시 */ }
+  사용자.랜덤설정 = 랜덤설정;
+  사용자데이터_저장({랜덤설정});
+  랜덤설정_열기();   // 팝업 즉시 갱신
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2709,6 +2829,9 @@ function 사용자데이터_적용(data, authUser){
   // 세션6: AI 지침·개발자 네비 표시 복원
   if(typeof data.AI지침 === 'string'){ 사용자.AI지침 = data.AI지침; AI지침_상태갱신(); }
   if(typeof data.개발자네비표시 === 'boolean') 사용자.개발자네비표시 = data.개발자네비표시;
+  // 세션7: 글자범위·랜덤설정 복원 (배너이미지는 현황 진입 시 렌더)
+  if(data.글자범위) set글자범위(data.글자범위, true);
+  if(data.랜덤설정 && data.랜덤설정.가중치) 랜덤설정 = data.랜덤설정;
   if(data.히스토리필터){
     histFilter = data.히스토리필터;
     const t=document.getElementById('histFilterTxt');
@@ -2759,6 +2882,8 @@ function 신규사용자_생성(){
     업적진행도: {}, 창조주달성: false, 개발자모드: false, 선택칭호: '',
     // 세션6: AI 지침·개발자 네비 표시
     AI지침: '', 개발자네비표시: false,
+    // 세션7: 배너·글자범위·랜덤 설정
+    배너이미지: '', 글자범위: '학습', 랜덤설정: {가중치:{}},
     // 질문하기 (통계)
     오늘질문횟수: 0, 질문날짜: ''
   };
@@ -3042,6 +3167,37 @@ function 갱신_음성설정_UI(){
   if(!row) return;
   row.style.display = 사용자.창조주달성 ? 'flex' : 'none';
 }
+/* ━━━ 세션7 항목2: 실험실 — 예정·실험 기능 티저 (전원 노출, 항목 탭 시 티저 안내) ━━━ */
+const 실험실_목록 = [
+  {아이콘:'🔗', 이름:'끝말잇기', 설명:'AI 목소리와 함께하는 단어 배틀', 상태:'예정'},
+  {아이콘:'🎙', 이름:'음성 생성', 설명:'단어를 캐릭터 목소리로 듣기', 상태:'실험', 열기:'음성설정_탭'},
+  {아이콘:'🤖', 이름:'AI 실시간 출제', 설명:'Grok이 매번 새로운 문제를 생성', 상태:'예정'},
+  {아이콘:'🧠', 이름:'사고전개 답변', 설명:'AI의 풀이 과정을 함께 보기', 상태:'예정'}
+];
+function 실험실_열기(){
+  const 목록 = 실험실_목록.map((it,i)=>
+    `<div style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--bdr);cursor:pointer;text-align:left" onclick="실험실_항목탭(${i})">
+      <span style="font-size:20px">${it.아이콘}</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--txt)">${it.이름} <span style="font-size:10px;color:${it.상태==='실험'?'var(--warn)':'var(--txt2)'};border:1px solid var(--bdr);border-radius:5px;padding:1px 5px">${it.상태}</span></div>
+      <div style="font-size:11px;color:var(--txt2);margin-top:2px">${it.설명}</div></div>
+      <span style="color:var(--txtm)">›</span>
+    </div>`).join('');
+  showInfoModal('🧪','실험실', `<div style="text-align:left;font-size:11px;color:var(--txt2);margin-bottom:6px">앞으로 추가될 기능들을 미리 소개합니다.</div>${목록}`);
+}
+function 실험실_항목탭(i){
+  const it = 실험실_목록[i];
+  if(!it) return;
+  // 개발자 모드 + 연결 가능한 항목은 실제 기능으로 (예: 음성 생성 패널)
+  if(사용자.개발자모드 && it.열기 && typeof window[it.열기] === 'function'){
+    closeInfoModal();
+    window[it.열기]();
+    return;
+  }
+  // 티저형 문구 (최고 관리자님 확정) — 예고 + 해금 조건 안내
+  showInfoModal(it.아이콘, it.이름,
+    `🔒 준비 중인 기능입니다.<br>업데이트를 조금만 기다려 주세요!<br><br><span style="font-size:11px;color:var(--txt2)">개발자 모드에서는 먼저 체험할 수 있습니다.</span><br><br><button class="btn-g" style="width:100%;padding:9px" onclick="실험실_열기()">← 실험실 목록으로</button>`);
+}
+
 function 음성설정_탭(){
   if(!사용자.창조주달성){
     showInfoModal('🔒','음성 생성','[창조주] 업적을 달성하면 사용할 수 있습니다.');
@@ -3069,12 +3225,17 @@ function 음성엔드포인트_저장(){
   try{ localStorage.setItem('plx_음성엔드포인트', 값); }catch(e){ /* localStorage 차단 환경 무시 */ }
   사용자.음성엔드포인트 = 값;
   사용자데이터_저장({음성엔드포인트: 값});  // Firestore 동기화
-  showToastMsg(값 ? '서버 주소 저장됨' : '서버 주소 비움');
+  // 세션7 항목4: 저장/지우기 안내 분리 — 빈 값 저장은 "삭제"가 아니라 별도 안내
+  showToastMsg(값 ? '✅ 서버 주소 저장됨' : 'ℹ️ 입력된 주소가 없습니다');
 }
 function 음성엔드포인트_지우기(){
   const inp = document.getElementById('음성엔드포인트입력');
   if(inp) inp.value = '';
-  음성엔드포인트_저장();
+  음성엔드포인트 = '';
+  try{ localStorage.setItem('plx_음성엔드포인트', ''); }catch(e){ /* 무시 */ }
+  사용자.음성엔드포인트 = '';
+  사용자데이터_저장({음성엔드포인트: ''});
+  showToastMsg('🗑️ 서버 주소 삭제됨');  // 세션7 항목4: 지우기 전용 문구
 }
 // 테스트 벤치: 텍스트 → 생성 → 재생 (봉인 중엔 안내만)
 async function 음성_테스트생성(){
@@ -3365,6 +3526,7 @@ const QUIZ_SPELL=[
   {cat:'맞춤법', q:'"그렇게 하면 (&nbsp;&nbsp;&nbsp;&nbsp;) 않아?"', hint:'괄호 안에 들어갈 알맞은 표현을 고르세요.', opts:[
     {t:'되지', c:true},
     {t:'돼지', c:false},
+    {t:'됀지', c:false},   /* 세션7 항목7: 4지선다 통일 — 보기 4개로 확장 */
     {t:'대지', c:false}
   ]}
 ];
@@ -3377,6 +3539,12 @@ function renderQuiz4(data){
   const q=data[Math.floor(Math.random()*data.length)];
   현재퀴즈문제 = q;  // 복습 대기열 연동용
   현재문제_reasoning_note = q.reasoning_note || '';  // β3: DB 문제는 JSON에 직접 작성 (없으면 Grok fallback 예정)
+  // 세션7 항목7: 플래시카드/역방향 분기 (문항 부족 시 4지선다 폴백)
+  if(학습설정.sq1 === '플래시카드'){ 퀴즈_플래시렌더('sq1', q); return; }
+  if(학습설정.sq1 === '역방향'){
+    if(data.length >= 2){ 퀴즈_역방향렌더('sq1', q, data); return; }
+    showToastMsg('문항이 부족해 4지선다로 출제합니다');
+  }
   // 세션5 버그7: 「직접입력」 실구현 — 선택지 대신 답 타이핑 + 정답 비교
   if(학습설정.sq1 === '직접입력'){
     body.innerHTML=`
@@ -3414,6 +3582,12 @@ function renderQuiz3(data){
   const q=data[Math.floor(Math.random()*data.length)];
   현재퀴즈문제 = q;  // 복습 대기열 연동용
   현재문제_reasoning_note = q.reasoning_note || '';
+  // 세션7 항목7: 플래시카드/역방향 분기 (문항 부족 시 기본 선다형 폴백)
+  if(학습설정.sq3 === '플래시카드'){ 퀴즈_플래시렌더('sq3', q); return; }
+  if(학습설정.sq3 === '역방향'){
+    if(data.length >= 2){ 퀴즈_역방향렌더('sq3', q, data); return; }
+    showToastMsg('문항이 부족해 선다형으로 출제합니다');
+  }
   // 세션5 버그7: 「직접입력」 실구현 — 선택지 대신 답 타이핑 + 정답 비교
   if(학습설정.sq3 === '직접입력'){
     body.innerHTML=`
@@ -3527,6 +3701,61 @@ function 직접입력_제출(screenId){
   if(현재학습모드필드) 마스터리증가(현재학습모드필드);
   마스터리증가('총누적어휘수');
   세션결과_기록(정답여부);
+}
+
+/* ━━━ 세션7 항목7: sq1·sq3 공용 「플래시카드」·「역방향」 (문항형 데이터 변환) ━━━ */
+// 플래시카드: 앞면 = 문항, 정답 보기 1회(EXP·마스터리 1회 잠금)
+let 퀴즈플래시_공개됨 = false;
+function 퀴즈_플래시렌더(screenId, q){
+  const body = document.getElementById(screenId+'Body');
+  퀴즈플래시_공개됨 = false;
+  const 정답 = q.opts.find(o=>o.c)?.t || '';
+  body.innerHTML = `
+    <div class="qcard">
+      <div class="qcat"><span class="tag tb">${q.cat}</span></div>
+      <div class="q-question">${q.q}</div>
+      ${q.hint?`<div class="q-hint">${q.hint}</div>`:''}
+    </div>
+    <button class="btn-acc" id="${screenId}FlashBtn" style="width:100%;margin-top:12px" onclick="퀴즈_플래시공개('${screenId}')">정답 보기</button>
+    <div id="${screenId}FlashAns" class="qcard" style="display:none;margin-top:10px;border-color:var(--acc)">
+      <div class="q-hint">정답</div>
+      <div class="q-question" style="color:var(--acc)">${정답}</div>
+    </div>
+    <button class="btn-acc" style="width:100%;margin-top:12px" onclick="다음문제()">다음 문제 →</button>
+  `;
+}
+function 퀴즈_플래시공개(screenId){
+  if(퀴즈플래시_공개됨) return;   // 1회 잠금 — EXP 중복 방지
+  퀴즈플래시_공개됨 = true;
+  const ans = document.getElementById(screenId+'FlashAns');
+  const btn = document.getElementById(screenId+'FlashBtn');
+  if(ans) ans.style.display = 'block';
+  if(btn) btn.style.display = 'none';
+  const 획득 = EXP획득(20, '플래시 학습');
+  if(ans) showExpFloat(ans, '+'+획득);
+  if(현재학습모드필드) 마스터리증가(현재학습모드필드);
+  마스터리증가('총누적어휘수');
+}
+// 역방향: 정답을 제시하고 「이 정답의 문제」를 고르기 (selAns 흐름 그대로 재사용)
+function 퀴즈_역방향렌더(screenId, q, data){
+  const body = document.getElementById(screenId+'Body');
+  const 정답보기 = q.opts.find(o=>o.c)?.t || '';
+  const 타문항 = data.filter(x=>x!==q).map(x=>x.q).sort(()=>Math.random()-0.5).slice(0,3);
+  const 보기들 = [...타문항.map(t=>({t, c:false})), {t:q.q, c:true}].sort(()=>Math.random()-0.5);
+  let optsHtml='';
+  보기들.forEach((o,i)=>{
+    optsHtml += `<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`;
+  });
+  body.innerHTML = `
+    <div class="qcard">
+      <div class="qcat"><span class="tag tb">${q.cat}</span> <span class="tag tp">역방향</span></div>
+      <div class="q-question" style="color:var(--acc)">${정답보기}</div>
+      <div class="q-hint">위 정답에 해당하는 문제를 고르세요</div>
+    </div>
+    <div class="aopts">${optsHtml}</div>
+    <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
+    <button class="btn-acc" style="width:100%" onclick="다음문제()">다음 문제 →</button>
+  `;
 }
 
 /* 퍼펙트 세션(5문제 전원 정답 → +150, KNOWLEDGE 12) + [불굴의 의지](오답→오답→정답) 판정 */
@@ -4010,6 +4239,9 @@ const DAD_GAGS=[
 ];
 let 현재아재문제 = null;   // 세션5: 직접입력 비교용 현재 문항
 let 아재정답공개됨 = false; // 세션5: revealDad 중복 호출 → EXP 반복 획득 방지
+/* 세션7 항목7: 아재개그 4지선다용 오답 표본 (임시 — data/아재개그.json이 채워지면
+   실제 풀의 정답들로 대체하고 이 배열은 제거. 세션3 임시보기 패턴과 동일한 관리 방침) */
+const 아재_오답표본 = ['치타','적운형 구름','데이비드 (또는 루시)','오리너구리','붕어빵','참을 인(忍)','옆집 백구','고구마 라떼'];
 function renderDad(data){
   const body=document.getElementById('sq4Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
@@ -4018,6 +4250,27 @@ function renderDad(data){
   현재아재문제 = g;
   아재정답공개됨 = false;
   현재문제_reasoning_note = g.reasoning_note || '';
+  // 세션7 항목7: 「4지선다」 실구현 — 오답은 다른 개그 정답+임시 표본에서 구성
+  if(학습설정.sq4_input === '4지선다'){
+    const 정답텍스트 = g.a;
+    const 오답들 = 아재_오답표본
+      .filter(t => 직접입력_규격(t) !== 직접입력_규격(정답텍스트))
+      .sort(()=>Math.random()-0.5).slice(0,3);
+    const 보기들 = [...오답들.map(t=>({t, 정:false})), {t:정답텍스트, 정:true}].sort(()=>Math.random()-0.5);
+    body.innerHTML=`
+      <div class="dad-card">
+        <div class="qcat" style="margin-bottom:8px"><span class="tag tp">아재개그</span></div>
+        <div class="dad-q">${g.q}</div>
+        <div class="aopts" style="margin-top:6px">${보기들.map((b,i)=>`<div class="aopt" data-정답="${b.정?1:0}" onclick="아재_선다선택(this,${b.정})"><div class="onum">${i+1}</div><div class="otxt">${b.t}</div></div>`).join('')}</div>
+        <div class="dad-answer" id="dadAns">
+          <div class="dad-a-text">${g.a}</div>
+          <div class="dad-a-explain">${g.e}</div>
+        </div>
+      </div>
+      <button class="btn-acc" style="width:100%" onclick="아재_다음문제()">다음 문제 →</button>
+    `;
+    return;
+  }
   // 세션5 버그7: 입력 방식 「직접입력」 — 답을 타이핑한 뒤 정답 공개·비교
   if(학습설정.sq4_input === '직접입력'){
     body.innerHTML=`
@@ -4074,6 +4327,15 @@ function revealDad(){
   마스터리증가('아재개그학습수');
   마스터리증가('총누적어휘수');
 }
+/* 세션7 항목7: 아재개그 4지선다 선택 — 정답/오답 표시 후 해설 공개(EXP는 revealDad 1회 잠금 공유) */
+function 아재_선다선택(el, 정답){
+  if(el.parentElement.querySelector('.correct,.wrong')) return;
+  el.classList.add(정답 ? 'correct' : 'wrong');
+  if(!정답) el.parentElement.querySelectorAll('.aopt').forEach(o=>{ if(o.dataset.정답==='1') o.classList.add('correct'); });
+  el.parentElement.querySelectorAll('.aopt').forEach(o=>o.classList.add('disabled'));
+  showToastMsg(정답 ? '🎉 정답!' : '😄 아쉽! 해설을 확인하세요');
+  revealDad();
+}
 /* 세션5 버그7: 아재개그 직접입력 제출 — 느슨 비교 후 정답 공개(EXP는 revealDad 1회 잠금 공유) */
 function 아재_직접제출(){
   const inp=document.getElementById('dadDirectInp');
@@ -4083,7 +4345,10 @@ function 아재_직접제출(){
   inp.dataset.제출완료='1'; inp.disabled=true;
   const btn=document.getElementById('dadDirectBtn'); if(btn) btn.disabled=true;
   활성입력_blur();
-  const 맞음 = 직접입력_규격(입력)!=='' && 직접입력_규격(입력)===직접입력_규격(현재아재문제?.a);
+  // 세션7 항목6: 허용 정답 배열 지원 — 데이터에 허용:[...]이 있으면 그 목록으로 판정
+  const 후보 = (현재아재문제 && Array.isArray(현재아재문제.허용) && 현재아재문제.허용.length)
+    ? 현재아재문제.허용 : [현재아재문제?.a];
+  const 맞음 = 직접입력_규격(입력)!=='' && 후보.some(ans => 직접입력_규격(입력) === 직접입력_규격(ans));
   showToastMsg(맞음 ? '🎉 정답! 센스가 대단합니다' : '😄 아쉽! 정답을 확인하세요');
   revealDad();
 }
@@ -4262,13 +4527,23 @@ function submitSpk(){
 
 // 모드별 현재 선택값 저장 (Firebase 연동 시 설정 데이터로 이전)
 // v3.7 항목3,13: sq2 4방식 확장 + sq4 입력 방식 추가
+// 세션7 항목7: '선택지' 명칭을 '4지선다'로 통일 + 플래시카드·역방향 전 모드 확장
+// 세션7 항목5: 복습(srp) 방식·순서 키 추가
 let 학습설정 = {
-  sq1: '선택지',         // 선택지 / 직접입력
-  sq2: '4지선다',         // 4지선다 / 뜻 직접 서술 / 역방향 / 유의어 변별 (v3.7 항목3)
-  sq3: '선택지',         // 선택지 / 직접입력
+  sq1: '4지선다',        // 4지선다 / 직접입력 / 플래시카드 / 역방향
+  sq2: '4지선다',         // 4지선다 / 뜻 직접 서술 / 역방향 / 유의어 변별 / 플래시카드 (v3.7 항목3)
+  sq3: '4지선다',        // 4지선다 / 직접입력 / 플래시카드 / 역방향
   sq4: '아↗그거!',        // 아↗그거! / UP¡¿
-  sq4_input: '선택지'    // 선택지 / 직접입력 (v3.7 항목13)
+  sq4_input: '플래시카드', // 4지선다 / 직접입력 / 플래시카드 (구 '선택지'=탭→공개의 실체가 플래시카드)
+  srp: '카드 보기',       // 카드 보기 / 4지선다 / 직접입력 (복습)
+  srp_순서: '등록순'      // 등록순 / 섞기 (복습)
 };
+// 세션7: 구버전 저장값('선택지') 마이그레이션 — 복원 직후 호출
+function 학습설정_마이그레이션(){
+  if(학습설정.sq1 === '선택지') 학습설정.sq1 = '4지선다';
+  if(학습설정.sq3 === '선택지') 학습설정.sq3 = '4지선다';
+  if(학습설정.sq4_input === '선택지') 학습설정.sq4_input = '플래시카드';
+}
 
 /* 패널 펼치기/접기 토글 — 세션5 버그8: 회전 대신 ▼/▲ 글자 교체(회전 금지 규칙) */
 function toggleLset(id){
@@ -4319,9 +4594,17 @@ function setLsetMode(screenId, mode, btn){
     setTimeout(initDad,30);
     showToastMsg(`난이도: ${mode}`);
   } else if(screenId==='sq4_input'){
-    // 아재개그 입력 방식 (선택지 / 직접입력) — 즉시 반영
+    // 아재개그 입력 방식 (4지선다 / 직접입력 / 플래시카드) — 즉시 반영
     if(현재아재풀){ renderDad(현재아재풀); setTimeout(initDad,30); }
     showToastMsg(`입력 방식: ${mode}`);
+  } else if(screenId==='srp' || screenId==='srp_순서'){
+    // 세션7 항목5: 복습 방식·순서 — 진행 중이면 현재 카드부터 즉시 반영
+    if(screenId==='srp_순서' && mode==='섞기' && 복습진행){
+      const 남은 = 복습진행.목록.slice(복습진행.idx).sort(()=>Math.random()-0.5);
+      복습진행.목록 = [...복습진행.목록.slice(0, 복습진행.idx), ...남은];
+    }
+    if(복습진행) 복습_카드렌더();
+    showToastMsg(`복습 ${screenId==='srp'?'방식':'순서'}: ${mode}`);
   } else {
     showToastMsg(`설정 변경: ${mode}`);
   }
@@ -4334,7 +4617,11 @@ const DAD_GAGS_BY_DIFFICULTY = {
   ],
   'UP¡¿': [
     {q:'뚱뚱한 구름은?', a:'적운형 구름', e:'적운(積雲)은 위로 솟아 오른 모양의 구름. "쌓인 = 뚱뚱"의 언어유희.'},
-    {q:'함께 달에 가지 못해서 미안해.', a:'데이비드', e:'아폴로 11호는 닐 암스트롱·버즈 올드린이 달에 착륙했고, 마이클 콜린스는 사령선에서 대기. "달에 못 간 사람"을 농담으로 다른 인물(데이비드)로 빗댄 것.'}
+    // 세션7 항목6: 정답·해설 교체 — 《사이버펑크: 엣지러너》 오마주 (허용 배열은 내부 판정용, 화면 비노출)
+    // 이름만·성+이름 정답 / 성만(마르티네즈·쿠시나다 등)은 목록에 없어 자동 오답
+    {q:'함께 달에 가지 못해서 미안해.', a:'데이비드 (또는 루시)',
+     허용:['데이비드','루시','David','Lucy','데이비드 마르티네즈','David Martinez','デイビッド・マルティネス','루시나 루시 쿠시나다','루시나 쿠시나다','Lucyna Lucy Kushinada','Lucyna Kushinada'],
+     e:'애니메이션 《사이버펑크: 엣지러너》 — 데이비드와 루시의 「달」 약속에서 온 대사. 루시의 꿈은 달에 가는 것이었고, 데이비드는 그 약속을 끝내 함께 지키지 못했다.'}
   ]
 };
 
@@ -4380,7 +4667,8 @@ function renderQueueTab(){
 
   // 항목들
   대기열.forEach((item,idx)=>{
-    const dots = [0,1,2].map(i=>`<div class="rv-dot${i<item.연속정답수?' f':''}"></div>`).join('');
+    // 세션7 항목5: 졸업 기준 1회 — 점 1개로 축소
+    const dots = [0].map(i=>`<div class="rv-dot${i<item.연속정답수?' f':''}"></div>`).join('');
     html += `
       <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
         <div class="rv-idx">${idx}</div>
@@ -4390,7 +4678,7 @@ function renderQueueTab(){
           <div class="rv-meta">
             <span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span>
             <div class="rv-dots">${dots}</div>
-            <span style="font-size:10px;color:var(--txtm)">${item.연속정답수}/3</span>
+            <span style="font-size:10px;color:var(--txtm)">${item.연속정답수}/1</span>
           </div>
         </div>
         <div class="rv-acts">
@@ -4493,6 +4781,8 @@ function 복습시작(){
     return;
   }
   복습진행 = { 목록: [...복습데이터.대기열], idx: 0 };
+  // 세션7 항목5: 순서 「섞기」 설정 시 셔플
+  if(학습설정.srp_순서 === '섞기') 복습진행.목록.sort(()=>Math.random()-0.5);
   // 항목10: 좁은 복습칸 인라인이 아니라 전용 화면(srp)으로 이동해 카드에 집중
   goNav('srp', null);
   복습_카드렌더();
@@ -4500,16 +4790,53 @@ function 복습시작(){
 
 function 복습_카드렌더(){
   // 항목10: 전용 복습 화면(srpBody)에 렌더 (기존 rvQueue 인라인 → 분리)
+  // 세션7 항목5: 복습 방식(카드 보기/4지선다/직접입력) 분기 — 학습설정.srp
   const wrap = document.getElementById('srpBody');
   if(!wrap || !복습진행) return;
   const 항목 = 복습진행.목록[복습진행.idx];
   if(!항목){ 복습_완료(); return; }
   const 진행률 = Math.round((복습진행.idx / 복습진행.목록.length) * 100);
-  wrap.innerHTML = `
+  const 머리 = `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 8px">
       <span style="font-size:13px;color:var(--txt2);font-weight:600">🔁 복습 ${복습진행.idx+1} / ${복습진행.목록.length}</span>
     </div>
-    <div class="exp-track" style="margin-bottom:14px"><div class="exp-fill instant" style="width:${진행률}%"></div></div>
+    <div class="exp-track" style="margin-bottom:14px"><div class="exp-fill instant" style="width:${진행률}%"></div></div>`;
+
+  // ── 4지선다: 단어 제시 → 뜻 4개(대기열의 다른 뜻으로 오답 구성, 후보 부족 시 카드 폴백)
+  if(학습설정.srp === '4지선다'){
+    const 후보 = 복습데이터.대기열.filter(x=>x.단어!==항목.단어 && x.뜻).map(x=>x.뜻);
+    if(후보.length >= 1){
+      const 오답 = 후보.sort(()=>Math.random()-0.5).slice(0,3);
+      const 보기들 = [...오답.map(t=>({t, 정:false})), {t:항목.뜻, 정:true}].sort(()=>Math.random()-0.5);
+      wrap.innerHTML = 머리 + `
+        <div class="qcard" style="margin-top:4px">
+          <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
+          <div class="q-question" style="font-size:calc(20px*var(--글자배율));margin-top:6px">${항목.단어}</div>
+          <div class="q-hint">알맞은 뜻을 고르세요</div>
+        </div>
+        <div class="aopts">${보기들.map((b,i)=>`<div class="aopt" data-정답="${b.정?1:0}" onclick="복습_선다선택(this,${b.정})"><div class="onum">${i+1}</div><div class="otxt">${b.t}</div></div>`).join('')}</div>`;
+      return;
+    }
+    showToastMsg('보기 후보가 부족해 카드 보기로 진행합니다');
+  }
+
+  // ── 직접입력: 뜻 제시 → 단어 타이핑
+  if(학습설정.srp === '직접입력'){
+    wrap.innerHTML = 머리 + `
+      <div class="qcard" style="margin-top:4px">
+        <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
+        <div class="q-question" style="margin-top:6px">${항목.뜻}</div>
+        <div class="q-hint">이 뜻에 해당하는 단어를 입력하세요</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <input class="nm-inp" id="rvDirectInp" placeholder="단어 입력" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')복습_직접제출()">
+        <button class="btn-acc" style="padding:11px 18px" id="rvDirectBtn" onclick="복습_직접제출()">제출</button>
+      </div>`;
+    return;
+  }
+
+  // ── 기본: 카드 보기 (기존 방식)
+  wrap.innerHTML = 머리 + `
     <div class="qcard" style="margin-top:4px;padding:26px 20px">
       <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
       <div class="q-question" style="font-size:calc(20px*var(--글자배율));margin-top:6px">${항목.단어}</div>
@@ -4523,6 +4850,29 @@ function 복습_카드렌더(){
   `;
 }
 
+/* 세션7 항목5: 복습 4지선다 선택 처리 — 정답/오답 표시 후 기존 판정 흐름으로 위임 */
+function 복습_선다선택(el, 정답){
+  if(el.parentElement.querySelector('.correct,.wrong')) return;
+  el.classList.add(정답 ? 'correct' : 'wrong');
+  if(!정답) el.parentElement.querySelectorAll('.aopt').forEach(o=>{ if(o.dataset.정답==='1') o.classList.add('correct'); });
+  el.parentElement.querySelectorAll('.aopt').forEach(o=>o.classList.add('disabled'));
+  setTimeout(()=>복습_판정(정답), 700);
+}
+/* 세션7 항목5: 복습 직접입력 제출 — 단어 느슨 비교 후 판정 위임 */
+function 복습_직접제출(){
+  const inp = document.getElementById('rvDirectInp');
+  if(!inp || inp.dataset.제출완료 || !복습진행) return;
+  const 입력 = (inp.value||'').trim();
+  if(!입력){ showToastMsg('답을 입력해 주세요'); return; }
+  inp.dataset.제출완료='1'; inp.disabled = true;
+  const btn=document.getElementById('rvDirectBtn'); if(btn) btn.disabled = true;
+  활성입력_blur();
+  const 항목 = 복습진행.목록[복습진행.idx];
+  const 맞음 = 직접입력_규격(입력) !== '' && 직접입력_규격(입력) === 직접입력_규격(항목.단어);
+  showToastMsg(맞음 ? '✓ 정답!' : `✗ 정답: ${항목.단어}`);
+  setTimeout(()=>복습_판정(맞음), 900);
+}
+
 function 복습_뜻공개(){
   const a=document.getElementById('rvAnswer'); if(a) a.style.display='block';
   const b=document.getElementById('rvRevealBtn'); if(b) b.style.display='none';
@@ -4533,7 +4883,7 @@ function 복습_판정(기억남){
   if(!복습진행) return;
   const 항목 = 복습진행.목록[복습진행.idx];
   if(기억남){
-    복습대기열_정답처리(항목.단어);  // +1, 3회 시 졸업
+    복습대기열_정답처리(항목.단어);  // 세션7: 정답 1회 즉시 졸업
   } else {
     // 까먹음 → 연속정답수 0으로 초기화
     const 실항목 = 복습데이터.대기열.find(x=>x.단어===항목.단어);
@@ -5622,8 +5972,13 @@ function 채팅기록_문서삭제(id){
 function 채팅기록_로드(){
   if(fbDb && 현재UID){
     fbDb.collection('users').doc(현재UID).collection('채팅기록').get().then(스냅=>{
-      채팅기록 = 스냅.docs.map(d=>({문서ID:d.id, ...d.data()}))
-        .sort((a,b)=>(a.시작시각||0)-(b.시작시각||0)).slice(-채팅기록_최대세션);
+      const 전체 = 스냅.docs.map(d=>({문서ID:d.id, ...d.data()}))
+        .sort((a,b)=>(a.시작시각||0)-(b.시작시각||0));
+      // 세션7: 30개 초과 잔여 문서는 로드 시점에 정리 (마감 경로 밖 누적 방지)
+      전체.slice(0, Math.max(0, 전체.length - 채팅기록_최대세션)).forEach(s=>{
+        if(s.문서ID) 채팅기록_문서삭제(s.문서ID);
+      });
+      채팅기록 = 전체.slice(-채팅기록_최대세션);
     }).catch(e=> console.error('[Firestore] 채팅기록 로드 실패', e));
   } else {
     try{
@@ -6072,6 +6427,19 @@ function setFontScale(pct, 조용히){
   showToastMsg('화면 크기: ' + pct + '%');
 }
 
+/* 세션7 항목10: 글자 크기 적용 범위 — '학습'(기본: 학습 콘텐츠만) / '전체'(주요 UI 텍스트 포함) */
+function set글자범위(범위, 조용히){
+  범위 = (범위 === '전체') ? '전체' : '학습';
+  document.documentElement.dataset.글자범위 = 범위;
+  document.getElementById('글자범위학습')?.classList.toggle('on', 범위==='학습');
+  document.getElementById('글자범위전체')?.classList.toggle('on', 범위==='전체');
+  try{ localStorage.setItem('plx_글자범위', 범위); }catch(e){ /* 무시 */ }
+  if(조용히) return;
+  사용자.글자범위 = 범위;
+  사용자데이터_저장({글자범위: 범위});
+  showToastMsg('글자 크기 적용 범위: ' + (범위==='전체' ? '앱 전체' : '학습 콘텐츠만'));
+}
+
 const 글자크기단계 = [80,90,100,110,125,150];
 function set글자크기(pct, 조용히){
   pct = 글자크기단계.includes(pct) ? pct : 100;
@@ -6494,7 +6862,7 @@ function 개발자패널_열기(){
   showInfoModal('🔓','개발자 모드',
     `<div style="text-align:left;font-size:12px;line-height:2.1">` +
     `<b>오버레이 레이어</b> — 조작값은 화면에만 반영되고 실DB는 계속 실시간 기록됩니다.<br>` +
-    `봉인 시 오버레이만 제거되며, 정당하게 얻은 기록은 유지됩니다.<br>` +
+    `봉인 시 오버레이와 <b>[창조주] 업적</b>이 초기화됩니다 (학습 기록·EXP는 유지).<br>` +
     `<hr style="border-color:var(--bdr)">` +
     `레벨 (현재 표시 Lv.${표시레벨()} / 실제 Lv.${curLv}) — 확장 Lv.120까지<br>` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_레벨조정(-10)">-10</button> ` +
@@ -6558,7 +6926,16 @@ function 개발자모드_봉인_실행(){
   개발자오버레이 = null;
   사용자.개발자모드 = false;
   사용자.창조주달성 = false;  // 재활성화는 [창조주] 달성 흐름을 처음부터 (KNOWLEDGE 14)
-  사용자데이터_저장({개발자모드:false, 창조주달성:false});
+  // 세션7 항목1: [창조주] 업적까지 완전 리셋 — 업적 화면은 업적진행도 기준이라 함께 지워야 잔존하지 않음
+  if(사용자.업적진행도) delete 사용자.업적진행도['창조주'];
+  ACH_DATA.forEach(sec=>{ sec.items.forEach(a=>{ if(a.key==='creator'){ a.stage='lck'; a.blur=true; } }); });
+  // Firestore 업적로그의 '창조주' 문서도 삭제 (재도전 시 처음처럼)
+  if(fbDb && 현재UID){
+    fbDb.collection('users').doc(현재UID).collection('업적로그').where('업적명','==','창조주').get()
+      .then(스냅=>스냅.docs.forEach(d=>d.ref.delete().catch(()=>{})))
+      .catch(()=>{ /* 오프라인 등 — 다음 봉인 시 재시도 */ });
+  }
+  사용자데이터_저장({개발자모드:false, 창조주달성:false, 업적진행도:사용자.업적진행도||{}});
   갱신_개발자네비_표시();
 
   // 갱신
@@ -6571,8 +6948,8 @@ function 개발자모드_봉인_실행(){
   setTimeout(()=>{
     showInfoModal('🔒','봉인 완료',
       `「최상위 성위 ${userName}이(가) 봉인됩니다.」<br><br>` +
-      `오버레이 레이어가 제거되었습니다.<br>` +
-      `정당하게 얻은 학습 기록과 업적은 그대로 유지됩니다.<br><br>` +
+      `오버레이 레이어와 [창조주] 업적이 초기화되었습니다.<br>` +
+      `정당하게 얻은 학습 기록·EXP는 그대로 유지됩니다.<br><br>` +
       `재활성화하려면 [창조주] 달성 흐름을 처음부터 진행해야 합니다.`
     );
   }, 300);
@@ -6685,7 +7062,9 @@ function 프로필선택_열기(){
     ? 프로필_이미지프리셋.map(it =>
         `<img src="assets/프로필/${esc(it.파일)}" title="${esc(it.이름||'')}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;cursor:pointer;border:1px solid var(--bdr)" onclick="프로필_적용선택('assets/프로필/${esc(it.파일)}')">`
       ).join('')
-    : `<div style="font-size:11px;color:var(--txt2)">등록된 이미지가 아직 없습니다.<br>(assets/프로필/ 폴더에 이미지 + 목록.json 등록 시 표시)</div>`;
+    // 세션7 항목11: 관리 방법(폴더 경로·목록.json)은 사용자 노출 문구에서 제거 — 운영자용 안내는 이 주석으로만.
+    //   등록 방법: assets/프로필/ 폴더에 이미지 추가 + 목록.json items에 {파일,이름,출처} 등록 (출처.md 표기 필수)
+    : `<div style="font-size:11px;color:var(--txt2)">등록된 이미지가 아직 없습니다. 업데이트를 기다려 주세요!</div>`;
   const 업로드가능 = 사용자.개발자모드 || curLv >= 16;
   showInfoModal('🖼️','프로필 선택',
     `<div style="text-align:left">
@@ -6735,6 +7114,92 @@ function 프로필_파일처리(inp){
 
 // α9 호환: 기존 진입점은 프로필 선택으로 위임 (개방 정책 반영)
 function 고급커스터마이징_탭(){ 프로필선택_열기(); }
+
+/* ━━━ 세션7 항목12: 현황 배너 — 그라디언트 프리셋(전원) + 이미지 프리셋(전원) + 업로드(Lv.16) ━━━ */
+const 배너_그라프리셋 = [
+  'linear-gradient(135deg,var(--accd),var(--acc))',
+  'linear-gradient(135deg,#2b5876,#4e4376)',
+  'linear-gradient(135deg,#134e5e,#71b280)',
+  'linear-gradient(135deg,#41295a,#2f0743)',
+  'linear-gradient(135deg,#dd2476,#ff512f)',
+  'linear-gradient(135deg,#141e30,#243b55)'
+];
+let 배너_이미지프리셋 = [];   // assets/배너/목록.json — {파일,이름,출처}
+function 배너프리셋_로드(){
+  fetch('assets/배너/목록.json')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if(d && Array.isArray(d.items)) 배너_이미지프리셋 = d.items; })
+    .catch(()=>{ /* 폴더 없음/오프라인 — 그라디언트만 노출 */ });
+}
+function 배너_적용(el, v){
+  if(!el) return;
+  if(v && /^(assets\/|data:|https?:)/.test(v)){
+    el.innerHTML = `<img src="${문자열_이스케이프(v)}" alt="배너">`;
+    el.style.background = '';
+    return;
+  }
+  el.innerHTML = '';
+  if(v && v.startsWith('grad:')){
+    el.style.background = 배너_그라프리셋[parseInt(v.slice(5),10)] || '';
+  } else {
+    el.style.background = '';   // 기본: CSS 테마 그라디언트
+  }
+}
+function 배너선택_열기(){
+  const esc = 문자열_이스케이프;
+  const 그라들 = 배너_그라프리셋.map((g,i)=>
+    `<div style="width:72px;height:30px;border-radius:8px;border:1px solid var(--bdr);cursor:pointer;background:${g}" onclick="배너_적용선택('grad:${i}')"></div>`
+  ).join('');
+  const 이미지섹션 = 배너_이미지프리셋.length
+    ? `<div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">이미지 배너 — 누구나 사용 가능</div>
+       <div style="display:flex;flex-wrap:wrap;gap:6px">${배너_이미지프리셋.map(it=>
+         `<img src="assets/배너/${esc(it.파일)}" title="${esc(it.이름||'')}" style="width:110px;height:36px;border-radius:8px;object-fit:cover;cursor:pointer;border:1px solid var(--bdr)" onclick="배너_적용선택('assets/배너/${esc(it.파일)}')">`).join('')}</div>`
+    : '';   // 관리 방법: assets/배너/ + 목록.json (출처.md 표기) — 운영자용 주석
+  const 업로드가능 = 사용자.개발자모드 || curLv >= 16;
+  showInfoModal('🖼️','배너 선택',
+    `<div style="text-align:left">
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:5px">기본 배너 — 누구나 사용 가능</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${그라들}</div>
+      ${이미지섹션}
+      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '🔒 초월자(Lv.16) 해금'}</div>
+      <button class="btn-g" style="width:100%;padding:9px" onclick="배너_업로드시도()">📁 내 사진 선택…</button>
+      <input type="file" id="배너파일입력" accept="image/*" style="display:none" onchange="배너_파일처리(this)">
+    </div>`);
+}
+function 배너_적용선택(v){
+  사용자.배너이미지 = v;
+  사용자데이터_저장({배너이미지: v});
+  배너_적용(document.getElementById('statusBanner'), v);
+  closeInfoModal();
+  showToastMsg('배너 변경 완료');
+}
+function 배너_업로드시도(){
+  if(!(사용자.개발자모드 || curLv >= 16)){
+    showInfoModal('🔒','고급 커스터마이징','[권한 부족]<br><br>직접 업로드는 초월자(Lv.16) 달성 시 해금됩니다.<br>기본 배너는 지금도 자유롭게 사용할 수 있습니다.');
+    return;
+  }
+  document.getElementById('배너파일입력')?.click();
+}
+function 배너_파일처리(inp){
+  const f = inp.files && inp.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      // 640×180 가로 배너로 중앙 크롭 리사이즈 → dataURL (Firestore 문서 한도 內)
+      const c = document.createElement('canvas'); c.width = 640; c.height = 180;
+      const x = c.getContext('2d');
+      const 비율 = Math.max(640/img.width, 180/img.height);
+      const w = img.width*비율, h = img.height*비율;
+      x.drawImage(img, (640-w)/2, (180-h)/2, w, h);
+      배너_적용선택(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+  inp.value = '';
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    빌드1 β10: 성장 상세 화면 sg 렌더 (KNOWLEDGE 17-1)
@@ -6864,7 +7329,11 @@ try{
   const 저장화면 = localStorage.getItem('plx_화면배율'); if(저장화면) setFontScale(parseInt(저장화면,10), true);   // 세션5: 화면 크기 복원
   const 저장배율 = localStorage.getItem('plx_글자배율'); if(저장배율) set글자크기(parseInt(저장배율,10), true);     // 세션5: 글자 크기 복원(텍스트 전용)
   const 저장학습 = JSON.parse(localStorage.getItem('plx_학습설정')||'null'); if(저장학습) Object.assign(학습설정, 저장학습);  // 세션5 버그7: 학습 설정 복원
+  학습설정_마이그레이션();  // 세션7: 구 '선택지' 값 → '4지선다'/'플래시카드' 변환
   학습설정_UI동기화();  // 세션6 버그6: 저장값 유무와 무관하게 기본값 기준으로도 항상 버튼 동기화
+  const 저장랜덤 = JSON.parse(localStorage.getItem('plx_랜덤설정')||'null'); if(저장랜덤 && 저장랜덤.가중치) 랜덤설정 = 저장랜덤;  // 세션7 항목8
+  const 저장범위 = localStorage.getItem('plx_글자범위'); set글자범위(저장범위 || '학습', true);  // 세션7 항목10
+  배너프리셋_로드();  // 세션7 항목12: assets/배너/목록.json (없으면 조용히 무시)
   const 저장지침 = localStorage.getItem('plx_AI지침'); if(저장지침 !== null){ 사용자.AI지침 = 저장지침; }  // 세션6 항목5
   AI지침_상태갱신();
   프로필프리셋_로드();   // 세션6 항목11: assets/프로필/목록.json (없으면 조용히 무시)

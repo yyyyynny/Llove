@@ -101,7 +101,7 @@ xAI 크레딧 미구매 상태. `index.html`의 **`GROK_활성화 = false`** 상
 - 바텀 네비 `#g-bnav`: `.screen` 밖 독립 위치 (z-index:200)
 - 플래시카드 ①~⑥ 번호·레이블: 수정 금지
 - Firebase 변수명: KNOWLEDGE 13섹션 한글 변수명
-- localStorage 키: `plx_` 접두사 (`plx_테마`·`plx_폰트`·`plx_글자배율`·`plx_화면배율`·`plx_학습설정`·`plx_게스트보관함`·`plx_구어완료_*`·`plx_채팅기록`·`plx_AI지침`·`plx_커스텀`·`plx_커스텀슬롯`·`plx_음성엔드포인트`)
+- localStorage 키: `plx_` 접두사 (`plx_테마`·`plx_폰트`·`plx_글자배율`·`plx_화면배율`·`plx_글자범위`·`plx_학습설정`·`plx_랜덤설정`·`plx_게스트보관함`·`plx_구어완료_*`·`plx_채팅기록`·`plx_AI지침`·`plx_커스텀`·`plx_커스텀슬롯`·`plx_음성엔드포인트`)
 - API 키: Cloudflare Workers만 (프론트 노출 금지)
 - **`GROK_활성화` 플래그: 승인 없이 변경 금지**
 - **`음성생성_활성화` 플래그: 승인 없이 변경 금지** (콜롬비나 음성 TTS 봉인 골격 — 외부 GPU 서버 준비 후에만 true. Grok과 동일 정책). 모델·음성 파일은 레포에 절대 커밋 금지(`.gitignore` 가드)

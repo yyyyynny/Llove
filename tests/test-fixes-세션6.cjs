@@ -70,7 +70,8 @@ load((window) => {
   ev("동기화_학습설정_버튼('sq4','아↗그거!');");
   const sq4행들 = Array.from(doc.querySelectorAll('#lsetSq4 .lset-opt'));
   const 난이도on = sq4행들.find(b=>(b.getAttribute('onclick')||'').includes("'sq4','아↗그거!'"));
-  const 입력on = sq4행들.find(b=>(b.getAttribute('onclick')||'').includes("'sq4_input','선택지'"));
+  // 세션7: '선택지' → '플래시카드' 개명 반영 (기본값도 플래시카드)
+  const 입력on = sq4행들.find(b=>(b.getAttribute('onclick')||'').includes("'sq4_input','플래시카드'"));
   assert('#6: 난이도 행 기본 on 유지', 난이도on && 난이도on.classList.contains('on'));
   assert('#6: 입력 방식 행 기본 on 유지(핵심)', 입력on && 입력on.classList.contains('on'));
 
@@ -82,7 +83,7 @@ load((window) => {
 
   /* ── #8 학습 모드 강조 ── */
   assert('#8: 모드명 강조색', /\.mc-name\{[^}]*color:var\(--accl\)/.test(css));
-  assert('#8: 섹션 라벨 상향', /\.sec-t\{[^}]*font-size:12px/.test(css));
+  assert('#8: 섹션 라벨 상향', /\.sec-t\{[^}]*font-size:13px/.test(css));  // 세션7 전역 +10% 반영
 
   /* ── #9 개발자 네비 기본 숨김 + 토글 ── */
   ev('사용자.개발자모드=true; 사용자.개발자네비표시=false; 갱신_개발자네비_표시();');
