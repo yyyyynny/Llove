@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- 항목8: 구어 교정 음성 입력 구현을 위해 마이크 차단(microphone=()) 메타 제거.
      이전 빌드는 음성 입력을 의도적으로 막았으나, 최고 관리자님 지시로 Web Speech API 음성 입력을 허용한다. -->
 <title>Llove</title>
@@ -196,7 +196,8 @@ html{scrollbar-gutter:stable}
 .ob-skip{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--txtm);font-size:13px;cursor:pointer;font-family:var(--fn);padding:4px 8px;z-index:6}
 .ob-skip:hover{color:var(--txt2)}
 .ob-slides{position:relative;flex:1;overflow:hidden}
-.ob-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 28px 20px;opacity:0;transform:translateX(32px);transition:opacity .42s cubic-bezier(.22,1,.36,1),transform .42s cubic-bezier(.22,1,.36,1);pointer-events:none;overflow-y:auto}
+/* 세션8: 좌우 패딩에 safe-area-inset 가산(노치·펀치홀 기기) */
+.ob-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px calc(28px + env(safe-area-inset-right)) 20px calc(28px + env(safe-area-inset-left));opacity:0;transform:translateX(32px);transition:opacity .42s cubic-bezier(.22,1,.36,1),transform .42s cubic-bezier(.22,1,.36,1);pointer-events:none;overflow-y:auto}
 .ob-slide.active{opacity:1;transform:translateX(0);pointer-events:all}
 .ob-slide.exit{opacity:0;transform:translateX(-32px)}
 .ob-bg{position:absolute;inset:0;pointer-events:none}
@@ -204,9 +205,10 @@ html{scrollbar-gutter:stable}
 .ob-icon{font-size:55px;margin-bottom:18px;animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both}
 .ob-title{font-family:'Nanum Myeongjo',serif;font-size:25px;font-weight:800;color:var(--acc);text-align:center;margin-bottom:8px;line-height:1.38;letter-spacing:.4px}
 .ob-div{width:40px;height:2px;background:linear-gradient(90deg,transparent,var(--accd),transparent);margin:14px auto}
-.ob-sub{font-size:14px;color:var(--txt2);text-align:center;line-height:1.85;max-width:300px}
+/* 세션8: 로그인 화면과 동일한 이유로 고정 max-width → min() 비례 상한 */
+.ob-sub{font-size:14px;color:var(--txt2);text-align:center;line-height:1.85;max-width:min(340px, 100% - 24px)}
 .ob-sub b{color:var(--accl);font-weight:700}
-.ob-feats{display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;margin-top:10px}
+.ob-feats{display:flex;flex-direction:column;gap:8px;width:100%;max-width:min(360px, 100% - 24px);margin-top:10px}
 .ob-feat{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:11px 14px;display:flex;align-items:center;gap:12px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 .ob-feat:nth-child(1){animation-delay:.05s}.ob-feat:nth-child(2){animation-delay:.10s}.ob-feat:nth-child(3){animation-delay:.15s}.ob-feat:nth-child(4){animation-delay:.20s}.ob-feat:nth-child(5){animation-delay:.25s}.ob-feat:nth-child(6){animation-delay:.30s}.ob-feat:nth-child(7){animation-delay:.35s}
 .ob-fi{font-size:24px;width:32px;text-align:center}
@@ -224,10 +226,13 @@ html{scrollbar-gutter:stable}
 .ob-nb.inv{opacity:0;pointer-events:none}
 
 /* ━━━ 로그인 ━━━ */
-#sl{justify-content:center;align-items:center;padding:40px 28px;position:relative;overflow-y:auto}
+/* 세션8: 좌우 여백이 기기마다 다르게 벌어지던 문제 — 고정 padding/max-width 대신
+   clamp()/min()으로 화면 폭에 비례하게(태블릿·폴더블에서 잉여 여백 방지).
+   safe-area-inset: 노치·펀치홀 기기에서 여백이 깎이지 않도록 가산. */
+#sl{justify-content:center;align-items:center;padding:40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-right)) 40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-left));position:relative;overflow-y:auto}
 .lg-bg{position:absolute;inset:0;pointer-events:none}
 .lg-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
-.lg-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:340px}
+.lg-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:min(400px, 100% - 40px)}
 .lg-icon-wrap{width:76px;height:76px;background:linear-gradient(135deg,#1e2535,#2a3550);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:40px}
 .lg-title{font-family:'Nanum Myeongjo',serif;font-size:26px;color:var(--acc);letter-spacing:3px}
 .lg-sub{font-size:11px;color:var(--txtm);letter-spacing:3px;text-transform:uppercase}
@@ -237,6 +242,8 @@ html{scrollbar-gutter:stable}
 .btn-google:hover{border-color:var(--accd);transform:translateY(-1px)}
 
 /* ━━━ 이름 입력 ━━━ */
+/* 세션8: 인라인 스타일(구 max-width:340px 고정)을 클래스로 통합 — 로그인 화면과 동일한 비례 상한 */
+.sn-content{margin:auto;width:100%;max-width:min(400px, 100% - 40px);padding:40px calc(clamp(16px, 6vw, 24px) + env(safe-area-inset-right)) 40px calc(clamp(16px, 6vw, 24px) + env(safe-area-inset-left));display:flex;flex-direction:column;gap:20px}
 #sn{justify-content:center;align-items:center;padding:40px 24px;overflow-y:auto}
 .nm-inp{background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:14px 16px;color:var(--txt);font-family:var(--fn);font-size:17px;outline:none;width:100%;transition:border-color .2s}
 .nm-inp:focus{border-color:var(--acc)}
@@ -1171,7 +1178,8 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
 <div id="sl" class="screen active demo-offset">
   <div class="lg-bg"><div class="lg-aura"></div></div>
   <div class="lg-content">
-    <div class="lg-icon-wrap fu">📖</div>
+    <!-- 세션8: 백도어 터치 진입점 — 아래 백도어_로고탭() 참조 -->
+    <div class="lg-icon-wrap fu" id="lgIconWrap" onclick="백도어_로고탭()">📖</div>
     <div class="lg-title fu s1">Llove</div>
     <div class="lg-sub fu s2">한국어 어휘 학습</div>
     <div class="lg-desc fu s3"><p>한국어 어휘력과 표현력을<br>게임처럼 키워가는<br>당신만의 학습 연대기</p></div>
@@ -1182,7 +1190,7 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
 
 <!-- ② 이름 입력 -->
 <div id="sn" class="screen demo-offset">
-  <div style="margin:auto;width:100%;max-width:340px;padding:40px 24px;display:flex;flex-direction:column;gap:20px">
+  <div class="sn-content">
     <div class="fu" style="text-align:center"><h2 style="font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:6px">✨ 환영합니다!</h2><p style="font-size:13px;color:var(--txt2);line-height:1.75">학습 연대기에서 사용할<br>이름을 설정해 주세요</p></div>
     <div class="fu s1">
       <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:6px">이름 (닉네임)</label>
@@ -7285,6 +7293,7 @@ function 개발자_네비토글(){
    키보드로 특정 키 시퀀스가 연속 입력되면 Firebase 로그인 없이 로컬 테스트 세션 진입.
    - 현재UID는 null 유지 → Firestore 저장은 자동으로 건너뜀(쓰기 없음, 안전)
    - keydown 이벤트만 사용 → 어떤 브라우저 권한도 요구하지 않음 (WebHID와 무관)
+   - PC(키보드 있는 환경)에서 유효. 아래 「로고 연속 탭」이 모바일용 대응 트리거.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const 테스트진입_시퀀스 = 'yyyyynny';
 let 테스트진입_버퍼 = '';
@@ -7297,6 +7306,21 @@ function 테스트진입_키감지(ev){
   테스트진입_버퍼 = (테스트진입_버퍼 + k).slice(-테스트진입_시퀀스.length);
   if(테스트진입_버퍼 === 테스트진입_시퀀스){
     테스트진입_버퍼 = '';
+    게스트로그인();
+  }
+}
+
+/* 세션8: 모바일 백도어 — 안드로이드는 포커스된 입력창이 없으면 화면 키보드를 아예 안 띄워
+   위 키 시퀀스를 입력할 방법이 없다. 로그인 화면 로고(순수 장식, 평소 클릭 목적 없음)를
+   짧은 시간(3초) 내 8회 연속 탭하면 동일하게 게스트로그인() 호출. 키보드 방식과 공존. */
+let 백도어_탭횟수 = 0;
+let 백도어_탭타이머 = null;
+function 백도어_로고탭(){
+  백도어_탭횟수++;
+  clearTimeout(백도어_탭타이머);
+  백도어_탭타이머 = setTimeout(()=>{ 백도어_탭횟수 = 0; }, 3000);
+  if(백도어_탭횟수 >= 8){
+    백도어_탭횟수 = 0;
     게스트로그인();
   }
 }
