@@ -202,7 +202,8 @@ html{scrollbar-gutter:stable}
 .ob-slide.exit{opacity:0;transform:translateX(-32px)}
 .ob-bg{position:absolute;inset:0;pointer-events:none}
 .ob-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
-.ob-icon{font-size:55px;margin-bottom:18px;animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both}
+/* 세션9: 아이콘 크기 체계 통일 — 히어로(44px)/목록(26px)/소형(20px) 3단계로 수렴 */
+.ob-icon{font-size:44px;margin-bottom:18px;animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both}
 .ob-title{font-family:'Nanum Myeongjo',serif;font-size:25px;font-weight:800;color:var(--acc);text-align:center;margin-bottom:8px;line-height:1.38;letter-spacing:.4px}
 .ob-div{width:40px;height:2px;background:linear-gradient(90deg,transparent,var(--accd),transparent);margin:14px auto}
 /* 세션8: 로그인 화면과 동일한 이유로 고정 max-width → min() 비례 상한 */
@@ -211,7 +212,7 @@ html{scrollbar-gutter:stable}
 .ob-feats{display:flex;flex-direction:column;gap:8px;width:100%;max-width:min(360px, 100% - 24px);margin-top:10px}
 .ob-feat{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:11px 14px;display:flex;align-items:center;gap:12px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 .ob-feat:nth-child(1){animation-delay:.05s}.ob-feat:nth-child(2){animation-delay:.10s}.ob-feat:nth-child(3){animation-delay:.15s}.ob-feat:nth-child(4){animation-delay:.20s}.ob-feat:nth-child(5){animation-delay:.25s}.ob-feat:nth-child(6){animation-delay:.30s}.ob-feat:nth-child(7){animation-delay:.35s}
-.ob-fi{font-size:24px;width:32px;text-align:center}
+.ob-fi{font-size:26px;width:32px;text-align:center}
 .ob-fn{font-size:14px;font-weight:700;margin-bottom:2px}
 .ob-fd{font-size:12px;color:var(--txt2)}
 .ob-start-btn{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;padding:14px 40px;border-radius:11px;font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:700;cursor:pointer;margin-top:22px;transition:transform .2s,box-shadow .2s;animation:fadeUp .5s .35s cubic-bezier(.22,1,.36,1) both}
@@ -233,7 +234,7 @@ html{scrollbar-gutter:stable}
 .lg-bg{position:absolute;inset:0;pointer-events:none}
 .lg-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
 .lg-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:min(400px, 100% - 40px)}
-.lg-icon-wrap{width:76px;height:76px;background:linear-gradient(135deg,#1e2535,#2a3550);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:40px}
+.lg-icon-wrap{width:76px;height:76px;background:linear-gradient(135deg,#1e2535,#2a3550);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:44px}
 .lg-title{font-family:'Nanum Myeongjo',serif;font-size:26px;color:var(--acc);letter-spacing:3px}
 .lg-sub{font-size:11px;color:var(--txtm);letter-spacing:3px;text-transform:uppercase}
 .lg-desc{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;width:100%;text-align:center}
@@ -1183,7 +1184,8 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
     <div class="lg-title fu s1">Llove</div>
     <div class="lg-sub fu s2">한국어 어휘 학습</div>
     <div class="lg-desc fu s3"><p>한국어 어휘력과 표현력을<br>게임처럼 키워가는<br>당신만의 학습 연대기</p></div>
-    <button class="btn-google fu s4" onclick="구글로그인()"><span style="font-size:20px">🔵</span>Google 계정으로 시작하기</button>
+    <!-- 세션9: 파란 원 이모지(🔵) → 실제 구글 4색 "G" 로고 SVG로 교체(가짜스러움 해소) -->
+    <button class="btn-google fu s4" onclick="구글로그인()"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.9-2.26 5.36-4.78 7.02l7.73 6c4.51-4.18 7.09-10.36 7.09-17.49z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A24 24 0 0 0 0 24c0 3.87.92 7.53 2.56 10.78z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.9l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Google 계정으로 시작하기</button>
     <div class="fu s5" style="font-size:11px;color:var(--txtm);text-align:center;line-height:1.6">로그인 시 서비스 이용약관 및<br>개인정보 처리방침에 동의하게 됩니다</div>
   </div>
 </div>
@@ -1294,6 +1296,8 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
           <button class="lset-opt" onclick="setLsetMode('sq1','직접입력',this)">직접입력</button>
           <button class="lset-opt" onclick="setLsetMode('sq1','플래시카드',this)">플래시카드</button>
           <button class="lset-opt" onclick="setLsetMode('sq1','역방향',this)">역방향</button>
+          <!-- 세션9: 맥락형(예문 빈칸) 신설 — 단어 단답 위주에서 벗어나기 위한 1단계 확장 -->
+          <button class="lset-opt" onclick="setLsetMode('sq1','예문형',this)">예문형</button>
         </div>
       </div>
     </div>
@@ -1342,10 +1346,11 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
       <div class="lset-row">
         <span class="lset-row-lbl">방식</span>
         <div class="lset-opts">
-          <button class="lset-opt on" onclick="setLsetMode('sq2','4지선다',this)">4지선다</button>
+          <!-- 세션9: 맥락형(유의어 변별)을 기본값으로 승격 -->
+          <button class="lset-opt on" onclick="setLsetMode('sq2','유의어 변별',this)">유의어 변별</button>
+          <button class="lset-opt" onclick="setLsetMode('sq2','4지선다',this)">4지선다</button>
           <button class="lset-opt" onclick="setLsetMode('sq2','뜻 직접 서술',this)">뜻 직접 서술</button>
           <button class="lset-opt" onclick="setLsetMode('sq2','역방향',this)">역방향</button>
-          <button class="lset-opt" onclick="setLsetMode('sq2','유의어 변별',this)">유의어 변별</button>
           <button class="lset-opt" onclick="setLsetMode('sq2','플래시카드',this)">플래시카드</button>
         </div>
       </div>
@@ -2639,6 +2644,11 @@ function setObSlide(i){
   obIdx=i;
   document.getElementById('obProg').style.width=((i+1)/OB_TOTAL*100)+'%';
   renderObDots();
+  // 세션9: 마지막 슬라이드는 콘텐츠 안에 이미 '학습 시작하기' 버튼이 있어,
+  // 아래 고정 이전/다음 바(.ob-nav)를 통째로 숨긴다. (기존엔 다음 버튼만 투명해지고
+  // 자리(칸)는 남아 버튼이 두 겹으로 보이던 문제 — "슬라이드해도 아래 칸이 안 사라짐")
+  const nav = document.querySelector('.ob-nav');
+  if(nav) nav.style.display = (i === OB_TOTAL - 1) ? 'none' : 'flex';
   // 버튼 상태
   document.getElementById('obPrev').classList.toggle('inv', i===0);
   const next=document.getElementById('obNext');
@@ -3553,6 +3563,13 @@ function renderQuiz4(data){
     if(data.length >= 2){ 퀴즈_역방향렌더('sq1', q, data); return; }
     showToastMsg('문항이 부족해 4지선다로 출제합니다');
   }
+  // 세션9: 「예문형」 — 단어 단답 대신 예문 맥락으로 판단 (유의어 변별과 동일 엔진 재사용)
+  if(학습설정.sq1 === '예문형'){
+    const 예문풀 = (현재학습모드 === '세계사·신화') ? 예문형_세계사신화 : 예문형_상식어원;
+    const 항목 = 예문풀[Math.floor(Math.random()*예문풀.length)];
+    예문형_렌더('sq1Body', 항목, ()=>renderQuiz4(data));
+    return;
+  }
   // 세션5 버그7: 「직접입력」 실구현 — 선택지 대신 답 타이핑 + 정답 비교
   if(학습설정.sq1 === '직접입력'){
     body.innerHTML=`
@@ -4081,51 +4098,56 @@ function renderFlashcard(data){
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 let 유의어현재 = null;
 
-function 유의어변별_렌더(인덱스){
-  const body = document.getElementById('sq2Body');
-  if(!body) return;
-  // β8: 정령왕 JSON 18건 풀에서 출제 (로드 실패 시 폴백 2건)
-  const i = 인덱스 ?? Math.floor(Math.random() * 유의어출제풀.length);
-  유의어현재 = 유의어출제풀[i];
-  현재문제_reasoning_note = 유의어현재.reasoning_note || '';
+/* ━━━ 세션9: 맥락형(예문 빈칸) 퀴즈 공용 엔진 — 원래 유의어 변별 전용이던 로직을 일반화해
+   다른 화면(상식·어원/세계사·신화의 신규 「예문형」)에도 재사용한다. 판정 규칙(정답·근사·오답
+   3단계 동시 공개 + EXP·복습·마스터리 연동)은 기존과 완전히 동일하다. ━━━ */
+function 예문형_렌더(bodyId, item, 다음fn, 이의컨텍스트){
+  const body = document.getElementById(bodyId);
+  if(!body || !item) return;
+  예문형_상태[bodyId] = {item, 다음fn};
+  현재문제_reasoning_note = item.reasoning_note || '';
 
   // 4개 보기 = correct 1 + acceptable + wrong (랜덤 순서)
   const 보기풀 = [
-    {w: 유의어현재.correct.w, kind:'correct'},
-    ...유의어현재.acceptable.map(a=>({w:a.w, kind:'acceptable'})),
-    ...유의어현재.wrong.map(w=>({w:w.w, kind:'wrong'}))
+    {w: item.correct.w, kind:'correct'},
+    ...item.acceptable.map(a=>({w:a.w, kind:'acceptable'})),
+    ...item.wrong.map(w=>({w:w.w, kind:'wrong'}))
   ].slice(0,4);
-  // 셔플
   for(let k=보기풀.length-1; k>0; k--){
     const j = Math.floor(Math.random()*(k+1));
     [보기풀[k], 보기풀[j]] = [보기풀[j], 보기풀[k]];
   }
 
   // 예문 빈칸 표시 — 공백 개수 변형에 견디도록 정규식 사용
-  const 예문html = 유의어현재.예문.replace(/\[\s*\]/, '<span class="syn-blank">?</span>');
+  const 예문html = item.예문.replace(/\[\s*\]/, '<span class="syn-blank">?</span>');
 
   body.innerHTML = `
     <div class="syn-card">
       <div class="syn-q">${예문html}</div>
-      <div class="syn-opts" id="synOpts">
-        ${보기풀.map(o=>`<button class="syn-opt" data-kind="${o.kind}" data-word="${o.w}" onclick="유의어변별_선택(this)">${o.w}</button>`).join('')}
+      <div class="syn-opts" id="${bodyId}SynOpts">
+        ${보기풀.map(o=>`<button class="syn-opt" data-kind="${o.kind}" data-word="${o.w}" onclick="예문형_선택('${bodyId}', this)">${o.w}</button>`).join('')}
       </div>
-      <div class="syn-result" id="synResult"></div>
-      <div class="syn-actions" id="synActions" style="display:none">
-        <button class="btn-g" onclick="openObj('synonym')">⚖️ 이의있음!</button>
-        <button class="btn-acc" onclick="유의어변별_다음()">다음 문제 →</button>
+      <div class="syn-result" id="${bodyId}SynResult"></div>
+      <div class="syn-actions" id="${bodyId}SynActions" style="display:none">
+        ${이의컨텍스트 ? `<button class="btn-g" onclick="openObj('${이의컨텍스트}')">⚖️ 이의있음!</button>` : ''}
+        <button class="btn-acc" onclick="예문형_다음('${bodyId}')">다음 문제 →</button>
       </div>
     </div>
   `;
 }
 
-function 유의어변별_선택(btn){
+let 예문형_상태 = {};  // bodyId → {item, 다음fn}
+function 예문형_선택(bodyId, btn){
   // 오류 수정: 결과 공개 후 보기 재클릭으로 EXP를 반복 획득하던 문제 — 1문제 1판정 가드
-  if(document.getElementById('synResult')?.classList.contains('show')) return;
+  const resultEl = document.getElementById(bodyId+'SynResult');
+  if(resultEl?.classList.contains('show')) return;
+  const state = 예문형_상태[bodyId];
+  if(!state) return;
+  const item = state.item;
   const 선택kind = btn.dataset.kind;
   const 선택word = btn.dataset.word;
   // 정답·근사·오답 색 동시 공개
-  const all = document.querySelectorAll('#synOpts .syn-opt');
+  const all = document.querySelectorAll('#'+bodyId+'SynOpts .syn-opt');
   all.forEach(el=>{
     el.classList.add('dim');
     const k = el.dataset.kind;
@@ -4148,12 +4170,12 @@ function 유의어변별_선택(btn){
     const 선택됨 = (w === 선택word);
     let badge='', cls='', def='', reason='';
     if(k === 'correct'){
-      badge='✅ 정답'; cls='ok'; def=유의어현재.correct.def;
+      badge='✅ 정답'; cls='ok'; def=item.correct.def;
     } else if(k === 'acceptable'){
-      const a = 유의어현재.acceptable.find(x=>x.w === w);
+      const a = item.acceptable.find(x=>x.w === w);
       badge='△ 근사'; cls='warn'; def=a?.def ?? ''; reason=a?.reason ?? '';
     } else {
-      const x = 유의어현재.wrong.find(y=>y.w === w);
+      const x = item.wrong.find(y=>y.w === w);
       badge='✗ 오답'; cls='err'; def=x?.def ?? '';
     }
     return `
@@ -4164,29 +4186,70 @@ function 유의어변별_선택(btn){
       </div>`;
   }).join('');
 
-  const res = document.getElementById('synResult');
+  const res = document.getElementById(bodyId+'SynResult');
   res.innerHTML = 헤더 + `<div class="syn-result-all">${항목들}</div>`;
   res.classList.add('show');
-  document.getElementById('synActions').style.display = 'flex';
+  document.getElementById(bodyId+'SynActions').style.display = 'flex';
 
   // 빌드1: 실제 EXP·마스터리 반영 — 정답 +20, 근사 정답은 EXP 없음 (KNOWLEDGE 3-2)
   if(선택kind === 'correct'){
-    EXP획득(20, '유의어 변별 정답');
+    EXP획득(20, '예문형 정답');
     연속정답처리(true);
-    복습대기열_정답처리(유의어현재.correct.w);
+    복습대기열_정답처리(item.correct.w);
   } else {
     연속정답처리(false);
     // 오답·근사 → 정답 단어를 복습 대기열에 (예문 맥락 포함)
-    복습대기열_추가(유의어현재.correct.w, `${유의어현재.correct.def} — 예문: ${유의어현재.예문}`, '유의어');
+    복습대기열_추가(item.correct.w, `${item.correct.def} — 예문: ${item.예문}`, '예문형');
   }
   if(현재학습모드필드) 마스터리증가(현재학습모드필드);
   마스터리증가('총누적어휘수');
   세션결과_기록(선택kind === 'correct');
 }
+function 예문형_다음(bodyId){
+  const state = 예문형_상태[bodyId];
+  if(state && state.다음fn) state.다음fn();
+}
 
+function 유의어변별_렌더(인덱스){
+  // β8: 정령왕 JSON 18건 풀에서 출제 (로드 실패 시 폴백 2건)
+  const i = 인덱스 ?? Math.floor(Math.random() * 유의어출제풀.length);
+  유의어현재 = 유의어출제풀[i];
+  예문형_렌더('sq2Body', 유의어현재, 유의어변별_다음, 'synonym');
+}
 function 유의어변별_다음(){
   유의어변별_렌더();  // 다음 문제 랜덤
 }
+
+/* 세션9: 상식·어원 / 세계사·신화 「예문형」 임시 표본 —
+   data/상식어원.json·세계사신화.json이 채워지면 그 풀로 교체 예정(세션3 임시보기와 동일 관리 방침) */
+const 예문형_상식어원 = [
+  {
+    예문: '그는 회의 내내 [   ] 태도를 보이며 반대 의견을 굽히지 않았다.',
+    correct:    {w:'완고한', def:'융통성 없이 자기 생각만 굳게 지키는'},
+    acceptable: [{w:'고집스러운', def:'자기 뜻을 끝까지 굽히지 않는', reason:'의미는 비슷하나 다소 구어적인 표현'}],
+    wrong: [{w:'유순한', def:'성질이 부드럽고 순함'}, {w:'소심한', def:'대담하지 못하고 조심성이 지나침'}]
+  },
+  {
+    예문: '오랜 가뭄 끝에 내린 비는 농부들에게 [   ] 소식이었다.',
+    correct:    {w:'반가운', def:'그리워하던 것을 얻어 마음이 즐거운'},
+    acceptable: [{w:'기쁜', def:'마음에 즐거운 느낌이 있는', reason:'의미가 유사하나 안도감의 뉘앙스가 약함'}],
+    wrong: [{w:'서운한', def:'마음에 모자라 아쉬운'}, {w:'무관심한', def:'관심이나 흥미가 없는'}]
+  }
+];
+const 예문형_세계사신화 = [
+  {
+    예문: '그 장군은 전세가 불리해지자 [   ] 후퇴를 명령했다.',
+    correct:    {w:'전략적', def:'목적 달성을 위한 계획에 따른'},
+    acceptable: [{w:'신중한', def:'조심스럽고 깊이 생각하는', reason:'유사하나 계획성보다 조심성에 초점'}],
+    wrong: [{w:'무모한', def:'앞뒤를 헤아리지 않고 마구 행동하는'}, {w:'즉흥적', def:'그 자리에서 문득 떠오른 느낌대로 하는'}]
+  },
+  {
+    예문: '신화 속 영웅은 신들의 [   ]을 받아 불사의 몸이 되었다.',
+    correct:    {w:'축복', def:'행복을 빎, 또는 신의 은혜'},
+    acceptable: [{w:'가호', def:'신이 보호하여 도와줌', reason:'의미는 유사하나 다소 예스러운 표현'}],
+    wrong: [{w:'저주', def:'남에게 재앙이나 불행이 일어나도록 빎'}, {w:'시험', def:'재능이나 정도를 알아보기 위해 검사함'}]
+  }
+];
 
 function initFlashcard(){
   document.getElementById('fcBack')?.classList.remove('show');
@@ -4539,7 +4602,9 @@ function submitSpk(){
 // 세션7 항목5: 복습(srp) 방식·순서 키 추가
 let 학습설정 = {
   sq1: '4지선다',        // 4지선다 / 직접입력 / 플래시카드 / 역방향
-  sq2: '4지선다',         // 4지선다 / 뜻 직접 서술 / 역방향 / 유의어 변별 / 플래시카드 (v3.7 항목3)
+  // 세션9: 기본값을 단어-뜻 암기(4지선다)에서 예문 맥락 판단(유의어 변별)으로 전환 —
+  // 앱 취지("표현력 향상")에 맞게 문맥 기반 학습을 기본으로 삼는다.
+  sq2: '유의어 변별',     // 유의어 변별(기본) / 4지선다 / 뜻 직접 서술 / 역방향 / 플래시카드 (v3.7 항목3)
   sq3: '4지선다',        // 4지선다 / 직접입력 / 플래시카드 / 역방향
   sq4: '아↗그거!',        // 아↗그거! / UP¡¿
   sq4_input: '플래시카드', // 4지선다 / 직접입력 / 플래시카드 (구 '선택지'=탭→공개의 실체가 플래시카드)

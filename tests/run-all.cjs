@@ -14,7 +14,8 @@ const 테스트들 = [
   ['세션5 실사용 검토 수정', 'test-fixes-세션5.cjs'],
   ['세션6 실기기 2차 수정', 'test-fixes-세션6.cjs'],
   ['세션7 실기기 3차 수정', 'test-fixes-세션7.cjs'],
-  ['세션8 여백·백도어 터치', 'test-fixes-세션8.cjs']
+  ['세션8 여백·백도어 터치', 'test-fixes-세션8.cjs'],
+  ['세션9 온보딩·아이콘·콘텐츠', 'test-fixes-세션9.cjs']
 ];
 
 let 실패 = 0;
