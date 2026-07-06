@@ -1,0 +1,84 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Llove CI — 정적 HTML/JS 기본 검증
+# - 단일 HTML 파일(index.html) 프로젝트용. 빌드 단계 없이 정적 검증만 수행한다.
+# - PR 생성/갱신 및 주요 브랜치 push 시 자동 실행된다.
+# - 무료 GitHub Actions(ubuntu-latest)만 사용한다.
+# - 실패 원인이 로그에서 바로 보이도록 각 단계를 분리하고 한국어로 안내한다.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "claude/**"
+  workflow_dispatch:
+
+# 동일 브랜치/PR에서 새 커밋이 올라오면 이전 실행을 취소(무료 사용량 절약)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# 공급망 보안: 워크플로 토큰(GITHUB_TOKEN)을 읽기 전용으로 최소화.
+# CI 단계가 악성 코드에 뚫려도 저장소에 쓰기/배포를 못 하게 막는다.
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: HTML / JS 기본 검증
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4 — 커밋 고정(공급망 보안: 태그 변조 방지)
+
+      - name: Node.js 설치
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4 — 커밋 고정(공급망 보안)
+        with:
+          node-version: "24"
+
+      - name: JavaScript 문법 검증 (인라인 스크립트 node --check)
+        run: |
+          echo "::group::인라인 JS 문법 검증"
+          node scripts/check-inline-js.mjs
+          echo "::endgroup::"
+
+      - name: HTML 구조 검증 (htmlhint)
+        run: |
+          echo "::group::HTML 구조 검증 (tag-pair / id-unique / doctype 등)"
+          npx --yes htmlhint@1 --config .htmlhintrc index.html
+          echo "::endgroup::"
+
+      - name: GitHub Pages 배포 전 기본 점검
+        run: |
+          echo "::group::배포 전 정합성 점검"
+          node scripts/check-deploy.mjs
+          echo "::endgroup::"
+
+      - name: 검증 완료 안내
+        if: success()
+        run: echo "✅ 모든 기본 검증을 통과했습니다. (JS 문법 · HTML 구조 · 배포 정합성)"
+
+  functional-tests:
+    name: 기능 동작 테스트 (jsdom)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4 — 커밋 고정(공급망 보안: 태그 변조 방지)
+
+      - name: Node.js 설치
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4 — 커밋 고정(공급망 보안)
+        with:
+          node-version: "24"
+
+      - name: 의존성 설치
+        # 공급망 보안: --ignore-scripts 로 패키지의 설치 스크립트(악성 웜의 주 침투 경로) 실행 차단.
+        # (현재 의존성 트리에 설치 스크립트가 0개라 동작에 영향 없음)
+        run: npm ci --ignore-scripts
+
+      - name: 학습 모드·테마·복습·음성·글자크기·커서 동작 테스트
+        run: |
+          echo "::group::jsdom 기능 테스트"
+          npm test
+          echo "::endgroup::"

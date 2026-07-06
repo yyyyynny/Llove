@@ -1,0 +1,15 @@
+# Dependabot — 공급망 보안: 취약 의존성·구버전 액션을 자동 감지하고 업데이트 PR을 올린다.
+# (npm 패키지 + GitHub Actions 둘 다 주간 점검. 보안 경고는 GitHub가 자동 표시)
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

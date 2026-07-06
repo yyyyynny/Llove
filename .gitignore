@@ -1,0 +1,17 @@
+node_modules/
+*.log
+
+# 추가기능: 음성 생성(콜롬비나 TTS) — 모델·음성 파일은 레포에 절대 커밋 금지
+# (저작권: 호요버스 캐릭터/성우 목소리. 창조주 전용·비공개 원칙)
+*.pth
+*.onnx
+*.ckpt
+*.pt
+*.bin
+*.wav
+*.mp3
+*.flac
+*.ogg
+/models/
+/voices/
+/음성모델/
