@@ -18,8 +18,8 @@ load((window) => {
   ev("학습설정.sq2='뜻 직접 서술'; sq2_출제_렌더('한자·우리말');");
   assert('뜻서술: 입력창', !!doc.getElementById('sq2WriteInput'));
 
-  ev(`유의어출제풀=[{예문:'그는 [ ] 결정을 내렸다.',correct:{w:'단호한'},acceptable:[{w:'과감한',이유:'유사'}],wrong:[{w:'우유부단한'},{w:'느긋한'}],reasoning_note:''}]; 학습설정.sq2='유의어 변별'; sq2_출제_렌더('고사성어·속담');`);
-  assert('유의어 변별: 보기 렌더', doc.querySelectorAll('#sq2Body .syn-opt').length >= 2);
+  ev(`유의어출제풀=[{예문:'그는 [ ] 결정을 내렸다.',correct:{w:'단호한'},acceptable:[{w:'과감한',이유:'유사'}],wrong:[{w:'우유부단한'},{w:'느긋한'}],reasoning_note:''}]; 학습설정.sq2='예문형'; sq2_출제_렌더('고사성어·속담');`);
+  assert('예문형: 보기 렌더', doc.querySelectorAll('#sq2Body .syn-opt').length >= 2);
 
   ev("학습설정.sq2='플래시카드'; sq2_출제_렌더('한자·우리말');");
   assert('플래시카드: 카드 렌더', !!doc.getElementById('fcCard'));

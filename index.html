@@ -300,6 +300,13 @@ html{scrollbar-gutter:stable}
 .mc-name{font-size:17px;font-weight:700;margin-bottom:2px;color:var(--accl)}
 .mc-desc{font-size:12px;color:var(--txt2)}
 .mc-arrow{color:var(--txtm);font-size:21px;transition:transform .2s,color .2s}
+/* 세션10 항목5: sq1 계열(상식·어원/세계사·신화) vs sq2 계열(고사성어·속담/한자·우리말) 테두리 색 구분 — 기존 테마 변수(--inf·--warn) 재사용 */
+.mc.mc-g1{border-color:color-mix(in srgb, var(--inf) 40%, var(--bdrg))}
+.mc.mc-g1::before{background:var(--inf)}
+.mc.mc-g1:hover{border-color:var(--inf)}
+.mc.mc-g2{border-color:color-mix(in srgb, var(--warn) 40%, var(--bdrg))}
+.mc.mc-g2::before{background:var(--warn)}
+.mc.mc-g2:hover{border-color:var(--warn)}
 
 /* ━━━ 학습 - 4지선다 / 3지선다 ━━━ */
 .qprog-wrap{padding:14px 20px;background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0}
@@ -1247,11 +1254,11 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   </div>
   <div class="hs">
     <div class="sec-t">학습 모드</div>
-    <div class="mc fu s1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon">🌍</div><div style="flex:1"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon">📜</div><div style="flex:1"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s3" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon">🏛️</div><div style="flex:1"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s1 mc-g1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon">🌍</div><div style="flex:1"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s2 mc-g2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon">📜</div><div style="flex:1"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 예문형</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s3 mc-g1" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon">🏛️</div><div style="flex:1"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
     <div class="mc fu s4" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon">😂</div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s5" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s5 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
     <div class="mc fu s6" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
     <div class="mc fu s7" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
     <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 -->
@@ -1347,7 +1354,7 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
         <span class="lset-row-lbl">방식</span>
         <div class="lset-opts">
           <!-- 세션9: 맥락형(유의어 변별)을 기본값으로 승격 -->
-          <button class="lset-opt on" onclick="setLsetMode('sq2','유의어 변별',this)">유의어 변별</button>
+          <button class="lset-opt on" onclick="setLsetMode('sq2','예문형',this)">예문형</button>
           <button class="lset-opt" onclick="setLsetMode('sq2','4지선다',this)">4지선다</button>
           <button class="lset-opt" onclick="setLsetMode('sq2','뜻 직접 서술',this)">뜻 직접 서술</button>
           <button class="lset-opt" onclick="setLsetMode('sq2','역방향',this)">역방향</button>
@@ -1798,7 +1805,7 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
       <!-- 버그6: 계정 삭제 (2중 확인 절차) — KNOWLEDGE 18섹션 -->
       <div class="set-row" onclick="계정삭제_1단계()">
         <span class="sri" style="color:var(--err)">🗑️</span>
-        <div style="flex:1"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 데이터를 영구 삭제 (2중 확인)</div></div>
+        <div style="flex:1"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 데이터를 영구 삭제</div></div>
         <span class="sra">›</span>
       </div>
       <div class="set-row" id="devModeRow" onclick="개발자모드_탭()">
@@ -2089,9 +2096,10 @@ const LIGHTS=['paper'];
 // 레벨업 공식: 110 + (레벨-1) × 28
 // α3: 하급신 구간(Lv.36~46)은 ×1.123 적용 — 성장 정체 의도 (KNOWLEDGE 11)
 // α2: Lv.70 하드 캡 (개발자 모드 Lv.120 확장은 오버레이 구현 단계에서)
+// 세션10: "레벨업이 너무 빠르다" 피드백 → 전체 요구량 ×1.45 디버프 (체감 40~50% 느리게, KNOWLEDGE 11)
 const 최대레벨 = 70;
 function expForLevel(lv){
-  const 기본 = 110 + (lv-1)*28;
+  const 기본 = Math.round((110 + (lv-1)*28) * 1.45);
   return (lv>=36 && lv<=46) ? Math.round(기본*1.123) : 기본;
 }
 let maxExp=expForLevel(curLv);
@@ -2553,7 +2561,7 @@ function sq2_출제_렌더(category){
   // 근본 수정(2026-06-14): 기존엔 '유의어 변별' 외 4방식이 전부 renderFlashcard로 폴백되어
   //   사용자가 무엇을 골라도(기본값 4지선다 포함) 플래시카드만 나오던 버그였다.
   //   이제 선택한 방식대로 실제 출제 화면을 분기한다.
-  if(방식 === '유의어 변별'){
+  if(방식 === '예문형'){
     유의어변별_렌더();
   } else if(방식 === '4지선다'){
     sq2_사지선다_렌더(category);
@@ -2926,14 +2934,15 @@ function 사용자데이터_저장(부분){
    - 학습 행동이 일어날 때마다 Firestore에 변경 필드만 merge 저장
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 // α11: [꾸준한 발걸음] 단계별 EXP 획득 배율 (KNOWLEDGE 14 — 현재 도달 단계의 배율만 적용)
+// 세션10: 임계값을 업적_정의.steady와 동일하게 ×1.45 디버프(둘이 같은 단계표를 공유하는 설계 — KNOWLEDGE 14)
 function EXP배율(연속일){
-  if(연속일>=20) return 1.22;
-  if(연속일>=15) return 1.15;
-  if(연속일>=10) return 1.09;
-  if(연속일>=7)  return 1.07;
-  if(연속일>=5)  return 1.05;
-  if(연속일>=3)  return 1.03;
-  if(연속일>=2)  return 1.01;
+  if(연속일>=29) return 1.22;
+  if(연속일>=21) return 1.15;
+  if(연속일>=15) return 1.09;
+  if(연속일>=10) return 1.07;
+  if(연속일>=7)  return 1.05;
+  if(연속일>=5)  return 1.03;
+  if(연속일>=3)  return 1.01;
   return 1;
 }
 
@@ -4604,7 +4613,8 @@ let 학습설정 = {
   sq1: '4지선다',        // 4지선다 / 직접입력 / 플래시카드 / 역방향
   // 세션9: 기본값을 단어-뜻 암기(4지선다)에서 예문 맥락 판단(유의어 변별)으로 전환 —
   // 앱 취지("표현력 향상")에 맞게 문맥 기반 학습을 기본으로 삼는다.
-  sq2: '유의어 변별',     // 유의어 변별(기본) / 4지선다 / 뜻 직접 서술 / 역방향 / 플래시카드 (v3.7 항목3)
+  // 세션10: 옵션명 "유의어 변별"→"예문형"으로 통일(로직·데이터 변경 없음, 명칭만 정리)
+  sq2: '예문형',     // 예문형(기본) / 4지선다 / 뜻 직접 서술 / 역방향 / 플래시카드 (v3.7 항목3)
   sq3: '4지선다',        // 4지선다 / 직접입력 / 플래시카드 / 역방향
   sq4: '아↗그거!',        // 아↗그거! / UP¡¿
   sq4_input: '플래시카드', // 4지선다 / 직접입력 / 플래시카드 (구 '선택지'=탭→공개의 실체가 플래시카드)
@@ -4616,6 +4626,8 @@ function 학습설정_마이그레이션(){
   if(학습설정.sq1 === '선택지') 학습설정.sq1 = '4지선다';
   if(학습설정.sq3 === '선택지') 학습설정.sq3 = '4지선다';
   if(학습설정.sq4_input === '선택지') 학습설정.sq4_input = '플래시카드';
+  // 세션10: 구버전 저장값('유의어 변별') 마이그레이션 — 옵션명 통일
+  if(학습설정.sq2 === '유의어 변별') 학습설정.sq2 = '예문형';
 }
 
 /* 패널 펼치기/접기 토글 — 세션5 버그8: 회전 대신 ▼/▲ 글자 교체(회전 금지 규칙) */
@@ -5224,45 +5236,48 @@ const ACH_DATA=[
     {key:'steady', name:'[꾸준한 발걸음]', icon:'🔥', cat:'성장 계열 · 풀돌',
      desc:'연속 학습일 기준 자동 발동',
      stage:1, current:'3일 / 5일',
-     rows:[['명함','2일'],['1돌','3일'],['2돌','5일'],['3돌','7일'],['4돌','10일'],['5돌','15일'],['풀돌','20일']]}
+     // 세션10: 밸런스 디버프 ×1.45 (KNOWLEDGE 14)
+     rows:[['명함','3일'],['1돌','5일'],['2돌','7일'],['3돌','10일'],['4돌','15일'],['5돌','21일'],['풀돌','29일']]}
   ]},
   // 숙련
   {sec:'🎯 숙련', items:[
     {key:'perfect', name:'[완벽주의자]', icon:'🏅', cat:'숙련 계열 · 풀돌',
      desc:'세션 내 퀴즈 전부 정답 시 카운터 +1',
-     stage:0, current:'1회 / 2회',
-     rows:[['명함','1회'],['1돌','2회'],['2돌','4회'],['3돌','6회'],['4돌','9회'],['5돌','12회'],['풀돌','15회']]},
+     stage:0, current:'1회 / 3회',
+     // 세션10: 밸런스 디버프 ×1.45 (KNOWLEDGE 14)
+     rows:[['명함','1회'],['1돌','3회'],['2돌','6회'],['3돌','9회'],['4돌','13회'],['5돌','17회'],['풀돌','22회']]},
     {key:'speech', name:'[말의 품격]', icon:'🎙️', cat:'숙련 계열 · 풀돌',
      desc:'구어 교정 완료 시 카운터 +1',
-     stage:-1, current:'0회 / 2회',
-     rows:[['명함','2회'],['1돌','4회'],['2돌','6회'],['3돌','9회'],['4돌','12회'],['5돌','16회'],['풀돌','20회']]}
+     stage:-1, current:'0회 / 3회',
+     rows:[['명함','3회'],['1돌','6회'],['2돌','9회'],['3돌','13회'],['4돌','17회'],['5돌','23회'],['풀돌','29회']]}
   ]},
   // 탐구
   {sec:'📚 탐구', items:[
     {key:'know', name:'[상식의 탑]', icon:'🌍', cat:'탐구 계열 · 풀돌',
      desc:'상식·어원 모드 풀 때마다 +1',
-     stage:1, current:'8회 / 10회',
-     rows:[['명함','3회'],['1돌','5회'],['2돌','10회'],['3돌','20회'],['4돌','30회'],['5돌','45회'],['풀돌','60회']]},
+     stage:1, current:'8회 / 14회',
+     // 세션10: 밸런스 디버프 ×1.45 (KNOWLEDGE 14)
+     rows:[['명함','4회'],['1돌','7회'],['2돌','14회'],['3돌','29회'],['4돌','43회'],['5돌','65회'],['풀돌','87회']]},
     {key:'root', name:'[언어의 뿌리]', icon:'📜', cat:'탐구 계열 · 풀돌',
      desc:'고사성어·속담·한자·우리말 합산',
-     stage:2, current:'18회 / 25회',
-     rows:[['명함','3회'],['1돌','5회'],['2돌','15회'],['3돌','25회'],['4돌','40회'],['5돌','55회'],['풀돌','70회']]},
+     stage:2, current:'18회 / 22회',
+     rows:[['명함','4회'],['1돌','7회'],['2돌','22회'],['3돌','36회'],['4돌','58회'],['5돌','80회'],['풀돌','100회']]},
     {key:'history', name:'[역사 탐험가]', icon:'🏛️', cat:'탐구 계열 · 풀돌',
      desc:'세계사·신화 모드 풀 때마다 +1',
-     stage:-1, current:'0회 / 3회',
-     rows:[['명함','3회'],['1돌','5회'],['2돌','10회'],['3돌','20회'],['4돌','30회'],['5돌','45회'],['풀돌','60회']]},
+     stage:-1, current:'0회 / 4회',
+     rows:[['명함','4회'],['1돌','7회'],['2돌','14회'],['3돌','29회'],['4돌','43회'],['5돌','65회'],['풀돌','87회']]},
     {key:'spell', name:'[맞춤법 수호자]', icon:'✏️', cat:'탐구 계열 · 풀돌',
      desc:'맞춤법 모드 풀 때마다 +1',
-     stage:0, current:'4회 / 5회',
-     rows:[['명함','3회'],['1돌','5회'],['2돌','10회'],['3돌','20회'],['4돌','30회'],['5돌','45회'],['풀돌','60회']]},
+     stage:0, current:'4회 / 7회',
+     rows:[['명함','4회'],['1돌','7회'],['2돌','14회'],['3돌','29회'],['4돌','43회'],['5돌','65회'],['풀돌','87회']]},
     {key:'dad', name:'[아재력]', icon:'😂', cat:'탐구 계열 · 풀돌',
      desc:'아재개그 모드 풀 때마다 +1',
-     stage:-1, current:'1회 / 3회',
-     rows:[['명함','3회'],['1돌','5회'],['2돌','8회'],['3돌','12회'],['4돌','18회'],['5돌','24회'],['풀돌','30회']]},
+     stage:-1, current:'1회 / 4회',
+     rows:[['명함','4회'],['1돌','7회'],['2돌','12회'],['3돌','17회'],['4돌','26회'],['5돌','35회'],['풀돌','43회']]},
     {key:'vocab', name:'[어휘 대사전]', icon:'📖', cat:'탐구 계열 · 풀돌',
      desc:'총누적어휘수 카운터 기준 (졸업 후 감소 없음)',
-     stage:1, current:'142개 / 100개',
-     rows:[['명함','20개'],['1돌','50개'],['2돌','100개'],['3돌','150개'],['4돌','200개'],['5돌','300개'],['풀돌','400개']]}
+     stage:1, current:'142개 / 145개',
+     rows:[['명함','30개'],['1돌','75개'],['2돌','145개'],['3돌','220개'],['4돌','290개'],['5돌','435개'],['풀돌','580개']]}
   ]},
   // 관리
   {sec:'🗂 관리', items:[
@@ -5275,15 +5290,16 @@ const ACH_DATA=[
     {key:'reb', name:'[반박의 화신]', icon:'⚡', cat:'히든 계열 · 풀돌',
      desc:'I̷̢͓͆̑͐s̵̛͍͊̈́̃s̵̢͊̈́̀͝ů̷̳͇̦̈́͘e̵̛̞͆̌̑͐̀̕ 반박 성공 시 카운터 +1', zalgo:true,
      stage:-1, current:'0회 / 1회',
-     rows:[['명함','1회'],['1돌','2회'],['2돌','4회'],['3돌','6회'],['4돌','9회'],['5돌','12회'],['풀돌','15회']]},
+     // 세션10: 밸런스 디버프 ×1.45 (KNOWLEDGE 14)
+     rows:[['명함','1회'],['1돌','3회'],['2돌','6회'],['3돌','9회'],['4돌','13회'],['5돌','17회'],['풀돌','22회']]},
     {key:'night', name:'[밤의 사색가]', icon:'🌙', cat:'히든 계열 · 풀돌',
      desc:'Ň̴̡̛̑͐̕i̷̢͓͆̌̑͐̀̕g̸̢̛͊̈́͘͝ḣ̴̡̊̓̈́̑͘t̵̢̛̅̈́̃̌̀͝ 새벽 00:00~04:00 학습 시 +1', zalgo:true,
      stage:-1, current:'0회 / 1회',
-     rows:[['명함','1회'],['1돌','2회'],['2돌','3회'],['3돌','5회'],['4돌','7회'],['5돌','9회'],['풀돌','10회']]},
+     rows:[['명함','1회'],['1돌','3회'],['2돌','4회'],['3돌','7회'],['4돌','10회'],['5돌','13회'],['풀돌','15회']]},
     {key:'asker', name:'[질문쟁이]', icon:'💬', cat:'히든 계열 · 풀돌',
      desc:'Ǎ̴̡̛̑͐̕s̸̢̛͊̈́͘͝k̵̛̞̅̈́̃̌͝ 질문하기 기능 사용 시 +1', zalgo:true,
-     stage:1, current:'4회 / 5회',
-     rows:[['명함','2회'],['1돌','5회'],['2돌','8회'],['3돌','12회'],['4돌','16회'],['5돌','19회'],['풀돌','23회']]},
+     stage:1, current:'4회 / 7회',
+     rows:[['명함','3회'],['1돌','7회'],['2돌','12회'],['3돌','17회'],['4돌','23회'],['5돌','28회'],['풀돌','33회']]},
     {key:'abyss', name:'[심연을 들여다보는 자]', icon:'👁️', cat:'히든 계열 · 단발',
      desc:'V̷̢͓̌̑͐̀̕o̷̢͊̈́̀͝ȋ̷̢͐̀̕ď̴̡̛̑͐̀̕ 자아·존재·너는 누구냐 키워드 감지 시', zalgo:true,
      stage:'lck', progress:'+150 EXP', single:true},
@@ -5324,20 +5340,21 @@ const 업적_히든EXP = [120,150,200,250,300,400,500];
 const 업적_히든키 = ['reb','night','asker','abyss','will','deep','border'];
 
 // 풀돌 업적: 단계 임계표 + 현재 카운터 (KNOWLEDGE 14 조건표 그대로)
+// 세션10: "업적이 너무 빠르다" 피드백 → growth(레벨 기반) 제외 전체 ×1.45 디버프
 const 업적_정의 = {
   growth:  {임계:[5,10,20,30,40,55,70],       값:()=>curLv,                  단위:'Lv.', 앞단위:true},
-  steady:  {임계:[2,3,5,7,10,15,20],          값:()=>사용자.연속학습일||0,    단위:'일'},
-  perfect: {임계:[1,2,4,6,9,12,15],           값:()=>사용자.퍼펙트세션수||0,  단위:'회'},
-  speech:  {임계:[2,4,6,9,12,16,20],          값:()=>사용자.구어교정횟수||0,  단위:'회'},
-  know:    {임계:[3,5,10,20,30,45,60],        값:()=>사용자.상식어원학습수||0, 단위:'회'},
-  root:    {임계:[3,5,15,25,40,55,70],        값:()=>사용자.언어의뿌리학습수||0, 단위:'회'},
-  history: {임계:[3,5,10,20,30,45,60],        값:()=>사용자.세계사신화학습수||0, 단위:'회'},
-  spell:   {임계:[3,5,10,20,30,45,60],        값:()=>사용자.맞춤법학습수||0,  단위:'회'},
-  dad:     {임계:[3,5,8,12,18,24,30],         값:()=>사용자.아재개그학습수||0, 단위:'회'},
-  vocab:   {임계:[20,50,100,150,200,300,400], 값:()=>사용자.총누적어휘수||0,  단위:'개'},
-  reb:     {임계:[1,2,4,6,9,12,15],           값:()=>사용자.반박성공횟수||0,  단위:'회'},
-  night:   {임계:[1,2,3,5,7,9,10],            값:()=>사용자.밤학습수||0,      단위:'회'},
-  asker:   {임계:[2,5,8,12,16,19,23],         값:()=>사용자.총질문수||0,      단위:'회'}
+  steady:  {임계:[3,5,7,10,15,21,29],         값:()=>사용자.연속학습일||0,    단위:'일'},
+  perfect: {임계:[1,3,6,9,13,17,22],          값:()=>사용자.퍼펙트세션수||0,  단위:'회'},
+  speech:  {임계:[3,6,9,13,17,23,29],         값:()=>사용자.구어교정횟수||0,  단위:'회'},
+  know:    {임계:[4,7,14,29,43,65,87],        값:()=>사용자.상식어원학습수||0, 단위:'회'},
+  root:    {임계:[4,7,22,36,58,80,100],       값:()=>사용자.언어의뿌리학습수||0, 단위:'회'},
+  history: {임계:[4,7,14,29,43,65,87],        값:()=>사용자.세계사신화학습수||0, 단위:'회'},
+  spell:   {임계:[4,7,14,29,43,65,87],        값:()=>사용자.맞춤법학습수||0,  단위:'회'},
+  dad:     {임계:[4,7,12,17,26,35,43],        값:()=>사용자.아재개그학습수||0, 단위:'회'},
+  vocab:   {임계:[30,75,145,220,290,435,580], 값:()=>사용자.총누적어휘수||0,  단위:'개'},
+  reb:     {임계:[1,3,6,9,13,17,22],          값:()=>사용자.반박성공횟수||0,  단위:'회'},
+  night:   {임계:[1,3,4,7,10,13,15],          값:()=>사용자.밤학습수||0,      단위:'회'},
+  asker:   {임계:[3,7,12,17,23,28,33],        값:()=>사용자.총질문수||0,      단위:'회'}
 };
 // 계산형 단발 업적 (이벤트형 — clean·abyss·will·deep·border — 은 업적_단발달성()이 직접 처리)
 const 업적_단발조건 = {
@@ -7052,7 +7069,7 @@ function 이의제기_컨텍스트_설정(컨텍스트){
   const subEl   = document.querySelector('.obj-sub');
   if(titleEl && subEl){
     if(컨텍스트 === 'synonym'){
-      titleEl.textContent = '이의있음! (유의어 변별)';
+      titleEl.textContent = '이의있음! (예문형)';
       subEl.textContent   = '"제가 고른 게 이 맥락에선 더 적절한 것 같은데요?" — AI가 맥락 기반으로 재판정합니다.';
     } else if(컨텍스트 === 'speak'){
       titleEl.textContent = '이의있음! (구어 교정)';
