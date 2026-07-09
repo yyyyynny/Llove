@@ -27,5 +27,14 @@ load((window) => {
   ev(`구어교정풀=[{prompt:'아 그거 빨리 해줘요',격식:'그 일을 서둘러 주시겠어요?',포인트:'격식'}]; 구어교정현재=null; goLearn('구어 교정','sq5',null);`);
   assert('구어 교정(sq5): 예문 출제', !!ev("구어교정현재"));
 
+  // 세션10-b: 문단 빈칸 추론(sq6) — 예문형 엔진 재사용 확인
+  ev("goLearn('문단 빈칸 추론','sq6',null);");
+  assert('문단 빈칸(sq6): 보기 4개 렌더', doc.querySelectorAll('#sq6Body .syn-opt').length === 4);
+  assert('문단 빈칸(sq6): 이의있음 버튼 없음(Grok 미연동)', !doc.getElementById('sq6BodySynActions').innerHTML.includes('openObj'));
+  const sq6exp0 = ev('사용자.총누적EXP||0');
+  ev(`예문형_선택('sq6Body', document.querySelector('#sq6Body .syn-opt[data-kind="correct"]'));`);
+  assert('문단 빈칸(sq6): 정답 선택 시 EXP 획득', ev('사용자.총누적EXP||0') > sq6exp0);
+  assert('문단 빈칸(sq6): 마스터리 카운터 증가(문해력학습수)', ev('사용자.문해력학습수||0') > 0);
+
   process.exit(finish() > 0 ? 1 : 0);
 });

@@ -1261,6 +1261,8 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
     <div class="mc fu s5 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
     <div class="mc fu s6" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
     <div class="mc fu s7" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
+    <!-- 세션10-b: 문해력 1탄 — 문단 빈칸 추론(예문형 엔진 재사용, 지문만 2~4문장) -->
+    <div class="mc fu s8" onclick="goLearn('문단 빈칸 추론','sq6',null)"><div class="mc-icon">📖</div><div style="flex:1"><div class="mc-name">문단 빈칸 추론</div><div class="mc-desc">짧은 글 맥락으로 빈칸 채우기 · 문해력</div></div><div class="mc-arrow">›</div></div>
     <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 -->
     <!-- 세션7 항목8: ⚙ = 모드별 확률·제외 설정 (카드 클릭과 분리 — stopPropagation) -->
     <div class="mc fu s7" style="border-style:dashed" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()">⚙</span><div class="mc-arrow">›</div></div>
@@ -1310,6 +1312,39 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
     </div>
   </div>
   <div class="qbody" id="sq1Body">
+    <!-- JS로 동적 생성 -->
+  </div>
+  <!-- 학습 화면 하단 AI 챗 -->
+  <div style="padding:10px 18px 4px;flex-shrink:0">
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
+      <span style="font-size:14px">💬</span>
+      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ④-6 세션10-b: 문단 빈칸 추론(문해력 1탄) — 예문형 엔진 재사용, 방식 옵션 없어 설정 패널 생략 -->
+<div id="sq6" class="screen demo-offset has-bnav">
+  <div class="top-bar">
+    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
+    <div class="tbt" id="sq6Title">문단 빈칸 추론</div>
+    <div class="tag ta">+20</div>
+  </div>
+  <div class="qprog-wrap">
+    <div class="qpr-top"><div class="qmb" id="sq6Mode">📖 문단 빈칸</div><div class="qct">1 / 5 문제</div></div>
+    <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
+  </div>
+  <div class="tkb" onclick="토큰드롭다운_토글(this)">
+    <div class="tkb-row">
+      <span class="tkb-icon">💎</span>
+      <div class="tkb-bar"><div class="tkb-fill"></div></div>
+      <span class="tkb-val">- / 1,500</span>
+      <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
+    </div>
+    <div class="tkb-drop"></div>
+  </div>
+  <div class="qbody" id="sq6Body">
     <!-- JS로 동적 생성 -->
   </div>
   <!-- 학습 화면 하단 AI 챗 -->
@@ -1869,6 +1904,7 @@ const 사용자 = {
   아재개그학습수: 0,
   맞춤법학습수: 0,
   구어교정횟수: 0,
+  문해력학습수: 0,  // 세션10-b: 문단 빈칸 추론
   이의제기횟수: 0,
   반박성공횟수: 0,
   퍼펙트세션수: 0,
@@ -2282,6 +2318,8 @@ function 예문데이터_로드(){
       if(Array.isArray(d.유의어_변별) && d.유의어_변별.length) 유의어출제풀 = d.유의어_변별;
       if(Array.isArray(d.오늘의_한문장) && d.오늘의_한문장.length) 한문장풀 = d.오늘의_한문장;
       if(Array.isArray(d.구어_교정) && d.구어_교정.length) 구어교정풀 = d.구어_교정;
+      // 세션10-b: 문단 빈칸 추론 — 키 없으면 무해(정적 임시 표본 3건 유지)
+      if(Array.isArray(d.문단_빈칸) && d.문단_빈칸.length) 문단빈칸풀 = d.문단_빈칸;
       // 홈 화면이 이미 떠 있으면 슬라이드 즉시 재빌드
       if(curScreen==='sh') 슬라이드빌드();
       구어교정_예문표시();
@@ -2301,9 +2339,9 @@ function 모드DB_로드(){
 
 /* 바텀 네비 */
 /* 바텀 네비 표시 화면 목록 */
-const SHOW_NAV=['sh','sq1','sq2','sq3','sq4','sq5','sr','sa','ss','sse','sg'];
+const SHOW_NAV=['sh','sq1','sq2','sq3','sq4','sq5','sq6','sr','sa','ss','sse','sg'];
 /* 바텀 네비 활성 매핑 (학습 모드는 모두 '홈' 강조, sg는 현황 탭 강조) */
-const NAV_MAP={'sh':'nb-sh','sr':'nb-sr','sa':'nb-sa','ss':'nb-ss','sse':'nb-sse','sg':'nb-ss','sq1':'nb-sh','sq2':'nb-sh','sq3':'nb-sh','sq4':'nb-sh','sq5':'nb-sh'};
+const NAV_MAP={'sh':'nb-sh','sr':'nb-sr','sa':'nb-sa','ss':'nb-ss','sse':'nb-sse','sg':'nb-ss','sq1':'nb-sh','sq2':'nb-sh','sq3':'nb-sh','sq4':'nb-sh','sq5':'nb-sh','sq6':'nb-sh'};
 /* (v3.4 미사용) FAB 표시 대상 학습 화면 — FAB 제거됐으나 호환용 보존 */
 const ASK_FAB_SCREENS=['sq1','sq2','sq3','sq4','sq5'];
 
@@ -2546,6 +2584,12 @@ function goLearn(category, screenId, btn){
   if(screenId==='sq5'){
     switchSpkMode('text');     // 진입 시 텍스트 입력 탭을 기본으로 초기화
     구어교정_예문표시();        // 정령왕 JSON 구어_교정 풀에서 예문 즉시 출제
+  }
+  // 세션10-b: 문단 빈칸 추론(sq6) — 방식 옵션 없음, 예문형 엔진 그대로 재사용
+  if(screenId==='sq6'){
+    document.getElementById('sq6Title').textContent=category;
+    document.getElementById('sq6Mode').textContent='📖 문단 빈칸';
+    문단빈칸_렌더();
   }
 }
 
@@ -2896,7 +2940,7 @@ function 신규사용자_생성(){
     연속학습일: 0, 총학습일: 0, 마지막학습일: '',
     // 마스터리 (KNOWLEDGE 13)
     상식어원학습수: 0, 언어의뿌리학습수: 0, 세계사신화학습수: 0,
-    아재개그학습수: 0, 맞춤법학습수: 0, 구어교정횟수: 0,
+    아재개그학습수: 0, 맞춤법학습수: 0, 구어교정횟수: 0, 문해력학습수: 0,
     이의제기횟수: 0, 반박성공횟수: 0, 퍼펙트세션수: 0, 총누적어휘수: 0,
     // 토큰 (KNOWLEDGE 32, 기본 1500)
     보유토큰: 1500, 토큰소진시각: null, 토큰락해제시각: null, 총소비토큰: 0,
@@ -3045,7 +3089,7 @@ function 학습데이터초기화_실행(){
   const 리셋 = {
     레벨:1, 현재EXP:0, 총누적EXP:0, 연속학습일:0, 총학습일:0, 마지막학습일:'',
     상식어원학습수:0, 언어의뿌리학습수:0, 세계사신화학습수:0, 아재개그학습수:0,
-    맞춤법학습수:0, 구어교정횟수:0, 이의제기횟수:0, 반박성공횟수:0, 퍼펙트세션수:0, 총누적어휘수:0,
+    맞춤법학습수:0, 구어교정횟수:0, 문해력학습수:0, 이의제기횟수:0, 반박성공횟수:0, 퍼펙트세션수:0, 총누적어휘수:0,
     보유토큰:1500, 토큰소진시각:null, 토큰락해제시각:null, 총소비토큰:0,
     업적진행도:{}, 창조주달성:false, 개발자모드:false, 선택칭호:'', 오늘질문횟수:0, 질문날짜:'',
     밤학습수:0, 마지막밤기록일:'', 복습복구횟수:0, 복습복구날짜:'', 총질문수:0
@@ -3500,7 +3544,8 @@ let 최근결과 = [];                 // [불굴의 의지] 오답→오답→�
 const 모드_마스터리맵 = {
   '상식·어원':'상식어원학습수', '세계사·신화':'세계사신화학습수',
   '고사성어·속담':'언어의뿌리학습수', '한자·우리말':'언어의뿌리학습수',
-  '맞춤법':'맞춤법학습수', '아재개그':'아재개그학습수', '구어 교정':'구어교정횟수'
+  '맞춤법':'맞춤법학습수', '아재개그':'아재개그학습수', '구어 교정':'구어교정횟수',
+  '문단 빈칸 추론':'문해력학습수'  // 세션10-b: 문해력 1탄 — 전용 카운터
 };
 
 // β9: 출제 확률 결정 — DB 40% / AI 60%, 「AI 문제만」 ON 시 항상 AI (KNOWLEDGE 4)
@@ -4259,6 +4304,35 @@ const 예문형_세계사신화 = [
     wrong: [{w:'저주', def:'남에게 재앙이나 불행이 일어나도록 빎'}, {w:'시험', def:'재능이나 정도를 알아보기 위해 검사함'}]
   }
 ];
+
+/* 세션10-b: 문해력 1탄 — 문단 빈칸 추론(sq6). 예문형 엔진(예문형_렌더/예문형_선택) 그대로 재사용,
+   차이는 데이터뿐 — 지문이 2~4문장으로, 앞 문장들의 정보를 종합해야만 빈칸을 결정할 수 있도록 설계.
+   data/문단빈칸.json이 채워지면 그 풀로 교체 예정(예문형_상식어원과 동일 관리 방침). */
+let 문단빈칸풀 = [
+  {
+    예문: '동생은 며칠째 방에서 나오지 않았다. 밥도 거의 먹지 않고, 누가 말을 걸어도 대꾸조차 없었다. 가족들은 그런 동생의 [   ] 모습에 걱정이 깊어졌다.',
+    correct:    {w:'침울한', def:'기운이 없고 마음이 무거운'},
+    acceptable: [{w:'우울한', def:'마음이 어둡고 근심스러운', reason:'의미는 유사하나 행동 변화까지 담아내지는 못하는 단순 감정 표현'}],
+    wrong: [{w:'활기찬', def:'기운차고 생기가 넘치는'}, {w:'태연한', def:'아무렇지 않은 듯 침착한'}]
+  },
+  {
+    예문: '신제품 발표 후 초기 반응은 뜨거웠다. 하지만 두 달이 지나자 매출 그래프는 완만하게 아래로 향했고, 재구매율도 눈에 띄게 줄었다. 마케팅팀은 이 [   ] 흐름을 심각하게 받아들이기 시작했다.',
+    correct:    {w:'하강', def:'수준이나 형세가 내려감'},
+    acceptable: [{w:'침체', def:'활기를 잃고 정체됨', reason:'유사하나 계속 내려가는 흐름보다는 멈춰선 상태에 방점'}],
+    wrong: [{w:'상승', def:'수준이나 형세가 올라감'}, {w:'반등', def:'떨어지던 것이 다시 오름'}]
+  },
+  {
+    예문: '초반에는 협상이 순조롭게 진행되는 듯 보였다. 그러나 핵심 조항에 이르자 양측은 한 치도 물러서지 않았고, 회의는 [   ] 끝났다.',
+    correct:    {w:'결렬로', def:'합의에 이르지 못하고 관계가 완전히 끊어짐'},
+    acceptable: [{w:'파행으로', def:'순조롭게 진행되지 못하고 어긋남', reason:'유사하나 완전한 결렬보다는 진행 과정의 뒤틀림에 초점'}],
+    wrong: [{w:'원만히', def:'모난 데 없이 순조롭게'}, {w:'일찍', def:'정한 때보다 이르게'}]
+  }
+];
+function 문단빈칸_렌더(){
+  if(!문단빈칸풀.length) return;
+  const 항목 = 문단빈칸풀[Math.floor(Math.random()*문단빈칸풀.length)];
+  예문형_렌더('sq6Body', 항목, 문단빈칸_렌더, '');  // 이의있음 없음(Grok 필요) → 컨텍스트 미전달
+}
 
 function initFlashcard(){
   document.getElementById('fcBack')?.classList.remove('show');
