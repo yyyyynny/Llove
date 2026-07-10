@@ -143,7 +143,7 @@ html{scrollbar-gutter:stable}
 .fu{animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 .s1{animation-delay:.05s}.s2{animation-delay:.10s}.s3{animation-delay:.15s}
 .s4{animation-delay:.20s}.s5{animation-delay:.25s}.s6{animation-delay:.30s}
-.s7{animation-delay:.35s}.s8{animation-delay:.40s}
+.s7{animation-delay:.35s}.s8{animation-delay:.40s}.s9{animation-delay:.45s}
 
 .screen{display:none;position:fixed;inset:0;flex-direction:column;overflow-y:auto;overflow-x:hidden;z-index:10}
 .screen.active{display:flex}
@@ -300,13 +300,19 @@ html{scrollbar-gutter:stable}
 .mc-name{font-size:17px;font-weight:700;margin-bottom:2px;color:var(--accl)}
 .mc-desc{font-size:12px;color:var(--txt2)}
 .mc-arrow{color:var(--txtm);font-size:21px;transition:transform .2s,color .2s}
-/* 세션10 항목5: sq1 계열(상식·어원/세계사·신화) vs sq2 계열(고사성어·속담/한자·우리말) 테두리 색 구분 — 기존 테마 변수(--inf·--warn) 재사용 */
-.mc.mc-g1{border-color:color-mix(in srgb, var(--inf) 40%, var(--bdrg))}
-.mc.mc-g1::before{background:var(--inf)}
+/* 세션10 항목5 + 세션10-c 항목2: sq1 계열(상식·어원/세계사·신화) vs sq2 계열(고사성어·속담/한자·우리말)
+   vs 지문 독해 테두리 색 구분 — 기존 테마 변수(--inf·--warn·--ok) 재사용.
+   세션10-c: 고서 테마에서 --warn(주황)이 --acc(황갈)와 구분 안 되던 문제 → 혼합비율 40%→65%로 상향,
+   액센트 바를 상시 5px(호버 전엔 4px였음)로 키워 색만이 아니라 두께로도 구분되게 보강 */
+.mc.mc-g1{border-color:color-mix(in srgb, var(--inf) 65%, var(--bdrg))}
+.mc.mc-g1::before{background:var(--inf);width:5px}
 .mc.mc-g1:hover{border-color:var(--inf)}
-.mc.mc-g2{border-color:color-mix(in srgb, var(--warn) 40%, var(--bdrg))}
-.mc.mc-g2::before{background:var(--warn)}
+.mc.mc-g2{border-color:color-mix(in srgb, var(--warn) 65%, var(--bdrg))}
+.mc.mc-g2::before{background:var(--warn);width:5px}
 .mc.mc-g2:hover{border-color:var(--warn)}
+.mc.mc-g3{border-color:color-mix(in srgb, var(--ok) 65%, var(--bdrg))}
+.mc.mc-g3::before{background:var(--ok);width:5px}
+.mc.mc-g3:hover{border-color:var(--ok)}
 
 /* ━━━ 학습 - 4지선다 / 3지선다 ━━━ */
 .qprog-wrap{padding:14px 20px;background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0}
@@ -426,6 +432,21 @@ html{scrollbar-gutter:stable}
 .syn-ri-head.err{color:var(--err)}
 .syn-ri-pick{font-size:11px;color:var(--acc);font-weight:700;margin-left:2px}
 
+/* ━━━ 세션10-c: 지문 독해(sq6) — 예문형과 다른 인지 과제(단어 아닌 문장형 보기)라 전용 스타일.
+   카드·결과 패널(.syn-card/.syn-result 등)은 그대로 재사용, 지문·질문·보기 레이아웃만 신규 ━━━ */
+.rc-tag{display:inline-block;font-size:11px;font-weight:700;color:var(--acc);background:rgba(184,149,106,.12);border-radius:6px;padding:2px 8px;margin-bottom:8px}
+.rc-passage{font-size:14px;line-height:1.8;color:var(--txt);background:var(--elev);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:12px;max-height:220px;overflow-y:auto}
+.rc-q{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:10px}
+.rc-opts{display:flex;flex-direction:column;gap:8px}
+.rc-opt{padding:12px 14px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;color:var(--txt);text-align:left;line-height:1.5;transition:all .15s}
+.rc-opt:hover{border-color:var(--acc);transform:translateY(-1px)}
+.rc-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok)}
+.rc-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7}
+.rc-opt.dim{opacity:.45;pointer-events:none}
+/* 예문형 근사 정답 → 지문 독해 유도 넛지 (세션10-c 항목1) */
+.syn-nudge{margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(120,184,120,.08);border:1px dashed var(--ok);font-size:12px;color:var(--txt2);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.syn-nudge button{padding:6px 10px;font-size:12px}
+
 /* ━━━ 아재개그 ━━━ */
 .dad-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 .dad-q{font-size:20px;line-height:1.7;font-weight:500;text-align:center;padding:24px 12px}
@@ -542,13 +563,24 @@ html{scrollbar-gutter:stable}
 
 /* ━━━ 현황 (CMD tree) ━━━ */
 .st-body{padding:14px 18px;display:flex;flex-direction:column;gap:13px}
+/* 세션10-c 항목4: 배너를 이름칸의 "독립 박스"가 아니라 이름칸 자체의 배경으로 합침(현황+설정 공용) —
+   .prof-banner가 배경 레이어(.banner-layer)+가독성용 스크림(::after)을 깔고, 내용(아바타·이름·버튼)은
+   그 위 z-index로 띄운다. 기존 .st-banner 독립 박스(72px)는 폐지, 카드 자체 높이를 키워 배너를 확장 */
 .st-prof{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px}
+.prof-banner{position:relative;overflow:hidden;isolation:isolate;min-height:136px}
+.prof-banner .banner-layer{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,var(--accd),var(--acc));cursor:pointer;transition:background .3s}
+.prof-banner .banner-layer img{width:100%;height:100%;object-fit:cover;display:block}
+.prof-banner::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(to top, rgba(0,0,0,.62), rgba(0,0,0,.1) 62%, rgba(0,0,0,0))}
+.prof-banner>.st-av, .prof-banner>.set-av, .prof-banner>.prof-info, .prof-banner>.set-eb{position:relative;z-index:2}
+.prof-banner>.st-av, .prof-banner>.set-av{box-shadow:0 0 0 3px rgba(255,255,255,.28)}
+.prof-banner .st-name, .prof-banner .set-nm{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.55)}
+.prof-banner .st-ttl, .prof-banner .set-ttl, .prof-banner .set-em{color:#f0e8da;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.prof-banner .set-eb{border-color:rgba(255,255,255,.5);color:#fff;background:rgba(0,0,0,.2)}
+.prof-banner .set-eb:hover{border-color:#fff}
 .st-av{width:60px;height:60px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:31px;flex-shrink:0}
 /* 세션7 항목12: 이름 강조 확대(전역 +10%와 별도) */
 .st-name{font-size:24px;font-weight:900;margin-bottom:3px}
-/* 세션7 항목12: 현황 배너 — 기본은 테마 그라디언트, 이미지 선택 시 cover */
-.st-banner{height:72px;border-radius:14px;border:1px solid var(--bdr);background:linear-gradient(135deg,var(--accd),var(--acc));overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.st-banner img{width:100%;height:100%;object-fit:cover}
 .st-ttl{font-size:13px;color:var(--acc);margin-bottom:6px}
 /* v3.5: 소칭호 가독성 강화 (이전엔 너무 연하고 작았음) */
 /* α6: 소칭호 12px → 14.5px 상향 (KNOWLEDGE 11) / α7: 색상은 JS 소칭호적용()이 인라인 지정 — color !important 제거 */
@@ -1254,18 +1286,19 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   </div>
   <div class="hs">
     <div class="sec-t">학습 모드</div>
+    <!-- 세션10-c 항목2: 같은 계열 인접 배치(g1: 상식·어원/세계사·신화 → g2: 고사성어·속담/한자·우리말 → g3: 지문 독해) -->
     <div class="mc fu s1 mc-g1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon">🌍</div><div style="flex:1"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s2 mc-g2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon">📜</div><div style="flex:1"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 예문형</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s3 mc-g1" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon">🏛️</div><div style="flex:1"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s4" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon">😂</div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s5 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s6" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s7" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
-    <!-- 세션10-b: 문해력 1탄 — 문단 빈칸 추론(예문형 엔진 재사용, 지문만 2~4문장) -->
-    <div class="mc fu s8" onclick="goLearn('문단 빈칸 추론','sq6',null)"><div class="mc-icon">📖</div><div style="flex:1"><div class="mc-name">문단 빈칸 추론</div><div class="mc-desc">짧은 글 맥락으로 빈칸 채우기 · 문해력</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s2 mc-g1" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon">🏛️</div><div style="flex:1"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s3 mc-g2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon">📜</div><div style="flex:1"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 예문형</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s4 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
+    <!-- 세션10-c: 문해력 모드 — 지문+요지/추론/세부 질문+문장형 보기(예문형과 다른 인지 과제) -->
+    <div class="mc fu s5 mc-g3" onclick="goLearn('지문 독해','sq6',null)"><div class="mc-icon">📖</div><div style="flex:1"><div class="mc-name">지문 독해</div><div class="mc-desc">짧은 글 읽고 요지·추론 파악 · 문해력</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s6" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon">😂</div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s7" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s8" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
     <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 -->
     <!-- 세션7 항목8: ⚙ = 모드별 확률·제외 설정 (카드 클릭과 분리 — stopPropagation) -->
-    <div class="mc fu s7" style="border-style:dashed" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()">⚙</span><div class="mc-arrow">›</div></div>
+    <div class="mc fu s9" style="border-style:dashed" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()">⚙</span><div class="mc-arrow">›</div></div>
   </div>
 </div>
 
@@ -1324,15 +1357,15 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   </div>
 </div>
 
-<!-- ④-6 세션10-b: 문단 빈칸 추론(문해력 1탄) — 예문형 엔진 재사용, 방식 옵션 없어 설정 패널 생략 -->
+<!-- ④-6 세션10-c: 지문 독해(문해력 모드) — 문장형 보기 전용 엔진, 방식 옵션 없어 설정 패널 생략 -->
 <div id="sq6" class="screen demo-offset has-bnav">
   <div class="top-bar">
     <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt" id="sq6Title">문단 빈칸 추론</div>
+    <div class="tbt" id="sq6Title">지문 독해</div>
     <div class="tag ta">+20</div>
   </div>
   <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq6Mode">📖 문단 빈칸</div><div class="qct">1 / 5 문제</div></div>
+    <div class="qpr-top"><div class="qmb" id="sq6Mode">📖 지문 독해</div><div class="qct">1 / 5 문제</div></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
@@ -1663,12 +1696,12 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   <div class="st-body">
     <!-- α4: Lv.70 도달 시 「주신의 경지」 메시지 UI (KNOWLEDGE 11) -->
     <div class="jushin-msg" id="jushinMsg" style="display:none" onclick="주신의경지_탭()">「주҉신҉의 경지」</div>
-    <!-- 세션7 항목12: 프로필 배너 — 탭하여 변경 (기본: 테마 그라디언트, 프리셋 자유·업로드 Lv.16) -->
-    <div class="st-banner fu" id="statusBanner" onclick="배너선택_열기()"></div>
-    <div class="st-prof fu">
+    <!-- 세션10-c 항목4: 배너를 이름칸 배경으로 합침(독립 박스 폐지) — 탭하여 변경은 배경 레이어에서 그대로 유지 -->
+    <div class="st-prof prof-banner fu">
+      <div class="banner-layer" id="statusBanner" onclick="배너선택_열기()"></div>
       <!-- α9: 아바타 탭 → 고급 커스터마이징 -->
-      <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div><!-- 세션7 항목12: 배너는 st-prof 위에 삽입됨 -->
-      <div style="flex:1">
+      <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
+      <div class="prof-info" style="flex:1">
         <!-- v3.4: 하드코딩 제거. JS afterNav('ss')에서 사용자 객체로 주입 -->
         <div class="st-name" id="statusUser"></div>
         <div class="st-ttl">🏷️ <span id="statusTitle"></span> &nbsp;<span id="statusSubTitle" class="status-sub-title"></span></div>
@@ -1697,10 +1730,12 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
 <div id="sse" class="screen demo-offset has-bnav">
   <div class="top-bar"><div></div><div class="tbt">설정</div><div></div></div>
   <div class="set-body">
-    <div class="set-prof fu">
+    <!-- 세션10-c 항목4: 현황 탭과 동일하게 배너를 이름칸 배경으로 공유(같은 사용자.배너이미지) -->
+    <div class="set-prof prof-banner fu">
+      <div class="banner-layer" id="settingsBanner" onclick="배너선택_열기()"></div>
       <!-- α9: 아바타 탭 → 고급 커스터마이징 (초월자 {wait!} / 필멸자 [권한 부족]) -->
       <div class="set-av" id="settingsAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
-      <div style="flex:1">
+      <div class="prof-info" style="flex:1">
         <!-- v3.4: 하드코딩 제거. JS afterNav('sse')에서 사용자 객체로 주입 -->
         <div class="set-nm" id="settingsUser"></div>
         <div class="set-ttl">🏷️ <span id="settingsTitle"></span></div>
@@ -1904,7 +1939,7 @@ const 사용자 = {
   아재개그학습수: 0,
   맞춤법학습수: 0,
   구어교정횟수: 0,
-  문해력학습수: 0,  // 세션10-b: 문단 빈칸 추론
+  문해력학습수: 0,  // 세션10-c: 지문 독해
   이의제기횟수: 0,
   반박성공횟수: 0,
   퍼펙트세션수: 0,
@@ -2318,8 +2353,8 @@ function 예문데이터_로드(){
       if(Array.isArray(d.유의어_변별) && d.유의어_변별.length) 유의어출제풀 = d.유의어_변별;
       if(Array.isArray(d.오늘의_한문장) && d.오늘의_한문장.length) 한문장풀 = d.오늘의_한문장;
       if(Array.isArray(d.구어_교정) && d.구어_교정.length) 구어교정풀 = d.구어_교정;
-      // 세션10-b: 문단 빈칸 추론 — 키 없으면 무해(정적 임시 표본 3건 유지)
-      if(Array.isArray(d.문단_빈칸) && d.문단_빈칸.length) 문단빈칸풀 = d.문단_빈칸;
+      // 세션10-c: 지문 독해 — 키 없으면 무해(정적 임시 표본 4건 유지)
+      if(Array.isArray(d.지문_독해) && d.지문_독해.length) 지문독해풀 = d.지문_독해;
       // 홈 화면이 이미 떠 있으면 슬라이드 즉시 재빌드
       if(curScreen==='sh') 슬라이드빌드();
       구어교정_예문표시();
@@ -2518,6 +2553,7 @@ function afterNav(id){
     document.getElementById('settingsTitle').textContent=등급.세부;
     document.getElementById('settingsEmail').textContent=사용자.이메일;
     document.getElementById('settingsEmail2').textContent=사용자.이메일;
+    배너_적용(document.getElementById('settingsBanner'), 사용자.배너이미지);  // 세션10-c 항목4: 현황과 동일 배너 공유
 
     // v3.5: 창조주 달성 시 개발자 모드 항목 활성화 표시
     갱신_설정_개발자모드_UI();
@@ -2585,11 +2621,11 @@ function goLearn(category, screenId, btn){
     switchSpkMode('text');     // 진입 시 텍스트 입력 탭을 기본으로 초기화
     구어교정_예문표시();        // 정령왕 JSON 구어_교정 풀에서 예문 즉시 출제
   }
-  // 세션10-b: 문단 빈칸 추론(sq6) — 방식 옵션 없음, 예문형 엔진 그대로 재사용
+  // 세션10-c: 지문 독해(sq6) — 방식 옵션 없음, 요지/추론/세부 문장형 보기 전용 엔진
   if(screenId==='sq6'){
     document.getElementById('sq6Title').textContent=category;
-    document.getElementById('sq6Mode').textContent='📖 문단 빈칸';
-    문단빈칸_렌더();
+    document.getElementById('sq6Mode').textContent='📖 지문 독해';
+    독해_렌더();
   }
 }
 
@@ -3545,7 +3581,7 @@ const 모드_마스터리맵 = {
   '상식·어원':'상식어원학습수', '세계사·신화':'세계사신화학습수',
   '고사성어·속담':'언어의뿌리학습수', '한자·우리말':'언어의뿌리학습수',
   '맞춤법':'맞춤법학습수', '아재개그':'아재개그학습수', '구어 교정':'구어교정횟수',
-  '문단 빈칸 추론':'문해력학습수'  // 세션10-b: 문해력 1탄 — 전용 카운터
+  '지문 독해':'문해력학습수'  // 세션10-c: 문해력 모드 — 전용 카운터
 };
 
 // β9: 출제 확률 결정 — DB 40% / AI 60%, 「AI 문제만」 ON 시 항상 AI (KNOWLEDGE 4)
@@ -4240,8 +4276,15 @@ function 예문형_선택(bodyId, btn){
       </div>`;
   }).join('');
 
+  // 세션10-c 항목1: 근사(acceptable) 판정 순간에만 지문 독해로 유도하는 넛지 — 데이터·판정 로직은
+  // 그대로 두고(근사=EXP 없음 정책 유지) 더 넓은 맥락으로 변별하는 다른 모드를 안내만 한다.
+  const 넛지 = 선택kind === 'acceptable'
+    ? `<div class="syn-nudge">🔍 이 문항이 애매하셨나요? 더 넓은 맥락으로 판단하는 <b>지문 독해</b>를 추천합니다.
+       <button class="btn-g" onclick="goLearn('지문 독해','sq6',null)">지문 독해로 가기</button></div>`
+    : '';
+
   const res = document.getElementById(bodyId+'SynResult');
-  res.innerHTML = 헤더 + `<div class="syn-result-all">${항목들}</div>`;
+  res.innerHTML = 헤더 + `<div class="syn-result-all">${항목들}</div>` + 넛지;
   res.classList.add('show');
   document.getElementById(bodyId+'SynActions').style.display = 'flex';
 
@@ -4305,33 +4348,128 @@ const 예문형_세계사신화 = [
   }
 ];
 
-/* 세션10-b: 문해력 1탄 — 문단 빈칸 추론(sq6). 예문형 엔진(예문형_렌더/예문형_선택) 그대로 재사용,
-   차이는 데이터뿐 — 지문이 2~4문장으로, 앞 문장들의 정보를 종합해야만 빈칸을 결정할 수 있도록 설계.
-   data/문단빈칸.json이 채워지면 그 풀로 교체 예정(예문형_상식어원과 동일 관리 방침). */
-let 문단빈칸풀 = [
+/* 세션10-c: 문해력 2탄 — 지문 독해(sq6). "빈칸 채우기는 지문이 길어도 결국 단어 고르기일 뿐"이라는
+   지적을 받아들여, 예문형 엔진(단어 4개 중 선택)을 버리고 지문+질문+문장형 보기(4개, 정답 1개)로
+   교체 — 인지 과제 자체가 다르므로(요지 파악·추론·세부 일치 확인) 신규 엔진(독해_렌더/독해_선택).
+   data/지문독해.json이 채워지면 그 풀로 교체 예정(예문형_상식어원과 동일 관리 방침). */
+let 지문독해풀 = [
   {
-    예문: '동생은 며칠째 방에서 나오지 않았다. 밥도 거의 먹지 않고, 누가 말을 걸어도 대꾸조차 없었다. 가족들은 그런 동생의 [   ] 모습에 걱정이 깊어졌다.',
-    correct:    {w:'침울한', def:'기운이 없고 마음이 무거운'},
-    acceptable: [{w:'우울한', def:'마음이 어둡고 근심스러운', reason:'의미는 유사하나 행동 변화까지 담아내지는 못하는 단순 감정 표현'}],
-    wrong: [{w:'활기찬', def:'기운차고 생기가 넘치는'}, {w:'태연한', def:'아무렇지 않은 듯 침착한'}]
+    지문: '동생은 며칠째 방에서 나오지 않았다. 밥도 거의 먹지 않았고, 누가 말을 걸어도 대꾸조차 없었다. 예전엔 작은 일에도 깔깔대며 웃던 아이였는데, 요즘은 표정에 생기가 없었다. 가족들은 그런 동생의 모습에 걱정이 깊어갔지만, 정작 무슨 일이 있었는지는 아무도 알지 못했다.',
+    질문: '이 글의 요지로 가장 적절한 것은?', 유형: '요지',
+    보기: [
+      {문장:'동생에게 생긴 변화의 이유는 알 수 없지만, 가족들은 그 상태를 우려하고 있다.', 정답:true,
+       해설:'무기력·무반응·이유 불명·가족의 걱정을 모두 종합한 요지입니다.'},
+      {문장:'동생은 원래 조용하고 말이 없는 성격이다.', 정답:false,
+       해설:'지문은 "예전엔 잘 웃던 아이"라고 밝혀 원래 성격이 아니라 변화임을 보여줍니다.'},
+      {문장:'가족들은 동생이 무슨 일을 겪었는지 이미 알고 있다.', 정답:false,
+       해설:'지문은 "아무도 알지 못했다"고 명시합니다.'},
+      {문장:'동생은 요즘 부쩍 밝아졌다.', 정답:false,
+       해설:'지문 전체가 무기력·침체 상태를 서술해 정반대입니다.'}
+    ]
   },
   {
-    예문: '신제품 발표 후 초기 반응은 뜨거웠다. 하지만 두 달이 지나자 매출 그래프는 완만하게 아래로 향했고, 재구매율도 눈에 띄게 줄었다. 마케팅팀은 이 [   ] 흐름을 심각하게 받아들이기 시작했다.',
-    correct:    {w:'하강', def:'수준이나 형세가 내려감'},
-    acceptable: [{w:'침체', def:'활기를 잃고 정체됨', reason:'유사하나 계속 내려가는 흐름보다는 멈춰선 상태에 방점'}],
-    wrong: [{w:'상승', def:'수준이나 형세가 올라감'}, {w:'반등', def:'떨어지던 것이 다시 오름'}]
+    지문: '신제품 발표 후 초기 반응은 뜨거웠다. 예약 판매는 목표치를 훌쩍 넘겼고, 언론에서도 연일 호평을 쏟아냈다. 하지만 두 달이 지나자 매출 그래프는 완만하게 아래로 향했고, 재구매율도 눈에 띄게 줄었다. 마케팅팀은 초기 반응과 실제 사용 경험 사이에 간극이 있었던 것은 아닌지 점검하기 시작했다.',
+    질문: '이 글에서 추론할 수 있는 내용으로 가장 적절한 것은?', 유형: '추론',
+    보기: [
+      {문장:'제품에 대한 초기 기대와 실제 사용 후 평가가 달랐을 가능성이 있다.', 정답:true,
+       해설:'"초기 반응과 실제 사용 경험 사이 간극" 문장에서 직접 추론할 수 있습니다.'},
+      {문장:'이 제품은 애초에 시장에서 전혀 주목받지 못했다.', 정답:false,
+       해설:'초기 반응은 뜨거웠다고 명시돼 있어 사실과 다릅니다.'},
+      {문장:'마케팅팀은 문제의 원인을 이미 파악해 해결책을 내놓았다.', 정답:false,
+       해설:'"점검하기 시작했다"는 조사 착수 단계일 뿐, 해결 여부는 언급되지 않습니다.'},
+      {문장:'매출은 두 달 내내 꾸준히 상승했다.', 정답:false,
+       해설:'매출이 완만하게 하강했다고 명시돼 있어 정반대입니다.'}
+    ]
   },
   {
-    예문: '초반에는 협상이 순조롭게 진행되는 듯 보였다. 그러나 핵심 조항에 이르자 양측은 한 치도 물러서지 않았고, 회의는 [   ] 끝났다.',
-    correct:    {w:'결렬로', def:'합의에 이르지 못하고 관계가 완전히 끊어짐'},
-    acceptable: [{w:'파행으로', def:'순조롭게 진행되지 못하고 어긋남', reason:'유사하나 완전한 결렬보다는 진행 과정의 뒤틀림에 초점'}],
-    wrong: [{w:'원만히', def:'모난 데 없이 순조롭게'}, {w:'일찍', def:'정한 때보다 이르게'}]
+    지문: '양측 대표단은 이른 아침부터 회의장에 모였다. 초반에는 협상이 순조롭게 진행되는 듯 보였고, 몇몇 부수적인 조항에서는 빠르게 합의가 이뤄졌다. 그러나 핵심 쟁점인 비용 분담 문제에 이르자 양측은 한 치도 물러서지 않았다. 결국 회의는 결론 없이 다음 주로 미뤄졌다.',
+    질문: '다음 중 이 글의 내용과 일치하는 것은?', 유형: '세부',
+    보기: [
+      {문장:'핵심 쟁점을 둘러싼 이견 때문에 협상이 이번 회의에서 마무리되지 못했다.', 정답:true,
+       해설:'마지막 문장 "결론 없이 다음 주로 미뤄졌다"와 직접 일치합니다.'},
+      {문장:'모든 조항에서 합의가 이뤄져 협상이 성공적으로 끝났다.', 정답:false,
+       해설:'핵심 쟁점에서는 합의가 이뤄지지 않았습니다.'},
+      {문장:'협상은 시작부터 순탄치 않아 대표단이 일찍 자리를 떴다.', 정답:false,
+       해설:'초반에는 순조로웠다고 명시돼 있어 사실과 다릅니다.'},
+      {문장:'비용 분담 문제는 이번 회의에서 언급되지 않았다.', 정답:false,
+       해설:'비용 분담 문제가 핵심 쟁점으로 명시적으로 다뤄졌습니다.'}
+    ]
+  },
+  {
+    지문: '오래전 한 마을에서는 우물물이 점점 탁해지는 일이 반복됐다. 주민들은 처음엔 날씨 탓이라 여기고 대수롭지 않게 넘겼다. 그러나 탁한 물이 반년 넘게 이어지자, 몇몇 사람들이 우물 주변 땅을 살피기 시작했고, 근처에 새로 지은 축사에서 흘러나온 물이 지하로 스며들고 있었다는 사실을 알게 되었다.',
+    질문: '이 글에서 추론할 수 있는 것은?', 유형: '추론',
+    보기: [
+      {문장:'주민들은 문제의 원인을 처음엔 잘못 짐작했다가 나중에야 바로잡았다.', 정답:true,
+       해설:'"날씨 탓"이라 여겼다가 실제 원인(축사 오염수)을 뒤늦게 발견한 흐름에서 추론할 수 있습니다.'},
+      {문장:'우물물은 처음부터 축사 때문에 탁해진다는 것이 알려져 있었다.', 정답:false,
+       해설:'처음엔 날씨 탓으로 여겼다고 명시돼 있어 사실과 다릅니다.'},
+      {문장:'마을 주민들은 문제를 전혀 해결하지 못했다.', 정답:false,
+       해설:'지문은 원인을 알아냈다는 사실까지만 서술해, "전혀 해결 못했다"는 과도한 단정입니다.'},
+      {문장:'우물물 문제는 하루 만에 해결되었다.', 정답:false,
+       해설:'"반년 넘게 이어졌다"고 명시돼 있어 사실과 다릅니다.'}
+    ]
   }
 ];
-function 문단빈칸_렌더(){
-  if(!문단빈칸풀.length) return;
-  const 항목 = 문단빈칸풀[Math.floor(Math.random()*문단빈칸풀.length)];
-  예문형_렌더('sq6Body', 항목, 문단빈칸_렌더, '');  // 이의있음 없음(Grok 필요) → 컨텍스트 미전달
+let 독해_상태 = {item:null};
+function 독해_렌더(){
+  if(!지문독해풀.length) return;
+  const body = document.getElementById('sq6Body');
+  if(!body) return;
+  const 항목 = 지문독해풀[Math.floor(Math.random()*지문독해풀.length)];
+  독해_상태.item = 항목;
+  const 순서 = 항목.보기.map((_,i)=>i);
+  for(let k=순서.length-1;k>0;k--){ const j=Math.floor(Math.random()*(k+1)); [순서[k],순서[j]]=[순서[j],순서[k]]; }
+  body.innerHTML = `
+    <div class="syn-card">
+      <div class="rc-tag">${항목.유형}</div>
+      <div class="rc-passage">${항목.지문}</div>
+      <div class="rc-q">${항목.질문}</div>
+      <div class="rc-opts" id="sq6RcOpts">
+        ${순서.map(idx=>`<button class="rc-opt" data-idx="${idx}" data-correct="${항목.보기[idx].정답}" onclick="독해_선택(this)">${항목.보기[idx].문장}</button>`).join('')}
+      </div>
+      <div class="syn-result" id="sq6RcResult"></div>
+      <div class="syn-actions" id="sq6RcActions" style="display:none">
+        <button class="btn-acc" onclick="독해_렌더()">다음 지문 →</button>
+      </div>
+    </div>
+  `;
+}
+function 독해_선택(btn){
+  const resultEl = document.getElementById('sq6RcResult');
+  if(resultEl?.classList.contains('show')) return;  // 1문제 1판정 가드(예문형_선택과 동일 패턴)
+  const item = 독해_상태.item;
+  if(!item) return;
+  const 선택idx = parseInt(btn.dataset.idx, 10);
+  const 정답여부 = btn.dataset.correct === 'true';
+
+  document.querySelectorAll('#sq6RcOpts .rc-opt').forEach(el=>{
+    el.classList.add('dim');
+    el.classList.add(el.dataset.correct === 'true' ? 'correct' : 'wrong');
+  });
+  btn.classList.remove('dim');
+
+  const 헤더 = 정답여부
+    ? `<div class="syn-result-title ok">✅ 정답입니다</div>`
+    : `<div class="syn-result-title err">✗ 오답입니다</div>`;
+  const 항목들 = item.보기.map((b,i)=>{
+    const 선택됨 = i === 선택idx;
+    return `
+      <div class="syn-result-item${선택됨 ? ' picked' : ''}">
+        <div class="syn-ri-head ${b.정답 ? 'ok' : 'err'}">${b.정답 ? '✅ 정답' : '✗ 오답'}${선택됨 ? ' <span class="syn-ri-pick">← 내 선택</span>' : ''}</div>
+        <div class="syn-result-def">${b.문장}</div>
+        <div class="syn-result-reason">${b.해설}</div>
+      </div>`;
+  }).join('');
+  resultEl.innerHTML = 헤더 + `<div class="syn-result-all">${항목들}</div>`;
+  resultEl.classList.add('show');
+  document.getElementById('sq6RcActions').style.display = 'flex';
+
+  // 빌드1: 실제 EXP·마스터리 반영 — 정답 +20. 오답은 EXP 없음.
+  // 복습대기열은 "단어" 단위 설계라 지문·질문 단위인 독해 문항은 넣지 않음(설계 불일치 — 억지로 끼워맞추지 않음)
+  if(정답여부) EXP획득(20, '지문 독해 정답');
+  연속정답처리(정답여부);
+  if(현재학습모드필드) 마스터리증가(현재학습모드필드);
+  세션결과_기록(정답여부);
 }
 
 function initFlashcard(){
@@ -6099,6 +6237,15 @@ function 채팅세션_마감(사유){
   채팅창_초기화();
 }
 
+// 세션10-c 항목5: 진행 중 대화가 마감(카테고리 이동·새 대화·100상한) 없이 앱 종료/새로고침/백그라운드
+// 전환으로 통째 소실되던 버그 — pagehide·visibilitychange(hidden)에 강제 마감(flush)으로 보완.
+// 모바일은 pagehide가 안 오는 경우가 있어 visibilitychange를 1차 신호로 둠(채팅세션_마감은 이미
+// 메시지 없음 가드가 있어 중복 호출에도 안전).
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'hidden') 채팅세션_마감('앱 이탈/백그라운드');
+});
+window.addEventListener('pagehide', () => 채팅세션_마감('페이지 종료'));
+
 function 채팅창_초기화(){
   const body = document.getElementById('askBody');
   if(body) body.innerHTML = '<div class="ask-msg ai">안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요. Grok이 답변드립니다.</div>';
@@ -7333,7 +7480,9 @@ function 배너선택_열기(){
 function 배너_적용선택(v){
   사용자.배너이미지 = v;
   사용자데이터_저장({배너이미지: v});
+  // 세션10-c 항목4: 현황·설정 두 화면이 같은 배너를 공유 → 둘 다 즉시 갱신
   배너_적용(document.getElementById('statusBanner'), v);
+  배너_적용(document.getElementById('settingsBanner'), v);
   closeInfoModal();
   showToastMsg('배너 변경 완료');
 }
@@ -7351,12 +7500,14 @@ function 배너_파일처리(inp){
   rd.onload = () => {
     const img = new Image();
     img.onload = () => {
-      // 640×180 가로 배너로 중앙 크롭 리사이즈 → dataURL (Firestore 문서 한도 內)
-      const c = document.createElement('canvas'); c.width = 640; c.height = 180;
+      // 세션10-c 항목4: 배너가 이름칸 배경으로 커지며 실제 표시 비율이 좁고 높아짐(약 2.46:1) —
+      // 기존 640×180(3.55:1)로 미리 잘라두면 카드에서 object-fit:cover가 좌우를 한 번 더 잘라내
+      // 원본이 이중으로 잘리던 문제 → 저장 크롭 비율을 표시 비율에 맞춤 (Firestore 문서 한도 內)
+      const c = document.createElement('canvas'); c.width = 640; c.height = 260;
       const x = c.getContext('2d');
-      const 비율 = Math.max(640/img.width, 180/img.height);
+      const 비율 = Math.max(640/img.width, 260/img.height);
       const w = img.width*비율, h = img.height*비율;
-      x.drawImage(img, (640-w)/2, (180-h)/2, w, h);
+      x.drawImage(img, (640-w)/2, (260-h)/2, w, h);
       배너_적용선택(c.toDataURL('image/jpeg', 0.82));
     };
     img.src = rd.result;
