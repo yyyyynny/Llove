@@ -313,6 +313,16 @@ html{scrollbar-gutter:stable}
 .mc.mc-g3{border-color:color-mix(in srgb, var(--ok) 65%, var(--bdrg))}
 .mc.mc-g3::before{background:var(--ok);width:5px}
 .mc.mc-g3:hover{border-color:var(--ok)}
+/* 세션10-d 항목6·7: 교정 계열(g4=--acc)·재미 계열(g5=--err) 추가 */
+.mc.mc-g4{border-color:color-mix(in srgb, var(--acc) 65%, var(--bdrg))}
+.mc.mc-g4::before{background:var(--acc);width:5px}
+.mc.mc-g4:hover{border-color:var(--acc)}
+.mc.mc-g5{border-color:color-mix(in srgb, var(--err) 65%, var(--bdrg))}
+.mc.mc-g5::before{background:var(--err);width:5px}
+.mc.mc-g5:hover{border-color:var(--err)}
+/* 세션10-d 항목7: 색맹 대비 그룹 라벨 — 각 그룹 색(--gl)을 텍스트로도 노출(색+두께+글자 3중 신호) */
+.mc-glabel{font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--gl,var(--txt2));margin:14px 0 6px 2px;text-transform:none;opacity:.92}
+.mc-glabel:first-of-type{margin-top:4px}
 
 /* ━━━ 학습 - 4지선다 / 3지선다 ━━━ */
 .qprog-wrap{padding:14px 20px;background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0}
@@ -567,7 +577,7 @@ html{scrollbar-gutter:stable}
    .prof-banner가 배경 레이어(.banner-layer)+가독성용 스크림(::after)을 깔고, 내용(아바타·이름·버튼)은
    그 위 z-index로 띄운다. 기존 .st-banner 독립 박스(72px)는 폐지, 카드 자체 높이를 키워 배너를 확장 */
 .st-prof{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px}
-.prof-banner{position:relative;overflow:hidden;isolation:isolate;min-height:136px}
+.prof-banner{position:relative;overflow:hidden;isolation:isolate;min-height:184px}
 .prof-banner .banner-layer{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,var(--accd),var(--acc));cursor:pointer;transition:background .3s}
 .prof-banner .banner-layer img{width:100%;height:100%;object-fit:cover;display:block}
 .prof-banner::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
@@ -578,9 +588,9 @@ html{scrollbar-gutter:stable}
 .prof-banner .st-ttl, .prof-banner .set-ttl, .prof-banner .set-em{color:#f0e8da;text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .prof-banner .set-eb{border-color:rgba(255,255,255,.5);color:#fff;background:rgba(0,0,0,.2)}
 .prof-banner .set-eb:hover{border-color:#fff}
-.st-av{width:60px;height:60px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:31px;flex-shrink:0}
-/* 세션7 항목12: 이름 강조 확대(전역 +10%와 별도) */
-.st-name{font-size:24px;font-weight:900;margin-bottom:3px}
+.st-av{width:72px;height:72px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:37px;flex-shrink:0}
+/* 세션7 항목12: 이름 강조 확대(전역 +10%와 별도) / 세션10-d 항목4: 배너 확대에 맞춰 이름도 상향 */
+.st-name{font-size:28px;font-weight:900;margin-bottom:3px}
 .st-ttl{font-size:13px;color:var(--acc);margin-bottom:6px}
 /* v3.5: 소칭호 가독성 강화 (이전엔 너무 연하고 작았음) */
 /* α6: 소칭호 12px → 14.5px 상향 (KNOWLEDGE 11) / α7: 색상은 JS 소칭호적용()이 인라인 지정 — color !important 제거 */
@@ -619,8 +629,8 @@ html{scrollbar-gutter:stable}
 /* ━━━ 설정 ━━━ */
 .set-body{padding:14px 18px;display:flex;flex-direction:column;gap:13px}
 .set-prof{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;transition:background .4s,border-color .4s}
-.set-av{width:57px;height:57px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:29px;cursor:pointer;flex-shrink:0}
-.set-nm{font-size:20px;font-weight:700;margin-bottom:3px}
+.set-av{width:72px;height:72px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:37px;cursor:pointer;flex-shrink:0}
+.set-nm{font-size:25px;font-weight:800;margin-bottom:3px}
 .set-ttl{font-size:12px;color:var(--acc);margin-bottom:2px}
 .set-em{font-size:12px;color:var(--txt2)}
 .set-eb{background:transparent;border:1px solid var(--bdr);color:var(--txt2);padding:7px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--fn);transition:all .2s}
@@ -792,6 +802,12 @@ html{scrollbar-gutter:stable}
 .modal-bg{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
 .modal-bg.show{opacity:1;pointer-events:all}
 .modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px;max-width:340px;width:100%;transform:scale(.85);transition:transform .35s cubic-bezier(.22,1,.36,1);max-height:80vh;overflow-y:auto}
+/* 세션10-d 항목3: 채팅 내역 등 내용 많은 모달 — 더 넓게(90vw 상한 내) */
+.modal-bx.wide{max-width:560px;max-height:88vh}
+/* 세션10-d 항목5: 배너 크롭 뷰포트 — 표시 비율(700:320)과 동일, 드래그로 이미지 이동 */
+.crop-vp{position:relative;width:100%;aspect-ratio:700/320;overflow:hidden;border-radius:12px;border:1px solid var(--bdr);background:#000;touch-action:none;cursor:grab}
+.crop-vp:active{cursor:grabbing}
+.crop-vp img{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;user-select:none;pointer-events:none;max-width:none}
 .modal-bg.show .modal-bx{transform:scale(1)}
 /* 추가기능: 음성 생성(콜롬비나 TTS) 테스트 벤치 — 회전 금지(점 불투명도 펄스)·세로 전개만 */
 .vc-lbl{display:block;font-size:12px;color:var(--txt2);font-weight:700;margin-top:8px}
@@ -899,7 +915,7 @@ html[data-글자범위="전체"] .mc-name{font-size:calc(17px*var(--글자배율
 html[data-글자범위="전체"] .mc-desc{font-size:calc(12px*var(--글자배율))}
 html[data-글자범위="전체"] .sec-t{font-size:calc(13px*var(--글자배율))}
 html[data-글자범위="전체"] .tbt{font-size:calc(18px*var(--글자배율))}
-html[data-글자범위="전체"] .st-name{font-size:calc(24px*var(--글자배율))}
+html[data-글자범위="전체"] .st-name{font-size:calc(28px*var(--글자배율))}
 html[data-글자범위="전체"] .modal-desc{font-size:calc(13px*var(--글자배율))}
 html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율))}
 </style>
@@ -1022,6 +1038,25 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
     <div id="infoBody"></div>
     <div class="modal-btns" id="infoBtns">
       <button class="btn-acc" style="flex:1" onclick="closeInfoModal()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 세션10-d 항목5: 배너 크롭 모달 — 드래그로 위치 이동 + 슬라이더로 확대 후 적용 -->
+<div class="modal-bg" id="cropBg" onclick="배경클릭_닫기(event, 배너크롭_취소)">
+  <div class="modal-bx" onclick="event.stopPropagation()">
+    <div class="modal-title">배너 자르기</div>
+    <div class="modal-desc" style="font-size:11px;margin-bottom:10px">드래그해 위치를 옮기고, 슬라이더로 확대·축소하세요.</div>
+    <div id="cropViewport" class="crop-vp" onpointerdown="배너크롭_드래그시작(event)" onpointermove="배너크롭_드래그중(event)" onpointerup="배너크롭_드래그끝(event)" onpointercancel="배너크롭_드래그끝(event)">
+      <img id="배너크롭이미지" alt="크롭 미리보기">
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;margin-top:11px">
+      <span style="font-size:14px">🔍</span>
+      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" oninput="배너크롭_줌(this.value)" style="flex:1">
+    </div>
+    <div class="modal-btns" style="margin-top:13px">
+      <button class="btn-g" style="flex:1" onclick="배너크롭_취소()">취소</button>
+      <button class="btn-acc" style="flex:1" onclick="배너크롭_적용()">적용</button>
     </div>
   </div>
 </div>
@@ -1286,19 +1321,23 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   </div>
   <div class="hs">
     <div class="sec-t">학습 모드</div>
-    <!-- 세션10-c 항목2: 같은 계열 인접 배치(g1: 상식·어원/세계사·신화 → g2: 고사성어·속담/한자·우리말 → g3: 지문 독해) -->
-    <div class="mc fu s1 mc-g1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon">🌍</div><div style="flex:1"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s2 mc-g1" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon">🏛️</div><div style="flex:1"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s3 mc-g2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon">📜</div><div style="flex:1"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 예문형</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s4 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
-    <!-- 세션10-c: 문해력 모드 — 지문+요지/추론/세부 질문+문장형 보기(예문형과 다른 인지 과제) -->
-    <div class="mc fu s5 mc-g3" onclick="goLearn('지문 독해','sq6',null)"><div class="mc-icon">📖</div><div style="flex:1"><div class="mc-name">지문 독해</div><div class="mc-desc">짧은 글 읽고 요지·추론 파악 · 문해력</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s6" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon">😂</div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s7" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s8" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
-    <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 -->
-    <!-- 세션7 항목8: ⚙ = 모드별 확률·제외 설정 (카드 클릭과 분리 — stopPropagation) -->
-    <div class="mc fu s9" style="border-style:dashed" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()">⚙</span><div class="mc-arrow">›</div></div>
+    <!-- 세션10-d 항목6·7: 카테고리 그룹으로 재편(교정 계열 맨 위) + 색맹 대비 그룹 라벨(색+두께+텍스트 3중 신호).
+         색 그룹: 교정=g4(--acc) · 지식=g1(--inf) · 어휘=g2(--warn) · 문해=g3(--ok) · 재미=g5(--err) -->
+    <div class="mc-glabel" style="--gl:var(--acc)">✏️ 교정 · 실전</div>
+    <div class="mc fu s1 mc-g4" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s2 mc-g4" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc-glabel" style="--gl:var(--inf)">🌍 지식</div>
+    <div class="mc fu s3 mc-g1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon">🌍</div><div style="flex:1"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s4 mc-g1" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon">🏛️</div><div style="flex:1"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc-glabel" style="--gl:var(--warn)">📚 어휘</div>
+    <div class="mc fu s5 mc-g2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon">📜</div><div style="flex:1"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 예문형</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s6 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc-glabel" style="--gl:var(--ok)">📖 문해</div>
+    <div class="mc fu s7 mc-g3" onclick="goLearn('지문 독해','sq6',null)"><div class="mc-icon">📖</div><div style="flex:1"><div class="mc-name">지문 독해</div><div class="mc-desc">짧은 글 읽고 요지·추론 파악 · 문해력</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc-glabel" style="--gl:var(--err)">😂 재미</div>
+    <div class="mc fu s8 mc-g5" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon">😂</div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
+    <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 / 세션7 항목8: ⚙ = 모드별 확률·제외 설정 -->
+    <div class="mc fu s9" style="border-style:dashed;margin-top:12px" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()">⚙</span><div class="mc-arrow">›</div></div>
   </div>
 </div>
 
@@ -2671,7 +2710,8 @@ function 동기화_학습설정_버튼(screenId, _현재값){
 /* 세션6 항목7: 랜덤 학습 — 홈 카드와 동일한 모드 목록에서 임의 선택 후 goLearn 위임 */
 const 랜덤학습_모드목록 = [
   ['상식·어원','sq1'], ['고사성어·속담','sq2'], ['세계사·신화','sq1'],
-  ['아재개그','sq4'], ['한자·우리말','sq2'], ['맞춤법','sq3'], ['구어 교정','sq5']
+  ['아재개그','sq4'], ['한자·우리말','sq2'], ['맞춤법','sq3'], ['구어 교정','sq5'],
+  ['지문 독해','sq6']  // 세션10-d 항목7: 랜덤에도 문해력 모드 포함
 ];
 /* 세션7 항목8: 랜덤 설정 — 모드별 가중치(0=제외/1/2/3), plx_랜덤설정+Firestore 영속 */
 let 랜덤설정 = {가중치:{}};
@@ -6216,6 +6256,7 @@ function 채팅기록_추가메시지(역할, 내용){
     현재채팅세션 = {카테고리: 현재학습모드 || '일반', 시작시각: Date.now(), 메시지: []};
   }
   현재채팅세션.메시지.push({역할, 내용: String(내용), 시각: Date.now()});
+  진행중세션_저장();  // 세션10-d: 매 메시지마다 로컬 백업(강제 종료·크래시에도 최신 상태 보존)
   if(현재채팅세션.메시지.length >= 채팅세션_최대메시지){
     채팅세션_마감('상한 도달');
     showToastMsg('💬 대화가 100개에 도달해 기록으로 보관하고 새 대화를 시작합니다');
@@ -6234,17 +6275,48 @@ function 채팅세션_마감(사유){
     if(!현재UID) 채팅기록_게스트저장();             // 게스트는 배열 전체를 localStorage에
   }
   현재채팅세션 = null;
+  try{ localStorage.removeItem('plx_진행중대화'); }catch(e){ /* 무시 */ }  // 세션10-d: 깔끔히 닫혔으니 백업 제거
   채팅창_초기화();
 }
 
-// 세션10-c 항목5: 진행 중 대화가 마감(카테고리 이동·새 대화·100상한) 없이 앱 종료/새로고침/백그라운드
-// 전환으로 통째 소실되던 버그 — pagehide·visibilitychange(hidden)에 강제 마감(flush)으로 보완.
-// 모바일은 pagehide가 안 오는 경우가 있어 visibilitychange를 1차 신호로 둠(채팅세션_마감은 이미
-// 메시지 없음 가드가 있어 중복 호출에도 안전).
+// ━━━ 세션10-d 항목1: 진행 중 대화 상시 로컬 백업 + 로드 시 복구 ━━━
+// 세션10-c의 visibilitychange→채팅세션_마감은 (a)로그인 Firestore 비동기 write가 언로드 시점에 미완료로 끊기고
+// (b)백그라운드 전환마다 채팅창을 초기화하는 부작용이 있었다. → 언로드 타이밍 의존을 버리고, 매 메시지마다
+// 진행 중 세션을 동기 localStorage에 백업한 뒤 다음 로드에서 복구한다("새 대화 눌러야 저장" 현상 해소).
+function 진행중세션_저장(){
+  try{
+    if(현재채팅세션 && 현재채팅세션.메시지.length){
+      localStorage.setItem('plx_진행중대화', JSON.stringify(현재채팅세션));
+    } else {
+      localStorage.removeItem('plx_진행중대화');
+    }
+  }catch(e){ /* localStorage 차단 환경 무시 */ }
+}
+function 진행중세션_복원(){
+  // 깔끔히 닫히면 마감 시 키가 제거되므로, 키가 남아 있다 = 지난 세션이 언로드로 중단됨 → 지금(앱 생존 중) flush
+  let 백업 = null;
+  try{ 백업 = JSON.parse(localStorage.getItem('plx_진행중대화') || 'null'); }catch(e){ 백업 = null; }
+  if(백업 && Array.isArray(백업.메시지) && 백업.메시지.length){
+    const 중복 = 채팅기록.some(s => s.시작시각 === 백업.시작시각);  // 재복원 중복 방지
+    if(!중복){
+      채팅기록.push(백업);
+      채팅기록_세션저장(백업);
+      while(채팅기록.length > 채팅기록_최대세션){
+        const 제거 = 채팅기록.shift();
+        if(제거 && 제거.문서ID) 채팅기록_문서삭제(제거.문서ID);
+      }
+      if(!현재UID) 채팅기록_게스트저장();
+    }
+  }
+  try{ localStorage.removeItem('plx_진행중대화'); }catch(e){ /* 무시 */ }
+}
+
+// 세션10-d: 언로드 시 최후 백업만 보장(마감·리셋 없음 — 채팅창 초기화 부작용 제거).
+// pagehide가 안 오는 모바일 대비 visibilitychange(hidden)도 둔다.
 document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'hidden') 채팅세션_마감('앱 이탈/백그라운드');
+  if(document.visibilityState === 'hidden') 진행중세션_저장();
 });
-window.addEventListener('pagehide', () => 채팅세션_마감('페이지 종료'));
+window.addEventListener('pagehide', () => 진행중세션_저장());
 
 function 채팅창_초기화(){
   const body = document.getElementById('askBody');
@@ -6290,12 +6362,14 @@ function 채팅기록_로드(){
         if(s.문서ID) 채팅기록_문서삭제(s.문서ID);
       });
       채팅기록 = 전체.slice(-채팅기록_최대세션);
+      진행중세션_복원();  // 세션10-d: 언로드로 중단된 지난 세션 복구(로드 완료 후)
     }).catch(e=> console.error('[Firestore] 채팅기록 로드 실패', e));
   } else {
     try{
       const d = JSON.parse(localStorage.getItem('plx_채팅기록')||'null');
       if(Array.isArray(d)) 채팅기록 = d.slice(-채팅기록_최대세션);
     }catch(e){ /* 무시 */ }
+    진행중세션_복원();  // 세션10-d: 게스트도 로드 후 복구
   }
 }
 
@@ -6321,7 +6395,7 @@ function 채팅내역_열기(){
       <div style="font-size:11px;color:var(--txt2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(첫질문)}</div>
     </div>`;
   }).join('');
-  showInfoModal('💬','채팅 내역', `<div style="max-height:300px;overflow-y:auto">${목록}</div><div style="font-size:10px;color:var(--txtm);margin-top:6px">최근 ${채팅기록_최대세션}개 대화 보존 · 대화당 ${채팅세션_최대메시지}개 상한</div>`);
+  showInfoModal('💬','채팅 내역', `<div style="max-height:62vh;overflow-y:auto">${목록}</div><div style="font-size:10px;color:var(--txtm);margin-top:6px">최근 ${채팅기록_최대세션}개 대화 보존 · 대화당 ${채팅세션_최대메시지}개 상한</div>`, true);
 }
 /* ━━━ 세션6 항목5: AI 지침(통합 메모리) — 공백 포함 500자 제한 (최고 관리자님 확정 사양)
    - 자동 수집 없음. 사용자가 직접 작성한 지침 하나를 모든 AI 호출(grok호출 공통 body)에 전달.
@@ -6376,10 +6450,11 @@ function 채팅세션_보기(idx){
   const esc = 문자열_이스케이프;
   const s = 채팅세션_전체()[idx];
   if(!s) return;
+  // 세션10-d 항목2: AI 답변에 개행이 포함되므로 white-space:pre-wrap로 순수 텍스트를 그대로 보존해 표시
   const 본문 = s.메시지.map(m=>
-    `<div style="margin:6px 0;text-align:${m.역할==='나'?'right':'left'}"><span style="display:inline-block;max-width:92%;padding:7px 10px;border-radius:8px;background:var(--elev);border:1px solid var(--bdr);font-size:12px;line-height:1.6;text-align:left;color:var(--txt)">${m.역할==='나'?'🙋':'🤖'} ${esc(m.내용)}</span></div>`
+    `<div style="margin:6px 0;text-align:${m.역할==='나'?'right':'left'}"><span style="display:inline-block;max-width:92%;padding:7px 10px;border-radius:8px;background:var(--elev);border:1px solid var(--bdr);font-size:12px;line-height:1.6;text-align:left;color:var(--txt);white-space:pre-wrap;word-break:break-word">${m.역할==='나'?'🙋':'🤖'} ${esc(m.내용)}</span></div>`
   ).join('');
-  showInfoModal('💬', esc(s.카테고리||'일반') + ' 대화', `<div style="max-height:300px;overflow-y:auto;text-align:left">${본문}</div><div style="margin-top:8px"><button class="btn-g" style="width:100%;padding:9px" onclick="채팅내역_열기()">← 목록으로</button></div>`);
+  showInfoModal('💬', esc(s.카테고리||'일반') + ' 대화', `<div style="max-height:62vh;overflow-y:auto;text-align:left">${본문}</div><div style="margin-top:8px"><button class="btn-g" style="width:100%;padding:9px" onclick="채팅내역_열기()">← 목록으로</button></div>`, true);
 }
 
 function 사고전개_토글(){
@@ -6498,7 +6573,8 @@ function sendAsk(){
       a.innerHTML = 안내;
       body.appendChild(a);
       body.scrollTop=body.scrollHeight;
-      채팅기록_추가메시지('AI', 'Grok 연동 준비 중 안내');  // 세션6: 게이트 응답도 기록
+      // 세션10-d 항목2: 요약 라벨이 아니라 화면에 뿌린 안내문 그대로 저장(태그만 개행으로 치환한 순수 텍스트)
+      채팅기록_추가메시지('AI', 안내.replace(/<br\s*\/?>/gi,'\n'));
     },400);
     return;
   }
@@ -6540,7 +6616,8 @@ function sendAsk(){
         : '';
       // 이의있음! 버튼은 답변 생성 후에만 노출 (KNOWLEDGE 5 표시 조건)
       a.innerHTML = 사고블록 + res.답변 + '<br><br><button class="ask-objection-btn" onclick="openObj()">⚖️ 이의있음!</button>';
-      채팅기록_추가메시지('AI', (res.사고전개 ? '[사고전개] ' + res.사고전개 + '\n' : '') + res.답변);  // 세션6 항목4
+      // 세션10-d 항목2: 가공 라벨 없이 순수 텍스트(사고전개 있으면 답변 위에 그대로) 저장
+      채팅기록_추가메시지('AI', (res.사고전개 ? res.사고전개 + '\n\n' : '') + res.답변);
     } else {
       a.textContent = UI_TEXT.rate_limit.문구;
       채팅기록_추가메시지('AI', UI_TEXT.rate_limit.문구);
@@ -6605,7 +6682,7 @@ function submitObj(){
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    안내 모달
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function showInfoModal(icon, title, desc){
+function showInfoModal(icon, title, desc, 와이드){
   document.getElementById('infoIcon').textContent=icon;
   document.getElementById('infoTitle').textContent=title;
   document.getElementById('infoDesc').innerHTML=desc;
@@ -6614,6 +6691,9 @@ function showInfoModal(icon, title, desc){
   if(btnArea){
     btnArea.innerHTML = `<button class="btn-acc" style="flex:1" onclick="closeInfoModal()">확인</button>`;
   }
+  // 세션10-d 항목3: 채팅 내역처럼 내용이 많은 모달은 더 넓게(.modal-bx.wide) — 호출마다 토글
+  const bx = document.querySelector('#infoBg .modal-bx');
+  if(bx) bx.classList.toggle('wide', !!와이드);
   document.getElementById('infoBg').classList.add('show');
 }
 function closeInfoModal(){
@@ -7497,23 +7577,94 @@ function 배너_파일처리(inp){
   const f = inp.files && inp.files[0];
   if(!f) return;
   const rd = new FileReader();
-  rd.onload = () => {
-    const img = new Image();
-    img.onload = () => {
-      // 세션10-c 항목4: 배너가 이름칸 배경으로 커지며 실제 표시 비율이 좁고 높아짐(약 2.46:1) —
-      // 기존 640×180(3.55:1)로 미리 잘라두면 카드에서 object-fit:cover가 좌우를 한 번 더 잘라내
-      // 원본이 이중으로 잘리던 문제 → 저장 크롭 비율을 표시 비율에 맞춤 (Firestore 문서 한도 內)
-      const c = document.createElement('canvas'); c.width = 640; c.height = 260;
-      const x = c.getContext('2d');
-      const 비율 = Math.max(640/img.width, 260/img.height);
-      const w = img.width*비율, h = img.height*비율;
-      x.drawImage(img, (640-w)/2, (260-h)/2, w, h);
-      배너_적용선택(c.toDataURL('image/jpeg', 0.82));
-    };
-    img.src = rd.result;
-  };
+  // 세션10-d 항목5: 무조건 중앙 크롭하던 것을 폐지 → 크롭 모달로 넘겨 사용자가 위치·확대를 직접 정한다.
+  rd.onload = () => 배너크롭_열기(rd.result);
   rd.readAsDataURL(f);
   inp.value = '';
+}
+
+/* ━━━ 세션10-d 항목5: 본격 배너 크롭 UI (드래그 이동 + 확대) ━━━
+   뷰포트(표시 비율 700:320) 안에서 이미지를 cover 배치 후, 드래그로 위치를 옮기고 슬라이더로 확대한다.
+   적용 시 뷰포트에 보이는 영역만 700×320 캔버스로 렌더 → dataURL(JPEG 0.82, Firestore 1MB 한도 內) → 배너_적용선택. */
+const 배너크롭_출력W = 700, 배너크롭_출력H = 320;
+let 배너크롭_상태 = {natW:0, natH:0, s0:1, z:1, tx:0, ty:0, Wv:0, Hv:0, dragging:false, px:0, py:0};
+function 배너크롭_열기(dataURL){
+  const bg = document.getElementById('cropBg');
+  const img = document.getElementById('배너크롭이미지');
+  if(!bg || !img) return;
+  const zr = document.getElementById('cropZoom'); if(zr) zr.value = 1;
+  img.onload = () => {
+    const vp = document.getElementById('cropViewport');
+    const r = vp ? vp.getBoundingClientRect() : {width:0, height:0};
+    const st = 배너크롭_상태;
+    st.natW = img.naturalWidth || 0; st.natH = img.naturalHeight || 0;
+    st.Wv = r.width || 0; st.Hv = r.height || 0;
+    st.z = 1;
+    st.s0 = (st.natW && st.natH && st.Wv && st.Hv) ? Math.max(st.Wv/st.natW, st.Hv/st.natH) : 1;
+    배너크롭_중앙정렬();
+    배너크롭_렌더();
+  };
+  img.src = dataURL;
+  bg.classList.add('show');
+}
+function 배너크롭_치수(){
+  const st = 배너크롭_상태;
+  return { dispW: st.natW*st.s0*st.z, dispH: st.natH*st.s0*st.z };
+}
+function 배너크롭_클램프(){
+  const st = 배너크롭_상태, {dispW, dispH} = 배너크롭_치수();
+  st.tx = Math.min(0, Math.max(st.Wv - dispW, st.tx));  // 이미지가 항상 뷰포트를 덮도록
+  st.ty = Math.min(0, Math.max(st.Hv - dispH, st.ty));
+}
+function 배너크롭_중앙정렬(){
+  const st = 배너크롭_상태, {dispW, dispH} = 배너크롭_치수();
+  st.tx = (st.Wv - dispW)/2; st.ty = (st.Hv - dispH)/2;
+  배너크롭_클램프();
+}
+function 배너크롭_렌더(){
+  const st = 배너크롭_상태, img = document.getElementById('배너크롭이미지');
+  if(!img) return;
+  const {dispW, dispH} = 배너크롭_치수();
+  img.style.width = dispW+'px'; img.style.height = dispH+'px';
+  img.style.transform = `translate(${st.tx}px,${st.ty}px)`;
+}
+function 배너크롭_줌(v){
+  const st = 배너크롭_상태;
+  const 이전 = st.s0*st.z;
+  st.z = parseFloat(v) || 1;
+  const 이후 = st.s0*st.z;
+  // 뷰포트 중심 기준 확대(중심 고정)
+  if(이전 > 0){
+    const cx = st.Wv/2, cy = st.Hv/2;
+    st.tx = cx - (cx - st.tx)*(이후/이전);
+    st.ty = cy - (cy - st.ty)*(이후/이전);
+  }
+  배너크롭_클램프(); 배너크롭_렌더();
+}
+function 배너크롭_드래그시작(e){
+  const st = 배너크롭_상태;
+  st.dragging = true; st.px = e.clientX; st.py = e.clientY;
+  try{ e.currentTarget.setPointerCapture(e.pointerId); }catch(_){ /* 미지원 무시 */ }
+}
+function 배너크롭_드래그중(e){
+  const st = 배너크롭_상태;
+  if(!st.dragging) return;
+  st.tx += e.clientX - st.px; st.ty += e.clientY - st.py;
+  st.px = e.clientX; st.py = e.clientY;
+  배너크롭_클램프(); 배너크롭_렌더();
+}
+function 배너크롭_드래그끝(){ 배너크롭_상태.dragging = false; }
+function 배너크롭_취소(){ document.getElementById('cropBg')?.classList.remove('show'); }
+function 배너크롭_적용(){
+  const st = 배너크롭_상태, img = document.getElementById('배너크롭이미지');
+  if(!img || !st.Wv){ 배너크롭_취소(); return; }
+  const c = document.createElement('canvas'); c.width = 배너크롭_출력W; c.height = 배너크롭_출력H;
+  const ctx = c.getContext('2d');
+  if(!ctx){ 배너크롭_취소(); return; }  // jsdom/캔버스 미지원 안전
+  const k = 배너크롭_출력W / st.Wv, {dispW, dispH} = 배너크롭_치수();
+  ctx.drawImage(img, st.tx*k, st.ty*k, dispW*k, dispH*k);
+  배너크롭_취소();
+  배너_적용선택(c.toDataURL('image/jpeg', 0.82));
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

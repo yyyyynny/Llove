@@ -113,7 +113,8 @@ load((window) => {
   ev('closeInfoModal();');
 
   /* ── #12 배너 ── */
-  assert('#12: 이름 확대(24px)', /\.st-name\{font-size:24px/.test(css));
+  // 세션10-d 항목4: 배너 확대에 맞춰 이름 24px→28px 상향
+  assert('#12: 이름 확대(28px)', /\.st-name\{font-size:28px/.test(css));
   assert('#12: 배너 요소 존재', !!doc.getElementById('statusBanner'));
   ev("배너_적용선택('grad:1');");
   assert('#12: 그라디언트 배너 적용·저장', ev('사용자.배너이미지') === 'grad:1' && (doc.getElementById('statusBanner').style.background||'').includes('linear-gradient'));
