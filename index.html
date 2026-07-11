@@ -801,9 +801,11 @@ html{scrollbar-gutter:stable}
 /* 일반 모달 */
 .modal-bg{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
 .modal-bg.show{opacity:1;pointer-events:all}
-.modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px;max-width:340px;width:100%;transform:scale(.85);transition:transform .35s cubic-bezier(.22,1,.36,1);max-height:80vh;overflow-y:auto}
-/* 세션10-d 항목3: 채팅 내역 등 내용 많은 모달 — 더 넓게(90vw 상한 내) */
-.modal-bx.wide{max-width:560px;max-height:88vh}
+/* 세션10-e 항목2: PC 등 큰 뷰포트에서 340px 고정폭이 여백만 남기던 문제 — 뷰포트 비례(clamp)로 반응형화.
+   폰(46vw가 320 미만)에서는 하한 320px로 기존과 거의 동일, 데스크톱은 최대 520px까지 확장 */
+.modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px;max-width:clamp(320px, 46vw, 520px);width:100%;transform:scale(.85);transition:transform .35s cubic-bezier(.22,1,.36,1);max-height:80vh;overflow-y:auto}
+/* 세션10-d 항목3: 채팅 내역 등 내용 많은 모달 — 더 넓게 / 세션10-e 항목2: 이것도 반응형 */
+.modal-bx.wide{max-width:clamp(340px, 72vw, 680px);max-height:88vh}
 /* 세션10-d 항목5: 배너 크롭 뷰포트 — 표시 비율(700:320)과 동일, 드래그로 이미지 이동 */
 .crop-vp{position:relative;width:100%;aspect-ratio:700/320;overflow:hidden;border-radius:12px;border:1px solid var(--bdr);background:#000;touch-action:none;cursor:grab}
 .crop-vp:active{cursor:grabbing}
@@ -1386,6 +1388,8 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   <div class="qbody" id="sq1Body">
     <!-- JS로 동적 생성 -->
   </div>
+  <!-- 세션10-e 항목3: 랜덤 진입 시에만 노출되는 넘어가기(같은 모드 다음 문제) -->
+  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
   <div style="padding:10px 18px 4px;flex-shrink:0">
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
@@ -1419,6 +1423,7 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   <div class="qbody" id="sq6Body">
     <!-- JS로 동적 생성 -->
   </div>
+  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
   <div style="padding:10px 18px 4px;flex-shrink:0">
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
@@ -1473,6 +1478,7 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   <div class="qbody" id="sq2Body">
     <!-- JS로 동적 생성 -->
   </div>
+  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
   <div style="padding:10px 18px 4px;flex-shrink:0">
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
@@ -1526,6 +1532,7 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   <div class="qbody" id="sq3Body">
     <!-- JS로 동적 생성 -->
   </div>
+  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
   <div style="padding:10px 18px 4px;flex-shrink:0">
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
@@ -1586,6 +1593,7 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   <div class="qbody" id="sq4Body">
     <!-- JS로 동적 생성 -->
   </div>
+  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
   <div style="padding:10px 18px 4px;flex-shrink:0">
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
@@ -1653,6 +1661,7 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
       <button class="btn-g" style="width:100%;margin-top:10px" onclick="구어교정_다음예문()">다음 예문 →</button>
     </div>
   </div>
+  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
   <div style="padding:10px 18px 4px;flex-shrink:0">
     <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
@@ -2617,6 +2626,10 @@ function afterNav(id){
 /* 학습 모드 진입 — 카테고리별 화면/렌더 분기 */
 function goLearn(category, screenId, btn){
   goNav(screenId, btn);
+  // 세션10-e 항목3: 홈 카드 등 일반 진입은 랜덤이 아니므로 넘어가기 버튼을 숨긴다.
+  // 랜덤학습()은 이 goLearn 호출이 끝난 뒤 별도로 켠다(순서 보장).
+  랜덤진입 = false;
+  랜덤넘어가기_표시(false);
   // 빌드1: 현재 모드 기록 (EXP·마스터리 연결용) + 토큰 바 갱신
   // 세션6 항목4: 카테고리가 바뀌면 진행 중 채팅을 기록으로 보관하고 채팅창을 비운다
   if(현재학습모드 && 현재학습모드 !== category) 채팅세션_마감('카테고리 이동');
@@ -2668,6 +2681,34 @@ function goLearn(category, screenId, btn){
   }
 }
 
+// 세션10-e 항목3: 랜덤 「넘어가기」 — 화면 전환·타이틀·세션 리셋 없이 같은 모드에서 문제만 다시 뽑는다.
+// goLearn의 출제 분기와 동일 로직이라 중복이지만, 모드 진입 부작용(채팅 마감·popstate 기록 등)을 피하려고
+// 별도 함수로 둔다. goLearn의 sq1~sq6 분기가 바뀌면 이쪽도 함께 맞춰야 한다.
+function 현재모드_다음출제(){
+  const 카테고리 = 현재학습모드, 화면 = curScreen;
+  if(화면==='sq1'){
+    renderQuiz4(출제_분기(카테고리, 카테고리==='상식·어원' ? QUIZ_COMMON : QUIZ_HISTORY));
+  } else if(화면==='sq2'){
+    sq2_출제_렌더(카테고리);
+  } else if(화면==='sq3'){
+    renderQuiz3(출제_분기('맞춤법', QUIZ_SPELL));
+  } else if(화면==='sq4'){
+    const 현재난이도 = 학습설정.sq4 || '아↗그거!';
+    renderDad(DAD_GAGS_BY_DIFFICULTY[현재난이도] || DAD_GAGS_BY_DIFFICULTY['아↗그거!']);
+    setTimeout(initDad,30);
+  } else if(화면==='sq5'){
+    구어교정_예문표시();
+  } else if(화면==='sq6'){
+    독해_렌더();
+  }
+}
+function 랜덤넘어가기_표시(보임){
+  document.querySelectorAll('.random-skip').forEach(el => { el.style.display = 보임 ? 'block' : 'none'; });
+}
+function 랜덤_넘어가기(){
+  현재모드_다음출제();  // 랜덤진입은 그대로 true 유지 — 버튼 계속 노출
+}
+
 /* 버그2·9 수정: sq2(고사성어·속담 / 한자·우리말) 출제 렌더 — 진입·재진입·설정 변경 공통 경로.
    저장된 학습설정.sq2 값(4지선다·뜻 직접 서술·역방향·유의어 변별·플래시카드)대로 출제하여
    재진입 시 4지선다로 리셋되던 문제를 해소한다. */
@@ -2713,6 +2754,7 @@ const 랜덤학습_모드목록 = [
   ['아재개그','sq4'], ['한자·우리말','sq2'], ['맞춤법','sq3'], ['구어 교정','sq5'],
   ['지문 독해','sq6']  // 세션10-d 항목7: 랜덤에도 문해력 모드 포함
 ];
+let 랜덤진입 = false;  // 세션10-e 항목3: 랜덤으로 들어왔을 때만 하단 「넘어가기」 노출
 /* 세션7 항목8: 랜덤 설정 — 모드별 가중치(0=제외/1/2/3), plx_랜덤설정+Firestore 영속 */
 let 랜덤설정 = {가중치:{}};
 function 랜덤_가중치(모드){
@@ -2727,6 +2769,9 @@ function 랜덤학습(){
   const [카테고리, 화면] = 풀[Math.floor(Math.random()*풀.length)];
   showToastMsg('🎲 오늘의 랜덤: ' + 카테고리);
   goLearn(카테고리, 화면, null);
+  // 세션10-e 항목3: goLearn이 랜덤진입을 false로 초기화하므로, 반드시 그 뒤에 켠다
+  랜덤진입 = true;
+  랜덤넘어가기_표시(true);
 }
 function 랜덤설정_열기(){
   const 행들 = 랜덤학습_모드목록.map(m=>{
@@ -3156,9 +3201,15 @@ function 연속정답처리(정답여부){
 }
 
 // 학습 데이터 초기화 — KNOWLEDGE 15 초기화 범위 (테마·폰트·계정·즐겨찾기 보존)
+// 세션10-e 항목1: 계정 삭제와 동일한 2단계 확인 체인으로(단일 확인이었음 — "이중 경고 없음" 피드백)
 function 학습데이터초기화_1단계(){
-  showConfirmModal('⚠️','학습 데이터 초기화',
+  showConfirmModal('⚠️','학습 데이터 초기화 (1/2)',
     '레벨·EXP·마스터리·복습 대기열·휴지통·연속 학습일·업적·<b>토큰(1,500으로 리셋)</b>이 모두 초기화됩니다.<br><br>앱 설정(테마·글꼴)·구글 계정·즐겨찾기는 유지됩니다.<br><br>계속하시겠습니까?',
+    '계속', 학습데이터초기화_2단계);
+}
+function 학습데이터초기화_2단계(){
+  showConfirmModal('🗑️','학습 데이터 초기화 (2/2)',
+    '<b>마지막 확인</b>입니다. 정말로 학습 데이터를 초기화하시겠습니까?<br><br>이 작업은 되돌릴 수 없습니다.',
     '초기화', 학습데이터초기화_실행);
 }
 function 학습데이터초기화_실행(){
@@ -3179,9 +3230,18 @@ function 학습데이터초기화_실행(){
   복습데이터.휴지통.forEach(x=> 보관함_문서삭제('휴지통', x.id));
   복습데이터.대기열=[]; 복습데이터.휴지통=[];
   사용자데이터_저장(리셋);
+  // 세션10-e 항목1: 사용자데이터_저장은 set({...},{merge:true})라 맵 필드(업적진행도)를 재귀 병합만 함 —
+  // 빈 객체로 저장해도 서버에 남아있던 기존 업적 키가 안 지워져 새로고침 시 업적이 되살아나던 버그.
+  // update()는 해당 필드를 병합 없이 통째로 덮어써 확실히 비운다.
+  if(fbDb && 현재UID){
+    fbDb.collection('users').doc(현재UID).update({업적진행도:{}})
+      .catch(e=> console.error('[Firestore] 업적진행도 초기화 실패', e));
+  }
   토큰표시_갱신();
   갱신_개발자네비_표시();
-  afterNav(curScreen);
+  // 세션10-e 항목1: afterNav(curScreen)는 설정 화면 등에서 재렌더 분기가 없어 "초기화 안 됨"으로 보이던 원인
+  // 중 하나 — 확실히 재렌더되는 홈 화면으로 이동해 반영을 눈으로 확인시킨다.
+  goNav('sh', null);
   showToastMsg('⚠️ 학습 데이터가 초기화되었습니다');
 }
 

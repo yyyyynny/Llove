@@ -37,7 +37,8 @@ load((window) => {
     assert('#2: 요약 라벨 아닌 안내 전문 저장', !!aiMsg && aiMsg.내용.includes('Grok 연동 준비 중') && !aiMsg.내용.includes('<br>'));
 
     /* ── 항목3: 채팅 내역 큰 팝업(wide) ── */
-    assert('#3: .modal-bx.wide CSS 존재', /\.modal-bx\.wide\{[^}]*max-width:560px/.test(css));
+    // 세션10-e 항목2: 560px 고정 → clamp(340px, 72vw, 680px) 반응형으로 갱신됨
+    assert('#3: .modal-bx.wide CSS 존재', /\.modal-bx\.wide\{[^}]*max-width:clamp\(340px/.test(css));
     ev("채팅내역_열기();");
     assert('#3: 채팅 내역 모달 wide 적용', doc.querySelector('#infoBg .modal-bx').classList.contains('wide'));
     ev("closeInfoModal();");
