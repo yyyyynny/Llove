@@ -1807,12 +1807,13 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
       <div class="set-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:9px">
         <div style="display:flex;align-items:center;gap:11px;width:100%">
           <span class="sri">🖥️</span>
-          <div style="flex:1"><div class="srl">화면 크기</div><div class="srs" id="fontScaleTxt">100% — 화면 전체를 확대/축소</div></div>
+          <!-- 세션10-f: 기본값 90%(모바일 실기기 확인 — 100%는 화면이 너무 꽉 참) -->
+          <div style="flex:1"><div class="srl">화면 크기</div><div class="srs" id="fontScaleTxt">90% — 화면 전체를 확대/축소</div></div>
         </div>
         <div class="fs-opts" id="fontScaleOpts">
           <button class="fs-opt" onclick="setFontScale(80)">80%</button>
-          <button class="fs-opt" onclick="setFontScale(90)">90%</button>
-          <button class="fs-opt on" onclick="setFontScale(100)">100%</button>
+          <button class="fs-opt on" onclick="setFontScale(90)">90%</button>
+          <button class="fs-opt" onclick="setFontScale(100)">100%</button>
           <button class="fs-opt" onclick="setFontScale(110)">110%</button>
           <button class="fs-opt" onclick="setFontScale(125)">125%</button>
           <button class="fs-opt" onclick="setFontScale(150)">150%</button>
@@ -3012,7 +3013,7 @@ function 사용자데이터_적용(data, authUser){
   if(data.커스텀슬롯 && Array.isArray(data.커스텀슬롯)) 커스텀슬롯 = data.커스텀슬롯.filter(Boolean).slice(0,10);
   if(data.커스텀테마) 커스텀_복원(data.커스텀테마);
   if(data.테마) setTheme(data.테마, true);
-  if(data.화면배율) setFontScale(data.화면배율, true);  // 세션5: Firestore 화면 크기 복원
+  setFontScale(data.화면배율 || 90, true);  // 세션5: Firestore 화면 크기 복원 / 세션10-f: 기본값 90%(모바일에서 100%가 너무 꽉 참)
   if(data.글자배율) set글자크기(data.글자배율, true);   // 세션5: Firestore 글자 크기 복원(텍스트 전용)
   if(data.폰트) applyFont(data.폰트, true);
   // 추가기능: 음성 생성 서버 주소 복원 (창조주 전용, 코드 비저장)
@@ -3066,7 +3067,7 @@ function 신규사용자_생성(){
     // 토큰 (KNOWLEDGE 32, 기본 1500)
     보유토큰: 1500, 토큰소진시각: null, 토큰락해제시각: null, 총소비토큰: 0,
     // 설정
-    테마: 'antique', 폰트: 'nanum_square',
+    테마: 'antique', 폰트: 'nanum_square', 화면배율: 90,  // 세션10-f: 기본값 90%
     히스토리필터: 'off', AI문제만: false, 복습상한: 50, 알림설정: true,
     음성엔드포인트: '',   // 추가기능: 음성 생성 서버 주소(창조주가 입력) — 기본 빈 값
     // 업적
@@ -3219,12 +3220,19 @@ function 학습데이터초기화_실행(){
     맞춤법학습수:0, 구어교정횟수:0, 문해력학습수:0, 이의제기횟수:0, 반박성공횟수:0, 퍼펙트세션수:0, 총누적어휘수:0,
     보유토큰:1500, 토큰소진시각:null, 토큰락해제시각:null, 총소비토큰:0,
     업적진행도:{}, 창조주달성:false, 개발자모드:false, 선택칭호:'', 오늘질문횟수:0, 질문날짜:'',
-    밤학습수:0, 마지막밤기록일:'', 복습복구횟수:0, 복습복구날짜:'', 총질문수:0
+    밤학습수:0, 마지막밤기록일:'', 복습복구횟수:0, 복습복구날짜:'', 총질문수:0,
+    // 세션10-f: 배너·프로필이 리셋 객체에 빠져 있어 초기화해도 그대로 남아있던 버그
+    배너이미지:'', 프로필이미지:'⚔️'
   };
   Object.assign(사용자, 리셋);
   curLv=1; curExp=0; maxExp=expForLevel(1);
   토큰경고단계=0; 토큰로그세션=[]; 연속정답수세션=0;
   개발자오버레이=null;
+  // 세션10-f: 배너·프로필은 EXP·레벨과 달리 여러 화면에 각자 렌더되는 DOM이라
+  // afterNav/goNav만으로는 즉시 반영되지 않음(홈 아바타 등) — 명시적으로 갱신
+  ['homeAvatar','statusAvatar','settingsAvatar','nmAvatar'].forEach(id => 아바타_적용(document.getElementById(id), 리셋.프로필이미지));
+  배너_적용(document.getElementById('statusBanner'), 리셋.배너이미지);
+  배너_적용(document.getElementById('settingsBanner'), 리셋.배너이미지);
   // 복습 대기열·휴지통 초기화 — Firestore 문서 포함 (즐겨찾기는 보존, KNOWLEDGE 15)
   복습데이터.대기열.forEach(x=> 보관함_문서삭제('복습대기열', x.id));
   복습데이터.휴지통.forEach(x=> 보관함_문서삭제('휴지통', x.id));
@@ -7655,10 +7663,13 @@ function 배너크롭_열기(dataURL){
   const zr = document.getElementById('cropZoom'); if(zr) zr.value = 1;
   img.onload = () => {
     const vp = document.getElementById('cropViewport');
-    const r = vp ? vp.getBoundingClientRect() : {width:0, height:0};
+    // 세션10-f 항목3("배너 재설정 안 됨"): getBoundingClientRect()는 CSS transform(모달 등장 애니메이션
+    // .modal-bx{transform:scale(.85)→scale(1)})의 영향을 받아, 트랜지션이 끝나기 전(이미지 로드가 먼저
+    // 끝나는 경우) 실제보다 작은 뷰포트 크기를 측정해 크롭 좌표가 어긋나는 버그였다. offsetWidth/Height는
+    // 레이아웃 박스 크기만 반영하고 transform에 영향받지 않아 항상 최종 크기를 정확히 준다.
     const st = 배너크롭_상태;
     st.natW = img.naturalWidth || 0; st.natH = img.naturalHeight || 0;
-    st.Wv = r.width || 0; st.Hv = r.height || 0;
+    st.Wv = (vp && vp.offsetWidth) || 0; st.Hv = (vp && vp.offsetHeight) || 0;
     st.z = 1;
     st.s0 = (st.natW && st.natH && st.Wv && st.Hv) ? Math.max(st.Wv/st.natW, st.Hv/st.natH) : 1;
     배너크롭_중앙정렬();
@@ -7868,7 +7879,7 @@ try{
   커스텀_복원();  // 항목3: 저장된 커스텀 색·슬롯 먼저 복원(테마가 custom일 때 변수 세팅 선행)
   const 저장테마 = localStorage.getItem('plx_테마'); if(저장테마) setTheme(저장테마, true);
   const 저장폰트 = localStorage.getItem('plx_폰트'); if(저장폰트) applyFont(저장폰트, true);
-  const 저장화면 = localStorage.getItem('plx_화면배율'); if(저장화면) setFontScale(parseInt(저장화면,10), true);   // 세션5: 화면 크기 복원
+  const 저장화면 = localStorage.getItem('plx_화면배율'); setFontScale(저장화면 ? parseInt(저장화면,10) : 90, true);   // 세션5: 화면 크기 복원 / 세션10-f: 기본값 90%
   const 저장배율 = localStorage.getItem('plx_글자배율'); if(저장배율) set글자크기(parseInt(저장배율,10), true);     // 세션5: 글자 크기 복원(텍스트 전용)
   const 저장학습 = JSON.parse(localStorage.getItem('plx_학습설정')||'null'); if(저장학습) Object.assign(학습설정, 저장학습);  // 세션5 버그7: 학습 설정 복원
   학습설정_마이그레이션();  // 세션7: 구 '선택지' 값 → '4지선다'/'플래시카드' 변환

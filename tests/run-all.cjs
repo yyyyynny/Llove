@@ -17,7 +17,8 @@ const 테스트들 = [
   ['세션8 여백·백도어 터치', 'test-fixes-세션8.cjs'],
   ['세션9 온보딩·아이콘·콘텐츠', 'test-fixes-세션9.cjs'],
   ['세션10-d 6차 피드백', 'test-fixes-세션10d.cjs'],
-  ['세션10-e 7차 피드백', 'test-fixes-세션10e.cjs']
+  ['세션10-e 7차 피드백', 'test-fixes-세션10e.cjs'],
+  ['세션10-f 모바일 피드백', 'test-fixes-세션10f.cjs']
 ];
 
 let 실패 = 0;
