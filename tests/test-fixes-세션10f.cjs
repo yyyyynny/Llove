@@ -1,37 +1,56 @@
-// 세션10-f 모바일 실기기 피드백 검증 — 화면크기 기본값 90%·초기화 시 배너/프로필 리셋·배너 크롭 좌표 버그
+// 세션10-f/g 모바일 실기기 피드백 검증 — 화면크기(표기 100%·실제 0.9 조용히 적용)·범위(70~150%)·
+// 초기화 시 배너/프로필 리셋·배너 크롭 좌표 버그
 const { load, makeHarness } = require('./load.cjs');
 load((window) => {
   const { assert, finish } = makeHarness('세션10-f 모바일 피드백 수정 테스트');
   const doc = window.document, ev = (c) => window.eval(c);
 
-  /* ── 항목1: 화면 크기 기본값 90% ── */
-  assert('#1: 화면 크기 패널 기본 90% 표시', doc.getElementById('fontScaleTxt').textContent.startsWith('90%'));
-  assert('#1: 90% 칩이 기본 on', doc.querySelector('#fontScaleOpts .fs-opt.on').textContent.trim() === '90%');
+  /* ── 항목1(세션10-g 정정): 기본 선택칩·문구는 100% 그대로, 저장값 없을 때만 zoom 0.9를 "조용히" 적용 ──
+     사용자 확인: "기본 선택칩(100%)은 그대로 두고, 실제 적용되는 배율만 90%로" — 표기(100%)와 실제 zoom(0.9)
+     사이 의도된 불일치. setFontScale을 거치면 칩·문구가 "90%"로 바뀌어버리므로 그건 쓰지 않는다. */
+  assert('#1: 화면 크기 패널 기본 표기는 100% 유지', doc.getElementById('fontScaleTxt').textContent.startsWith('100%'));
+  assert('#1: 100% 칩이 기본 on(90%로 바뀌지 않음)', doc.querySelector('#fontScaleOpts .fs-opt.on').textContent.trim() === '100%');
 
-  // 게스트 부팅 경로(저장값 없을 때) 재현
+  // 게스트 부팅 경로(저장값 없을 때) — 실제 코드와 동일한 패턴 재현
   window.localStorage.removeItem('plx_화면배율');
   ev(`
     const 저장화면 = localStorage.getItem('plx_화면배율');
-    setFontScale(저장화면 ? parseInt(저장화면,10) : 90, true);
+    if(저장화면) setFontScale(parseInt(저장화면,10), true);
+    else document.documentElement.style.zoom = '0.9';
   `);
-  assert('#1: 저장값 없는 게스트 부팅 시 zoom 0.9', doc.documentElement.style.zoom === '0.9');
+  assert('#1: 저장값 없는 게스트 부팅 시 zoom 0.9(조용히 적용)', doc.documentElement.style.zoom === '0.9');
+  assert('#1: 조용히 적용 후에도 칩·문구는 100% 그대로', doc.getElementById('fontScaleTxt').textContent.startsWith('100%'));
 
   // Firestore 복원 경로(저장값 없을 때) 재현
-  ev(`setFontScale((undefined) || 90, true);`);
-  assert('#1: Firestore 데이터에 화면배율 없을 때도 0.9로 복원', doc.documentElement.style.zoom === '0.9');
+  ev(`if(undefined) setFontScale(undefined, true); else document.documentElement.style.zoom = '0.9';`);
+  assert('#1: Firestore 데이터에 화면배율 없을 때도 zoom 0.9로 조용히 적용', doc.documentElement.style.zoom === '0.9');
 
-  // 기존 저장값이 있으면 그 값을 존중(기본값이 기존 설정을 덮어쓰지 않음)
-  ev(`setFontScale(125 || 90, true);`);
-  assert('#1: 기존 저장값(125%)은 90으로 덮이지 않음', doc.documentElement.style.zoom === '1.25');
-  ev('setFontScale(90, true);'); // 다음 테스트를 위해 원복
+  // 기존 저장값이 있으면 setFontScale로 정상 복원(칩·문구도 그 값에 맞춰 동기화되는 게 맞음)
+  ev(`if(125) setFontScale(125, true); else document.documentElement.style.zoom = '0.9';`);
+  assert('#1: 저장된 값(125%)이 있으면 정상 복원(칩도 125%로)', doc.documentElement.style.zoom === '1.25' && doc.querySelector('#fontScaleOpts .fs-opt.on').textContent.trim() === '125%');
+  ev("setFontScale(100, true);"); // 다음 테스트를 위해 원복
 
-  // 신규 사용자 기본값에도 90 포함
+  // 신규 사용자는 화면배율 필드를 저장하지 않음(미저장 상태 유지가 곧 "기본" 동작)
   ev(`
     fbDb = { collection: () => ({ doc: () => ({ set: () => Promise.resolve() }) }) };
     현재UID = 'new-user'; fbAuth = { currentUser: { email: 't@t.com' } };
     신규사용자_생성();
   `);
-  assert('#1: 신규 사용자 기본 화면배율 90', ev('사용자.화면배율') === 90);
+  assert('#1: 신규 사용자는 화면배율 필드를 저장하지 않음', ev('사용자.화면배율') === undefined);
+
+  /* ── 항목2(세션10-g): 화면 크기 최대 150%(175·200 제거) ── */
+  assert('#2: 화면크기단계 최대 150', ev('Math.max(...화면크기단계)') === 150);
+  assert('#2: 화면크기단계에 175·200 없음', !ev('화면크기단계.includes(175)') && !ev('화면크기단계.includes(200)'));
+  assert('#2: 175%·200% 버튼 DOM에서 제거됨', !Array.from(doc.querySelectorAll('#fontScaleOpts .fs-opt')).some(b=>['175%','200%'].includes(b.textContent.trim())));
+
+  /* ── 항목3(세션10-g): 화면·글자 크기 최소 70% ── */
+  assert('#3: 화면크기단계 최소 70', ev('Math.min(...화면크기단계)') === 70);
+  assert('#3: 글자크기단계 최소 70', ev('Math.min(...글자크기단계)') === 70);
+  ev('setFontScale(70, true);');
+  assert('#3: 화면 크기 70% 실제 적용', doc.documentElement.style.zoom === '0.7');
+  ev('set글자크기(70, true);');
+  assert('#3: 글자 크기 70% 실제 적용', doc.documentElement.style.getPropertyValue('--글자배율') === '0.7');
+  ev('setFontScale(100, true); set글자크기(100, true);'); // 원복
 
   /* ── 항목2: 학습 데이터 초기화 시 배너·프로필도 리셋 ── */
   ev(`

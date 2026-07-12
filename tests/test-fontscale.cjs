@@ -26,8 +26,9 @@ load((window) => {
   assert('화면 복원: 125% 적용', root.style.zoom === '1.25', `zoom=${root.style.zoom}`);
 
   let 단계OK = true;
-  for (const p of [80,90,100,110,125,150,175,200]) { ev(`setFontScale(${p}, true);`); if (root.style.zoom !== String(p/100)) 단계OK = false; }
-  assert('화면 8단계(80~200%) 모두 정상 적용', 단계OK);
+  // 세션10-g: 최소 70%·최대 150%로 범위 조정(175·200 제거, 70 추가)
+  for (const p of [70,80,90,100,110,125,150]) { ev(`setFontScale(${p}, true);`); if (root.style.zoom !== String(p/100)) 단계OK = false; }
+  assert('화면 7단계(70~150%) 모두 정상 적용', 단계OK);
 
   /* ── B. 글자 크기 (set글자크기 = --글자배율, zoom 불변) ── */
   ev('setFontScale(100, true);');  // 화면 100% 고정 후 글자만 조절
@@ -46,8 +47,9 @@ load((window) => {
   assert('글자 복원: 150% 적용', root.style.getPropertyValue('--글자배율') === '1.5');
 
   let 글자단계OK = true;
-  for (const p of [80,90,100,110,125,150]) { ev(`set글자크기(${p}, true);`); if (root.style.getPropertyValue('--글자배율') !== String(p/100)) 글자단계OK = false; }
-  assert('글자 6단계(80~150%) 모두 정상 적용', 글자단계OK);
+  // 세션10-g 항목3: 최소 70% 추가
+  for (const p of [70,80,90,100,110,125,150]) { ev(`set글자크기(${p}, true);`); if (root.style.getPropertyValue('--글자배율') !== String(p/100)) 글자단계OK = false; }
+  assert('글자 7단계(70~150%) 모두 정상 적용', 글자단계OK);
 
   let fail = 0;
   console.log('\n=== 세션5 화면/글자 크기 분리 테스트 (구 항목9) ===');
