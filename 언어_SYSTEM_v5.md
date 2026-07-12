@@ -53,7 +53,7 @@ KNOWLEDGE 업데이트 필요 여부 함께 언급.
 ## 5. 코드 작성 원칙
 
 - 모든 주석 한글
-- 단일 HTML 파일 구조 유지 (HTML+CSS+JS 분리 금지)
+- index.html(마크업) + style.css + js/ 23개 분할 스크립트 구조 유지 (2026-07-12 재구조화 완료, 최고 관리자님 승인). js/*.js는 클래식 스크립트로 전역 스코프 공유 — `<script type="module">` 전환 금지(인라인 onclick 핸들러·jsdom 테스트 호환성 때문). 새 app.js 하나로 되뭉치기 금지. 상세는 CLAUDE.md "JS 분할 구조 원칙" 참조.
 - 콘텐츠 DB는 data/ 폴더 JSON 파일로 분리 (HTML과 별도)
 - Firebase 변수명은 KNOWLEDGE 13섹션 한글 변수명 그대로
 - Firebase 사용자 데이터 구조(13-1섹션)는 구현 중 변수 추가·삭제 가능 — 단 **모든 변수명 한글 유지**, 변경 시 반드시 최고 관리자님께 보고
