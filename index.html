@@ -373,6 +373,11 @@ html{scrollbar-gutter:stable}
    구분되는 중립색(--acc)만 써서 아직 채점 전임을 분명히 한다. */
 .aopt.picked{border-color:var(--acc)}
 .aopt.picked .onum{background:var(--acc);color:#fff}
+/* 세션10-o: 문장 배열(sq7) 판정 시 정답/오답 구분이 약했던 문제 — 전역 .aopt.correct/.wrong은
+   테두리색만 바뀌어(4지선다 sq1과 공유하는 스타일이라 거기는 손대지 않음) sq6 지문 독해(.rc-opt)·
+   예문형(.syn-opt)이 쓰는 "배경 톤 + 글자색" 대비를 sq7에만 스코프해 추가한다. */
+#sq7Opts .aopt.correct{background:rgba(120,184,120,.18);color:var(--ok)}
+#sq7Opts .aopt.wrong{background:rgba(192,112,112,.15);color:var(--err);opacity:.7}
 .otxt{font-size:14px;font-weight:500;line-height:1.5}
 .exp-gain{background:rgba(184,149,106,.08);border:1px solid rgba(184,149,106,.22);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
 .egl{font-size:13px;color:var(--txt2)}
@@ -4754,6 +4759,10 @@ function 문장배열_판정(){
   // 연출을 담당) 판정 애니메이션이 4개 전부 동시에 자연스럽게 재생되도록 함.
   document.querySelectorAll('#sq7Opts .aopt').forEach(el=>{
     el.classList.add('disabled');
+    // 세션10-o: 'picked'(탭 진행 중 표시)를 남겨두면 같은 특이도의 후속 CSS 규칙(.aopt.picked .onum)이
+    // .aopt.correct/.wrong .onum보다 스타일시트 순서상 나중이라 배지 색이 정답/오답으로 안 바뀌는
+    // 버그가 있었다 — 판정 시 반드시 picked를 먼저 떼어내야 정답=초록/오답=빨강이 제대로 보인다.
+    el.classList.remove('picked');
     const 원본idx = parseInt(el.dataset.원본, 10);
     const 사용자위치 = st.탭순서.indexOf(원본idx);
     el.classList.add(사용자위치 === 원본idx ? 'correct' : 'wrong');

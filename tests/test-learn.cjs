@@ -3,6 +3,7 @@ const { load, makeHarness } = require('./load.cjs');
 load((window) => {
   const { assert, finish } = makeHarness('학습 모드 동작 테스트');
   const doc = window.document, ev = (c) => window.eval(c);
+  const css = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
   ev("학습설정.sq2='4지선다'; sq2_출제_렌더('고사성어·속담');");
   let o = doc.querySelectorAll('#sq2Body .aopt');
@@ -78,6 +79,14 @@ load((window) => {
   assert('문장 배열(sq7): 4개 다 탭하면 제출 버튼 활성화(.dim 해제)', !doc.getElementById('sq7SubmitBtn').classList.contains('dim'));
   ev('문장배열_제출();');
   assert('문장 배열(sq7): 제출 후 정답 순서였다면 전부 .correct', doc.querySelectorAll('#sq7Opts .aopt.correct').length === 4);
+  // 세션10-o: 판정 후 'picked'가 남아있으면 스타일시트 순서상 .aopt.picked .onum이 .aopt.correct/.wrong .onum을
+  // 덮어써 배지가 정답/오답 색으로 안 바뀌는 버그가 있었다 — 판정 시 picked가 반드시 제거돼야 한다.
+  assert('문장 배열(sq7): 판정 후 picked 클래스 제거(정답/오답 배지색이 가려지지 않도록)',
+    doc.querySelectorAll('#sq7Opts .aopt.picked').length === 0);
+  // sq6 지문 독해(.rc-opt)·예문형(.syn-opt)처럼 배경 톤으로도 정답/오답을 구분하는지(전역 .aopt는 sq1과
+  // 공유해 테두리색만 바뀌므로, sq7 스코프에서만 배경+글자색 대비를 추가했는지 CSS로 확인)
+  assert('문장 배열(sq7): 정답/오답에 sq6·예문형과 맞춘 배경 톤 대비 CSS 존재(스코프 한정, sq1 전역 스타일 불변)',
+    /#sq7Opts \.aopt\.correct\{background:/.test(css) && /#sq7Opts \.aopt\.wrong\{background:/.test(css));
   assert('문장 배열(sq7): 제출 후 EXP 획득', ev('사용자.총누적EXP||0') > sq7exp0);
   assert('문장 배열(sq7): 마스터리 카운터 증가(문해력학습수)', ev('사용자.문해력학습수||0') > 0);
   assert('문장 배열(sq7): 제출 후 판정 애니메이션이 4개 동시 재생(inline delay 없음)',
