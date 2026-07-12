@@ -1204,7 +1204,8 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   <!-- 입력 영역: 창조주 시나리오에서 ID로 안정적으로 숨김/복구 -->
   <div id="askInputArea" style="padding:12px 18px;border-top:1px solid var(--bdr);background:var(--card)">
     <div class="ask-input-row">
-      <textarea class="ask-input" id="askInp" placeholder="질문을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)" rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" oninput="질문입력_높이조절(this)" onkeypress="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendAsk();}"></textarea>
+      <!-- 세션10-h: Enter 전송/줄바꿈 분기는 질문입력_Enter처리()가 기기별(모바일=줄바꿈, PC=전송)로 판단 -->
+      <textarea class="ask-input" id="askInp" placeholder="질문을 입력하세요..." rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" oninput="질문입력_높이조절(this)" onkeypress="질문입력_Enter처리(event)"></textarea>
       <button class="ask-send" onclick="sendAsk()">전송</button>
     </div>
   </div>
@@ -6590,6 +6591,19 @@ function 질문입력_높이조절(el){
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
+// 세션10-h: 모바일에서 Shift+Enter로 줄바꿈하기가 매우 불편해 대부분의 채팅 앱처럼 예외 처리 —
+// 터치 우선(정밀 포인터 없음) 기기에서는 Enter가 그냥 줄바꿈되고, 전송은 버튼(.ask-send)으로만 한다.
+function 모바일_입력환경(){
+  try{ return window.matchMedia && matchMedia('(pointer: coarse)').matches; }catch(e){ return false; }
+}
+function 질문입력_Enter처리(ev){
+  if(ev.key === 'Enter' && !ev.shiftKey && !모바일_입력환경()){
+    ev.preventDefault();
+    sendAsk();
+  }
+  // 모바일이거나 Shift+Enter면 기본 동작(줄바꿈) 그대로 둠
+}
+
 /* 메시지 전송: 창조주 키 감지 + 일반 응답 */
 function sendAsk(){
   const inp=document.getElementById('askInp');
@@ -7898,6 +7912,9 @@ try{
   const 저장랜덤 = JSON.parse(localStorage.getItem('plx_랜덤설정')||'null'); if(저장랜덤 && 저장랜덤.가중치) 랜덤설정 = 저장랜덤;  // 세션7 항목8
   const 저장범위 = localStorage.getItem('plx_글자범위'); set글자범위(저장범위 || '학습', true);  // 세션7 항목10
   배너프리셋_로드();  // 세션7 항목12: assets/배너/목록.json (없으면 조용히 무시)
+  // 세션10-h: 모바일은 Enter가 줄바꿈이라 안내 문구를 다르게(전송은 버튼으로)
+  { const 입력창 = document.getElementById('askInp');
+    if(입력창) 입력창.placeholder = 모바일_입력환경() ? '질문을 입력하세요... (전송 버튼으로 보내기)' : '질문을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)'; }
   const 저장지침 = localStorage.getItem('plx_AI지침'); if(저장지침 !== null){ 사용자.AI지침 = 저장지침; }  // 세션6 항목5
   AI지침_상태갱신();
   프로필프리셋_로드();   // 세션6 항목11: assets/프로필/목록.json (없으면 조용히 무시)
