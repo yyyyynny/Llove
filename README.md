@@ -1,7 +1,7 @@
 # Llove
 
-한국어 어휘력·표현력 향상 학습 웹앱. **단일 HTML 파일**(`index.html`) 구조로,
-GitHub Pages에 그대로 배포된다.
+한국어 어휘력·표현력 향상 학습 웹앱. **정적 웹앱 구조** — `index.html`(마크업) +
+`style.css` + `js/` 23개 분할 스크립트로, 빌드 없이 GitHub Pages에 그대로 배포된다.
 
 ## 주요 기능
 - 9가지 학습 모드: 상식·어원 / 세계사·신화 / 고사성어·속담 / 한자·우리말 / 맞춤법 / 아재개그 / 구어 교정 /
@@ -19,7 +19,7 @@ GitHub Pages에 그대로 배포된다.
 
 ```bash
 npm install            # 개발 의존성(htmlhint, jsdom) 설치
-npm run check:js       # 인라인 JS 문법 검증 (node --check)
+npm run check:js       # js/*.js 문법 검증 (node --check)
 npm run check:html     # HTML 구조 검증 (htmlhint)
 npm run check:deploy   # 배포 전 정합성 점검
 npm test               # jsdom 기능 동작 테스트 (tests/)

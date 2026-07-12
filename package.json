@@ -2,7 +2,7 @@
   "name": "llove",
   "version": "1.0.0",
   "private": true,
-  "description": "한국어 어휘력·표현력 학습 웹앱 (단일 HTML)",
+  "description": "한국어 어휘력·표현력 학습 웹앱 (정적 웹앱)",
   "scripts": {
     "check:js": "node scripts/check-inline-js.mjs",
     "check:deploy": "node scripts/check-deploy.mjs",
