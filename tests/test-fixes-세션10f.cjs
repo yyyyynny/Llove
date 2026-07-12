@@ -68,8 +68,9 @@ load((window) => {
   assert('#2: 현황 배너 DOM 즉시 갱신(커스텀 배경 제거)', doc.getElementById('statusBanner').style.background === '');
 
   /* ── 항목3: 배너 크롭 — 트랜지션에 영향받는 getBoundingClientRect 대신 offsetWidth/Height 사용 ──
-     (함수 주석에 배경 설명으로 "getBoundingClientRect"라는 단어 자체는 남아있을 수 있어 실제 호출 패턴만 확인) */
-  const 크롭함수소스 = ev('배너크롭_열기.toString()');
+     (함수 주석에 배경 설명으로 "getBoundingClientRect"라는 단어 자체는 남아있을 수 있어 실제 호출 패턴만 확인)
+     세션10-i: 배너·프로필 공용 이미지크롭_열기로 일반화됨 */
+  const 크롭함수소스 = ev('이미지크롭_열기.toString()');
   assert('#3: 실제 getBoundingClientRect() 호출은 제거됨(주석 설명 문구는 무관)', !/\.getBoundingClientRect\(\)/.test(크롭함수소스.replace(/\/\/.*$/gm, '')));
   assert('#3: offsetWidth/offsetHeight로 뷰포트 크기 측정', 크롭함수소스.includes('offsetWidth') && 크롭함수소스.includes('offsetHeight'));
 

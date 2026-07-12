@@ -577,7 +577,7 @@ html{scrollbar-gutter:stable}
    .prof-banner가 배경 레이어(.banner-layer)+가독성용 스크림(::after)을 깔고, 내용(아바타·이름·버튼)은
    그 위 z-index로 띄운다. 기존 .st-banner 독립 박스(72px)는 폐지, 카드 자체 높이를 키워 배너를 확장 */
 .st-prof{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px}
-.prof-banner{position:relative;overflow:hidden;isolation:isolate;min-height:184px}
+.prof-banner{position:relative;overflow:hidden;isolation:isolate;min-height:184px;cursor:pointer}
 .prof-banner .banner-layer{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,var(--accd),var(--acc));cursor:pointer;transition:background .3s}
 .prof-banner .banner-layer img{width:100%;height:100%;object-fit:cover;display:block}
 .prof-banner::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
@@ -806,10 +806,14 @@ html{scrollbar-gutter:stable}
 .modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px;max-width:clamp(320px, 46vw, 520px);width:100%;transform:scale(.85);transition:transform .35s cubic-bezier(.22,1,.36,1);max-height:80vh;overflow-y:auto}
 /* 세션10-d 항목3: 채팅 내역 등 내용 많은 모달 — 더 넓게 / 세션10-e 항목2: 이것도 반응형 */
 .modal-bx.wide{max-width:clamp(340px, 72vw, 680px);max-height:88vh}
-/* 세션10-d 항목5: 배너 크롭 뷰포트 — 표시 비율(700:320)과 동일, 드래그로 이미지 이동 */
+/* 세션10-d 항목5 / 세션10-i 항목2: 이미지 크롭 뷰포트 — 배너는 표시 비율(700:320), 프로필은 정사각(.round)
+   드래그로 이미지 이동 */
 .crop-vp{position:relative;width:100%;aspect-ratio:700/320;overflow:hidden;border-radius:12px;border:1px solid var(--bdr);background:#000;touch-action:none;cursor:grab}
 .crop-vp:active{cursor:grabbing}
 .crop-vp img{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;user-select:none;pointer-events:none;max-width:none}
+/* 프로필 크롭: 정사각 뷰포트 + 원형 마스크 오버레이(실제 저장 이미지는 정사각, 원형은 시각 안내용) */
+.crop-vp.round{aspect-ratio:1/1;max-width:280px;margin:0 auto}
+.crop-vp.round::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,.6);pointer-events:none}
 .modal-bg.show .modal-bx{transform:scale(1)}
 /* 추가기능: 음성 생성(콜롬비나 TTS) 테스트 벤치 — 회전 금지(점 불투명도 펄스)·세로 전개만 */
 .vc-lbl{display:block;font-size:12px;color:var(--txt2);font-weight:700;margin-top:8px}
@@ -1044,21 +1048,21 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   </div>
 </div>
 
-<!-- 세션10-d 항목5: 배너 크롭 모달 — 드래그로 위치 이동 + 슬라이더로 확대 후 적용 -->
-<div class="modal-bg" id="cropBg" onclick="배경클릭_닫기(event, 배너크롭_취소)">
+<!-- 세션10-d 항목5 / 세션10-i 항목2: 이미지 크롭 모달 — 배너·프로필 공용(드래그 이동 + 슬라이더 확대) -->
+<div class="modal-bg" id="cropBg" onclick="배경클릭_닫기(event, 이미지크롭_취소)">
   <div class="modal-bx" onclick="event.stopPropagation()">
-    <div class="modal-title">배너 자르기</div>
+    <div class="modal-title" id="cropTitle">배너 자르기</div>
     <div class="modal-desc" style="font-size:11px;margin-bottom:10px">드래그해 위치를 옮기고, 슬라이더로 확대·축소하세요.</div>
-    <div id="cropViewport" class="crop-vp" onpointerdown="배너크롭_드래그시작(event)" onpointermove="배너크롭_드래그중(event)" onpointerup="배너크롭_드래그끝(event)" onpointercancel="배너크롭_드래그끝(event)">
-      <img id="배너크롭이미지" alt="크롭 미리보기">
+    <div id="cropViewport" class="crop-vp" onpointerdown="이미지크롭_드래그시작(event)" onpointermove="이미지크롭_드래그중(event)" onpointerup="이미지크롭_드래그끝(event)" onpointercancel="이미지크롭_드래그끝(event)">
+      <img id="이미지크롭이미지" alt="크롭 미리보기">
     </div>
     <div style="display:flex;align-items:center;gap:9px;margin-top:11px">
       <span style="font-size:14px">🔍</span>
-      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" oninput="배너크롭_줌(this.value)" style="flex:1">
+      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" oninput="이미지크롭_줌(this.value)" style="flex:1">
     </div>
     <div class="modal-btns" style="margin-top:13px">
-      <button class="btn-g" style="flex:1" onclick="배너크롭_취소()">취소</button>
-      <button class="btn-acc" style="flex:1" onclick="배너크롭_적용()">적용</button>
+      <button class="btn-g" style="flex:1" onclick="이미지크롭_취소()">취소</button>
+      <button class="btn-acc" style="flex:1" onclick="이미지크롭_적용()">적용</button>
     </div>
   </div>
 </div>
@@ -1745,11 +1749,14 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   <div class="st-body">
     <!-- α4: Lv.70 도달 시 「주신의 경지」 메시지 UI (KNOWLEDGE 11) -->
     <div class="jushin-msg" id="jushinMsg" style="display:none" onclick="주신의경지_탭()">「주҉신҉의 경지」</div>
-    <!-- 세션10-c 항목4: 배너를 이름칸 배경으로 합침(독립 박스 폐지) — 탭하여 변경은 배경 레이어에서 그대로 유지 -->
-    <div class="st-prof prof-banner fu">
-      <div class="banner-layer" id="statusBanner" onclick="배너선택_열기()"></div>
+    <!-- 세션10-c 항목4: 배너를 이름칸 배경으로 합침(독립 박스 폐지)
+         세션10-i 항목1: 탭 핸들러를 카드 전체(prof-banner)로 옮김 — 배경 레이어(banner-layer)에만 있으면
+         가운데 prof-info(이름·칭호 등, z-index 위) 영역이 클릭을 가로채 히트박스가 좁아 보이던 문제.
+         아바타·버튼은 stopPropagation으로 각자 동작 유지 -->
+    <div class="st-prof prof-banner fu" onclick="배너선택_열기()">
+      <div class="banner-layer" id="statusBanner"></div>
       <!-- α9: 아바타 탭 → 고급 커스터마이징 -->
-      <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
+      <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="event.stopPropagation();프로필선택_열기()"></div>
       <div class="prof-info" style="flex:1">
         <!-- v3.4: 하드코딩 제거. JS afterNav('ss')에서 사용자 객체로 주입 -->
         <div class="st-name" id="statusUser"></div>
@@ -1779,18 +1786,19 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
 <div id="sse" class="screen demo-offset has-bnav">
   <div class="top-bar"><div></div><div class="tbt">설정</div><div></div></div>
   <div class="set-body">
-    <!-- 세션10-c 항목4: 현황 탭과 동일하게 배너를 이름칸 배경으로 공유(같은 사용자.배너이미지) -->
-    <div class="set-prof prof-banner fu">
-      <div class="banner-layer" id="settingsBanner" onclick="배너선택_열기()"></div>
+    <!-- 세션10-c 항목4: 현황 탭과 동일하게 배너를 이름칸 배경으로 공유(같은 사용자.배너이미지)
+         세션10-i 항목1: 탭 핸들러를 카드 전체로 옮김(히트박스 확대) — 아바타·버튼은 stopPropagation -->
+    <div class="set-prof prof-banner fu" onclick="배너선택_열기()">
+      <div class="banner-layer" id="settingsBanner"></div>
       <!-- α9: 아바타 탭 → 고급 커스터마이징 (초월자 {wait!} / 필멸자 [권한 부족]) -->
-      <div class="set-av" id="settingsAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
+      <div class="set-av" id="settingsAvatar" style="cursor:pointer" onclick="event.stopPropagation();프로필선택_열기()"></div>
       <div class="prof-info" style="flex:1">
         <!-- v3.4: 하드코딩 제거. JS afterNav('sse')에서 사용자 객체로 주입 -->
         <div class="set-nm" id="settingsUser"></div>
         <div class="set-ttl">🏷️ <span id="settingsTitle"></span></div>
         <div class="set-em" id="settingsEmail"></div>
       </div>
-      <button class="set-eb" onclick="openNmModal()">이름 변경</button>
+      <button class="set-eb" onclick="event.stopPropagation();openNmModal()">이름 변경</button>
     </div>
 
     <div class="set-sec fu s1">
@@ -7577,18 +7585,8 @@ function 프로필_파일처리(inp){
   const f = inp.files && inp.files[0];
   if(!f) return;
   const rd = new FileReader();
-  rd.onload = () => {
-    const img = new Image();
-    img.onload = () => {
-      // canvas 128px 정사각 리사이즈 → dataURL(약 10~30KB) — Firestore 문서(1MB) 한도 내 저장
-      const c = document.createElement('canvas'); c.width = 128; c.height = 128;
-      const x = c.getContext('2d');
-      const s = Math.min(img.width, img.height);
-      x.drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, 128, 128);
-      프로필_적용선택(c.toDataURL('image/jpeg', 0.82));
-    };
-    img.src = rd.result;
-  };
+  // 세션10-i 항목2: 무조건 중앙 정사각 크롭이었던 것을 폐지 → 배너와 동일한 크롭 모달(드래그+확대)로 위임.
+  rd.onload = () => 이미지크롭_열기(rd.result, '프로필');
   rd.readAsDataURL(f);
   inp.value = '';
 }
@@ -7668,61 +7666,67 @@ function 배너_파일처리(inp){
   if(!f) return;
   const rd = new FileReader();
   // 세션10-d 항목5: 무조건 중앙 크롭하던 것을 폐지 → 크롭 모달로 넘겨 사용자가 위치·확대를 직접 정한다.
-  rd.onload = () => 배너크롭_열기(rd.result);
+  rd.onload = () => 이미지크롭_열기(rd.result, '배너');
   rd.readAsDataURL(f);
   inp.value = '';
 }
 
-/* ━━━ 세션10-d 항목5: 본격 배너 크롭 UI (드래그 이동 + 확대) ━━━
-   뷰포트(표시 비율 700:320) 안에서 이미지를 cover 배치 후, 드래그로 위치를 옮기고 슬라이더로 확대한다.
-   적용 시 뷰포트에 보이는 영역만 700×320 캔버스로 렌더 → dataURL(JPEG 0.82, Firestore 1MB 한도 內) → 배너_적용선택. */
-const 배너크롭_출력W = 700, 배너크롭_출력H = 320;
-let 배너크롭_상태 = {natW:0, natH:0, s0:1, z:1, tx:0, ty:0, Wv:0, Hv:0, dragging:false, px:0, py:0};
-function 배너크롭_열기(dataURL){
+/* ━━━ 세션10-d 항목5 / 세션10-i 항목2: 이미지 크롭 UI — 배너·프로필 공용(드래그 이동 + 확대) ━━━
+   뷰포트 안에서 이미지를 cover 배치 후, 드래그로 위치를 옮기고 슬라이더로 확대한다. 적용 시 뷰포트에
+   보이는 영역만 캔버스로 렌더 → dataURL(JPEG 0.82, Firestore 1MB 한도 內) → 대상별 적용 함수로 위임.
+   원래 배너 전용(배너크롭_*)이었으나 프로필 사진도 같은 드래그·줌 UX를 원해 대상(대상:'배너'|'프로필')으로
+   일반화 — 뷰포트 비율(700:320 vs 1:1)·출력 크기·적용 함수만 대상에 따라 갈린다. */
+const 이미지크롭_출력 = { 배너: {w:700, h:320}, 프로필: {w:256, h:256} };
+let 이미지크롭_상태 = {natW:0, natH:0, s0:1, z:1, tx:0, ty:0, Wv:0, Hv:0, dragging:false, px:0, py:0, 대상:'배너'};
+function 이미지크롭_열기(dataURL, 대상){
   const bg = document.getElementById('cropBg');
-  const img = document.getElementById('배너크롭이미지');
-  if(!bg || !img) return;
+  const img = document.getElementById('이미지크롭이미지');
+  const vp = document.getElementById('cropViewport');
+  if(!bg || !img || !vp) return;
+  이미지크롭_상태.대상 = (대상 === '프로필') ? '프로필' : '배너';
+  vp.classList.toggle('round', 이미지크롭_상태.대상 === '프로필');  // 프로필: 정사각+원형 마스크 안내
+  const 제목 = document.getElementById('cropTitle');
+  if(제목) 제목.textContent = (이미지크롭_상태.대상 === '프로필') ? '프로필 사진 자르기' : '배너 자르기';
   const zr = document.getElementById('cropZoom'); if(zr) zr.value = 1;
   img.onload = () => {
-    const vp = document.getElementById('cropViewport');
     // 세션10-f 항목3("배너 재설정 안 됨"): getBoundingClientRect()는 CSS transform(모달 등장 애니메이션
     // .modal-bx{transform:scale(.85)→scale(1)})의 영향을 받아, 트랜지션이 끝나기 전(이미지 로드가 먼저
     // 끝나는 경우) 실제보다 작은 뷰포트 크기를 측정해 크롭 좌표가 어긋나는 버그였다. offsetWidth/Height는
     // 레이아웃 박스 크기만 반영하고 transform에 영향받지 않아 항상 최종 크기를 정확히 준다.
-    const st = 배너크롭_상태;
+    const st = 이미지크롭_상태;
     st.natW = img.naturalWidth || 0; st.natH = img.naturalHeight || 0;
-    st.Wv = (vp && vp.offsetWidth) || 0; st.Hv = (vp && vp.offsetHeight) || 0;
+    st.Wv = vp.offsetWidth || 0; st.Hv = vp.offsetHeight || 0;
     st.z = 1;
     st.s0 = (st.natW && st.natH && st.Wv && st.Hv) ? Math.max(st.Wv/st.natW, st.Hv/st.natH) : 1;
-    배너크롭_중앙정렬();
-    배너크롭_렌더();
+    이미지크롭_중앙정렬();
+    이미지크롭_렌더();
   };
   img.src = dataURL;
   bg.classList.add('show');
 }
-function 배너크롭_치수(){
-  const st = 배너크롭_상태;
+function 이미지크롭_치수(){
+  const st = 이미지크롭_상태;
   return { dispW: st.natW*st.s0*st.z, dispH: st.natH*st.s0*st.z };
 }
-function 배너크롭_클램프(){
-  const st = 배너크롭_상태, {dispW, dispH} = 배너크롭_치수();
+function 이미지크롭_클램프(){
+  const st = 이미지크롭_상태, {dispW, dispH} = 이미지크롭_치수();
   st.tx = Math.min(0, Math.max(st.Wv - dispW, st.tx));  // 이미지가 항상 뷰포트를 덮도록
   st.ty = Math.min(0, Math.max(st.Hv - dispH, st.ty));
 }
-function 배너크롭_중앙정렬(){
-  const st = 배너크롭_상태, {dispW, dispH} = 배너크롭_치수();
+function 이미지크롭_중앙정렬(){
+  const st = 이미지크롭_상태, {dispW, dispH} = 이미지크롭_치수();
   st.tx = (st.Wv - dispW)/2; st.ty = (st.Hv - dispH)/2;
-  배너크롭_클램프();
+  이미지크롭_클램프();
 }
-function 배너크롭_렌더(){
-  const st = 배너크롭_상태, img = document.getElementById('배너크롭이미지');
+function 이미지크롭_렌더(){
+  const st = 이미지크롭_상태, img = document.getElementById('이미지크롭이미지');
   if(!img) return;
-  const {dispW, dispH} = 배너크롭_치수();
+  const {dispW, dispH} = 이미지크롭_치수();
   img.style.width = dispW+'px'; img.style.height = dispH+'px';
   img.style.transform = `translate(${st.tx}px,${st.ty}px)`;
 }
-function 배너크롭_줌(v){
-  const st = 배너크롭_상태;
+function 이미지크롭_줌(v){
+  const st = 이미지크롭_상태;
   const 이전 = st.s0*st.z;
   st.z = parseFloat(v) || 1;
   const 이후 = st.s0*st.z;
@@ -7732,32 +7736,36 @@ function 배너크롭_줌(v){
     st.tx = cx - (cx - st.tx)*(이후/이전);
     st.ty = cy - (cy - st.ty)*(이후/이전);
   }
-  배너크롭_클램프(); 배너크롭_렌더();
+  이미지크롭_클램프(); 이미지크롭_렌더();
 }
-function 배너크롭_드래그시작(e){
-  const st = 배너크롭_상태;
+function 이미지크롭_드래그시작(e){
+  const st = 이미지크롭_상태;
   st.dragging = true; st.px = e.clientX; st.py = e.clientY;
   try{ e.currentTarget.setPointerCapture(e.pointerId); }catch(_){ /* 미지원 무시 */ }
 }
-function 배너크롭_드래그중(e){
-  const st = 배너크롭_상태;
+function 이미지크롭_드래그중(e){
+  const st = 이미지크롭_상태;
   if(!st.dragging) return;
   st.tx += e.clientX - st.px; st.ty += e.clientY - st.py;
   st.px = e.clientX; st.py = e.clientY;
-  배너크롭_클램프(); 배너크롭_렌더();
+  이미지크롭_클램프(); 이미지크롭_렌더();
 }
-function 배너크롭_드래그끝(){ 배너크롭_상태.dragging = false; }
-function 배너크롭_취소(){ document.getElementById('cropBg')?.classList.remove('show'); }
-function 배너크롭_적용(){
-  const st = 배너크롭_상태, img = document.getElementById('배너크롭이미지');
-  if(!img || !st.Wv){ 배너크롭_취소(); return; }
-  const c = document.createElement('canvas'); c.width = 배너크롭_출력W; c.height = 배너크롭_출력H;
+function 이미지크롭_드래그끝(){ 이미지크롭_상태.dragging = false; }
+function 이미지크롭_취소(){ document.getElementById('cropBg')?.classList.remove('show'); }
+function 이미지크롭_적용(){
+  const st = 이미지크롭_상태, img = document.getElementById('이미지크롭이미지');
+  if(!img || !st.Wv){ 이미지크롭_취소(); return; }
+  const out = 이미지크롭_출력[st.대상] || 이미지크롭_출력.배너;
+  const c = document.createElement('canvas'); c.width = out.w; c.height = out.h;
   const ctx = c.getContext('2d');
-  if(!ctx){ 배너크롭_취소(); return; }  // jsdom/캔버스 미지원 안전
-  const k = 배너크롭_출력W / st.Wv, {dispW, dispH} = 배너크롭_치수();
+  if(!ctx){ 이미지크롭_취소(); return; }  // jsdom/캔버스 미지원 안전
+  const k = out.w / st.Wv, {dispW, dispH} = 이미지크롭_치수();
   ctx.drawImage(img, st.tx*k, st.ty*k, dispW*k, dispH*k);
-  배너크롭_취소();
-  배너_적용선택(c.toDataURL('image/jpeg', 0.82));
+  const 대상 = st.대상;
+  이미지크롭_취소();
+  const dataURL = c.toDataURL('image/jpeg', 0.82);
+  if(대상 === '프로필') 프로필_적용선택(dataURL);
+  else 배너_적용선택(dataURL);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

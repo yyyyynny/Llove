@@ -47,24 +47,24 @@ load((window) => {
     assert('#4: prof-banner 높이 상향(184px)', /\.prof-banner\{[^}]*min-height:184px/.test(css));
     assert('#4: 이름 28px', /\.st-name\{font-size:28px/.test(css));
 
-    /* ── 항목5: 배너 크롭 모달 ── */
-    assert('#5: 크롭 모달 요소 존재', !!doc.getElementById('cropBg') && !!doc.getElementById('배너크롭이미지'));
-    ev("배너크롭_열기('data:image/png;base64,AAAA');");
+    /* ── 항목5: 배너 크롭 모달 (세션10-i: 배너·프로필 공용 이미지크롭_*로 일반화됨) ── */
+    assert('#5: 크롭 모달 요소 존재', !!doc.getElementById('cropBg') && !!doc.getElementById('이미지크롭이미지'));
+    ev("이미지크롭_열기('data:image/png;base64,AAAA', '배너');");
     assert('#5: 크롭 열기 시 이미지 src 세팅·모달 표시',
-      (doc.getElementById('배너크롭이미지').getAttribute('src')||'').startsWith('data:image') && doc.getElementById('cropBg').classList.contains('show'));
+      (doc.getElementById('이미지크롭이미지').getAttribute('src')||'').startsWith('data:image') && doc.getElementById('cropBg').classList.contains('show'));
     // 크롭 상태를 주입하고 적용 → 배너_적용선택 호출되는지(캔버스 미지원이면 안전 종료)
     let 적용됨 = false;
     ev("window.__origApply = 배너_적용선택; 배너_적용선택 = function(v){ window.__croppedV = v; window.__applied = true; };");
-    ev("배너크롭_상태 = {natW:1000,natH:600,s0:1,z:1,tx:-100,ty:-50,Wv:700,Hv:320,dragging:false,px:0,py:0};");
-    ev("배너크롭_적용();");
+    ev("이미지크롭_상태 = {natW:1000,natH:600,s0:1,z:1,tx:-100,ty:-50,Wv:700,Hv:320,dragging:false,px:0,py:0,대상:'배너'};");
+    ev("이미지크롭_적용();");
     적용됨 = ev("window.__applied === true");
     // jsdom 캔버스 getContext가 null이면 적용은 조용히 종료(안전) — 둘 중 하나면 통과
     assert('#5: 적용 시 배너_적용선택 호출 또는 캔버스 미지원 안전종료',
       적용됨 || ev("!document.getElementById('cropBg').classList.contains('show')"));
     ev("배너_적용선택 = window.__origApply;");
     // 클램프: 이미지가 뷰포트를 항상 덮도록 tx는 0 이하, (Wv-dispW) 이상
-    ev("배너크롭_상태={natW:1000,natH:600,s0:0.7,z:1,tx:9999,ty:9999,Wv:700,Hv:320,dragging:false,px:0,py:0}; 배너크롭_클램프();");
-    assert('#5: 클램프 — tx 상한 0', ev("배너크롭_상태.tx") <= 0);
+    ev("이미지크롭_상태={natW:1000,natH:600,s0:0.7,z:1,tx:9999,ty:9999,Wv:700,Hv:320,dragging:false,px:0,py:0,대상:'배너'}; 이미지크롭_클램프();");
+    assert('#5: 클램프 — tx 상한 0', ev("이미지크롭_상태.tx") <= 0);
 
     /* ── 항목6·7: 카드 재편(교정 맨 위)·색 그룹·라벨·랜덤 포함 ── */
     const 카드들 = Array.from(doc.querySelectorAll('.hs .mc')).map(c=>(c.querySelector('.mc-name')||{}).textContent);

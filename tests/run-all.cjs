@@ -19,7 +19,8 @@ const 테스트들 = [
   ['세션10-d 6차 피드백', 'test-fixes-세션10d.cjs'],
   ['세션10-e 7차 피드백', 'test-fixes-세션10e.cjs'],
   ['세션10-f 모바일 피드백', 'test-fixes-세션10f.cjs'],
-  ['세션10-h 모바일 Enter 처리', 'test-fixes-세션10h.cjs']
+  ['세션10-h 모바일 Enter 처리', 'test-fixes-세션10h.cjs'],
+  ['세션10-i 배너 히트박스·프로필 크롭 재활용', 'test-fixes-세션10i.cjs']
 ];
 
 let 실패 = 0;
