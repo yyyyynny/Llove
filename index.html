@@ -1803,15 +1803,8 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
 
     <div class="set-sec fu s1">
       <div class="set-lbl">외관</div>
-      <div class="set-row" style="cursor:default">
-        <span class="sri">🌙</span>
-        <div style="flex:1"><div class="srl">화면 모드</div><div class="srs" id="modeSubTxt">다크 모드</div></div>
-        <div class="mtw">
-          <span class="ml" id="lblD" style="color:var(--acc);font-weight:700">다크</span>
-          <label class="mt"><input type="checkbox" id="modeToggle" onchange="toggleMode()"><div class="mtt"><div class="mtth"></div></div></label>
-          <span class="ml" id="lblL">라이트</span>
-        </div>
-      </div>
+      <!-- 세션10-k: 다크/라이트 토글 삭제 — 라이트 테마가 페이퍼 하나뿐이라 실질적으로 "페이퍼로 전환"
+           스위치에 불과했고, 아래 「테마 선택」 그리드와 기능이 겹쳐 정신모델 혼동만 유발(최고 관리자님 확정) -->
       <!-- 세션5 버그1: 「화면 크기」(구 글자 크기) — 앱 전체 zoom 배율. 저장·재실행 유지 -->
       <div class="set-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:9px">
         <div style="display:flex;align-items:center;gap:11px;width:100%">
@@ -2223,7 +2216,6 @@ let curExp=사용자.현재EXP, curLv=사용자.레벨;
 let curTheme='antique';
 // 버그D 수정: 'gowun'은 FONTS 배열에 없는 유령 키였음 → 기본 글꼴(나눔스퀘어 Neo) 실제 키로 교정 (KNOWLEDGE 8·19)
 let curFont='nanum_square';
-const LIGHTS=['paper'];
 
 // 레벨업 공식: 110 + (레벨-1) × 28
 // α3: 하급신 구간(Lv.36~46)은 ×1.123 적용 — 성장 정체 의도 (KNOWLEDGE 11)
@@ -6658,10 +6650,12 @@ function sendAsk(){
   inp.value='';
   inp.style.height='auto';  // 버그4: 전송 후 입력창 높이 초기화
   body.scrollTop=body.scrollHeight;
-  // 세션10-j: 창조주 미달성 상태에서 【】(창조주 키 문장 전용 특수기호, 앱 내 다른 곳엔 쓰이지 않음)가
-  // 포함된 메시지는 정확한 키와 완전히 일치하지 않아도(오타·부분 복사 등) 사실상 창조주 시도이므로,
-  // 화면엔 그대로 보여주되 정식 채팅 내역엔 저장하지 않는다(엉뚱한 조각글이 기록으로 남는 문제 방지).
-  const 창조주시도중 = !사용자.창조주달성 && /[【】]/.test(q);
+  // 세션10-j/k: 【】(창조주 키 문장 전용 특수기호, 앱 내 다른 곳엔 쓰이지 않음)가 포함된 메시지는
+  // 정확한 키와 완전히 일치하지 않아도(오타·부분 복사·재시도 등) 사실상 창조주 시도이므로, 화면엔
+  // 그대로 보여주되 정식 채팅 내역엔 저장하지 않는다. 창조주 달성 여부와 무관하게 항상 적용 —
+  // (세션10-j에서는 미달성 상태에만 한정했으나, 실기기 확인 결과 이미 달성한 계정에서 키 문장을
+  // 재입력(재확인·복사 오차 등)해도 매칭 실패 시 여전히 저장돼 같은 문제가 재현됨(세션10-k)).
+  const 창조주시도중 = /[【】]/.test(q);
   if(!창조주시도중) 채팅기록_추가메시지('나', q);  // 세션6 항목4: 대화 기록 축적
 
   if(!GROK_활성화){
@@ -6866,37 +6860,21 @@ function showToastMsg(msg){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   테마 / 모드 / 폰트 / 설정
+   테마 / 폰트 / 설정
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-// v3.7 항목17: 마지막 사용 다크·라이트 테마 각각 기억 (다크↔라이트↔다크 시 정확한 복원)
-let 마지막다크테마 = 'antique';  // 기본 다크
-let 마지막라이트테마 = 'paper'; // 기본 라이트
-
+// 세션10-k: 다크/라이트 토글 삭제로 마지막다크·마지막라이트 기억 로직 불필요해져 제거 —
+// 테마 선택은 이제 아래 「테마 선택」 그리드 단일 경로로만 이뤄짐(정신모델 단순화, 최고 관리자님 확정)
 function setTheme(name, 조용히){
   curTheme=name;
   document.body.setAttribute('data-theme',name);
   document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
   document.getElementById('th-'+name)?.classList.add('on');
-  const isLight=LIGHTS.includes(name);
-  // v3.7 항목17: 마지막 사용 테마 기억 (다크↔라이트 토글 시 정확한 복원에 사용)
-  if(isLight) 마지막라이트테마 = name;
-  else 마지막다크테마 = name;
-  document.getElementById('modeToggle').checked=isLight;
-  document.getElementById('lblL').style.cssText=isLight?'color:var(--acc);font-weight:700':'';
-  document.getElementById('lblD').style.cssText=isLight?'':'color:var(--acc);font-weight:700';
-  document.getElementById('modeSubTxt').textContent=isLight?'라이트 모드':'다크 모드';
   // 빌드1: plx_ 로컬 캐시 (새로고침 대비)
   try{ localStorage.setItem('plx_테마', name); }catch(e){ /* localStorage 차단 환경 무시 */ }
   if(조용히) return;  // 초기 로드·Firestore 복원 시: 토스트·저장 생략
   사용자.테마 = name;
   사용자데이터_저장({테마: name});  // Firestore 설정 동기화 (KNOWLEDGE 13-1)
   showToastMsg('테마 변경: '+name);
-}
-function toggleMode(){
-  const isLight=document.getElementById('modeToggle').checked;
-  // v3.7 항목17: 강제 antique/paper 대신 마지막 기억된 테마로 복원
-  if(isLight) setTheme(마지막라이트테마);
-  else setTheme(마지막다크테마);
 }
 
 /* 세션5 버그1: 「화면 크기」·「글자 크기」 분리 (KNOWLEDGE — 사용자 검토 지시)
