@@ -66,7 +66,7 @@ js/           ← 로직 23개 파일, 합계 6,163줄 (아래 "JS 분할 구조
 ```
 data/                     # 게임 콘텐츠 JSON 7종 (정령왕_통합_v2 + 모드 DB 6종)
 docs/                     # 작업보고서·가이드
-scripts/                  # 배포 전 점검, 인라인 JS 검사
+scripts/                  # 배포 전 점검, js/*.js 문법 검사
 tests/                    # 테스트 코드 (.cjs)
 README.md                 # 저장소 개요
 언어_KNOWLEDGE_v5.md       # 전체 설계 문서
