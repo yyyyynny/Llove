@@ -6658,7 +6658,11 @@ function sendAsk(){
   inp.value='';
   inp.style.height='auto';  // 버그4: 전송 후 입력창 높이 초기화
   body.scrollTop=body.scrollHeight;
-  채팅기록_추가메시지('나', q);  // 세션6 항목4: 대화 기록 축적
+  // 세션10-j: 창조주 미달성 상태에서 【】(창조주 키 문장 전용 특수기호, 앱 내 다른 곳엔 쓰이지 않음)가
+  // 포함된 메시지는 정확한 키와 완전히 일치하지 않아도(오타·부분 복사 등) 사실상 창조주 시도이므로,
+  // 화면엔 그대로 보여주되 정식 채팅 내역엔 저장하지 않는다(엉뚱한 조각글이 기록으로 남는 문제 방지).
+  const 창조주시도중 = !사용자.창조주달성 && /[【】]/.test(q);
+  if(!창조주시도중) 채팅기록_추가메시지('나', q);  // 세션6 항목4: 대화 기록 축적
 
   if(!GROK_활성화){
     // 크레딧 미구매 단계: 호출·토큰 차감 없이 안내만 출력
@@ -6672,7 +6676,7 @@ function sendAsk(){
       body.appendChild(a);
       body.scrollTop=body.scrollHeight;
       // 세션10-d 항목2: 요약 라벨이 아니라 화면에 뿌린 안내문 그대로 저장(태그만 개행으로 치환한 순수 텍스트)
-      채팅기록_추가메시지('AI', 안내.replace(/<br\s*\/?>/gi,'\n'));
+      if(!창조주시도중) 채팅기록_추가메시지('AI', 안내.replace(/<br\s*\/?>/gi,'\n'));
     },400);
     return;
   }
@@ -6715,10 +6719,10 @@ function sendAsk(){
       // 이의있음! 버튼은 답변 생성 후에만 노출 (KNOWLEDGE 5 표시 조건)
       a.innerHTML = 사고블록 + res.답변 + '<br><br><button class="ask-objection-btn" onclick="openObj()">⚖️ 이의있음!</button>';
       // 세션10-d 항목2: 가공 라벨 없이 순수 텍스트(사고전개 있으면 답변 위에 그대로) 저장
-      채팅기록_추가메시지('AI', (res.사고전개 ? res.사고전개 + '\n\n' : '') + res.답변);
+      if(!창조주시도중) 채팅기록_추가메시지('AI', (res.사고전개 ? res.사고전개 + '\n\n' : '') + res.답변);
     } else {
       a.textContent = UI_TEXT.rate_limit.문구;
-      채팅기록_추가메시지('AI', UI_TEXT.rate_limit.문구);
+      if(!창조주시도중) 채팅기록_추가메시지('AI', UI_TEXT.rate_limit.문구);
     }
     body.appendChild(a);
     body.scrollTop=body.scrollHeight;
