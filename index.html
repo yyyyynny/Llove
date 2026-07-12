@@ -369,6 +369,10 @@ html{scrollbar-gutter:stable}
 .onum{width:26px;height:26px;background:var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--txt2);flex-shrink:0;transition:background .2s,color .2s}
 .aopt.correct .onum{background:var(--ok);color:#fff}
 .aopt.wrong .onum{background:var(--err);color:#fff}
+/* 세션10-n: 문장 배열(sq7) — 판정 전 "탭해서 순번 배정"한 상태(재탭하면 취소 가능). 정답/오답과는
+   구분되는 중립색(--acc)만 써서 아직 채점 전임을 분명히 한다. */
+.aopt.picked{border-color:var(--acc)}
+.aopt.picked .onum{background:var(--acc);color:#fff}
 .otxt{font-size:14px;font-weight:500;line-height:1.5}
 .exp-gain{background:rgba(184,149,106,.08);border:1px solid rgba(184,149,106,.22);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
 .egl{font-size:13px;color:var(--txt2)}
@@ -432,6 +436,7 @@ html{scrollbar-gutter:stable}
 .syn-result-reason{color:var(--txt2);font-size:12px;line-height:1.65;background:rgba(224,144,96,.08);border-left:2px solid var(--warn);padding:7px 10px;border-radius:5px;margin-top:6px}
 .syn-actions{display:flex;gap:6px;margin-top:12px}
 .syn-actions .btn-g, .syn-actions .btn-acc{flex:1;padding:10px;font-size:13px}
+.btn-acc.dim{opacity:.45;pointer-events:none}
 /* 버그3 수정: 선택 후 4개 보기 전부의 설명을 나열 공개 */
 .syn-result-all{margin-top:4px}
 .syn-result-item{padding-top:9px;margin-top:9px;border-top:1px solid var(--bdr)}
@@ -4688,39 +4693,67 @@ function 문장배열_렌더(){
   body.innerHTML = `
     <div class="syn-card">
       <div class="rc-tag">문장 배열</div>
-      <div class="modal-desc" style="font-size:11px;margin-bottom:10px">읽히는 순서대로 문장을 하나씩 탭하세요.</div>
+      <div class="modal-desc" style="font-size:11px;margin-bottom:10px">읽히는 순서대로 문장을 탭하세요(다시 탭하면 취소). 다 배치했으면 제출하세요.</div>
       <div class="aopts" id="sq7Opts">
-        ${순서.map((원본idx,i)=>`<div class="aopt" style="animation-delay:${.05*(i+1)}s" data-원본="${원본idx}" onclick="문장배열_탭(this)"><div class="onum"></div><div class="otxt">${항목.문장들[원본idx]}</div></div>`).join('')}
+        ${순서.map(원본idx=>`<div class="aopt" data-원본="${원본idx}" onclick="문장배열_탭(this)"><div class="onum"></div><div class="otxt">${항목.문장들[원본idx]}</div></div>`).join('')}
       </div>
-      <div class="syn-actions" id="sq7Reset"><button class="btn-g" style="flex:1" onclick="문장배열_초기화()">↺ 다시 배치</button></div>
+      <div class="syn-actions" id="sq7Actions">
+        <button class="btn-g" style="flex:1" onclick="문장배열_초기화()">↺ 다시 배치</button>
+        <button class="btn-acc dim" id="sq7SubmitBtn" style="flex:1" onclick="문장배열_제출()">제출하기</button>
+      </div>
       <div class="syn-result" id="sq7Result"></div>
       <div class="syn-actions" id="sq7NextActions" style="display:none"><button class="btn-acc" onclick="문장배열_렌더()">다음 문제 →</button></div>
     </div>
   `;
 }
+// 이미 순번이 매겨진 문장을 다시 탭하면 그 배치를 취소(splice)하고, 뒤 문장들의 순번을 당겨서 다시 매긴다.
 function 문장배열_탭(el){
   const st = 문장배열_상태;
   if(!st.item || el.classList.contains('disabled')) return;
   const 원본idx = parseInt(el.dataset.원본, 10);
-  st.탭순서.push(원본idx);
-  el.querySelector('.onum').textContent = st.탭순서.length;
-  el.classList.add('disabled');
-  if(st.탭순서.length === st.item.문장들.length) 문장배열_판정();
+  const 위치 = st.탭순서.indexOf(원본idx);
+  if(위치 === -1){
+    if(st.탭순서.length >= st.item.문장들.length) return;  // 방어 — 이미 다 찼으면 무시
+    st.탭순서.push(원본idx);
+  } else {
+    st.탭순서.splice(위치, 1);  // 재탭 = 배치 취소
+  }
+  문장배열_번호갱신();
+}
+// 탭 순서열을 바탕으로 번호 배지·「picked」 표시·제출 버튼 활성 상태를 다시 그린다.
+function 문장배열_번호갱신(){
+  const st = 문장배열_상태;
+  document.querySelectorAll('#sq7Opts .aopt').forEach(el=>{
+    const 원본idx = parseInt(el.dataset.원본, 10);
+    const 위치 = st.탭순서.indexOf(원본idx);
+    el.classList.toggle('picked', 위치 !== -1);
+    el.querySelector('.onum').textContent = 위치 === -1 ? '' : (위치 + 1);
+  });
+  const 제출버튼 = document.getElementById('sq7SubmitBtn');
+  if(제출버튼) 제출버튼.classList.toggle('dim', st.탭순서.length !== st.item.문장들.length);
 }
 function 문장배열_초기화(){
   const st = 문장배열_상태;
   if(!st.item) return;
   st.탭순서 = [];
-  document.querySelectorAll('#sq7Opts .aopt').forEach(el=>{
-    el.classList.remove('disabled','correct','wrong');
-    el.querySelector('.onum').textContent = '';
-  });
+  문장배열_번호갱신();
+}
+// 4개 전부 배치했을 때만(제출 버튼이 활성 상태일 때만) 실제 판정으로 넘어간다.
+function 문장배열_제출(){
+  const st = 문장배열_상태;
+  if(!st.item || st.탭순서.length !== st.item.문장들.length) return;
+  문장배열_판정();
 }
 function 문장배열_판정(){
   const st = 문장배열_상태, item = st.item;
-  document.getElementById('sq7Reset').style.display = 'none';
+  document.getElementById('sq7Actions').style.display = 'none';
   const 전체정답 = st.탭순서.every((v,i)=>v===i);
+  // 세션10-n: 이전엔 렌더 시 넣어둔 inline animation-delay(fadeUp 등장 연출용)가 여기서 그대로
+  // 남아있어 correctPop/shakeLR 판정 애니메이션까지 문장마다 0.05~0.2초씩 밀려 시작되며 어색하게
+  // 보였다 — 렌더 단계에서 inline delay 자체를 넣지 않도록 고쳐(CSS .aopt:nth-child가 이미 등장
+  // 연출을 담당) 판정 애니메이션이 4개 전부 동시에 자연스럽게 재생되도록 함.
   document.querySelectorAll('#sq7Opts .aopt').forEach(el=>{
+    el.classList.add('disabled');
     const 원본idx = parseInt(el.dataset.원본, 10);
     const 사용자위치 = st.탭순서.indexOf(원본idx);
     el.classList.add(사용자위치 === 원본idx ? 'correct' : 'wrong');
