@@ -40,6 +40,38 @@ load((window) => {
   assert('지문 독해(sq6): 마스터리 카운터 증가(문해력학습수)', ev('사용자.문해력학습수||0') > 0);
   assert('지문 독해(sq6): 다음 지문 버튼 존재(이의있음 없음)', doc.getElementById('sq6RcActions').innerHTML.includes('독해_렌더') && !doc.getElementById('sq6RcActions').innerHTML.includes('openObj'));
 
+  // 세션10-m: 문장 배열(sq7) — 뒤섞인 문장을 탭한 순서대로 배치, 원본 인덱스열이 [0..N-1]이면 정답
+  ev("goLearn('문장 배열','sq7',null);");
+  let sq7Opts = doc.querySelectorAll('#sq7Opts .aopt');
+  assert('문장 배열(sq7): 문장 4개 렌더', sq7Opts.length === 4);
+  assert('문장 배열(sq7): 초기엔 번호 배지 비어있음', Array.from(sq7Opts).every(x => x.querySelector('.onum').textContent === ''));
+
+  // 정답 순서대로(원본 인덱스 0→1→2→3) 탭
+  const sq7exp0 = ev('사용자.총누적EXP||0');
+  for (let i = 0; i < 4; i++) {
+    ev(`document.querySelector('#sq7Opts .aopt[data-원본="${i}"]').click();`);
+  }
+  assert('문장 배열(sq7): 정답 순서 탭 시 전부 .correct', doc.querySelectorAll('#sq7Opts .aopt.correct').length === 4);
+  assert('문장 배열(sq7): 정답 순서 탭 시 EXP 획득', ev('사용자.총누적EXP||0') > sq7exp0);
+  assert('문장 배열(sq7): 마스터리 카운터 증가(문해력학습수)', ev('사용자.문해력학습수||0') > 0);
+  assert('문장 배열(sq7): 다음 문제 버튼 노출', doc.getElementById('sq7NextActions').style.display === 'flex');
+
+  // 새 인스턴스에서 일부러 틀린 순서(역순)로 탭 → 일부 오답 표시 + 정답 순서 텍스트 노출
+  ev("문장배열_렌더();");
+  for (let i = 3; i >= 0; i--) {
+    ev(`document.querySelector('#sq7Opts .aopt[data-원본="${i}"]').click();`);
+  }
+  assert('문장 배열(sq7): 역순 탭 시 오답(.wrong) 존재', doc.querySelectorAll('#sq7Opts .aopt.wrong').length > 0);
+  assert('문장 배열(sq7): 오답 시 결과 패널에 정답 순서 문장 나열', doc.getElementById('sq7Result').innerHTML.includes('1. '));
+
+  // 탭 도중 "다시 배치" — 상태 초기화 확인
+  ev("문장배열_렌더();");
+  ev(`document.querySelector('#sq7Opts .aopt[data-원본="0"]').click();`);
+  ev("문장배열_초기화();");
+  sq7Opts = doc.querySelectorAll('#sq7Opts .aopt');
+  assert('문장 배열(sq7): "다시 배치" 후 번호 배지 초기화', Array.from(sq7Opts).every(x => x.querySelector('.onum').textContent === ''));
+  assert('문장 배열(sq7): "다시 배치" 후 disabled 해제', Array.from(sq7Opts).every(x => !x.classList.contains('disabled')));
+
   // 세션10-c 항목1: 예문형 근사 정답 시 지문 독해 유도 넛지 노출 확인 (정답/오답 시엔 미노출)
   ev(`유의어출제풀=[{예문:'그는 [ ] 결정을 내렸다.',correct:{w:'단호한',def:'망설임 없이'},acceptable:[{w:'과감한',def:'용감히',이유:'유사'}],wrong:[{w:'우유부단한',def:''},{w:'느긋한',def:''}],reasoning_note:''}]; 학습설정.sq2='예문형'; sq2_출제_렌더('고사성어·속담');`);
   ev(`예문형_선택('sq2Body', document.querySelector('#sq2Body .syn-opt[data-kind="acceptable"]'));`);

@@ -144,6 +144,7 @@ html{scrollbar-gutter:stable}
 .s1{animation-delay:.05s}.s2{animation-delay:.10s}.s3{animation-delay:.15s}
 .s4{animation-delay:.20s}.s5{animation-delay:.25s}.s6{animation-delay:.30s}
 .s7{animation-delay:.35s}.s8{animation-delay:.40s}.s9{animation-delay:.45s}
+.s10{animation-delay:.50s}
 
 .screen{display:none;position:fixed;inset:0;flex-direction:column;overflow-y:auto;overflow-x:hidden;z-index:10}
 .screen.active{display:flex}
@@ -1341,10 +1342,12 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
     <div class="mc fu s6 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
     <div class="mc-glabel" style="--gl:var(--ok)">📖 문해</div>
     <div class="mc fu s7 mc-g3" onclick="goLearn('지문 독해','sq6',null)"><div class="mc-icon">📖</div><div style="flex:1"><div class="mc-name">지문 독해</div><div class="mc-desc">짧은 글 읽고 요지·추론 파악 · 문해력</div></div><div class="mc-arrow">›</div></div>
+    <!-- 세션10-m: 문해력 2탄(D안) — 뒤섞인 문장을 원래 순서대로 탭해 배치 -->
+    <div class="mc fu s8 mc-g3" onclick="goLearn('문장 배열','sq7',null)"><div class="mc-icon">🧩</div><div style="flex:1"><div class="mc-name">문장 배열</div><div class="mc-desc">뒤섞인 문장을 순서대로 · 문해력</div></div><div class="mc-arrow">›</div></div>
     <div class="mc-glabel" style="--gl:var(--err)">😂 재미</div>
-    <div class="mc fu s8 mc-g5" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon">😂</div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s9 mc-g5" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon">😂</div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
     <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 / 세션7 항목8: ⚙ = 모드별 확률·제외 설정 -->
-    <div class="mc fu s9" style="border-style:dashed;margin-top:12px" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()">⚙</span><div class="mc-arrow">›</div></div>
+    <div class="mc fu s10" style="border-style:dashed;margin-top:12px" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()">⚙</span><div class="mc-arrow">›</div></div>
   </div>
 </div>
 
@@ -1426,6 +1429,40 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
     <div class="tkb-drop"></div>
   </div>
   <div class="qbody" id="sq6Body">
+    <!-- JS로 동적 생성 -->
+  </div>
+  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
+  <!-- 학습 화면 하단 AI 챗 -->
+  <div style="padding:10px 18px 4px;flex-shrink:0">
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
+      <span style="font-size:14px">💬</span>
+      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ④-7 세션10-m: 문장 배열(문해력 2탄, D안) — 뒤섞인 문장을 탭한 순서대로 배치, 방식 옵션 없어 설정 패널 생략 -->
+<div id="sq7" class="screen demo-offset has-bnav">
+  <div class="top-bar">
+    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
+    <div class="tbt" id="sq7Title">문장 배열</div>
+    <div class="tag ta">+20</div>
+  </div>
+  <div class="qprog-wrap">
+    <div class="qpr-top"><div class="qmb" id="sq7Mode">🧩 문장 배열</div><div class="qct">1 / 5 문제</div></div>
+    <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
+  </div>
+  <div class="tkb" onclick="토큰드롭다운_토글(this)">
+    <div class="tkb-row">
+      <span class="tkb-icon">💎</span>
+      <div class="tkb-bar"><div class="tkb-fill"></div></div>
+      <span class="tkb-val">- / 1,500</span>
+      <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
+    </div>
+    <div class="tkb-drop"></div>
+  </div>
+  <div class="qbody" id="sq7Body">
     <!-- JS로 동적 생성 -->
   </div>
   <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
@@ -2408,6 +2445,8 @@ function 예문데이터_로드(){
       if(Array.isArray(d.구어_교정) && d.구어_교정.length) 구어교정풀 = d.구어_교정;
       // 세션10-c: 지문 독해 — 키 없으면 무해(정적 임시 표본 4건 유지)
       if(Array.isArray(d.지문_독해) && d.지문_독해.length) 지문독해풀 = d.지문_독해;
+      // 세션10-m: 문장 배열 — 키 없으면 무해(정적 임시 표본 3건 유지)
+      if(Array.isArray(d.문장_배열) && d.문장_배열.length) 문장배열풀 = d.문장_배열;
       // 홈 화면이 이미 떠 있으면 슬라이드 즉시 재빌드
       if(curScreen==='sh') 슬라이드빌드();
       구어교정_예문표시();
@@ -2427,9 +2466,9 @@ function 모드DB_로드(){
 
 /* 바텀 네비 */
 /* 바텀 네비 표시 화면 목록 */
-const SHOW_NAV=['sh','sq1','sq2','sq3','sq4','sq5','sq6','sr','sa','ss','sse','sg'];
+const SHOW_NAV=['sh','sq1','sq2','sq3','sq4','sq5','sq6','sq7','sr','sa','ss','sse','sg'];
 /* 바텀 네비 활성 매핑 (학습 모드는 모두 '홈' 강조, sg는 현황 탭 강조) */
-const NAV_MAP={'sh':'nb-sh','sr':'nb-sr','sa':'nb-sa','ss':'nb-ss','sse':'nb-sse','sg':'nb-ss','sq1':'nb-sh','sq2':'nb-sh','sq3':'nb-sh','sq4':'nb-sh','sq5':'nb-sh','sq6':'nb-sh'};
+const NAV_MAP={'sh':'nb-sh','sr':'nb-sr','sa':'nb-sa','ss':'nb-ss','sse':'nb-sse','sg':'nb-ss','sq1':'nb-sh','sq2':'nb-sh','sq3':'nb-sh','sq4':'nb-sh','sq5':'nb-sh','sq6':'nb-sh','sq7':'nb-sh'};
 /* (v3.4 미사용) FAB 표시 대상 학습 화면 — FAB 제거됐으나 호환용 보존 */
 const ASK_FAB_SCREENS=['sq1','sq2','sq3','sq4','sq5'];
 
@@ -2684,6 +2723,12 @@ function goLearn(category, screenId, btn){
     document.getElementById('sq6Mode').textContent='📖 지문 독해';
     독해_렌더();
   }
+  // 세션10-m: 문장 배열(sq7) — 문해력 2탄(D안), 방식 옵션 없음
+  if(screenId==='sq7'){
+    document.getElementById('sq7Title').textContent=category;
+    document.getElementById('sq7Mode').textContent='🧩 문장 배열';
+    문장배열_렌더();
+  }
 }
 
 // 세션10-e 항목3: 랜덤 「넘어가기」 — 화면 전환·타이틀·세션 리셋 없이 같은 모드에서 문제만 다시 뽑는다.
@@ -2705,6 +2750,8 @@ function 현재모드_다음출제(){
     구어교정_예문표시();
   } else if(화면==='sq6'){
     독해_렌더();
+  } else if(화면==='sq7'){
+    문장배열_렌더();
   }
 }
 function 랜덤넘어가기_표시(보임){
@@ -2757,7 +2804,8 @@ function 동기화_학습설정_버튼(screenId, _현재값){
 const 랜덤학습_모드목록 = [
   ['상식·어원','sq1'], ['고사성어·속담','sq2'], ['세계사·신화','sq1'],
   ['아재개그','sq4'], ['한자·우리말','sq2'], ['맞춤법','sq3'], ['구어 교정','sq5'],
-  ['지문 독해','sq6']  // 세션10-d 항목7: 랜덤에도 문해력 모드 포함
+  ['지문 독해','sq6'],  // 세션10-d 항목7: 랜덤에도 문해력 모드 포함
+  ['문장 배열','sq7']  // 세션10-m: 문해력 2탄(D안)도 랜덤에 포함
 ];
 let 랜덤진입 = false;  // 세션10-e 항목3: 랜덤으로 들어왔을 때만 하단 「넘어가기」 노출
 /* 세션7 항목8: 랜덤 설정 — 모드별 가중치(0=제외/1/2/3), plx_랜덤설정+Firestore 영속 */
@@ -3700,7 +3748,8 @@ const 모드_마스터리맵 = {
   '상식·어원':'상식어원학습수', '세계사·신화':'세계사신화학습수',
   '고사성어·속담':'언어의뿌리학습수', '한자·우리말':'언어의뿌리학습수',
   '맞춤법':'맞춤법학습수', '아재개그':'아재개그학습수', '구어 교정':'구어교정횟수',
-  '지문 독해':'문해력학습수'  // 세션10-c: 문해력 모드 — 전용 카운터
+  '지문 독해':'문해력학습수',  // 세션10-c: 문해력 모드 — 전용 카운터
+  '문장 배열':'문해력학습수'  // 세션10-m: 문해력 2탄(D안) — 지문 독해와 카운터 공유
 };
 
 // β9: 출제 확률 결정 — DB 40% / AI 60%, 「AI 문제만」 ON 시 항상 AI (KNOWLEDGE 4)
@@ -4589,6 +4638,108 @@ function 독해_선택(btn){
   연속정답처리(정답여부);
   if(현재학습모드필드) 마스터리증가(현재학습모드필드);
   세션결과_기록(정답여부);
+}
+
+/* 세션10-m: 문해력 2탄 — 문장 배열(D안). 뒤섞인 문장을 탭한 순서대로 배치해 원래(정답) 순서를 맞춘다.
+   드래그 대신 "순서대로 탭 → 번호 배지" 방식(.aopt/.onum 재사용) — 모바일 안정성 우선.
+   문장들은 정답 순서로 저장하고 화면에서만 셔플 — 탭한 원본 인덱스열이 [0..N-1]이면 정답.
+   data/문장배열.json이 채워지면 그 풀로 교체 예정(지문독해풀과 동일 관리 방침). */
+let 문장배열풀 = [
+  {
+    문장들: [
+      '회사는 신제품 출시를 앞두고 대대적인 광고를 준비했다.',
+      '그러나 출시 하루 전, 핵심 부품 공급에 문제가 생겼다.',
+      '결국 출시일은 급하게 2주 연기되었다.',
+      '소비자들 사이에서는 아쉬움과 함께 기대감이 오히려 커졌다.'
+    ],
+    해설: '"그러나"가 준비 단계에서 문제 발생으로의 전환을, "결국"이 그 문제의 결과(연기)를 나타내고, 마지막 문장은 연기 이후의 반응입니다 — 이 순서를 벗어나면 인과관계가 성립하지 않습니다.'
+  },
+  {
+    문장들: [
+      '아이는 처음 자전거에 올라탔을 때 몇 번이고 넘어졌다.',
+      '그때마다 아버지는 묵묵히 자전거를 다시 세워주었다.',
+      '몇 주가 지나자 아이는 혼자서도 균형을 잡을 수 있게 되었다.',
+      '그날 저녁, 아이는 동네 한 바퀴를 씽씽 달리며 웃었다.'
+    ],
+    해설: '"그때마다"는 앞 문장(넘어짐)을 전제로 하고, "몇 주가 지나자"는 시간이 흐른 뒤의 성장을, "그날 저녁"은 그 성장의 결실을 보여주는 마지막 장면입니다.'
+  },
+  {
+    문장들: [
+      '가뭄이 계속되자 저수지의 물이 눈에 띄게 줄어들었다.',
+      '농민들은 남은 물을 아끼려 순서를 정해 밭에 물을 댔다.',
+      '그럼에도 작물 일부는 말라 죽는 것을 피하지 못했다.',
+      '다행히 다음 달 초, 오랜만에 단비가 내리며 사정이 나아졌다.'
+    ],
+    해설: '"그럼에도"는 대응(순서를 정해 물 대기)에도 불구하고 피해가 있었음을, "다행히"는 그 뒤에 상황이 호전됐음을 나타내는 연결어라 순서가 고정됩니다.'
+  }
+];
+let 문장배열_상태 = {item:null, 표시순서:[], 탭순서:[]};
+
+function 문장배열_렌더(){
+  if(!문장배열풀.length) return;
+  const body = document.getElementById('sq7Body');
+  if(!body) return;
+  const 항목 = 문장배열풀[Math.floor(Math.random()*문장배열풀.length)];
+  let 순서 = 항목.문장들.map((_,i)=>i);
+  do{ // 셔플이 우연히 정답 순서와 같으면 재셔플(4문장 기준이라 드물지 않아 방지)
+    for(let k=순서.length-1;k>0;k--){ const j=Math.floor(Math.random()*(k+1)); [순서[k],순서[j]]=[순서[j],순서[k]]; }
+  }while(순서.every((v,i)=>v===i));
+  문장배열_상태 = {item:항목, 표시순서:순서, 탭순서:[]};
+  body.innerHTML = `
+    <div class="syn-card">
+      <div class="rc-tag">문장 배열</div>
+      <div class="modal-desc" style="font-size:11px;margin-bottom:10px">읽히는 순서대로 문장을 하나씩 탭하세요.</div>
+      <div class="aopts" id="sq7Opts">
+        ${순서.map((원본idx,i)=>`<div class="aopt" style="animation-delay:${.05*(i+1)}s" data-원본="${원본idx}" onclick="문장배열_탭(this)"><div class="onum"></div><div class="otxt">${항목.문장들[원본idx]}</div></div>`).join('')}
+      </div>
+      <div class="syn-actions" id="sq7Reset"><button class="btn-g" style="flex:1" onclick="문장배열_초기화()">↺ 다시 배치</button></div>
+      <div class="syn-result" id="sq7Result"></div>
+      <div class="syn-actions" id="sq7NextActions" style="display:none"><button class="btn-acc" onclick="문장배열_렌더()">다음 문제 →</button></div>
+    </div>
+  `;
+}
+function 문장배열_탭(el){
+  const st = 문장배열_상태;
+  if(!st.item || el.classList.contains('disabled')) return;
+  const 원본idx = parseInt(el.dataset.원본, 10);
+  st.탭순서.push(원본idx);
+  el.querySelector('.onum').textContent = st.탭순서.length;
+  el.classList.add('disabled');
+  if(st.탭순서.length === st.item.문장들.length) 문장배열_판정();
+}
+function 문장배열_초기화(){
+  const st = 문장배열_상태;
+  if(!st.item) return;
+  st.탭순서 = [];
+  document.querySelectorAll('#sq7Opts .aopt').forEach(el=>{
+    el.classList.remove('disabled','correct','wrong');
+    el.querySelector('.onum').textContent = '';
+  });
+}
+function 문장배열_판정(){
+  const st = 문장배열_상태, item = st.item;
+  document.getElementById('sq7Reset').style.display = 'none';
+  const 전체정답 = st.탭순서.every((v,i)=>v===i);
+  document.querySelectorAll('#sq7Opts .aopt').forEach(el=>{
+    const 원본idx = parseInt(el.dataset.원본, 10);
+    const 사용자위치 = st.탭순서.indexOf(원본idx);
+    el.classList.add(사용자위치 === 원본idx ? 'correct' : 'wrong');
+  });
+  const 헤더 = 전체정답
+    ? `<div class="syn-result-title ok">✅ 정답입니다</div>`
+    : `<div class="syn-result-title err">✗ 순서가 틀렸습니다</div>`;
+  const 정답나열 = item.문장들.map((s,i)=>`${i+1}. ${s}`).join('<br>');
+  const resultEl = document.getElementById('sq7Result');
+  resultEl.innerHTML = 헤더 + `<div class="syn-result-def" style="margin-top:8px">${정답나열}</div>` +
+    (item.해설 ? `<div class="syn-result-reason">${item.해설}</div>` : '');
+  resultEl.classList.add('show');
+  document.getElementById('sq7NextActions').style.display = 'flex';
+
+  // 빌드1: 실제 EXP·마스터리 반영 — 전체 정답 시에만 +20(부분 정답 개념 없음, 지문 독해와 동일 규모)
+  if(전체정답) EXP획득(20, '문장 배열 정답');
+  연속정답처리(전체정답);
+  if(현재학습모드필드) 마스터리증가(현재학습모드필드);
+  세션결과_기록(전체정답);
 }
 
 function initFlashcard(){
