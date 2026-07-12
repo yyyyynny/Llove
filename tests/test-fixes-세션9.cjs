@@ -24,21 +24,21 @@ load((window) => {
   assert('구글 버튼에 실제 SVG 로고', !!doc.querySelector('.btn-google svg'));
 
   /* ── ③ 학습 콘텐츠 맥락화 ── */
-  // sq2 기본값이 이제 유의어 변별(맥락형)
-  assert('sq2 기본값 = 유의어 변별', ev('학습설정.sq2') === '유의어 변별');
+  // sq2 기본값이 이제 예문형(맥락형) — 세션10: 옵션명 "유의어 변별"→"예문형" 통일
+  assert('sq2 기본값 = 예문형', ev('학습설정.sq2') === '예문형');
   const sq2on = Array.from(doc.querySelectorAll('#lsetSq2 .lset-opt')).find(b=>b.classList.contains('on'));
-  assert('sq2 버튼 UI 기본 on = 유의어 변별', sq2on && sq2on.textContent.trim() === '유의어 변별');
+  assert('sq2 버튼 UI 기본 on = 예문형', sq2on && sq2on.textContent.trim() === '예문형');
 
-  // 유의어 변별 — 기존 동작이 리팩터링 후에도 그대로 (엔진 일반화 회귀 확인)
+  // 예문형 — 기존 동작이 리팩터링 후에도 그대로 (엔진 일반화 회귀 확인)
   ev("유의어출제풀=[{예문:'그 일은 [ ] 결과였다.', correct:{w:'필연',def:'반드시 그리됨'}, acceptable:[{w:'숙명',def:'정해진 운명',reason:'유사'}], wrong:[{w:'우연',def:'뜻밖의 일'},{w:'추측',def:'짐작'}]}];");
   ev("sq2_출제_렌더('고사성어·속담');");
-  assert('유의어 변별: 보기 4개 렌더', doc.querySelectorAll('#sq2Body .syn-opt').length === 4);
+  assert('예문형: 보기 4개 렌더', doc.querySelectorAll('#sq2Body .syn-opt').length === 4);
   const 정답버튼 = Array.from(doc.querySelectorAll('#sq2Body .syn-opt')).find(b=>b.dataset.kind==='correct');
   const exp0 = ev('사용자.총누적EXP||0');
   ev(`예문형_선택('sq2Body', document.querySelector('#sq2Body .syn-opt[data-kind="correct"]'));`);
-  assert('유의어 변별: 정답 선택 시 EXP 획득(엔진 일반화 후에도 정상)', ev('사용자.총누적EXP||0') > exp0);
-  assert('유의어 변별: 이의있음 버튼(컨텍스트 synonym) 유지', doc.getElementById('sq2BodySynActions').innerHTML.includes("openObj('synonym')"));
-  assert('유의어 변별: 재클릭 방지 가드 유지', doc.getElementById('sq2BodySynResult').classList.contains('show'));
+  assert('예문형: 정답 선택 시 EXP 획득(엔진 일반화 후에도 정상)', ev('사용자.총누적EXP||0') > exp0);
+  assert('예문형: 이의있음 버튼(컨텍스트 synonym) 유지', doc.getElementById('sq2BodySynActions').innerHTML.includes("openObj('synonym')"));
+  assert('예문형: 재클릭 방지 가드 유지', doc.getElementById('sq2BodySynResult').classList.contains('show'));
 
   // 신규: sq1 예문형 옵션
   assert('sq1에 예문형 버튼 추가됨', Array.from(doc.querySelectorAll('#lsetSq1 .lset-opt')).some(b=>(b.getAttribute('onclick')||'').includes("'sq1','예문형'")));

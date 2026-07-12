@@ -78,7 +78,7 @@ load((window) => {
   /* ── #7 랜덤 학습 ── */
   assert('#7: 홈에 랜덤 카드', Array.from(doc.querySelectorAll('.mc')).some(c=>(c.getAttribute('onclick')||'').includes('랜덤학습')));
   ev('랜덤학습();');
-  assert('#7: 랜덤 진입 시 유효 학습 화면', ['sq1','sq2','sq3','sq4','sq5'].includes(ev('curScreen')), `curScreen=${ev('curScreen')}`);
+  assert('#7: 랜덤 진입 시 유효 학습 화면', ['sq1','sq2','sq3','sq4','sq5','sq6','sq7'].includes(ev('curScreen')), `curScreen=${ev('curScreen')}`);  // 세션10-m: 문장 배열(sq7) 포함
   assert('#7: 카테고리 설정됨', ev('랜덤학습_모드목록.some(m=>m[0]===현재학습모드)') === true);
 
   /* ── #8 학습 모드 강조 ── */
