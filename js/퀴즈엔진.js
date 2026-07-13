@@ -51,36 +51,14 @@ function 다음문제(){
   else renderQuiz4(현재퀴즈풀);
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   퀴즈 데이터
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const QUIZ_COMMON=[
-  {ai:true, cat:'상식', q:'악수의 기원은 다음 중 무엇입니까?', opts:[
-    {t:'결투 신청을 알리는 의식', c:false},
-    {t:'무기를 들고 있지 않다는 것을 보여주는 인사', c:true},
-    {t:'고대 화폐를 교환하던 풍습', c:false},
-    {t:'왕에게 충성을 맹세하던 절차', c:false}
-  ]}
-];
-const QUIZ_HISTORY=[
-  {ai:false, cat:'신화', q:'그리스 신화에서 세이렌(Siren)은 어떤 존재로 묘사됩니까?', opts:[
-    {t:'바다의 폭풍을 다스리는 여신', c:false},
-    {t:'아름다운 노래로 선원들을 유혹해 파멸시키는 존재', c:true},
-    {t:'신들의 전령을 맡은 정령', c:false},
-    {t:'태양을 끌어올리는 거인족', c:false}
-  ]}
-];
-const QUIZ_SPELL=[
-  {cat:'맞춤법', q:'"그렇게 하면 (&nbsp;&nbsp;&nbsp;&nbsp;) 않아?"', hint:'괄호 안에 들어갈 알맞은 표현을 고르세요.', opts:[
-    {t:'되지', c:true},
-    {t:'돼지', c:false},
-    {t:'됀지', c:false},   /* 세션7 항목7: 4지선다 통일 — 보기 4개로 확장 */
-    {t:'대지', c:false}
-  ]}
-];
+/* 재구조화 이후 정리: QUIZ_COMMON·QUIZ_HISTORY·QUIZ_SPELL(각 1건, data/ DB 빈 파일 시절의
+   정적 폴백)은 data/상식어원.json·세계사신화.json·맞춤법.json에 이전 완료(각 81번째 항목).
+   출제_분기()의 정적폴백 인자를 []로 낮췄으므로, 아래 렌더 함수들은 빈 배열을 안전하게
+   처리해야 한다(fetch 실패·초기 로드 지연 시 대비). */
 
 /* 4지선다 렌더 — 상식·어원, 세계사·신화 공용 */
 function renderQuiz4(data){
+  if(!data || !data.length){ showToastMsg('문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
   const body=document.getElementById('sq1Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재퀴즈풀=data; 현재퀴즈화면='sq1';
@@ -131,6 +109,7 @@ function renderQuiz4(data){
 
 /* 3지선다 렌더 — 맞춤법 전용 */
 function renderQuiz3(data){
+  if(!data || !data.length){ showToastMsg('문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
   const body=document.getElementById('sq3Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재퀴즈풀=data; 현재퀴즈화면='sq3';

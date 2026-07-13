@@ -219,10 +219,10 @@ function goLearn(category, screenId, btn){
     document.getElementById('sq1Title').textContent=category;
     if(category==='상식·어원'){
       document.getElementById('sq1Mode').textContent='🌍 4지선다';
-      renderQuiz4(출제_분기(category, QUIZ_COMMON));
+      renderQuiz4(출제_분기(category, []));
     } else {
       document.getElementById('sq1Mode').textContent='🏛️ 4지선다';
-      renderQuiz4(출제_분기(category, QUIZ_HISTORY));
+      renderQuiz4(출제_분기(category, []));
     }
   }
   // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말
@@ -232,7 +232,7 @@ function goLearn(category, screenId, btn){
     sq2_출제_렌더(category);
   }
   if(screenId==='sq3'){
-    renderQuiz3(출제_분기('맞춤법', QUIZ_SPELL));
+    renderQuiz3(출제_분기('맞춤법', []));
   }
   if(screenId==='sq4'){
     // v3.6: 초기 진입 시 학습설정.sq4 값 기반으로 데이터 선택 + 패널 버튼 상태 동기화
@@ -266,11 +266,11 @@ function goLearn(category, screenId, btn){
 function 현재모드_다음출제(){
   const 카테고리 = 현재학습모드, 화면 = curScreen;
   if(화면==='sq1'){
-    renderQuiz4(출제_분기(카테고리, 카테고리==='상식·어원' ? QUIZ_COMMON : QUIZ_HISTORY));
+    renderQuiz4(출제_분기(카테고리, []));
   } else if(화면==='sq2'){
     sq2_출제_렌더(카테고리);
   } else if(화면==='sq3'){
-    renderQuiz3(출제_분기('맞춤법', QUIZ_SPELL));
+    renderQuiz3(출제_분기('맞춤법', []));
   } else if(화면==='sq4'){
     const 현재난이도 = 학습설정.sq4 || '아↗그거!';
     renderDad(아재풀_구성(현재난이도));
@@ -312,7 +312,7 @@ function sq2_출제_렌더(category){
     sq2_뜻서술_렌더(category);
   } else {
     // 플래시카드(명시 선택) — data/ JSON이 채워지면 출제_분기가 그 풀을 자동 사용
-    renderFlashcard(출제_분기(category, category === '한자·우리말' ? FC_HANJA : FC_GOSAEONGEO));
+    renderFlashcard(출제_분기(category, []));
   }
 }
 

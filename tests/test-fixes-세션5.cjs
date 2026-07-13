@@ -6,6 +6,12 @@ load((window) => {
   const doc = window.document;
   const ev = (code) => window.eval(code);
 
+  // 재구조화 이후: __TEST_QUIZ__(정적 폴백)이 data/상식어원.json으로 이전되고 코드에서 삭제됨.
+  // renderQuiz4()는 데이터를 인자로 직접 받으므로, 테스트는 자체 픽스처를 window에 심어 재사용한다.
+  ev(`window.__TEST_QUIZ__=[{ai:true, cat:'상식', q:'테스트 문제?', opts:[
+    {t:'오답A', c:false}, {t:'정답', c:true}, {t:'오답B', c:false}, {t:'오답C', c:false}
+  ]}];`);
+
   /* ── 버그3·4: 가시성 CSS (구조 검증 — jsdom은 var() 미해석이라 규칙 텍스트로 확인) ── */
   const css = Array.from(doc.querySelectorAll('style')).map(s=>s.textContent).join('\n');
   assert('버그3: obj-note(사고전개/근거) 기본 글자색', /\.obj-note\{[^}]*color:var\(--txt\)/.test(css));
@@ -37,7 +43,7 @@ load((window) => {
   assert('버그7: UI동기화로 버튼 on 반영', sq3직접버튼.classList.contains('on'));
 
   /* ── 버그7: 직접입력 실구현 — 렌더·정답·오답·1회 잠금 ── */
-  ev("학습설정.sq1='직접입력'; renderQuiz4(QUIZ_COMMON);");
+  ev("학습설정.sq1='직접입력'; renderQuiz4(__TEST_QUIZ__);");
   assert('직접입력: 입력칸 렌더', !!doc.getElementById('sq1DirectInp'));
   assert('직접입력: 선택지 없음', !doc.querySelector('#sq1Body .aopt'));
   const 정답 = ev("현재퀴즈문제.opts.find(o=>o.c).t");
@@ -50,13 +56,13 @@ load((window) => {
   ev("직접입력_제출('sq1');");
   assert('직접입력: 재제출 잠금(EXP 불변)', ev('사용자.총누적EXP||0') === exp1회);
   // 오답 경로
-  ev("renderQuiz4(QUIZ_COMMON);");
+  ev("renderQuiz4(__TEST_QUIZ__);");
   doc.getElementById('sq1DirectInp').value = '완전히틀린답XYZ';
   const 대기열이전 = ev('복습데이터.대기열.length');
   ev("직접입력_제출('sq1');");
   assert('직접입력: 오답 판정 + 정답 공개', doc.getElementById('sq1DirectResult').innerHTML.includes('오답'));
   assert('직접입력: 오답 → 복습 대기열 추가', ev('복습데이터.대기열.length') === 대기열이전 + 1);
-  ev("학습설정.sq1='선택지'; renderQuiz4(QUIZ_COMMON);");
+  ev("학습설정.sq1='선택지'; renderQuiz4(__TEST_QUIZ__);");
   assert('직접입력: 선택지 복귀 시 보기 렌더', !!doc.querySelector('#sq1Body .aopt'));
 
   /* ── 버그7+추가: 아재개그 직접입력 + revealDad 중복 EXP 차단 ── */
