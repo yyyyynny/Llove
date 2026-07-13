@@ -14,6 +14,15 @@ let 아재정답공개됨 = false; // 세션5: revealDad 중복 호출 → EXP �
 /* 세션7 항목7: 아재개그 4지선다용 오답 표본 (임시 — data/아재개그.json이 채워지면
    실제 풀의 정답들로 대체하고 이 배열은 제거. 세션3 임시보기 패턴과 동일한 관리 방침) */
 const 아재_오답표본 = ['치타','적운형 구름','데이비드 (또는 루시)','오리너구리','붕어빵','참을 인(忍)','옆집 백구','고구마 라떼'];
+/* 재구조화 이후 발견한 불일치 수정: data/아재개그.json(DB문제['아재개그'])이 로드돼도
+   기존엔 여기 없는 DAD_GAGS_BY_DIFFICULTY(js/복습.js)만 렌더에 쓰여 실제 앱에 반영되지 않았다.
+   난이도별 큐레이션 문항은 유지하고, JSON 항목을 항목별 난이도 필드(기본값 '아↗그거!')로
+   갈라 합친다. */
+function 아재풀_구성(난이도){
+  const 기본풀 = DAD_GAGS_BY_DIFFICULTY[난이도] || DAD_GAGS_BY_DIFFICULTY['아↗그거!'];
+  const DB풀 = (DB문제['아재개그'] || []).filter(g => (g.난이도 || '아↗그거!') === 난이도);
+  return DB풀.length ? [...기본풀, ...DB풀] : 기본풀;
+}
 function renderDad(data){
   const body=document.getElementById('sq4Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작

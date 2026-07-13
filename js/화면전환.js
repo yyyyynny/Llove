@@ -237,7 +237,7 @@ function goLearn(category, screenId, btn){
   if(screenId==='sq4'){
     // v3.6: 초기 진입 시 학습설정.sq4 값 기반으로 데이터 선택 + 패널 버튼 상태 동기화
     const 현재난이도 = 학습설정.sq4 || '아↗그거!';
-    renderDad(DAD_GAGS_BY_DIFFICULTY[현재난이도] || DAD_GAGS_BY_DIFFICULTY['아↗그거!']);
+    renderDad(아재풀_구성(현재난이도));
     동기화_학습설정_버튼('sq4', 현재난이도);
   }
   // 버그 수정(2026-06-14): 구어 교정(sq5) 진입 분기 누락 — 화면만 전환되고 예문이 출제되지 않던 문제.
@@ -273,7 +273,7 @@ function 현재모드_다음출제(){
     renderQuiz3(출제_분기('맞춤법', QUIZ_SPELL));
   } else if(화면==='sq4'){
     const 현재난이도 = 학습설정.sq4 || '아↗그거!';
-    renderDad(DAD_GAGS_BY_DIFFICULTY[현재난이도] || DAD_GAGS_BY_DIFFICULTY['아↗그거!']);
+    renderDad(아재풀_구성(현재난이도));
     setTimeout(initDad,30);
   } else if(화면==='sq5'){
     구어교정_예문표시();
