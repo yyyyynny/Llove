@@ -58,6 +58,59 @@ if (진입점있음) {
   //   (여기서 정규식으로 세면 JS 문자열·주석 속 "<style>" 문구까지 오탐하므로 의도적으로 제외)
 }
 
+// 6) data/ 모드 DB 6종 — 코드(js/퀴즈엔진.js·js/플래시카드.js·js/아재개그.js)가 실제로
+//    기대하는 필드가 채워졌는지 스키마 검증. 여기서 잡히면 "채웠는데 앱에 반영 안 됨" 유형의
+//    DB 불일치를 커밋 전에 미리 발견할 수 있다.
+const 데이터스키마 = [
+  { 파일: 'data/상식어원.json', 종류: 'quiz', 중복키: 'q' },
+  { 파일: 'data/세계사신화.json', 종류: 'quiz', 중복키: 'q' },
+  { 파일: 'data/맞춤법.json', 종류: 'quiz', 중복키: 'q', hint필수: true },
+  { 파일: 'data/고사성어속담.json', 종류: 'flashcard', 중복키: 'word' },
+  { 파일: 'data/한자우리말.json', 종류: 'flashcard', 중복키: 'word' },
+  { 파일: 'data/아재개그.json', 종류: 'dadjoke', 중복키: 'q' },
+];
+
+for (const { 파일, 종류, 중복키, hint필수 } of 데이터스키마) {
+  if (!existsSync(파일)) { 확인(`${파일} 이 존재한다`, false); continue; }
+  let d;
+  try {
+    d = JSON.parse(readFileSync(파일, 'utf8'));
+  } catch (e) {
+    확인(`${파일} 이 유효한 JSON이다`, false);
+    검사목록.push(`   ↳ 파싱 오류: ${e.message}`);
+    continue;
+  }
+  const items = Array.isArray(d.items) ? d.items : null;
+  확인(`${파일} 이 { items: [...] } 형태다`, items !== null);
+  if (!items) continue;
+
+  let 필드오류 = 0;
+  items.forEach((it, i) => {
+    if (종류 === 'quiz') {
+      if (typeof it.q !== 'string' || !it.q) 필드오류++;
+      if (!Array.isArray(it.opts) || it.opts.length < 2) 필드오류++;
+      else if (it.opts.filter((o) => o && o.c === true).length !== 1) 필드오류++;
+      if (hint필수 && typeof it.hint !== 'string') 필드오류++;
+    } else if (종류 === 'flashcard') {
+      if (typeof it.word !== 'string' || !it.word) 필드오류++;
+      if (typeof it.meaning !== 'string' || !it.meaning) 필드오류++;
+      if (!Array.isArray(it.hanja)) 필드오류++;  // 순우리말·속담도 빈 배열([])은 필수 — 렌더 크래시 방지
+      if (typeof it.reading !== 'string' || typeof it.direct !== 'string' || typeof it.example !== 'string' || typeof it.mnemonic !== 'string') 필드오류++;
+    } else if (종류 === 'dadjoke') {
+      if (typeof it.q !== 'string' || !it.q) 필드오류++;
+      if (typeof it.a !== 'string' || !it.a) 필드오류++;
+      if (typeof it.e !== 'string' || !it.e) 필드오류++;
+    }
+  });
+  확인(`${파일} 항목 ${items.length}개가 전부 필수 필드를 갖춘다`, 필드오류 === 0);
+  if (필드오류 > 0) 검사목록.push(`   ↳ 필드 누락/형식 오류 ${필드오류}건`);
+
+  const 키목록 = items.map((it) => it[중복키]).filter(Boolean);
+  const 중복 = 키목록.filter((k, i) => 키목록.indexOf(k) !== i);
+  확인(`${파일} 에 '${중복키}' 중복 항목이 없다`, 중복.length === 0);
+  if (중복.length > 0) 검사목록.push(`   ↳ 중복: ${[...new Set(중복)].slice(0, 5).join(' / ')}${중복.length > 5 ? ' 외' : ''}`);
+}
+
 console.log(검사목록.join('\n'));
 if (실패 > 0) {
   console.error(`\n배포 전 점검 실패: ${실패}개 항목에서 문제가 발견되었습니다.`);
