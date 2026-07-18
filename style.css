@@ -819,6 +819,13 @@ html{scrollbar-gutter:stable}
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--elev);border:1px solid var(--bdr);border-radius:28px;padding:9px 18px;font-size:12px;font-weight:500;color:var(--txt);white-space:normal;max-width:86vw;text-align:center;line-height:1.5;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.38)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* 추가기능: 새 버전 배포 안내 배너 — 토스트(자동 소멸)와 달리 새로고침 전까지 유지 */
+.update-bar{position:fixed;top:0;left:0;right:0;z-index:250;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;background:var(--card);border-bottom:1px solid var(--bdrg);padding:10px 16px;font-size:13px;color:var(--txt);opacity:0;transform:translateY(-100%);pointer-events:none;transition:opacity .3s,transform .3s cubic-bezier(.22,1,.36,1);box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.update-bar.show{opacity:1;transform:translateY(0);pointer-events:all}
+.update-bar .btn-acc{padding:7px 16px;font-size:13px}
+.update-bar-x{background:transparent;border:none;color:var(--txt2);font-size:16px;cursor:pointer;padding:4px 8px;line-height:1}
+.update-bar-x:hover{color:var(--txt)}
+
 /* 정식 빌드1: 데모 네비는 기본 숨김 — 개발자 모드 활성화 시에만 노출 (body.devnav) */
 #demo-nav{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.93);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.07);padding:7px 10px;display:none;gap:5px;flex-wrap:wrap;z-index:9998}
 body.devnav #demo-nav{display:flex}

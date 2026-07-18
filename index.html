@@ -35,6 +35,13 @@
 <!-- 토스트 -->
 <div class="toast" id="toast"></div>
 
+<!-- 추가기능: 새 버전 배포 안내 배너 (토스트와 달리 자동으로 사라지지 않음) -->
+<div class="update-bar" id="updateBar">
+  <span>🔄 최신 버전이 있습니다. 새로고침 해주세요.</span>
+  <button class="btn-acc" onclick="location.reload()">새로고침</button>
+  <button class="update-bar-x" onclick="document.getElementById('updateBar').classList.remove('show')" aria-label="닫기">✕</button>
+</div>
+
 <!-- ━━━ 온보딩 (앱 안내) ━━━ -->
 <!-- v3.6: KNOWLEDGE 23섹션 4장 확정 일치. 기존 5장에서 '레벨업' 슬라이드(구 인덱스 2) 삭제.
      현재 슬라이드: 0)환영 1)학습 모드 2)숭고함 3)지금, 시작하시겠습니까? -->

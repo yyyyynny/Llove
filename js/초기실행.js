@@ -70,6 +70,31 @@ function 게스트로그인(){
 document.addEventListener('keydown', 테스트진입_키감지);
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   추가기능: 새 버전 배포 감지 — 새로고침 안내 배너
+   - 빌드 스텝이 없는 정적 사이트라 별도 버전 파일 없이, index.html의
+     Last-Modified 응답 헤더를 주기적으로 비교해 배포가 갱신됐는지 확인한다.
+   - GitHub Pages(CDN) 캐시가 풀릴 때까지(보통 수 분) 감지가 늦어질 수 있음 — 정상.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let 페이지수정시각 = null;
+function 새버전_확인(){
+  fetch('index.html', {method:'HEAD', cache:'no-store'})
+    .then(r => {
+      const 최신 = r.headers.get('last-modified');
+      if(!최신) return;
+      if(페이지수정시각 === null){ 페이지수정시각 = 최신; return; }  // 최초 호출 — 기준값만 저장
+      if(최신 !== 페이지수정시각) document.getElementById('updateBar')?.classList.add('show');
+    })
+    .catch(()=>{});  // 오프라인 등 실패 시 조용히 무시(다음 주기에 재시도)
+}
+function 새버전_감지_시작(){
+  새버전_확인();  // 기준값 확보
+  setInterval(새버전_확인, 5*60*1000);  // 5분마다 재확인
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible') 새버전_확인();  // 탭 복귀 시 즉시 재확인
+  });
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    초기 실행 — 빌드1: 데이터 로드·plx 캐시·토큰 UI·개발자 네비
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 renderObDots();
@@ -106,3 +131,4 @@ try{
 setInterval(()=>{ 토큰락_체크(); if(사용자.토큰락해제시각) 토큰표시_갱신(); }, 30000);  // 2시간 락 카운트다운
 갱신_개발자네비_표시();      // 데모 네비: 개발자 모드에서만 노출
 Firebase초기화();          // 구글 로그인 + Firestore 동기화 초기화
+새버전_감지_시작();         // 추가기능: 배포 갱신 감지 — 새로고침 안내 배너
