@@ -840,6 +840,7 @@ html{scrollbar-gutter:stable}
 .itneun-stage.solved{box-shadow:0 0 30px -4px var(--ok)}
 .itneun-stage svg{width:100%;height:100%;overflow:visible;display:block}
 .itneun-stage .shard{cursor:pointer;transition:transform .34s cubic-bezier(.22,1,.36,1);transform-box:fill-box;transform-origin:center}
+.itneun-stage .shard .hit{fill:transparent;stroke:transparent;stroke-width:14;pointer-events:all}
 .itneun-stage .shard:hover{filter:brightness(1.12)}
 .itneun-stage.solved .shard{cursor:default}
 .itneun-msg{margin-top:16px;min-height:20px;font-size:13px;color:var(--txt2);transition:color .3s}

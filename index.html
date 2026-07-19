@@ -1132,13 +1132,16 @@
             <stop offset="1" stop-color="var(--bdr)"/>
           </linearGradient>
         </defs>
-        <path class="shard" onclick="잇는_조각회전(0)" fill="url(#잇는sheen)" d="M58 22 A36 36 0 0 0 58 94 L58 82 A24 24 0 0 1 58 34 Z"/>
-        <path class="shard" onclick="잇는_조각회전(1)" fill="url(#잇는sheen)" d="M58 22 A36 36 0 0 1 58 94 L58 82 A24 24 0 0 0 58 34 Z"/>
-        <rect class="shard" onclick="잇는_조각회전(2)" fill="url(#잇는sheen)" x="118" y="18" width="16" height="24" rx="5"/>
-        <rect class="shard" onclick="잇는_조각회전(3)" fill="url(#잇는sheen)" x="118" y="45" width="16" height="24" rx="5"/>
-        <rect class="shard" onclick="잇는_조각회전(4)" fill="url(#잇는sheen)" x="118" y="72" width="16" height="24" rx="5"/>
-        <path class="shard" onclick="잇는_조각회전(5)" fill="url(#잇는sheen)" d="M96 116 L104 122 L64 206 L54 200 Z"/>
-        <path class="shard" onclick="잇는_조각회전(6)" fill="url(#잇는sheen)" d="M104 116 L96 122 L136 206 L146 200 Z"/>
+        <!-- 각 조각 = <g>(같은 모양의 투명 히트 확장 + 실제 도형). 히트는 조각 형태를 그대로
+             두꺼운 투명 stroke로 부풀린 것 — 얇은 조각(반링 ~11px)도 손가락으로 쉽게 탭되고,
+             회전해도 자기 모양을 따라 돌아 이웃 조각의 탭을 가로채지 않는다. -->
+        <g class="shard" onclick="잇는_조각회전(0)"><path class="hit" d="M58 22 A36 36 0 0 0 58 94 L58 82 A24 24 0 0 1 58 34 Z"/><path fill="url(#잇는sheen)" d="M58 22 A36 36 0 0 0 58 94 L58 82 A24 24 0 0 1 58 34 Z"/></g>
+        <g class="shard" onclick="잇는_조각회전(1)"><path class="hit" d="M58 22 A36 36 0 0 1 58 94 L58 82 A24 24 0 0 0 58 34 Z"/><path fill="url(#잇는sheen)" d="M58 22 A36 36 0 0 1 58 94 L58 82 A24 24 0 0 0 58 34 Z"/></g>
+        <g class="shard" onclick="잇는_조각회전(2)"><rect class="hit" x="118" y="18" width="16" height="24" rx="5"/><rect fill="url(#잇는sheen)" x="118" y="18" width="16" height="24" rx="5"/></g>
+        <g class="shard" onclick="잇는_조각회전(3)"><rect class="hit" x="118" y="45" width="16" height="24" rx="5"/><rect fill="url(#잇는sheen)" x="118" y="45" width="16" height="24" rx="5"/></g>
+        <g class="shard" onclick="잇는_조각회전(4)"><rect class="hit" x="118" y="72" width="16" height="24" rx="5"/><rect fill="url(#잇는sheen)" x="118" y="72" width="16" height="24" rx="5"/></g>
+        <g class="shard" onclick="잇는_조각회전(5)"><path class="hit" d="M96 116 L104 122 L64 206 L54 200 Z"/><path fill="url(#잇는sheen)" d="M96 116 L104 122 L64 206 L54 200 Z"/></g>
+        <g class="shard" onclick="잇는_조각회전(6)"><path class="hit" d="M104 116 L96 122 L136 206 L146 200 Z"/><path fill="url(#잇는sheen)" d="M104 116 L96 122 L136 206 L146 200 Z"/></g>
       </svg>
     </div>
     <div class="itneun-msg" id="잇는퍼즐Msg">조각을 탭하면 90°씩 돌아갑니다.</div>
