@@ -101,7 +101,9 @@ function revealDad(){
   const btn=document.getElementById('dadBtn');
   if(btn) btn.style.display='none';
   // 빌드1: 실제 EXP 획득 + 마스터리(아재개그학습수) +1
-  const 획득 = EXP획득(20, '아재개그');
+  // UP¡¿ 난이도는 말장난 파악이 더 까다로워 기본(20)의 1.5배(30) 지급
+  const 난이도보상 = (학습설정.sq4 === 'UP¡¿') ? 30 : 20;
+  const 획득 = EXP획득(난이도보상, '아재개그');
   showExpFloat(document.querySelector('.dad-card'),'+'+획득);
   마스터리증가('아재개그학습수');
   마스터리증가('총누적어휘수');
