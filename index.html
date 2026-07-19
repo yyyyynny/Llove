@@ -399,8 +399,18 @@
     <div class="hh-top">
       <!-- v3.4: 하드코딩 제거. JS afterNav('sh')에서 사용자 객체로 주입 -->
       <div class="fu"><div class="hg">오늘도 학습해 볼까요?</div><div class="hun" id="homeUser"></div></div>
-      <!-- 세션6 항목11: 홈 아바타도 탭 가능(프로필 선택) — 무반응 결함 해소 -->
-      <div class="hav fu s1" id="homeAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <!-- '잇는' 포탈 — 이세계(끝말잇기) 진입 관문. 잠김: 탭 시 '잇' 퍼즐 / 개방: 바로 이동 -->
+        <button class="itneun-portal fu s1" id="잇는포탈" onclick="잇는_포탈탭()" aria-label="잇는 세계 — 잠김">
+          <svg viewBox="0 0 200 230" aria-hidden="true">
+            <path d="M58 22 A36 36 0 0 0 58 94 A36 36 0 0 0 58 22 M58 34 A24 24 0 0 1 58 82 A24 24 0 0 1 58 34" fill="currentColor" fill-rule="evenodd"/>
+            <rect x="118" y="18" width="16" height="78" rx="5" fill="currentColor"/>
+            <path d="M96 116 L104 122 L64 206 L54 200 Z M104 116 L96 122 L136 206 L146 200 Z" fill="currentColor"/>
+          </svg>
+        </button>
+        <!-- 세션6 항목11: 홈 아바타도 탭 가능(프로필 선택) — 무반응 결함 해소 -->
+        <div class="hav fu s1" id="homeAvatar" style="cursor:pointer" onclick="프로필선택_열기()"></div>
+      </div>
     </div>
     <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px" class="fu s2">
       <div class="lbdg" id="homeLv"></div>
@@ -1106,6 +1116,40 @@
   <button class="nv-btn" id="nb-sse" onclick="goNav('sse',null)"><span class="nv-icon">⚙️</span><span>설정</span></button>
 </nav>
 
+<!-- '잇는' 포탈 해금 퍼즐 — 흩어진 7조각(ㅇ 좌우 반링·ㅣ 3조각·ㅅ 두 획)을 돌려 '잇' 완성.
+     조각 회전(90°)은 게임 관문 예외(일반 UI 회전 금지와 별개). 로직: js/잇는.js -->
+<div class="modal-bg" id="잇는퍼즐Bg">
+  <div class="modal-bx itneun-modal">
+    <div class="itneun-badge">잇 는</div>
+    <div class="itneun-lead">흩어진 조각을 돌려 <b>'잇'</b>을 맞추면 이어진다.</div>
+    <div class="itneun-stage" id="잇는퍼즐Stage">
+      <svg viewBox="0 0 200 230" id="잇는퍼즐Svg">
+        <defs>
+          <!-- 180° 대칭 결(가운데 밝고 양끝 어둠) → 대칭 조각은 뒤집혀도 똑같이 보임 -->
+          <linearGradient id="잇는sheen" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--bdr)"/>
+            <stop offset=".5" stop-color="var(--acc)"/>
+            <stop offset="1" stop-color="var(--bdr)"/>
+          </linearGradient>
+        </defs>
+        <path class="shard" onclick="잇는_조각회전(0)" fill="url(#잇는sheen)" d="M58 22 A36 36 0 0 0 58 94 L58 82 A24 24 0 0 1 58 34 Z"/>
+        <path class="shard" onclick="잇는_조각회전(1)" fill="url(#잇는sheen)" d="M58 22 A36 36 0 0 1 58 94 L58 82 A24 24 0 0 0 58 34 Z"/>
+        <rect class="shard" onclick="잇는_조각회전(2)" fill="url(#잇는sheen)" x="118" y="18" width="16" height="24" rx="5"/>
+        <rect class="shard" onclick="잇는_조각회전(3)" fill="url(#잇는sheen)" x="118" y="45" width="16" height="24" rx="5"/>
+        <rect class="shard" onclick="잇는_조각회전(4)" fill="url(#잇는sheen)" x="118" y="72" width="16" height="24" rx="5"/>
+        <path class="shard" onclick="잇는_조각회전(5)" fill="url(#잇는sheen)" d="M96 116 L104 122 L64 206 L54 200 Z"/>
+        <path class="shard" onclick="잇는_조각회전(6)" fill="url(#잇는sheen)" d="M104 116 L96 122 L136 206 L146 200 Z"/>
+      </svg>
+    </div>
+    <div class="itneun-msg" id="잇는퍼즐Msg">조각을 탭하면 90°씩 돌아갑니다.</div>
+    <div class="itneun-actions">
+      <button class="btn-g" onclick="잇는_섞기()">다시 섞기</button>
+      <button class="btn-g" onclick="잇는_퍼즐닫기()">닫기</button>
+    </div>
+    <div class="itneun-foot">위치는 고정, 각도만 섞입니다. 대칭 조각(ㅣ·ㅅ)은 뒤집혀 똑같아 보이면 맞은 것으로 칩니다.</div>
+  </div>
+</div>
+
 <!-- 재구조화: 단일 인라인 스크립트(약 6,100줄)를 js/ 폴더 23개 파일로 분할.
      클래식 스크립트 순차 로드로 전역 스코프를 공유하므로 아래 순서를 절대 바꾸지 말 것.
      (초기 실행은 js/초기실행.js — 반드시 마지막) -->
@@ -1131,6 +1175,7 @@
 <script src="js/이의있음.js"></script>
 <script src="js/커스터마이징.js"></script>
 <script src="js/성장상세.js"></script>
+<script src="js/잇는.js"></script>
 <script src="js/초기실행.js"></script>
 </body>
 </html>
