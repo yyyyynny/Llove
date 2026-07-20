@@ -24,6 +24,14 @@ function 새게임상태(){
 function get_max_turns(gs){
   return { 안온:50, 격동:75, 초월:140, 심연:160 }[gs.diff] ?? 75;
 }
+
+// 아케이드 층별 목표 턴(원본 targets 표 + 14층 이후 +5씩 무한 증가) — 시간의 계약 걸리면 ×1.3
+function get_stage_target(gs){
+  const targets = {1:10,2:15,3:20,4:25,5:30,6:35,7:40,8:45,9:50,10:60,11:70,12:85,13:100};
+  const base = targets[gs.stage] ?? (50 + (gs.stage - 14) * 5);
+  return gs.curse_time_floors > 0 ? Math.floor(base * 1.3) : base;
+}
+
 function used_words(gs){ return gs.history.map(h => h.word); }
 
 function reset_game(gs){
@@ -91,6 +99,6 @@ function react_ai_word(gs, word){
 }
 
 if (typeof module !== 'undefined') module.exports = {
-  새게임상태, get_max_turns, used_words, reset_game, full_reset,
+  새게임상태, get_max_turns, get_stage_target, used_words, reset_game, full_reset,
   is_arrogant, say, title, react_correct, react_ai_word
 };

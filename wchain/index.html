@@ -125,7 +125,7 @@
     <div class="card fu">
       <div class="card-title">게임 모드</div>
       <button class="btn acc" onclick="선택_모드('SURVIVAL')">🕰 서바이벌 모드<div class="d">턴 제한 내 생존 · 실수 4회마다 목숨 차감</div></button>
-      <button class="btn" disabled>🗼 아케이드 모드<div class="d">Phase 4에서 공개 예정</div></button>
+      <button class="btn acc" onclick="선택_모드('ARCADE')">🗼 아케이드 모드<div class="d">13층 타워 등반 · 목숨 2개 · 시련의 탑</div></button>
     </div>
   </div>
 
@@ -145,7 +145,7 @@
   <!-- 플레이 화면 (원본 show_survival_hud/prompt_next/_handle_playing) -->
   <div class="screen" id="s-플레이">
     <div class="hud fu">
-      <div class="hud-item"><div class="hud-lbl">⏳ 턴</div><div class="hud-val" id="hud-턴"></div>
+      <div class="hud-item"><div class="hud-lbl" id="hud-턴라벨">⏳ 턴</div><div class="hud-val" id="hud-턴"></div>
         <div class="bar-track"><div class="bar-fill" id="hud-바"></div></div></div>
       <div class="hud-item"><div class="hud-lbl">🔥 상태</div><div class="hud-val" id="hud-상태"></div></div>
       <div class="hud-item"><div class="hud-lbl">💡 힌트</div><div class="hud-val" id="hud-힌트"></div></div>
@@ -154,6 +154,7 @@
     <div class="ai-word fu">
       <span id="ai-단어">─</span>
       <small id="prompt-안내">첫 단어를 자유롭게 입력하세요</small>
+      <div id="저주표시" style="display:none;margin-top:6px;font-size:11px;color:var(--err)"></div>
     </div>
     <div class="log" id="로그"></div>
     <div class="choice-box" id="선택박스" style="display:none"></div>
@@ -180,6 +181,16 @@
       <div class="stat" id="오버-통계"></div>
       <button class="btn acc" onclick="다시시작()">재도전</button>
       <button class="btn" onclick="전체리셋()">전체 초기화</button>
+    </div>
+  </div>
+
+  <!-- 20층 소프트락 이스터에그 (원본 _handle_softlock) -->
+  <div class="screen" id="s-소프트락">
+    <div class="result fu">
+      <div class="emoji">💥</div>
+      <div class="msg" style="color:var(--err);font-family:monospace;font-size:12px;line-height:1.8;word-break:break-all" id="소프트락-텍스트"></div>
+      <div class="stat" style="margin-top:14px">여기까지가 이 탑의 끝이다.</div>
+      <button class="btn acc" onclick="전체리셋()">전체 초기화</button>
     </div>
   </div>
 </div>

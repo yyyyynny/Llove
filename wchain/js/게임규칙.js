@@ -150,4 +150,59 @@ function user_defeat(gs){
   }
 }
 
-if (typeof module !== 'undefined') module.exports = { validate_word, ai_generate_word, check_title, user_defeat };
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   아케이드 — 층 이동·시련의 탑 (Phase 4)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+// 시련의 탑 붕괴 확률 — 같은 층에서 재도전할수록 위험 증가(2회 50% / 3회 75% / 4회+ 100%)
+function 붕괴확률(attempts){
+  if(attempts === 2) return 50;
+  if(attempts === 3) return 75;
+  if(attempts >= 4) return 100;
+  return 0;
+}
+
+// 층 클리어 → 다음 층 진입. ai_defeated=true면 AI가 단어를 못 찾아 클리어된 경우.
+function arcade_floor_up(gs, ai_defeated){
+  const cleared = gs.stage;
+  gs.stage += 1; gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
+
+  if(gs.stage === 9) gs.erosion_level = 1;
+  if(gs.stage === 20){ gs.game_state = 'SOFTLOCKED'; return; }
+
+  if(gs.curse_time_floors > 0) gs.curse_time_floors -= 1;
+  if(gs.curse_life_floors > 0) gs.curse_life_floors -= 1;
+  gs.curse_dark_active = false; gs.curse_dark_strikes = 0;
+  gs.trial_rejected_floor = -1; gs.trial_attempts_this_floor = 0;
+
+  if(cleared % 2 === 0){
+    if(gs.hints !== Infinity) gs.hints += 1;
+    로그_추가(`💡 [${cleared}층 보상] 힌트 +1 획득. 남은 힌트: ${표시무한(gs.hints)}`, 'ok');
+  }
+
+  const target = get_stage_target(gs);
+  if(gs.curse_time_floors > 0) 로그_추가(`⛓ [시간의 계약] 이번 층 목표 턴 +30% (${target}턴)`, 'sys');
+  if(gs.curse_life_floors > 0) 로그_추가(`⛓ [생명의 계약] 두음법칙 OFF 유지 (${gs.curse_life_floors}층 남음)`, 'sys');
+
+  if(ai_defeated){
+    로그_추가(say(gs, '크윽... 단어가 없다. 이번 층은 네가 가져라.', '앗... 단어가 없네요! 이번 층은 통과하셨습니다!'), 'ok');
+  } else {
+    로그_추가(say(gs, `흥... ${cleared}층은 클리어했군. ${gs.stage}층으로 진입한다.`, `🎉 [${cleared}층 클리어!] ${gs.stage}층으로 진입합니다!`), 'ok');
+  }
+  if(gs.stage === 13){
+    로그_추가(say(gs, '얄팍한 두 글자 단어로 연명하는 꼴은 여기까지다. 이제 세 마디 이상의 무게를 증명해라.',
+                  '이제부터 두 글자 단어는 시스템에서 접수하지 않습니다. 조금 더 성의 있는 단어를 준비해 주시죠.'), 'warn');
+  }
+  gs.ai_last_char = null; gs.ai_last_word = null;
+}
+
+// 실수 4회로 목숨 소진 → 같은 층 재시작(서바이벌과 달리 게임오버 아님)
+function arcade_restart_floor(gs){
+  gs.stage_turn = 0; gs.curse_dark_strikes = 0;
+  gs.ai_last_char = null; gs.ai_last_word = null;
+}
+
+if (typeof module !== 'undefined') module.exports = {
+  validate_word, ai_generate_word, check_title, user_defeat,
+  붕괴확률, arcade_floor_up, arcade_restart_floor
+};

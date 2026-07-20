@@ -50,6 +50,17 @@ function 선택_페르소나(p){
 function 선택_모드(mode){
   gs.game_mode = mode;
   reset_game(gs);
+  if(mode === 'ARCADE'){
+    // 원본 _handle_mode_select: 아케이드는 설정 화면 없이 바로 플레이 진입(설정 변경 불가 모드)
+    gs.game_state = 'PLAYING';
+    로그_비우기();
+    로그_추가('⚔ 언어의 탑이 그 문을 열었다.', 'sys');
+    로그_추가('⚔ 13층 정상까지 — 살아남겠는가?', 'sys');
+    로그_추가(say(gs, '흥... 아케이드. 13층까지 올라올 수 있을지.', '아케이드 모드! 13층 타워에 도전해보세요!'));
+    화면('플레이');
+    플레이_HUD갱신(); 프롬프트_갱신();
+    return;
+  }
   gs.game_state = 'READY';
   화면('설정');
   설정_렌더();
@@ -107,18 +118,41 @@ function get_status(current, total){
 }
 
 function 플레이_HUD갱신(){
-  const max_t = gs.infinite ? 0 : get_max_turns(gs);
-  const turnStr = gs.infinite ? `${gs.turn} / ∞` : `${gs.turn} / ${max_t}`;
-  const pct = (!gs.infinite && max_t) ? Math.min(100, Math.round(gs.turn / max_t * 100)) : 0;
-  const status = gs.infinite ? '🟢' : get_status(gs.turn, max_t);
-
-  document.getElementById('hud-턴').textContent = turnStr;
-  document.getElementById('hud-바').style.width = pct + '%';
-  const st = document.getElementById('hud-상태');
-  st.textContent = status; st.className = 'hud-val status-' + status;
+  const 턴라벨 = document.getElementById('hud-턴라벨');
+  if(gs.game_mode === 'ARCADE'){
+    const target = get_stage_target(gs);
+    const pct = target ? Math.min(100, Math.round(gs.stage_turn / target * 100)) : 0;
+    턴라벨.textContent = '🗼 층 ' + gs.stage;
+    document.getElementById('hud-턴').textContent = `${gs.stage_turn} / ${target}`;
+    document.getElementById('hud-바').style.width = pct + '%';
+    const st = document.getElementById('hud-상태');
+    const status = get_status(gs.stage_turn, target);
+    st.textContent = status; st.className = 'hud-val status-' + status;
+  } else {
+    const max_t = gs.infinite ? 0 : get_max_turns(gs);
+    턴라벨.textContent = '⏳ 턴';
+    document.getElementById('hud-턴').textContent = gs.infinite ? `${gs.turn} / ∞` : `${gs.turn} / ${max_t}`;
+    document.getElementById('hud-바').style.width = ((!gs.infinite && max_t) ? Math.min(100, Math.round(gs.turn / max_t * 100)) : 0) + '%';
+    const st = document.getElementById('hud-상태');
+    const status = gs.infinite ? '🟢' : get_status(gs.turn, max_t);
+    st.textContent = status; st.className = 'hud-val status-' + status;
+  }
   document.getElementById('hud-힌트').textContent = 표시무한(gs.hints) + '개';
   document.getElementById('hud-목숨').textContent = `${표시무한(gs.hearts)} / ${gs.strikes}·4`;
   document.getElementById('ai-단어').textContent = gs.ai_last_word ? `『${gs.ai_last_word}』` : '─';
+
+  // 저주 표시(아케이드 전용) — 원본 curse_tags
+  const 저주줄 = document.getElementById('저주표시');
+  if(gs.game_mode === 'ARCADE'){
+    const tags = [];
+    if(gs.curse_dark_active) tags.push('⛓ 어둠');
+    if(gs.curse_life_floors > 0) tags.push('⛓ 생명');
+    if(gs.curse_time_floors > 0) tags.push('⛓ 시간');
+    저주줄.textContent = tags.length ? tags.join('  ') : '';
+    저주줄.style.display = tags.length ? '' : 'none';
+  } else {
+    저주줄.style.display = 'none';
+  }
 }
 
 function 프롬프트_갱신(){
@@ -176,17 +210,24 @@ function 단어_제출(){
     로그_추가(say(gs, `푸하하! ${reason}`, `아쉽지만 ${reason}`), 'err');
     const result = user_defeat(gs);
     if(result === 'game_over'){ 게임오버(false); return false; }
+    if(result === 'restart_floor'){
+      로그_추가(`🔄 [${gs.stage}층 재시작]`, 'err');
+      arcade_restart_floor(gs);
+      플레이_HUD갱신(); 프롬프트_갱신();
+      return false;
+    }
     플레이_HUD갱신(); 프롬프트_갱신();
     return false;
   }
 
   gs.history.push({ word: raw, turn: gs.turn });
   gs.turn += 1;
+  if(gs.game_mode === 'ARCADE') gs.stage_turn += 1;
   check_title(gs);
 
-  // 50턴 무한 모드 제안 (초월/심연, 유한 모드일 때만)
+  // 50턴 무한 모드 제안 (서바이벌 · 초월/심연, 유한 모드일 때만)
   const max_t = get_max_turns(gs);
-  if(gs.turn === 50 && ['초월','심연'].includes(gs.diff) && !gs.infinite){
+  if(gs.game_mode === 'SURVIVAL' && gs.turn === 50 && ['초월','심연'].includes(gs.diff) && !gs.infinite){
     gs.game_state = 'DEAL_WAIT';
     로그_추가(say(gs, "흥... 50턴. '무한 모드' 진입 권한을 준다. 힌트 1개 추가. (수락/거절)",
                   "축하드립니다! 50턴 돌파! '무한 모드' 제안드립니다. 힌트 1개 추가. (수락/거절)"), 'sys');
@@ -197,8 +238,8 @@ function 단어_제출(){
       <button class="btn sm" onclick="딜_응답(false)">거절</button>`);
     return false;
   }
-  // 목표 턴 달성 (유한 모드)
-  if(!gs.infinite && gs.turn >= max_t){
+  // 목표 턴 달성 (서바이벌 · 유한 모드)
+  if(gs.game_mode === 'SURVIVAL' && !gs.infinite && gs.turn >= max_t){
     if(gs.turn > gs.best) gs.best = gs.turn;
     gs.game_state = 'SURVIVAL_VICTORY_WAIT';
     로그_추가(say(gs, `크윽... ${max_t}턴 생존이라니. 무한 모드로 계속할 수도 있다만. (계속/종료)`,
@@ -208,6 +249,27 @@ function 단어_제출(){
       <button class="btn sm acc" onclick="생존승리_응답(true)">계속</button>
       <button class="btn sm" onclick="생존승리_응답(false)">종료</button>`);
     return false;
+  }
+  // 층 목표 달성 (아케이드)
+  if(gs.game_mode === 'ARCADE'){
+    const target = get_stage_target(gs);
+    if(gs.stage_turn >= target){
+      if(gs.stage === 13){
+        if(gs.stage > gs.best) gs.best = gs.stage;
+        gs.game_state = 'VICTORY_WAIT';
+        로그_추가(say(gs, '크윽... 13층이라니. 14층부터는 무한 모드다. (계속/종료)',
+                      '🎉 13층 클리어! 14층 무한 등반에 도전하시겠습니까? (계속/종료)'), 'ok');
+        플레이_HUD갱신();
+        선택박스_보이기(`
+          <button class="btn sm acc" onclick="탑승리_응답(true)">계속</button>
+          <button class="btn sm" onclick="탑승리_응답(false)">종료</button>`);
+        return false;
+      }
+      arcade_floor_up(gs, false);
+      if(gs.game_state === 'SOFTLOCKED'){ 소프트락_진입(); return false; }
+      플레이_HUD갱신(); 프롬프트_갱신();
+      return false;
+    }
   }
 
   // AI 턴
@@ -222,9 +284,17 @@ function 단어_제출(){
       플레이_HUD갱신(); 프롬프트_갱신();
       return false;
     }
-    로그_추가(say(gs, `크윽... 단어를 찾지 못했다. ${title(gs)}의 승리다.`, `앗... 단어가 없습니다. ${title(gs)}의 승리입니다! 축하드려요!`), 'ok');
-    if(gs.turn > gs.best) gs.best = gs.turn;
-    게임오버(true);
+    if(gs.game_mode === 'SURVIVAL'){
+      로그_추가(say(gs, `크윽... 단어를 찾지 못했다. ${title(gs)}의 승리다.`, `앗... 단어가 없습니다. ${title(gs)}의 승리입니다! 축하드려요!`), 'ok');
+      if(gs.turn > gs.best) gs.best = gs.turn;
+      게임오버(true);
+      return false;
+    }
+    // 아케이드: AI 기권 = 그 층 클리어(런 종료 아님)
+    로그_추가(say(gs, '크윽... 단어가 없다. 이번 층은 네가 가져라.', '앗... 단어가 없네요! 이번 층은 통과하셨습니다!'), 'ok');
+    arcade_floor_up(gs, true);
+    if(gs.game_state === 'SOFTLOCKED'){ 소프트락_진입(); return false; }
+    플레이_HUD갱신(); 프롬프트_갱신();
     return false;
   }
 
@@ -236,9 +306,17 @@ function 단어_제출(){
       플레이_HUD갱신(); 프롬프트_갱신();
       return false;
     }
-    로그_추가(say(gs, `크윽... 『${ai_word}』는 한방 단어였군. ${title(gs)}의 승리다.`, `앗... 『${ai_word}』는 한방 단어! ${title(gs)}의 승리입니다!`), 'ok');
-    if(gs.turn > gs.best) gs.best = gs.turn;
-    게임오버(true);
+    if(gs.game_mode === 'SURVIVAL'){
+      로그_추가(say(gs, `크윽... 『${ai_word}』는 한방 단어였군. ${title(gs)}의 승리다.`, `앗... 『${ai_word}』는 한방 단어! ${title(gs)}의 승리입니다!`), 'ok');
+      if(gs.turn > gs.best) gs.best = gs.turn;
+      게임오버(true);
+      return false;
+    }
+    // 아케이드: AI가 한방 단어를 냄 = 실수, 그 층 클리어(런 종료 아님)
+    로그_추가(say(gs, `크윽... 내 실수. 『${ai_word}』는 한방 단어였군.`, `제 실수네요! 『${ai_word}』는 한방 단어였어요!`), 'warn');
+    arcade_floor_up(gs, true);
+    if(gs.game_state === 'SOFTLOCKED'){ 소프트락_진입(); return false; }
+    플레이_HUD갱신(); 프롬프트_갱신();
     return false;
   }
 
@@ -267,6 +345,10 @@ function 버튼_양보(){
     gs.yield_attempts = 0;
     const result = user_defeat(gs);
     if(result === 'game_over'){ 게임오버(false); return; }
+    if(result === 'restart_floor'){
+      로그_추가(`🔄 [${gs.stage}층 재시작]`, 'err');
+      arcade_restart_floor(gs);
+    }
   }
   플레이_HUD갱신(); 프롬프트_갱신();
 }
@@ -305,7 +387,8 @@ function 버튼_이의(){
         로그_추가(react_ai_word(gs, new_ai));
       } else {
         로그_추가(say(gs, `크윽... 대체 단어도 없군. ${title(gs)}의 승리다.`, `앗, 대체할 단어도 없네요! ${title(gs)}의 승리입니다!`), 'ok');
-        if(gs.turn > gs.best) gs.best = gs.turn;
+        // 원본과 동일: 이의제기로 인한 승리는 서바이벌만 best(턴) 갱신 — 아케이드는 갱신 안 함(원본 그대로)
+        if(gs.game_mode === 'SURVIVAL' && gs.turn > gs.best) gs.best = gs.turn;
         게임오버(true);
         return;
       }
@@ -330,9 +413,57 @@ function 버튼_힌트(){
   if(gs.game_state !== 'PLAYING') return;
   if(gs.ai_last_char === null){ 로그_추가('ℹ️ 첫 단어는 자유롭게 입력하세요. 힌트가 필요하지 않습니다.', 'sys'); return; }
 
+  // 13층 이상 + 힌트 소진 = 시련의 탑 대신 바로 비상 탈출구
+  if(gs.game_mode === 'ARCADE' && gs.stage >= 13 && gs.hints <= 0){
+    로그_추가(say(gs, '벌써 다리에 힘이 풀렸나? 꼬리를 말고 도망치겠다면 문을 열어주지.',
+                  '어머, 벌써 한계이신가요? 정 무서우시다면 도망칠 비상구를 열어드릴게요.'), 'sys');
+    gs.game_state = 'ESCAPE_WAIT';
+    선택박스_보이기(`
+      <div class="q">[비상 탈출구]</div>
+      <button class="btn sm acc" onclick="탈출_응답(false)">계속</button>
+      <button class="btn sm" onclick="탈출_응답(true)">도망</button>`);
+    return;
+  }
+
   const cands = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, 0, 0);
 
   if(gs.hints !== Infinity && gs.hints <= 0){
+    if(gs.game_mode === 'ARCADE'){
+      gs.trial_tower_entries += 1;
+      if(gs.trial_tower_entries === 2){
+        로그_추가(say(gs, '제 발로 지옥에 두 번이나 기어들어 오다니. 목숨이 여러 개인 줄 아는 모양이군.',
+                      '이곳의 대가를 아시면서도 다시 오셨군요. 이번에는 부디 운이 따라주기를 바랍니다.'), 'sys');
+      } else if(gs.trial_tower_entries >= 3){
+        로그_추가(say(gs, '세 번씩이나 목숨을 구걸하러 기어오다니. 이젠 그 알량한 발버둥이 역겹기까지 하군.',
+                      '세 번째 방문이시군요. 이쯤 되면 생존을 위한 용기가 아니라, 파멸을 향한 만용이라는 걸 아실 텐데요.'), 'sys');
+      }
+      if(gs.trial_rejected_floor === gs.stage){
+        로그_추가(say(gs, '크크크... 한 번 거절한 계약은 다시 열리지 않는다.', '이번 층에서는 이미 거절하셨어요. 다음 층을 노려보세요!'), 'sys');
+        return;
+      }
+      gs.trial_attempts_this_floor += 1;
+      const prob = 붕괴확률(gs.trial_attempts_this_floor);
+      if(prob > 0){
+        gs.game_state = 'TOWER_COLLAPSE_WAIT';
+        로그_추가(`▓▒░ [탑의 그림자가 짙어진다] ░▒▓  현재 붕괴 위험: ${prob}%`, 'err');
+        선택박스_보이기(`
+          <div class="q">⚠ ${prob}% 확률로 탑이 무너진다.</div>
+          <button class="btn sm acc" onclick="붕괴_응답(true)">심연의 문 — 입장(위험 감수)</button>
+          <button class="btn sm" onclick="붕괴_응답(false)">탑의 그림자 — 퇴장(포기)</button>`);
+      } else {
+        gs.game_state = 'TRIAL_WAIT';
+        로그_추가('░▒▓ [시련의 탑] ▓▒░', 'sys');
+        선택박스_보이기(`
+          <div class="q">[1] 시간의 계약 — 이번 층 즉시 클리어 / 다음 1층 목표 턴 ×1.3<br>
+          [2] 생명의 계약 — 목숨+1·힌트+1 / 다음 2층 두음법칙 OFF<br>
+          [3] 어둠의 계약 — 목숨+1·힌트+3 / 이번 층 2글자 단어만 허용</div>
+          <button class="btn sm acc" onclick="시련_응답(1)">시간의 계약</button>
+          <button class="btn sm acc" onclick="시련_응답(2)">생명의 계약</button>
+          <button class="btn sm acc" onclick="시련_응답(3)">어둠의 계약</button>
+          <button class="btn sm" onclick="시련_응답(0)">거절</button>`);
+      }
+      return;
+    }
     if(!gs.deal_offered){
       if(gs.diff === '심연'){ 로그_추가(say(gs, '흥... 심연에서는 거래를 거부합니다.', '심연에서는 거래를 거부합니다. 스스로의 힘으로 해내세요!'), 'sys'); return; }
       gs.deal_offered = true;
@@ -412,20 +543,145 @@ function 생존승리_응답(계속){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   아케이드 — 시련의 탑 · 탑 붕괴 · 비상 탈출구 · 13층 승리 (Phase 4)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function 시련_응답(선택){
+  if(선택 === 1){
+    gs.game_state = 'PLAYING';
+    로그_추가(say(gs, '크크... 시간의 계약. 이번 층은 넘어가지. 다음 층은 쉽지 않을 것이다.', '시간의 계약 체결! 이번 층 클리어. 다음 층은 길어질 거예요!'), 'ok');
+    arcade_floor_up(gs, false);
+    if(gs.game_state === 'SOFTLOCKED'){ 소프트락_진입(); return; }
+    gs.curse_time_floors = 1;
+    플레이_HUD갱신(); 프롬프트_갱신();
+  } else if(선택 === 2){
+    gs.hearts += 1;
+    if(gs.hints !== Infinity) gs.hints += 1;
+    gs.curse_life_floors = 2;
+    gs.game_state = 'PLAYING';
+    const h = 표시무한(gs.hearts);
+    로그_추가(say(gs, `크크... 생명의 계약. 목숨+1 힌트+1. 대신 두음법칙은 없다. (목숨:${h} / 힌트:${표시무한(gs.hints)})`,
+                  `생명의 계약! 목숨+1 (${h}개) 힌트+1 (${표시무한(gs.hints)}개). 다음 2층은 두음법칙이 적용 안 돼요! (유저만 해당)`), 'ok');
+    플레이_HUD갱신(); 프롬프트_갱신();
+  } else if(선택 === 3){
+    gs.hearts += 1;
+    if(gs.hints !== Infinity) gs.hints += 3;
+    gs.curse_dark_active = true;
+    gs.game_state = 'PLAYING';
+    const h = 표시무한(gs.hearts);
+    로그_추가(say(gs, `크크크... 어둠의 계약. 목숨+1 힌트+3. 이번 층은 2글자 단어만이다. (목숨:${h} / 힌트:${표시무한(gs.hints)})`,
+                  `어둠의 계약! 목숨+1 (${h}개) 힌트+3 (${표시무한(gs.hints)}개). 이번 층은 2글자 단어만! (힌트도 2글자만 안내)`), 'ok');
+    플레이_HUD갱신(); 프롬프트_갱신();
+  } else {
+    gs.game_state = 'PLAYING';
+    gs.trial_rejected_floor = gs.stage;
+    로그_추가(say(gs, '흥... 거절이라. 이번 층에서 계약의 문은 다시 열리지 않는다.', '알겠습니다. 이번 층에서는 다시 계약을 요청하실 수 없어요.'));
+    플레이_HUD갱신(); 프롬프트_갱신();
+  }
+}
+
+function 붕괴_응답(입장){
+  if(입장){
+    const prob = 붕괴확률(gs.trial_attempts_this_floor);
+    const roll = 1 + Math.floor(Math.random() * 100);
+    if(prob >= 100 || roll <= prob){
+      로그_추가('▓▒░ 탑이 무너진다. 대지가 갈라진다. ░▒▓', 'err');
+      로그_추가(say(gs, `크크크... 욕심이 파멸을 불렀군, ${title(gs)}.`, `탑이 붕괴했습니다! 욕심이 지나쳤어요, ${title(gs)}!`), 'err');
+      로그_추가(`💀 [탑 붕괴 엔딩] ${gs.stage}층에서 소멸.`, 'err');
+      if(gs.stage > gs.best) gs.best = gs.stage;
+      게임오버(false);
+    } else {
+      로그_추가(say(gs, '흥... 운이 좋군. 탑이 네 무모함을 인정했다.', '운이 좋으시네요! 탑이 한 번 더 기회를 주었습니다.'), 'ok');
+      gs.game_state = 'TRIAL_WAIT';
+      선택박스_보이기(`
+        <div class="q">[1] 시간의 계약  [2] 생명의 계약  [3] 어둠의 계약</div>
+        <button class="btn sm acc" onclick="시련_응답(1)">시간의 계약</button>
+        <button class="btn sm acc" onclick="시련_응답(2)">생명의 계약</button>
+        <button class="btn sm acc" onclick="시련_응답(3)">어둠의 계약</button>
+        <button class="btn sm" onclick="시련_응답(0)">거절</button>`);
+    }
+  } else {
+    gs.game_state = 'PLAYING';
+    gs.trial_rejected_floor = gs.stage;
+    로그_추가(say(gs, '흥... 현명한 선택이다. 탑의 그림자가 물러선다.', '잘 생각하셨어요! 위험을 피하셨습니다.'));
+    플레이_HUD갱신(); 프롬프트_갱신();
+  }
+}
+
+function 탈출_응답(도망){
+  if(도망){
+    로그_추가(say(gs, '패배자의 말로는 비참하지. 탑의 어둠 속으로 사라져라.', '현명한 판단이시네요. 이 이상은 무리였을 거예요.'), 'err');
+    로그_추가(`💀 [비상 탈출] ${gs.stage}층에서 도망쳤습니다.`, 'err');
+    if(gs.stage > gs.best) gs.best = gs.stage;
+    게임오버(false);
+  } else {
+    gs.game_state = 'PLAYING';
+    로그_추가(say(gs, '어리석은 객기다. 네 무덤을 스스로 파는군.', '다시 도전하시는군요! 당신의 용기를 응원합니다!'));
+    플레이_HUD갱신(); 프롬프트_갱신();
+  }
+}
+
+function 탑승리_응답(계속){
+  if(계속){
+    gs.stage = 14; gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
+    gs.hearts = gs.god_mode_active ? Infinity : 2;
+    gs.user_title = is_arrogant(gs) ? '탑의지배자' : '탑의주인님';
+    gs.game_state = 'PLAYING';
+    로그_추가(`🚀 [14층 진입] 무한 등반. 목표: ${get_stage_target(gs)}턴`, 'ok');
+    플레이_HUD갱신(); 프롬프트_갱신();
+  } else {
+    if(gs.stage > gs.best) gs.best = gs.stage;
+    게임오버(true);
+  }
+}
+
+// 20층 소프트락 이스터에그 — 원본 _handle_softlock(좀비 텍스트 부패 연출, 리셋 외 탈출 불가)
+function 소프트락_진입(){
+  const zalgo = [...Array(700)].map(() => 0x0300 + Math.floor(Math.random() * 0x70));
+  let base = 'SYSTEM_CORRUPTION';
+  let text = '';
+  for(const c of base){
+    text += c;
+    for(let k=0;k<5;k++) text += String.fromCodePoint(zalgo[Math.floor(Math.random()*zalgo.length)]);
+  }
+  document.getElementById('소프트락-텍스트').textContent = `${text} ERROR: MEMORY_LEAK_AT_0xDEADBEEF ${text}`;
+  화면('소프트락');
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    게임 오버 (원본 show_game_over — 서바이벌)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function 게임오버(victory){
   gs.game_state = 'GAME_OVER';
   화면('오버');
   document.getElementById('오버-이모지').textContent = victory ? '🏆' : '💀';
-  const msg = victory
-    ? say(gs, '흥... 이번엔 네가 이겼군. 다음엔 쉽게 넘어가지 않을 것이다.', `🎉 승리입니다, ${title(gs)}! 훌륭한 플레이였습니다!`)
-    : say(gs, `크크크... 예상대로군. 재도전이라도 해볼 텐가, ${title(gs)}?`, '수고하셨습니다! 다음엔 더 잘하실 수 있을 거예요!');
-  document.getElementById('오버-메시지').textContent = (victory ? '🏆 [SURVIVAL 클리어] ' : '💀 [GAME OVER] ') + msg;
-  document.getElementById('오버-통계').textContent = `최종 턴: ${gs.turn}  |  최고 기록: ${gs.best}`;
+
+  if(gs.game_mode === 'SURVIVAL'){
+    const msg = victory
+      ? say(gs, '흥... 이번엔 네가 이겼군. 다음엔 쉽게 넘어가지 않을 것이다.', `🎉 승리입니다, ${title(gs)}! 훌륭한 플레이였습니다!`)
+      : say(gs, `크크크... 예상대로군. 재도전이라도 해볼 텐가, ${title(gs)}?`, '수고하셨습니다! 다음엔 더 잘하실 수 있을 거예요!');
+    document.getElementById('오버-메시지').textContent = (victory ? '🏆 [SURVIVAL 클리어] ' : '💀 [GAME OVER] ') + msg;
+    document.getElementById('오버-통계').textContent = `최종 턴: ${gs.turn}  |  최고 기록: ${gs.best}`;
+  } else {
+    const msg = victory
+      ? say(gs, `크윽... 인정하지. ${title(gs)}의 승리다.`, `🎉 13층 클리어! 정말 대단하십니다, ${title(gs)}!`)
+      : say(gs, `크크크... ${gs.stage}층이 네 한계였나, ${title(gs)}.`, `수고하셨습니다! ${gs.stage}층까지 잘하셨어요!`);
+    document.getElementById('오버-메시지').textContent = (victory ? '🏆 [13층 클리어] ' : '💀 [GAME OVER] ') + msg;
+    document.getElementById('오버-통계').textContent = `최종 층: ${gs.stage}  |  최고 기록: ${gs.best}층`;
+  }
 }
 
 function 다시시작(){
+  if(gs.game_mode === 'ARCADE'){
+    // 원본 _handle_game_over(ARCADE): 설정 화면 없이 곧장 1층부터 재시작
+    reset_game(gs);
+    gs.stage = 1;
+    gs.game_state = 'PLAYING';
+    로그_비우기();
+    로그_추가('🔄 아케이드 모드 재시작. 1층부터.', 'sys');
+    화면('플레이');
+    플레이_HUD갱신(); 프롬프트_갱신();
+    return;
+  }
   gs.game_state = 'READY';
   reset_game(gs);
   화면('설정');
