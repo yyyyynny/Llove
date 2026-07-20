@@ -9,7 +9,8 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
-const ROOT = path.join(__dirname, '..');
+// 저장소 재편(2026-07-19): 앱 본체가 Llove/ 하위로 이동 (루트 index.html은 관문 리다이렉트)
+const ROOT = path.join(__dirname, '..', 'Llove');
 const HTML_PATH = path.join(ROOT, 'index.html');
 
 // 분할된 외부 참조를 인라인으로 되돌린 HTML을 만든다 (테스트 전용)

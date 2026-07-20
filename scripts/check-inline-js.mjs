@@ -11,8 +11,9 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const HTML_PATH = 'index.html';
-const JS_DIR = 'js';
+// 저장소 재편(2026-07-19): 앱 본체가 Llove/ 하위로 이동 (루트 index.html은 관문 리다이렉트)
+const HTML_PATH = 'Llove/index.html';
+const JS_DIR = 'Llove/js';
 
 // 인라인 <script> 블록만 추출 (src 속성이 있는 외부 스크립트는 제외)
 function 인라인스크립트_추출(html) {

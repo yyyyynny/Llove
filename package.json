@@ -6,7 +6,7 @@
   "scripts": {
     "check:js": "node scripts/check-inline-js.mjs",
     "check:deploy": "node scripts/check-deploy.mjs",
-    "check:html": "htmlhint --config .htmlhintrc index.html",
+    "check:html": "htmlhint --config .htmlhintrc Llove/index.html index.html wchain/index.html",
     "test": "node tests/run-all.cjs"
   },
   "devDependencies": {

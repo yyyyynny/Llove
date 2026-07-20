@@ -47,7 +47,7 @@ jobs:
       - name: HTML 구조 검증 (htmlhint)
         run: |
           echo "::group::HTML 구조 검증 (tag-pair / id-unique / doctype 등)"
-          npx --yes htmlhint@1 --config .htmlhintrc index.html
+          npx --yes htmlhint@1 --config .htmlhintrc Llove/index.html index.html wchain/index.html
           echo "::endgroup::"
 
       - name: GitHub Pages 배포 전 기본 점검
