@@ -179,6 +179,10 @@ function 선택박스_숨기기(){ document.getElementById('선택박스').style
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    단어 제출 (원본 _handle_playing 핵심 경로)
+   Phase 5: 로컬 사전에 없는 단어는(게이트가 켜져 있을 때만) 국립국어원 API로 한 번 더
+   확인한다 — validate_word 자체는 순수·동기 함수로 그대로 두고(파이썬 대조 500/500 유지),
+   비동기 온라인 조회는 이 UI 레이어에서만 감싼다. 게이트 기본값이 false라 지금은 항상
+   기존과 동일하게 로컬 사전 판정만 탄다(행동 변화 없음).
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function 단어_제출(){
   const inp = document.getElementById('단어입력');
@@ -193,6 +197,32 @@ function 단어_제출(){
   로그_추가('▶ ' + raw);
   const [valid, reason] = validate_word(raw, gs);
 
+  // 로컬 사전에 없어서만 실패했고 국어원 게이트가 켜져 있으면 온라인 조회로 재확인.
+  // (게이트 off인 지금은 이 분기가 절대 안 타서 기존 동작 그대로 — 회귀 없음)
+  if(!valid && 국어원_활성화 && reason.endsWith('사전에 없는 단어입니다.')){
+    로그_추가('🔎 국립국어원 사전을 확인하는 중...', 'sys');
+    국어원_단어조회(raw).then(존재함 => {
+      if(!존재함){ 단어_처리(raw, valid, reason); return; }
+      // API로 사전 등재가 확인된 단어 — validate_word의 다음 단계(한방 판정)를 동일하게 재현
+      // (사전 소속 여부만 API가 대신했을 뿐, 그 이후 규칙은 로컬 판정과 완전히 같아야 한다)
+      if(is_hanbang(raw, used_words(gs), gs.rev, gs.dueum, gs.stage)){
+        if(gs.game_mode === 'ARCADE'){
+          단어_처리(raw, false, `『${raw}』은(는) 한방 단어입니다. (아케이드에서 사용 불가)`); return;
+        }
+        if(!gs.hanbang){
+          단어_처리(raw, false, `『${raw}』은(는) 한방 단어입니다. (일반 모드에서 사용 불가)`); return;
+        }
+      }
+      단어_처리(raw, true, '');
+    });
+    return false;
+  }
+
+  단어_처리(raw, valid, reason);
+  return false;
+}
+
+function 단어_처리(raw, valid, reason){
   if(!valid){
     // ⚠️ 노션 11번 반영: 기본 모드(비아케이드)에서 한방 단어 + 한방모드 OFF면 즉시 패배.
     //    (원본은 이 경우도 실수 1회로 처리하던 결함 — validate_word 사유 문자열로 정확히 식별)
