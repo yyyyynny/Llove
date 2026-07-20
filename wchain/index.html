@@ -6,50 +6,205 @@
   <title>잇는 · 끝말잇기</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%97%3C/text%3E%3C/svg%3E">
   <!--
-    '잇는'(임시 이름 — 최종 미정) — Llove의 이세계(끝말잇기 게임 차원) 진입점.
-    Phase 1: 아직 게임 로직 없음 — "준비 중" 안내 + 학습 세계로 돌아가기.
+    '잇는'(임시 이름 — 최종 미정) — Llove의 이세계(끝말잇기 게임 차원).
+    Phase 3: 서바이벌 모드 실제 플레이 가능. 아케이드는 Phase 4 예정으로 비활성 표시.
     같은 GitHub Pages·같은 도메인이라 구글 로그인은 자동 공유(추후 Firebase 배선).
-    상세 설계는 wchain/시스템.md 참조.
+    상세 설계·게이트 정책·이식 규칙은 wchain/시스템.md 참조.
   -->
   <style>
     /* Llove 본체와 분리된 독립 진입점이라 최소 스타일만 자체 보유.
-       회전 애니메이션은 '잇' 퍼즐(게임 본질)에서만 허용 — 여기 장식엔 사용하지 않는다. */
-    :root{ --bg:#0e1016; --panel:#151824; --acc:#9db0d8; --txt:#e6e9f2; --txt2:#8b93a8; }
+       회전 애니메이션은 '잇' 퍼즐(게임 본질)에서만 허용 — 그 외 전부 fadeUp만 사용(Llove 규칙 준용). */
+    :root{ --bg:#0e1016; --panel:#151824; --panel2:#1b1f2e; --acc:#9db0d8; --txt:#e6e9f2; --txt2:#8b93a8;
+           --ok:#8ce6bf; --err:#e68c9c; --warn:#e6c98c; --bdr:rgba(157,176,216,.22); }
     *{ box-sizing:border-box; margin:0; padding:0; }
     html,body{ height:100%; }
     body{
       background:radial-gradient(700px 500px at 50% 8%, #171b28 0%, var(--bg) 70%);
       color:var(--txt);
       font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      min-height:100dvh; text-align:center; padding:24px;
+      min-height:100dvh;
     }
-    .badge{ font-size:12px; letter-spacing:4px; color:var(--acc); margin-bottom:14px; }
-    h1{ font-size:30px; font-weight:900; letter-spacing:1px; margin-bottom:8px;
+    .wrap{ max-width:520px; margin:0 auto; padding:20px 16px 40px; min-height:100dvh; display:flex; flex-direction:column; }
+    .screen{ display:none; flex:1; flex-direction:column; }
+    .screen.active{ display:flex; }
+    @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+    .fu{ animation:fadeUp .32s cubic-bezier(.22,1,.36,1) both; }
+
+    .badge{ font-size:12px; letter-spacing:4px; color:var(--acc); margin-bottom:10px; text-align:center; }
+    h1{ font-size:26px; font-weight:900; letter-spacing:1px; margin-bottom:4px; text-align:center;
       background:linear-gradient(180deg,#ffffff,#aab6d8); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
-    .sub{ font-size:13px; color:var(--txt2); margin-bottom:28px; }
-    .note{ font-size:14px; color:var(--txt); background:var(--panel);
-      border:1px solid rgba(157,176,216,.22); border-radius:14px; padding:16px 20px; max-width:340px; line-height:1.7; }
-    .back{ margin-top:26px; display:inline-block; font-size:13px; color:var(--acc);
-      text-decoration:none; border:1px solid rgba(157,176,216,.3); border-radius:999px; padding:9px 18px;
-      transition:background .2s,transform .2s; }
-    .back:hover{ background:rgba(157,176,216,.12); transform:translateY(-1px); }
+    .sub{ font-size:12px; color:var(--txt2); margin-bottom:22px; text-align:center; }
+    .back{ margin:18px auto 0; display:inline-block; font-size:12px; color:var(--txt2); text-decoration:none; }
+    .back:hover{ color:var(--acc); }
+
+    .card{ background:var(--panel); border:1px solid var(--bdr); border-radius:14px; padding:16px; margin-bottom:10px; }
+    .card-title{ font-size:11px; color:var(--txt2); letter-spacing:1px; margin-bottom:8px; }
+    .card-title b{ color:var(--txt); }
+
+    .btn{ display:block; width:100%; text-align:left; font-family:inherit; font-size:14px; color:var(--txt);
+      background:var(--panel); border:1px solid var(--bdr); border-radius:12px; padding:13px 16px; margin-bottom:8px;
+      cursor:pointer; transition:background .18s,border-color .18s,transform .1s; }
+    .btn:active{ transform:scale(.98); }
+    .btn:hover{ background:var(--panel2); border-color:rgba(157,176,216,.4); }
+    .btn.acc{ background:linear-gradient(135deg,#3a4470,#2a3358); border-color:rgba(157,176,216,.5); color:#fff; font-weight:700; text-align:center; }
+    .btn.acc:hover{ filter:brightness(1.12); }
+    .btn.sm{ display:inline-block; width:auto; padding:9px 14px; font-size:12px; margin:0 6px 6px 0; }
+    .btn:disabled{ opacity:.4; cursor:not-allowed; }
+    .btn .d{ font-size:11px; color:var(--txt2); margin-top:2px; }
+    .row{ display:flex; flex-wrap:wrap; gap:0; }
+
+    /* HUD */
+    .hud{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+    .hud-item{ background:var(--panel); border:1px solid var(--bdr); border-radius:10px; padding:9px 11px; }
+    .hud-lbl{ font-size:10px; color:var(--txt2); margin-bottom:3px; }
+    .hud-val{ font-size:14px; font-weight:700; }
+    .bar-track{ background:#0b0d14; border-radius:999px; height:7px; overflow:hidden; margin-top:6px; }
+    .bar-fill{ height:100%; background:linear-gradient(90deg,var(--acc),#c7d3ee); transition:width .3s; }
+    .status-🟢{ color:var(--ok); } .status-🟡{ color:var(--warn); } .status-🔴{ color:var(--err); }
+
+    .ai-word{ text-align:center; font-size:20px; font-weight:700; padding:14px; background:var(--panel2);
+      border:1px solid var(--bdr); border-radius:12px; margin-bottom:10px; }
+    .ai-word small{ display:block; font-size:11px; color:var(--txt2); font-weight:400; margin-top:4px; }
+
+    .log{ flex:1; min-height:120px; max-height:220px; overflow-y:auto; background:#0b0d14; border:1px solid var(--bdr);
+      border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:13px; line-height:1.7; }
+    .log .line{ margin-bottom:4px; }
+    .log .line.sys{ color:var(--txt2); font-size:12px; }
+    .log .line.err{ color:var(--err); }
+    .log .line.ok{ color:var(--ok); }
+
+    .input-row{ display:flex; gap:8px; margin-bottom:10px; }
+    .input-row input{ flex:1; font-family:inherit; font-size:15px; color:var(--txt); background:var(--panel);
+      border:1px solid var(--bdr); border-radius:12px; padding:12px 14px; outline:none; }
+    .input-row input:focus{ border-color:var(--acc); }
+    .input-row button{ font-family:inherit; font-size:14px; font-weight:700; color:#fff; background:linear-gradient(135deg,#3a4470,#2a3358);
+      border:none; border-radius:12px; padding:0 18px; cursor:pointer; }
+
+    .util-row{ display:flex; flex-wrap:wrap; gap:6px; }
+
+    .choice-box{ background:var(--panel2); border:1px solid var(--bdr); border-radius:12px; padding:12px; margin-bottom:10px; }
+    .choice-box .q{ font-size:13px; margin-bottom:10px; line-height:1.6; }
+
+    .result{ text-align:center; padding:20px 0; }
+    .result .emoji{ font-size:44px; margin-bottom:10px; }
+    .result .msg{ font-size:15px; margin-bottom:6px; }
+    .result .stat{ font-size:12px; color:var(--txt2); margin-bottom:20px; }
+
+    .modal-bg{ position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.6); display:flex; align-items:center;
+      justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .25s; }
+    .modal-bg.show{ opacity:1; pointer-events:all; }
+    .modal-bx{ background:var(--panel); border:1px solid var(--bdr); border-radius:16px; padding:20px; max-width:400px;
+      max-height:80vh; overflow-y:auto; width:100%; font-size:13px; line-height:1.7; text-align:left; }
+    .modal-bx h3{ font-size:15px; margin-bottom:10px; }
   </style>
 </head>
 <body>
+<div class="wrap">
   <div class="badge">잇 는</div>
   <h1>끝말잇기</h1>
   <div class="sub">Dark Fantasy Edition</div>
-  <div class="note">
-    이 세계는 아직 <b>준비 중</b>입니다.<br>
-    문은 이어졌지만, 안쪽은 곧 채워집니다.
-  </div>
-  <a class="back" href="../Llove/">← 학습 세계로 돌아가기</a>
 
-  <!-- Phase 2: 한글 엔진(사전+두음법칙+탐색+한방) — 파이썬 원본과 전수 대조 완료(12/12).
-       클래식 스크립트·전역 공유(Llove와 동일 원칙). 사전 → 엔진 순서 고정.
-       게임 본체(상태 머신·모드)는 Phase 3~4에서 이 위에 얹는다. -->
-  <script src="js/사전.js"></script>
-  <script src="js/엔진.js"></script>
+  <!-- 페르소나 선택 (원본 show_init/_handle_init) -->
+  <div class="screen active" id="s-페르소나">
+    <div class="card fu">
+      <div class="card-title">페르소나를 선택하세요</div>
+      <button class="btn" onclick="선택_페르소나('Arrogant')">
+        <b>폭군</b> — 냉혹하고 조롱하는 심판
+        <div class="d">호칭: 필멸자 → 각성자 → 초월자</div>
+      </button>
+      <button class="btn" onclick="선택_페르소나('Polite')">
+        <b>비서</b> — 친절하고 격려하는 조력자
+        <div class="d">호칭: 사용자님 → 숙련자님 → 마스터님</div>
+      </button>
+    </div>
+    <a class="back" href="../Llove/">← 학습 세계로 돌아가기</a>
+  </div>
+
+  <!-- 모드 선택 (원본 _show_mode_select) -->
+  <div class="screen" id="s-모드">
+    <div class="card fu">
+      <div class="card-title">게임 모드</div>
+      <button class="btn acc" onclick="선택_모드('SURVIVAL')">🕰 서바이벌 모드<div class="d">턴 제한 내 생존 · 실수 4회마다 목숨 차감</div></button>
+      <button class="btn" disabled>🗼 아케이드 모드<div class="d">Phase 4에서 공개 예정</div></button>
+    </div>
+  </div>
+
+  <!-- 서바이벌 설정 (원본 _show_ready/_handle_ready) -->
+  <div class="screen" id="s-설정">
+    <div class="card fu">
+      <div class="card-title">⚙ 서바이벌 설정</div>
+      <button class="btn" id="opt-사전"></button>
+      <button class="btn" id="opt-난이도"></button>
+      <button class="btn" id="opt-한방"></button>
+      <button class="btn" id="opt-두음"></button>
+      <button class="btn" id="opt-무한"></button>
+    </div>
+    <button class="btn acc fu" onclick="게임_시작()">🚀 시작</button>
+  </div>
+
+  <!-- 플레이 화면 (원본 show_survival_hud/prompt_next/_handle_playing) -->
+  <div class="screen" id="s-플레이">
+    <div class="hud fu">
+      <div class="hud-item"><div class="hud-lbl">⏳ 턴</div><div class="hud-val" id="hud-턴"></div>
+        <div class="bar-track"><div class="bar-fill" id="hud-바"></div></div></div>
+      <div class="hud-item"><div class="hud-lbl">🔥 상태</div><div class="hud-val" id="hud-상태"></div></div>
+      <div class="hud-item"><div class="hud-lbl">💡 힌트</div><div class="hud-val" id="hud-힌트"></div></div>
+      <div class="hud-item"><div class="hud-lbl">❤️ 목숨 / ⚠️ 실수</div><div class="hud-val" id="hud-목숨"></div></div>
+    </div>
+    <div class="ai-word fu">
+      <span id="ai-단어">─</span>
+      <small id="prompt-안내">첫 단어를 자유롭게 입력하세요</small>
+    </div>
+    <div class="log" id="로그"></div>
+    <div class="choice-box" id="선택박스" style="display:none"></div>
+    <form class="input-row fu" id="입력폼" onsubmit="return 단어_제출()">
+      <input id="단어입력" placeholder="단어를 입력하세요" autocomplete="off" maxlength="20">
+      <button type="submit">전송</button>
+    </form>
+    <div class="util-row fu">
+      <button class="btn sm" onclick="버튼_힌트()">💡 힌트</button>
+      <button class="btn sm" id="btn-먼저" onclick="버튼_양보()" style="display:none">먼저 해</button>
+      <button class="btn sm" id="btn-이의" onclick="버튼_이의()" style="display:none">이의 있음</button>
+      <button class="btn sm" id="btn-허세" onclick="버튼_허세()" style="display:none">그 단어 없어!</button>
+      <button class="btn sm" onclick="버튼_설명()">📖 설명</button>
+      <button class="btn sm" onclick="버튼_상태()">🔄 상태</button>
+      <button class="btn sm" onclick="버튼_리셋()">⏹ 리셋</button>
+    </div>
+  </div>
+
+  <!-- 게임 오버 (원본 show_game_over) -->
+  <div class="screen" id="s-오버">
+    <div class="result fu">
+      <div class="emoji" id="오버-이모지">💀</div>
+      <div class="msg" id="오버-메시지"></div>
+      <div class="stat" id="오버-통계"></div>
+      <button class="btn acc" onclick="다시시작()">재도전</button>
+      <button class="btn" onclick="전체리셋()">전체 초기화</button>
+    </div>
+  </div>
+</div>
+
+<!-- 설명서 모달 -->
+<div class="modal-bg" id="설명Bg" onclick="if(event.target===this)버튼_설명닫기()">
+  <div class="modal-bx">
+    <h3>📖 설명서</h3>
+    <p><b>기본 규칙</b> — 이전 단어의 마지막 글자로 시작하는 단어를 이어갑니다.
+    중복 단어 금지, 한방 단어(다음 사람이 이을 수 없는 단어)는 설정에 따라 제한됩니다.</p><br>
+    <p><b>서바이벌</b> — 안온 50턴 / 격동 75턴 / 초월 140턴 / 심연 160턴. 실수 4회 누적마다 목숨 1개 차감,
+    목숨 소진 시 패배합니다.</p><br>
+    <p><b>버튼</b> — 힌트(초성 공개), 먼저 해(첫 턴에만), 이의 있음(판정에 항의), 그 단어 없어!(AI 단어에 시비),
+    상태(HUD 다시 표시), 리셋(현재 판 초기화).</p>
+    <button class="btn" style="margin-top:10px" onclick="버튼_설명닫기()">닫기</button>
+  </div>
+</div>
+
+<!-- Phase 2: 한글 엔진 — 파이썬 원본과 전수 대조 완료(12/12).
+     Phase 3: 게임 상태·규칙·서바이벌 UI — validate_word 500/500 대조 완료.
+     클래식 스크립트·전역 공유(Llove와 동일 원칙). 로드 순서 고정. -->
+<script src="js/사전.js"></script>
+<script src="js/엔진.js"></script>
+<script src="js/게임상태.js"></script>
+<script src="js/게임규칙.js"></script>
+<script src="js/서바이벌.js"></script>
 </body>
 </html>
