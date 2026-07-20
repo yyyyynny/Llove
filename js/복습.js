@@ -78,7 +78,9 @@ function setLsetMode(screenId, mode, btn){
     showToastMsg(`맞춤법 출제 방식: ${mode}`);
   } else if(screenId==='sq4'){
     // 아재개그 난이도 즉시 갱신
-    renderDad(DAD_GAGS_BY_DIFFICULTY[mode] || DAD_GAGS_BY_DIFFICULTY['아↗그거!']);
+    // 실브라우저 E2E로 발견한 누락: 하드코딩 풀만 렌더해 설정 변경 순간 JSON DB 문항이
+    // 풀에서 빠지던 버그 — 화면전환.js와 동일하게 큐레이션+DB 병합 풀로 통일
+    renderDad(아재풀_구성(mode));
     setTimeout(initDad,30);
     showToastMsg(`난이도: ${mode}`);
   } else if(screenId==='sq4_input'){
