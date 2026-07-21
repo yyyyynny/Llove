@@ -355,6 +355,10 @@ function 단어_처리(raw, valid, reason){
   gs.ai_last_word = ai_word;
   로그_추가(react_ai_word(gs, ai_word));
   플레이_HUD갱신(); 프롬프트_갱신();
+  // 콜롬비나 음성 배선(Phase 6) — 게이트(음성생성_활성화) off인 동안은 음성생성호출이 즉시 null을
+  // 반환해 음성재생 자체가 호출되지 않는다(네트워크·오디오 재생 0건, 기존 동작과 동일). 화면
+  // 흐름을 막지 않도록 결과를 기다리지 않는 fire-and-forget으로 둔다.
+  (async () => { const 음성 = await 음성생성호출(ai_word); if (음성) 음성재생(음성); })();
   return false;
 }
 

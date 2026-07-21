@@ -1,4 +1,4 @@
-// '잇는' — Llove 연동 (Phase 4: 게임 데이터 삭제 → 잇는개방 재잠금)
+// '잇는' — Llove 연동 (Phase 4: 게임 데이터 삭제 → 잇는개방 재잠금 / Phase 6: 음성엔드포인트 읽기)
 // Llove와 같은 Firebase 프로젝트·같은 도메인이라 로그인 세션이 자동 공유된다(별도 로그인 불필요,
 // firebase.auth()가 이미 인증된 세션을 그대로 이어받음 — Phase 1 계획의 "로그인 자동 공유").
 // 원본 파이썬 게임엔 없는 웹 전용 기능(계획서 "재잠금" 항목) — 클래식 스크립트, 가장 마지막 로드.
@@ -23,6 +23,16 @@ let fbAuth = null, fbDb = null;
     fbDb = firebase.firestore();
     // 로그인 상태만 읽는다 — wchain은 Llove처럼 사용자 데이터 전체를 동기화하지 않고,
     // "게임 데이터 삭제" 시 현재 로그인된 사용자 문서의 잇는개방 필드만 되돌린다.
+    // 예외: 음성엔드포인트는 Llove 설정 패널에서 이미 관리자님이 입력·저장해 둔 같은 문서의
+    // 필드를 읽기 전용으로 재사용한다(중복 설정 UI를 wchain에 새로 만들지 않기 위함 — Phase 6).
+    // js/음성.js의 음성생성_활성화가 false인 동안은 이 값이 채워져도 실제 호출로 이어지지 않는다.
+    fbAuth.onAuthStateChanged(user => {
+      if(!user) return;
+      fbDb.collection('users').doc(user.uid).get().then(doc => {
+        const data = doc.data();
+        if(data && typeof data.음성엔드포인트 === 'string') 음성엔드포인트 = data.음성엔드포인트;
+      }).catch(e => console.warn('[연동] 음성엔드포인트 읽기 실패', e));
+    });
   }catch(e){ console.warn('[연동] 초기화 실패(오프라인 등) — 삭제 시 로컬 초기화만 진행', e); }
 })();
 
