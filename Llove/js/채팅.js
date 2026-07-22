@@ -253,6 +253,7 @@ function 개발자모드_탭(){
 let 사고전개모드 = false;
 let 질문턴수 = 0;   // 질문하기 차감 계산용 — 1턴 시작 차감, 4턴부터 추가 차감 (KNOWLEDGE 32)
 let 사고전개시작차감됨 = false;  // 오류 수정: 턴 중간에 사고전개를 켜도 시작 100토큰이 1회 차감되도록 추적
+let 사전모드 = false;  // Phase 7: 질문하기 패널의 AI/사전 모드 전환 — 패널 열 때마다 AI로 리셋
 
 /* ━━━ 세션6 항목4: 채팅 기록 — 세션 단위 저장 (최고 관리자님 확정 사양)
    - 세션 = 한 카테고리에서의 연속 대화. 카테고리 이동·「새 대화」 시 마감 후 기록으로 보관.
@@ -508,9 +509,21 @@ function openAsk(){
   const b=document.getElementById('thinkToggle');
   if(b){ b.textContent='🧠 사고전개 OFF'; b.style.color=''; b.style.borderColor=''; }
   토큰표시_갱신();
+  질문모드_전환('ai');  // Phase 7: 패널 열 때마다 AI 질문 모드로 리셋(사전 모드가 남아있지 않게)
   document.getElementById('askBg').classList.add('show');
   document.getElementById('askPanel').classList.add('show');
   setTimeout(()=>document.getElementById('askInp').focus(),400);
+}
+
+// Phase 7: 질문하기 패널의 AI 질문/사전 뜻풀이 모드 전환
+function 질문모드_전환(모드){
+  사전모드 = (모드 === 'dict');
+  const aiTab = document.getElementById('askTabAI');
+  const dictTab = document.getElementById('askTabDict');
+  if(aiTab) aiTab.classList.toggle('on', !사전모드);
+  if(dictTab) dictTab.classList.toggle('on', 사전모드);
+  const inp = document.getElementById('askInp');
+  if(inp) inp.placeholder = 사전모드 ? '뜻을 찾을 단어를 입력하세요...' : '질문을 입력하세요...';
 }
 
 function closeAsk(){
@@ -559,6 +572,8 @@ function 질문입력_Enter처리(ev){
 
 /* 메시지 전송: 창조주 키 감지 + 일반 응답 */
 function sendAsk(){
+  if(사전모드){ sendAsk_사전(); return; }  // Phase 7: 사전 모드는 완전히 별개 흐름(토큰·창조주 로직 없음)
+
   const inp=document.getElementById('askInp');
   const q=inp.value.trim();
   if(!q) return;
@@ -675,6 +690,49 @@ function sendAsk(){
     body.scrollTop=body.scrollHeight;
   });
 }
+
+// Phase 7: 사전 모드 전송 — AI 챗과 완전히 분리된 흐름(토큰 차감·창조주 시나리오·사고전개 없음).
+// 국립국어원(우리말샘/표준국어대사전) API가 돌려주는 뜻풀이를 그대로 표시하는 결정론적 조회라
+// AI/LLM이 전혀 관여하지 않는다 — 그래서 AI 챗 버블(.ask-msg.ai)이 아닌 .ask-msg.dict로 렌더링해
+// 시각적으로도 "AI가 답한 것"처럼 보이지 않게 구분한다.
+async function sendAsk_사전(){
+  const inp=document.getElementById('askInp');
+  const q=inp.value.trim();
+  if(!q) return;
+  const body=document.getElementById('askBody');
+  const u=document.createElement('div');
+  u.className='ask-msg user';
+  u.textContent=q;
+  body.appendChild(u);
+  inp.value='';
+  inp.style.height='auto';
+  body.scrollTop=body.scrollHeight;
+
+  if(!국어원_활성화){
+    const a=document.createElement('div');
+    a.className='ask-msg dict';
+    a.innerHTML='📖 사전 연동 준비 중입니다.<br>국립국어원 API 준비가 끝나면 실제 뜻풀이가 표시됩니다.';
+    body.appendChild(a);
+    body.scrollTop=body.scrollHeight;
+    return;
+  }
+
+  const 결과 = await 사전_단어조회(q);
+  const a=document.createElement('div');
+  a.className='ask-msg dict';
+  a.innerHTML = 사전결과_HTML(결과);
+  body.appendChild(a);
+  body.scrollTop=body.scrollHeight;
+}
+
+// 조회 결과 → 표시용 HTML 문자열. 게이트/네트워크와 분리된 순수 렌더링 함수라 단위 테스트가 쉽다.
+// CC BY-SA 2.0 KR 저작자 표시 — 뜻풀이 원문을 그대로 노출하므로 결과가 있을 때마다 표기.
+function 사전결과_HTML(결과){
+  if(!결과 || !결과.뜻풀이 || !결과.뜻풀이.length) return '사전에서 찾을 수 없는 단어입니다.';
+  const 목록 = 결과.뜻풀이.map((뜻,i)=>`${i+1}. ${뜻}`).join('<br>');
+  return `${목록}<div style="font-size:11px;color:var(--txtm);margin-top:8px">출처: 국립국어원 우리말샘·표준국어대사전 (CC BY-SA 2.0 KR)</div>`;
+}
+
 function openObj(컨텍스트){
   // v3.7 항목5: 이의있음! 컨텍스트 분기 (general/synonym/speak)
   이의제기_컨텍스트_설정(컨텍스트 || 'general');

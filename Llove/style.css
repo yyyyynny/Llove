@@ -750,6 +750,9 @@ html{scrollbar-gutter:stable}
 /* 세션6 항목2: 채팅 내 사고 전개 블록 — 중요 콘텐츠라 기본 글자색(--txt)으로 (모든 테마 가독) */
 .ask-think{background:var(--elev);border:1px solid var(--bdr);border-left:3px solid var(--acc);border-radius:8px;padding:9px 11px;margin-bottom:9px;font-size:13px;color:var(--txt);line-height:1.7;text-align:left}
 .ask-msg.ai::before{content:'🤖 AI';font-size:11px;color:var(--inf);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
+/* Phase 7: 사전 뜻풀이 버블 — AI 챗(.ask-msg.ai)과 시각적으로 구분되게 --acc 계열 사용(신규 색상값 도입 없음) */
+.ask-msg.dict{background:color-mix(in srgb, var(--acc) 8%, transparent);border:1px solid color-mix(in srgb, var(--acc) 25%, var(--bdr));margin-right:32px}
+.ask-msg.dict::before{content:'📖 사전';font-size:11px;color:var(--acc);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
 .ask-objection-btn{margin-top:6px;background:transparent;border:1px solid var(--err);color:var(--err);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--fn);font-weight:700;transition:all .2s}
 .ask-objection-btn:hover{background:rgba(192,112,112,.1)}
 

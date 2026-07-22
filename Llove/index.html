@@ -307,6 +307,11 @@
       <button class="ask-cls" onclick="closeAsk()">✕</button>
     </div>
   </div>
+  <!-- Phase 7: AI 질문/사전 뜻풀이 모드 전환 — 기존 .fs-opts/.fs-opt(단계형 선택 버튼) 재사용 -->
+  <div class="fs-opts" id="askModeTabs" style="padding:10px 18px 0">
+    <button type="button" class="fs-opt on" id="askTabAI" onclick="질문모드_전환('ai')">🤖 AI에게 질문</button>
+    <button type="button" class="fs-opt" id="askTabDict" onclick="질문모드_전환('dict')">📖 사전에서 뜻 찾기</button>
+  </div>
   <div class="ask-body" id="askBody">
     <div class="ask-msg ai">
       안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요. Grok이 답변드립니다.
@@ -1165,6 +1170,7 @@
 <script src="js/firebase.js"></script>
 <script src="js/레벨.js"></script>
 <script src="js/grok.js"></script>
+<script src="js/사전.js"></script>
 <script src="js/토큰.js"></script>
 <script src="js/퀴즈엔진.js"></script>
 <script src="js/플래시카드.js"></script>

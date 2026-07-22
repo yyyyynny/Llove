@@ -56,6 +56,7 @@ if (진입점있음) {
   const 전체JS = 참조JS.filter((p) => existsSync('Llove/' + p)).map((p) => readFileSync('Llove/' + p, 'utf8')).join('\n');
   확인('GROK_활성화 플래그가 코드에 존재한다', /GROK_활성화\s*=/.test(html + 전체JS));
   확인('음성생성_활성화 플래그가 코드에 존재한다', /음성생성_활성화\s*=/.test(html + 전체JS));
+  확인('국어원_활성화 플래그가 코드에 존재한다', /국어원_활성화\s*=/.test(html + 전체JS));
 
   // 참고: <script>/<style> 등 태그 짝 균형 검증은 htmlhint 의 tag-pair 룰이 담당한다.
   //   (여기서 정규식으로 세면 JS 문자열·주석 속 "<style>" 문구까지 오탐하므로 의도적으로 제외)
