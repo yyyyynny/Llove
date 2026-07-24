@@ -41,12 +41,18 @@ async function 사전_단어조회(word){
   }
   const 캐시 = 사전_캐시_로드();
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
+  // 느린 네트워크에서 "뜻 찾는 중" 상태가 무한정 멈추지 않도록 타임아웃(2초) — 넘으면 조회 실패로
+  // 처리해 "찾을 수 없음" 안내로 강등한다. (사용자 대기라 게임보다 살짝 여유 있게 2초.)
+  const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 2000) : null;
   try{
     const res = await fetch(국어원_WORKERS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 단어: word })
+      body: JSON.stringify({ 단어: word }),
+      ...(controller ? { signal: controller.signal } : {})
     });
+    if(타임아웃ID) clearTimeout(타임아웃ID);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const 결과 = (data && Array.isArray(data.뜻풀이) && data.뜻풀이.length)
@@ -56,7 +62,8 @@ async function 사전_단어조회(word){
     사전_캐시_저장(캐시);
     return 결과;
   }catch(e){
-    console.error('[사전] 조회 실패', e);
+    if(타임아웃ID) clearTimeout(타임아웃ID);
+    console.error('[사전] 조회 실패/시간초과', e);
     return null;
   }
 }

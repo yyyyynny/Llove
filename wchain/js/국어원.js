@@ -31,35 +31,43 @@ function 국어원_캐시_저장(캐시){
   catch(e){ /* 용량 초과 등 무시 — 캐시는 있으면 좋고 없어도 그만 */ }
 }
 
-// 단어의 사전 등재 여부 온라인 조회. 게이트 off·엔드포인트 미설정·오프라인·호출 실패 시 전부
-// false를 반환해 호출부가 로컬 사전(DICTIONARY/HARD_DICT) 판정으로 자동 강등되게 한다.
-async function 국어원_단어조회(word){
-  if(!국어원_활성화){
-    console.warn('[국어원] 게이트 봉인(국어원_활성화=false) — 호출 차단, 로컬 사전만 사용');
-    return false;
-  }
-  if(!국어원_WORKERS_ENDPOINT){
-    console.error('[국어원] Workers 엔드포인트 미설정 — 호출 불가');
-    return false;
-  }
-  const 캐시 = 국어원_캐시_로드();
-  if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
+// 공통 POST 헬퍼 — 타임아웃(AbortController) 포함. 게이트 off·엔드포인트 미설정 시 fetch 없이
+// null, 실패·시간초과 시에도 null을 반환해 호출부가 로컬 판정으로 강등하게 한다. AI 턴마다
+// 실호출이라(캐시 미스 시) 네트워크가 느리면 게임이 멈춘 것처럼 보일 수 있어 상한을 둔다(1.5초).
+const 국어원_타임아웃_MS = 1500;
+async function 국어원_POST(payload){
+  if(!국어원_활성화) return null;
+  if(!국어원_WORKERS_ENDPOINT) return null;
+  const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 국어원_타임아웃_MS) : null;
   try{
     const res = await fetch(국어원_WORKERS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 단어: word })
+      body: JSON.stringify(payload),
+      ...(controller ? { signal: controller.signal } : {})
     });
+    if(타임아웃ID) clearTimeout(타임아웃ID);
     if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const 존재함 = !!(data && data.존재);
-    캐시[word] = 존재함;
-    국어원_캐시_저장(캐시);
-    return 존재함;
+    return await res.json();
   }catch(e){
-    console.error('[국어원] 조회 실패 — 로컬 사전 판정 유지', e);
-    return false;
+    if(타임아웃ID) clearTimeout(타임아웃ID);
+    console.error('[국어원] 요청 실패/시간초과 — 로컬 판정으로 강등', e);
+    return null;
   }
+}
+
+// 단어의 사전 등재 여부 온라인 조회. 게이트 off·미설정·오프라인·실패·시간초과 시 전부 false를
+// 반환해 호출부가 로컬 사전(DICTIONARY/HARD_DICT) 판정으로 자동 강등되게 한다.
+async function 국어원_단어조회(word){
+  const 캐시 = 국어원_캐시_로드();
+  if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
+  const data = await 국어원_POST({ 단어: word });
+  if(data === null) return false;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
+  const 존재함 = !!(data && data.존재);
+  캐시[word] = 존재함;
+  국어원_캐시_저장(캐시);
+  return 존재함;
 }
 
 const 국어원_후보캐시_KEY = 'plx_잇는_국어원후보캐시';
@@ -74,38 +82,19 @@ function 국어원_후보캐시_저장(캐시){
 
 // 특정 글자로 시작(start)/끝나는(end) 실제 단어 후보 목록을 온라인으로 조회 — AI 다음 단어
 // 생성용. 접사·구·복합표기(하이픈·공백·^ 포함 표기)는 Worker가 걸러서 보낸다. 게이트 off·
-// 엔드포인트 미설정·오프라인·호출 실패 시 전부 빈 배열을 반환해 호출부(ai_generate_word_비동기,
+// 미설정·오프라인·실패·시간초과 시 전부 빈 배열을 반환해 호출부(ai_generate_word_비동기,
 // js/게임규칙.js)가 로컬 사전(DICTIONARY/HARD_DICT)만으로 안전하게 강등되게 한다.
-// AI 턴마다 실호출이라(캐시 미스 시) 네트워크가 느리면 AI가 응답을 멈춘 것처럼 보일 수 있어
-// 상한을 둔다(1.5초) — 넘으면 즉시 포기하고 로컬 사전으로 강등, 게임 흐름이 멈추지 않게 한다.
-const 국어원_후보_타임아웃_MS = 1500;
 async function 국어원_후보목록조회(글자, 방향){
   if(!국어원_활성화) return [];
-  if(!국어원_WORKERS_ENDPOINT) return [];
   const 캐시키 = `${방향}:${글자}`;
   const 캐시 = 국어원_후보캐시_로드();
   if(Object.prototype.hasOwnProperty.call(캐시, 캐시키)) return 캐시[캐시키];
-  const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 국어원_후보_타임아웃_MS) : null;
-  try{
-    const res = await fetch(국어원_WORKERS_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 글자: 글자, 방향: 방향 }),
-      ...(controller ? { signal: controller.signal } : {})
-    });
-    if(타임아웃ID) clearTimeout(타임아웃ID);
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const 목록 = Array.isArray(data.후보) ? data.후보 : [];
-    캐시[캐시키] = 목록;
-    국어원_후보캐시_저장(캐시);
-    return 목록;
-  }catch(e){
-    if(타임아웃ID) clearTimeout(타임아웃ID);
-    console.error('[국어원] 후보 목록 조회 실패/시간초과 — 로컬 사전 판정 유지', e);
-    return [];
-  }
+  const data = await 국어원_POST({ 글자: 글자, 방향: 방향 });
+  if(data === null) return [];      // 실패·시간초과는 캐시에 쓰지 않음
+  const 목록 = Array.isArray(data.후보) ? data.후보 : [];
+  캐시[캐시키] = 목록;
+  국어원_후보캐시_저장(캐시);
+  return 목록;
 }
 
 if (typeof module !== 'undefined') module.exports = { 국어원_단어조회, 국어원_후보목록조회, 국어원_캐시_KEY };

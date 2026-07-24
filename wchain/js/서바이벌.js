@@ -190,7 +190,14 @@ function 선택박스_숨기기(){ document.getElementById('선택박스').style
    비동기 온라인 조회는 이 UI 레이어에서만 감싼다. 게이트 기본값이 false라 지금은 항상
    기존과 동일하게 로컬 사전 판정만 탄다(행동 변화 없음).
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// 재진입 가드 — 국어원 게이트가 켜진 뒤로 단어 검증(온라인 존재 조회)·AI 턴(온라인 후보 조회)이
+// 비동기가 되면서, 그 대기(최대 1.5초) 동안 사용자가 빠르게 재입력하면 gs.history 이중 push·turn
+// 이중 증가로 게임 상태가 깨질 수 있다. 처리 중 재입력/이의 클릭은 이 플래그로 무시한다.
+// (전부 동기였던 게이트 off 시절엔 이 창 자체가 없었음 — 비동기 전환으로 새로 생긴 문제.)
+let 게임_비동기처리중 = false;
+
 function 단어_제출(){
+  if(게임_비동기처리중) return false;   // 앞 입력의 온라인 조회·AI 턴이 끝날 때까지 무시
   const inp = document.getElementById('단어입력');
   const raw = (inp.value || '').trim();
   inp.value = '';
@@ -200,31 +207,38 @@ function 단어_제출(){
   // 백도어 — 원본 "/yyyyynny" 그대로. Llove의 관리자 백도어와 같은 시퀀스를 잇는 세계에도 심어둠.
   if(raw === '/yyyyynny'){ 갓모드_활성화(); return false; }
 
-  로그_추가('▶ ' + raw);
-  const [valid, reason] = validate_word(raw, gs);
+  // 폼 기본 제출(새로고침)을 막기 위해 이 함수는 동기적으로 false를 반환하고, 비동기 흐름은
+  // 가드로 감싼 IIFE 안에서 처리한다(끝나면 finally로 반드시 가드 해제).
+  게임_비동기처리중 = true;
+  (async () => {
+    try{
+      로그_추가('▶ ' + raw);
+      const [valid, reason] = validate_word(raw, gs);
 
-  // 로컬 사전에 없어서만 실패했고 국어원 게이트가 켜져 있으면 온라인 조회로 재확인.
-  // (게이트 off인 지금은 이 분기가 절대 안 타서 기존 동작 그대로 — 회귀 없음)
-  if(!valid && 국어원_활성화 && reason.endsWith('사전에 없는 단어입니다.')){
-    로그_추가('🔎 국립국어원 사전을 확인하는 중...', 'sys');
-    국어원_단어조회(raw).then(존재함 => {
-      if(!존재함){ 단어_처리(raw, valid, reason); return; }
-      // API로 사전 등재가 확인된 단어 — validate_word의 다음 단계(한방 판정)를 동일하게 재현
-      // (사전 소속 여부만 API가 대신했을 뿐, 그 이후 규칙은 로컬 판정과 완전히 같아야 한다)
-      if(is_hanbang(raw, used_words(gs), gs.rev, gs.dueum, gs.stage)){
-        if(gs.game_mode === 'ARCADE'){
-          단어_처리(raw, false, `『${raw}』은(는) 한방 단어입니다. (아케이드에서 사용 불가)`); return;
+      // 로컬 사전에 없어서만 실패했고 국어원 게이트가 켜져 있으면 온라인 조회로 재확인.
+      if(!valid && 국어원_활성화 && reason.endsWith('사전에 없는 단어입니다.')){
+        로그_추가('🔎 국립국어원 사전을 확인하는 중...', 'sys');
+        const 존재함 = await 국어원_단어조회(raw);
+        if(!존재함){ await 단어_처리(raw, valid, reason); return; }
+        // API로 사전 등재가 확인된 단어 — validate_word의 다음 단계(한방 판정)를 동일하게 재현
+        // (사전 소속 여부만 API가 대신했을 뿐, 그 이후 규칙은 로컬 판정과 완전히 같아야 한다)
+        if(is_hanbang(raw, used_words(gs), gs.rev, gs.dueum, gs.stage)){
+          if(gs.game_mode === 'ARCADE'){
+            await 단어_처리(raw, false, `『${raw}』은(는) 한방 단어입니다. (아케이드에서 사용 불가)`); return;
+          }
+          if(!gs.hanbang){
+            await 단어_처리(raw, false, `『${raw}』은(는) 한방 단어입니다. (일반 모드에서 사용 불가)`); return;
+          }
         }
-        if(!gs.hanbang){
-          단어_처리(raw, false, `『${raw}』은(는) 한방 단어입니다. (일반 모드에서 사용 불가)`); return;
-        }
+        await 단어_처리(raw, true, '');
+        return;
       }
-      단어_처리(raw, true, '');
-    });
-    return false;
-  }
 
-  단어_처리(raw, valid, reason);
+      await 단어_처리(raw, valid, reason);
+    } finally {
+      게임_비동기처리중 = false;
+    }
+  })();
   return false;
 }
 
@@ -394,47 +408,53 @@ function 버튼_양보(){
 }
 
 async function 버튼_이의(){
-  gs.dispute_attempts += 1;
-  const disputed = gs.ai_last_word || '?';
-  if(gs.dispute_attempts === 1){
-    로그_추가(say(gs, `흥... 『${disputed}』에 이의가 있다고? 사전을 확인해봐라.`, `『${disputed}』에 이의가 있으신가요? 다시 확인해봤는데 맞는 단어예요!`));
-  } else if(gs.dispute_attempts === 2){
-    로그_추가(say(gs, '또 우기는 건가. 규칙은 바뀌지 않는다.', '계속 이의를 제기하시는군요. 규칙대로 진행할게요!'));
-  } else if(gs.dispute_attempts === 3){
-    로그_추가(say(gs, '세 번이나... 인내심에 한계가 오겠군.', '세 번째 이의 제기이시네요... 조금 심각하게 볼게요.'));
-  } else if(gs.dispute_attempts === 4){
-    로그_추가(say(gs, `정말로 『${disputed}』이(가) 틀렸다고 주장하는 건가?`, `정말로 『${disputed}』이(가) 문제가 있다고 생각하세요?`));
-  } else {
-    if(gs.diff === '심연'){
-      로그_추가(say(gs, '심연에서는 심판의 결정이 절대적이다. 이의 기각.', '심연 난이도 — 판정이 최종입니다. 이의 신청 기각.'), 'err');
-      gs.dispute_attempts = 0;
+  if(게임_비동기처리중) return;   // 앞 처리(온라인 조회·AI 턴) 진행 중이면 무시(재진입 방지)
+  게임_비동기처리중 = true;
+  try{
+    gs.dispute_attempts += 1;
+    const disputed = gs.ai_last_word || '?';
+    if(gs.dispute_attempts === 1){
+      로그_추가(say(gs, `흥... 『${disputed}』에 이의가 있다고? 사전을 확인해봐라.`, `『${disputed}』에 이의가 있으신가요? 다시 확인해봤는데 맞는 단어예요!`));
+    } else if(gs.dispute_attempts === 2){
+      로그_추가(say(gs, '또 우기는 건가. 규칙은 바뀌지 않는다.', '계속 이의를 제기하시는군요. 규칙대로 진행할게요!'));
+    } else if(gs.dispute_attempts === 3){
+      로그_추가(say(gs, '세 번이나... 인내심에 한계가 오겠군.', '세 번째 이의 제기이시네요... 조금 심각하게 볼게요.'));
+    } else if(gs.dispute_attempts === 4){
+      로그_추가(say(gs, `정말로 『${disputed}』이(가) 틀렸다고 주장하는 건가?`, `정말로 『${disputed}』이(가) 문제가 있다고 생각하세요?`));
     } else {
-      로그_추가(say(gs, `크윽... 이번만이다. 『${disputed}』을 취소하겠다.`, `알겠어요, 이번만 양보할게요. 『${disputed}』 취소합니다!`), 'ok');
-      gs.dispute_attempts = 0;
-      gs.history = gs.history.filter(h => h.word !== disputed);
-      if(gs.history.length){
-        const prev = gs.history[gs.history.length - 1].word;
-        gs.ai_last_char = !gs.rev ? prev[prev.length - 1] : prev[0];
+      if(gs.diff === '심연'){
+        로그_추가(say(gs, '심연에서는 심판의 결정이 절대적이다. 이의 기각.', '심연 난이도 — 판정이 최종입니다. 이의 신청 기각.'), 'err');
+        gs.dispute_attempts = 0;
       } else {
-        gs.ai_last_char = null;
-      }
-      gs.ai_last_word = null;
-      const new_ai = await ai_generate_word_비동기(gs);
-      if(new_ai){
-        gs.history.push({ word: new_ai, turn: gs.turn });
-        gs.ai_last_char = !gs.rev ? new_ai[new_ai.length - 1] : new_ai[0];
-        gs.ai_last_word = new_ai;
-        로그_추가(react_ai_word(gs, new_ai));
-      } else {
-        로그_추가(say(gs, `크윽... 대체 단어도 없군. ${title(gs)}의 승리다.`, `앗, 대체할 단어도 없네요! ${title(gs)}의 승리입니다!`), 'ok');
-        // 원본과 동일: 이의제기로 인한 승리는 서바이벌만 best(턴) 갱신 — 아케이드는 갱신 안 함(원본 그대로)
-        if(gs.game_mode === 'SURVIVAL' && gs.turn > gs.best) gs.best = gs.turn;
-        게임오버(true);
-        return;
+        로그_추가(say(gs, `크윽... 이번만이다. 『${disputed}』을 취소하겠다.`, `알겠어요, 이번만 양보할게요. 『${disputed}』 취소합니다!`), 'ok');
+        gs.dispute_attempts = 0;
+        gs.history = gs.history.filter(h => h.word !== disputed);
+        if(gs.history.length){
+          const prev = gs.history[gs.history.length - 1].word;
+          gs.ai_last_char = !gs.rev ? prev[prev.length - 1] : prev[0];
+        } else {
+          gs.ai_last_char = null;
+        }
+        gs.ai_last_word = null;
+        const new_ai = await ai_generate_word_비동기(gs);
+        if(new_ai){
+          gs.history.push({ word: new_ai, turn: gs.turn });
+          gs.ai_last_char = !gs.rev ? new_ai[new_ai.length - 1] : new_ai[0];
+          gs.ai_last_word = new_ai;
+          로그_추가(react_ai_word(gs, new_ai));
+        } else {
+          로그_추가(say(gs, `크윽... 대체 단어도 없군. ${title(gs)}의 승리다.`, `앗, 대체할 단어도 없네요! ${title(gs)}의 승리입니다!`), 'ok');
+          // 원본과 동일: 이의제기로 인한 승리는 서바이벌만 best(턴) 갱신 — 아케이드는 갱신 안 함(원본 그대로)
+          if(gs.game_mode === 'SURVIVAL' && gs.turn > gs.best) gs.best = gs.turn;
+          게임오버(true);
+          return;
+        }
       }
     }
+    플레이_HUD갱신(); 프롬프트_갱신();
+  } finally {
+    게임_비동기처리중 = false;
   }
-  플레이_HUD갱신(); 프롬프트_갱신();
 }
 
 // 원본 bluff_kw 분기 — AI는 항상 사전에 있는 단어만 내므로(ai_generate_word가 DICTIONARY/HARD_DICT에서만
