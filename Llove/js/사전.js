@@ -11,7 +11,7 @@
    ⚠️ 국어원 게이트 — 최고 관리자님 승인 없이 true로 변경 금지. Cloudflare Worker 배포 + 인증키
       등록 전까지 실호출 전면 봉인. false인 동안 사전_단어조회()는 fetch 자체를 하지 않는다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const 국어원_활성화 = false;
+const 국어원_활성화 = true;
 
 // Cloudflare Workers 엔드포인트(국립국어원 API 프록시). wchain/js/국어원.js와 같은 Worker를
 // 재사용할 수 있도록 설계(Worker 응답에 존재 여부·뜻풀이를 함께 담아 반환하면 wchain은 존재

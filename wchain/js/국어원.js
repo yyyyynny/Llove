@@ -13,7 +13,7 @@
 // ⚠️ 국어원 게이트 — 최고 관리자님 승인 없이 true로 변경 금지 (Llove GROK_활성화와 동일 정책).
 //    Cloudflare Worker 배포 + 인증키 등록 전까지 실호출 전면 봉인. false인 동안 국어원_단어조회()는
 //    항상 로컬 사전 판정만 쓰고(호출부가 자동 강등) 네트워크 호출도, 캐시 소비도 하지 않는다.
-const 국어원_활성화 = false;
+const 국어원_활성화 = true;
 
 // Cloudflare Workers 엔드포인트(국립국어원 API 프록시). 관리자님이 Worker 배포 후 이 값을 채울 것.
 const 국어원_WORKERS_ENDPOINT = 'https://urimalsaem-llove.hypoqwer.workers.dev/';
