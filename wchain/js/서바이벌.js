@@ -228,7 +228,7 @@ function 단어_제출(){
   return false;
 }
 
-function 단어_처리(raw, valid, reason){
+async function 단어_처리(raw, valid, reason){
   if(!valid){
     // ⚠️ 노션 11번 반영: 기본 모드(비아케이드)에서 한방 단어 + 한방모드 OFF면 즉시 패배.
     //    (원본은 이 경우도 실수 1회로 처리하던 결함 — validate_word 사유 문자열로 정확히 식별)
@@ -308,9 +308,9 @@ function 단어_처리(raw, valid, reason){
     }
   }
 
-  // AI 턴
+  // AI 턴 — 국어원_활성화 켜져 있으면 온라인 후보 우선(2026-07-24), 실패/off 시 로컬로 안전망
   gs.ai_last_char = !gs.rev ? raw[raw.length - 1] : raw[0];
-  const ai_word = ai_generate_word(gs);
+  const ai_word = await ai_generate_word_비동기(gs);
 
   if(ai_word === null){
     if(gs.god_mode_active){
@@ -393,7 +393,7 @@ function 버튼_양보(){
   플레이_HUD갱신(); 프롬프트_갱신();
 }
 
-function 버튼_이의(){
+async function 버튼_이의(){
   gs.dispute_attempts += 1;
   const disputed = gs.ai_last_word || '?';
   if(gs.dispute_attempts === 1){
@@ -419,7 +419,7 @@ function 버튼_이의(){
         gs.ai_last_char = null;
       }
       gs.ai_last_word = null;
-      const new_ai = ai_generate_word(gs);
+      const new_ai = await ai_generate_word_비동기(gs);
       if(new_ai){
         gs.history.push({ word: new_ai, turn: gs.turn });
         gs.ai_last_char = !gs.rev ? new_ai[new_ai.length - 1] : new_ai[0];

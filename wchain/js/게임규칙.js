@@ -41,13 +41,16 @@ function validate_word(word, gs){
 
 // AI 상대 단어 생성 — 랜덤 선택 자체는 파이썬 random과 1:1 재현 불가(다른 PRNG)라 대조 대상이
 // 아니며, 후보 풀 구성 로직(필터·공격 모드 확률표)만 원본과 동일하게 이식.
-function ai_generate_word(gs){
+// 추가후보(2번째 인자): 국어원 API가 온라인으로 찾아준 후보 단어들(있으면). 로컬 사전과 합쳐서
+// 같은 필터·선택 로직을 그대로 태운다 — attack_mode/safe_filter 등 기존 검증된 로직은 전혀
+// 손대지 않고 "입력 풀만 넓히는" 방식이라 회귀 위험이 적다.
+function ai_generate_word(gs, 추가후보 = []){
   const search_char = gs.ai_last_char;
   const used = used_words(gs);
   const ai_dueum = gs.dueum;
 
-  let current_dict = DICTIONARY;
-  if(gs.stage >= 11) current_dict = [...new Set([...DICTIONARY, ...HARD_DICT])];
+  let current_dict = 추가후보.length ? [...new Set([...DICTIONARY, ...추가후보])] : DICTIONARY;
+  if(gs.stage >= 11) current_dict = [...new Set([...current_dict, ...HARD_DICT])];
 
   const min_len = gs.stage >= 13 ? 3 : 0;
 
@@ -87,6 +90,18 @@ function ai_generate_word(gs){
     return safe[Math.floor(Math.random() * safe.length)];
   }
   return null;
+}
+
+// 온라인 후보까지 포함해 AI 단어를 고르는 비동기 래퍼(2026-07-24 신설, 관리자님 지시).
+// 국어원_활성화가 켜져 있으면 gs.ai_last_char로 시작/끝나는 실제 단어를 API로 먼저 찾아 로컬
+// 사전과 합치고, 게이트 off거나 API 실패(네트워크 오류 등)면 즉시 빈 배열로 강등돼 기존
+// ai_generate_word(gs)와 동일하게 로컬 사전만으로 동작한다(하이브리드: API 우선, 실패 시 로컬).
+async function ai_generate_word_비동기(gs){
+  let 추가후보 = [];
+  if(국어원_활성화 && gs.ai_last_char){
+    추가후보 = await 국어원_후보목록조회(gs.ai_last_char, gs.rev ? 'end' : 'start');
+  }
+  return ai_generate_word(gs, 추가후보);
 }
 
 // 칭호 체크 — 서바이벌 턴 마일스톤(95/100/200/30배수) + 아케이드(Phase 4) 자리 보존
@@ -203,6 +218,6 @@ function arcade_restart_floor(gs){
 }
 
 if (typeof module !== 'undefined') module.exports = {
-  validate_word, ai_generate_word, check_title, user_defeat,
+  validate_word, ai_generate_word, ai_generate_word_비동기, check_title, user_defeat,
   붕괴확률, arcade_floor_up, arcade_restart_floor
 };
