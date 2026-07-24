@@ -74,6 +74,7 @@ function 설정_렌더(){
   document.getElementById('opt-난이도').innerHTML = `🔥 난이도<div class="d">${gs.diff}</div>`;
   document.getElementById('opt-한방').innerHTML = `⚔ 한방 모드<div class="d">${gs.hanbang ? 'ON' : 'OFF'}</div>`;
   document.getElementById('opt-두음').innerHTML = `📏 두음법칙<div class="d">${gs.dueum}</div>`;
+  document.getElementById('opt-방향').innerHTML = `🔀 진행 방향<div class="d">${gs.rev ? '앞말잇기(첫 글자 기준)' : '끝말잇기(마지막 글자 기준)'}</div>`;
   document.getElementById('opt-무한').innerHTML = `🔁 무한 모드<div class="d">${gs.infinite ? 'ON' : 'OFF'}</div>`;
 }
 document.addEventListener('DOMContentLoaded', () => {
@@ -87,6 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const order = ['OFF','Flexible','Strict'];
     gs.dueum = order[(order.indexOf(gs.dueum) + 1) % 3]; 설정_렌더();
   };
+  // 앞말잇기(rev) — 원본 파이썬 엔진에 이미 있던 기능이나 UI 토글이 없어 켤 방법이 없었음(2026-07-24
+  // 발견). find_words/is_hanbang은 이미 gs.rev를 받아 처리하도록 이식돼 있어(Phase 2 대조 검증
+  // 대상) 여기서 값만 노출. 게임_시작()에서 rev+두음법칙 동시 ON이면 두음법칙을 자동 OFF로
+  // 되돌리는 기존 로직(원본 규칙)은 그대로 유지된다.
+  document.getElementById('opt-방향').onclick = () => { gs.rev = !gs.rev; 설정_렌더(); };
   document.getElementById('opt-무한').onclick = () => { gs.infinite = !gs.infinite; 설정_렌더(); };
 });
 
