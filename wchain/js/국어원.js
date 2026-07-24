@@ -16,7 +16,7 @@
 const 국어원_활성화 = false;
 
 // Cloudflare Workers 엔드포인트(국립국어원 API 프록시). 관리자님이 Worker 배포 후 이 값을 채울 것.
-const 국어원_WORKERS_ENDPOINT = '';
+const 국어원_WORKERS_ENDPOINT = 'https://urimalsaem-llove.hypoqwer.workers.dev/';
 
 const 국어원_캐시_KEY = 'plx_잇는_국어원캐시';
 function 국어원_캐시_로드(){

@@ -16,7 +16,7 @@ const 국어원_활성화 = false;
 // Cloudflare Workers 엔드포인트(국립국어원 API 프록시). wchain/js/국어원.js와 같은 Worker를
 // 재사용할 수 있도록 설계(Worker 응답에 존재 여부·뜻풀이를 함께 담아 반환하면 wchain은 존재
 // 여부만, Llove는 뜻풀이까지 사용). 관리자님이 Worker 배포 후 이 값을 채울 것.
-const 국어원_WORKERS_ENDPOINT = '';
+const 국어원_WORKERS_ENDPOINT = 'https://urimalsaem-llove.hypoqwer.workers.dev/';
 
 const 사전_캐시_KEY = 'plx_사전캐시';
 function 사전_캐시_로드(){
