@@ -12,6 +12,15 @@ function validate_word(word, gs){
   if(gs.game_mode === 'ARCADE' && gs.stage >= 13){
     if(word.length < 3) return [false, '『영구 족쇄』 3글자 미만 단어는 허용되지 않습니다.'];
   }
+  // 구(句) 허용 — 원본에 없던 신규 규칙(관리자님 확정, 2026-07-25). 공백 1개(두 단어)까지만
+  // 허용하고, 그마저도 gs.phrase 설정이 켜져 있어야 통과시킨다. word는 이후 로직 전체에서
+  // 여전히 통짜 문자열로 취급되므로(잇기 규칙·중복 체크·한방 판정 전부 word[0]/word[len-1]/정확
+  // 일치만 봄) 이 검사 하나만 추가하면 나머지는 손댈 필요가 없다.
+  {
+    const 공백수 = (word.match(/ /g) || []).length;
+    if(공백수 > 1) return [false, '구는 공백 1개(두 단어)까지만 허용됩니다.'];
+    if(공백수 === 1 && !gs.phrase) return [false, '『구 허용』 설정을 켜야 두 단어를 이어 쓸 수 있습니다.'];
+  }
   if(gs.ai_last_char !== null){
     if(!gs.rev){
       const user_head = word[0];

@@ -76,6 +76,7 @@ function 설정_렌더(){
   document.getElementById('opt-두음').innerHTML = `📏 두음법칙<div class="d">${gs.dueum}</div>`;
   document.getElementById('opt-방향').innerHTML = `🔀 진행 방향<div class="d">${gs.rev ? '앞말잇기(첫 글자 기준)' : '끝말잇기(마지막 글자 기준)'}</div>`;
   document.getElementById('opt-무한').innerHTML = `🔁 무한 모드<div class="d">${gs.infinite ? 'ON' : 'OFF'}</div>`;
+  document.getElementById('opt-구').innerHTML = `✂ 구 허용<div class="d">${gs.phrase ? 'ON(공백 1개, 두 단어까지)' : 'OFF'}</div>`;
 }
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('opt-사전').onclick = () => { gs.dict_mode = gs.dict_mode === 'Integrated' ? 'Standard' : 'Integrated'; 설정_렌더(); };
@@ -94,6 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 되돌리는 기존 로직(원본 규칙)은 그대로 유지된다.
   document.getElementById('opt-방향').onclick = () => { gs.rev = !gs.rev; 설정_렌더(); };
   document.getElementById('opt-무한').onclick = () => { gs.infinite = !gs.infinite; 설정_렌더(); };
+  // 구 허용(phrase) — 원본에 없던 신규 규칙(관리자님 확정, 2026-07-25). validate_word가 공백 1개
+  // (두 단어)까지만 통과시키고, 사전 등재 여부는 기존 국어원 온라인 조회 폴백을 그대로 탄다(로컬
+  // 사전엔 구 항목이 없어 자연히 온라인 경로로 넘어감 — js/게임규칙.js 주석 참조).
+  document.getElementById('opt-구').onclick = () => { gs.phrase = !gs.phrase; 설정_렌더(); };
 });
 
 function 게임_시작(){
