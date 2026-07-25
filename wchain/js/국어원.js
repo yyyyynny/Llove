@@ -33,8 +33,10 @@ function 국어원_캐시_저장(캐시){
 
 // 공통 POST 헬퍼 — 타임아웃(AbortController) 포함. 게이트 off·엔드포인트 미설정 시 fetch 없이
 // null, 실패·시간초과 시에도 null을 반환해 호출부가 로컬 판정으로 강등하게 한다. AI 턴마다
-// 실호출이라(캐시 미스 시) 네트워크가 느리면 게임이 멈춘 것처럼 보일 수 있어 상한을 둔다(1.5초).
-const 국어원_타임아웃_MS = 1500;
+// 실호출이라(캐시 미스 시) 네트워크가 느리면 게임이 멈춘 것처럼 보일 수 있어 상한을 둔다.
+// 1.5초는 실사용(모바일망·프록시 경유)에서 흔한 단어까지 시간초과로 놓치는 사례가 나와
+// 3초로 상향(2026-07-25) — 그래도 실패하면 호출부가 null을 "확인 실패"로 정직하게 구분 처리한다.
+const 국어원_타임아웃_MS = 3000;
 async function 국어원_POST(payload){
   if(!국어원_활성화) return null;
   if(!국어원_WORKERS_ENDPOINT) return null;
@@ -57,13 +59,16 @@ async function 국어원_POST(payload){
   }
 }
 
-// 단어의 사전 등재 여부 온라인 조회. 게이트 off·미설정·오프라인·실패·시간초과 시 전부 false를
-// 반환해 호출부가 로컬 사전(DICTIONARY/HARD_DICT) 판정으로 자동 강등되게 한다.
+// 단어의 사전 등재 여부 온라인 조회. 반환값은 3가지: true(등재 확인)/false(미등재 확인)/
+// null(게이트 off·미설정·오프라인·실패·시간초과 — "확인 자체를 못 함". 2026-07-25 이전엔 이 경우도
+// false로 뭉뚱그려 반환해서, 실제로는 흔한 단어인데 네트워크가 느려서 확인을 못 했을 뿐인데도
+// 호출부가 "사전에 없는 단어입니다"라고 오판하고 사용자에게 실수까지 매기는 문제가 있었음
+// — 호출부(서바이벌.js)가 null을 별도로 처리해 이 오판을 없앤다).
 async function 국어원_단어조회(word){
   const 캐시 = 국어원_캐시_로드();
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
   const data = await 국어원_POST({ 단어: word });
-  if(data === null) return false;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
+  if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
   const 존재함 = !!(data && data.존재);
   캐시[word] = 존재함;
   국어원_캐시_저장(캐시);

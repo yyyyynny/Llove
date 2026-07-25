@@ -209,8 +209,9 @@ function 단어_제출(){
   if(!raw) return false;
   if(gs.game_state !== 'PLAYING') return false;
 
-  // 백도어 — 원본 "/yyyyynny" 그대로. Llove의 관리자 백도어와 같은 시퀀스를 잇는 세계에도 심어둠.
-  if(raw === '/yyyyynny'){ 갓모드_활성화(); return false; }
+  // 백도어 — 원본은 "/yyyyynny"(슬래시 포함)였으나, Llove 쪽 게스트 로그인 백도어(슬래시 없음)와
+  // 헷갈린다는 관리자님 지적에 따라 Llove와 동일한 슬래시 없는 시퀀스로 통일(2026-07-25).
+  if(raw === 'yyyyynny'){ 갓모드_활성화(); return false; }
 
   // 폼 기본 제출(새로고침)을 막기 위해 이 함수는 동기적으로 false를 반환하고, 비동기 흐름은
   // 가드로 감싼 IIFE 안에서 처리한다(끝나면 finally로 반드시 가드 해제).
@@ -224,6 +225,12 @@ function 단어_제출(){
       if(!valid && 국어원_활성화 && reason.endsWith('사전에 없는 단어입니다.')){
         로그_추가('🔎 국립국어원 사전을 확인하는 중...', 'sys');
         const 존재함 = await 국어원_단어조회(raw);
+        // null = 네트워크 실패/시간초과로 "확인 자체를 못 함" — 진짜로 사전에 없는 것과 달리
+        // 사용자 잘못이 아니므로 실수(user_defeat)를 매기지 않고 그대로 재시도할 수 있게 둔다.
+        if(존재함 === null){
+          로그_추가('⚠️ 국립국어원 사전 확인에 실패했습니다(네트워크 문제로 추정). 같은 단어를 다시 입력해 보세요.', 'warn');
+          return;
+        }
         if(!존재함){ await 단어_처리(raw, valid, reason); return; }
         // API로 사전 등재가 확인된 단어 — validate_word의 다음 단계(한방 판정)를 동일하게 재현
         // (사전 소속 여부만 API가 대신했을 뿐, 그 이후 규칙은 로컬 판정과 완전히 같아야 한다)

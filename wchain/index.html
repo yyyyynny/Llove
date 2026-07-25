@@ -66,12 +66,20 @@
       border:1px solid var(--bdr); border-radius:12px; margin-bottom:10px; }
     .ai-word small{ display:block; font-size:11px; color:var(--txt2); font-weight:400; margin-top:4px; }
 
-    .log{ flex:1; min-height:120px; max-height:220px; overflow-y:auto; background:#0b0d14; border:1px solid var(--bdr);
+    .log{ flex:1; min-height:120px; max-height:min(50dvh, 420px); overflow-y:auto; background:#0b0d14; border:1px solid var(--bdr);
       border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:13px; line-height:1.7; }
     .log .line{ margin-bottom:4px; }
     .log .line.sys{ color:var(--txt2); font-size:12px; }
     .log .line.err{ color:var(--err); }
     .log .line.ok{ color:var(--ok); }
+    .log .line.warn{ color:var(--warn); }
+
+    /* 커스텀 스크롤바 — 로그·모달 공용. 기본 브라우저 스크롤바 대신 테마에 맞춘 얇은 바로 교체. */
+    .log, .modal-bx{ scrollbar-width:thin; scrollbar-color:var(--bdr) transparent; }
+    .log::-webkit-scrollbar, .modal-bx::-webkit-scrollbar{ width:6px; }
+    .log::-webkit-scrollbar-track, .modal-bx::-webkit-scrollbar-track{ background:transparent; }
+    .log::-webkit-scrollbar-thumb, .modal-bx::-webkit-scrollbar-thumb{ background:var(--bdr); border-radius:999px; }
+    .log:hover::-webkit-scrollbar-thumb, .modal-bx:hover::-webkit-scrollbar-thumb{ background:rgba(157,176,216,.45); }
 
     .input-row{ display:flex; gap:8px; margin-bottom:10px; }
     .input-row input{ flex:1; font-family:inherit; font-size:15px; color:var(--txt); background:var(--panel);
