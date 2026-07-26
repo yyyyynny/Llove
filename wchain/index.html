@@ -4,22 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>잇는 · 끝말잇기</title>
+  <!-- 모바일 브라우저 UI(주소창)까지 배경색을 맞춰 스크롤 시 흰 띠가 드러나지 않게 한다 -->
+  <meta name="theme-color" content="#0e1016">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%97%3C/text%3E%3C/svg%3E">
   <!--
     '잇는'(임시 이름 — 최종 미정) — Llove의 이세계(끝말잇기 게임 차원).
-    Phase 3: 서바이벌 모드 실제 플레이 가능. 아케이드는 Phase 4 예정으로 비활성 표시.
-    같은 GitHub Pages·같은 도메인이라 구글 로그인은 자동 공유(추후 Firebase 배선).
+    서바이벌·아케이드 두 모드 모두 실플레이 가능. 국립국어원 API 연동 실사용 중.
+    같은 GitHub Pages·같은 도메인이라 구글 로그인은 자동 공유(Firebase 연동 완료).
     상세 설계·게이트 정책·이식 규칙은 wchain/시스템.md 참조.
   -->
   <style>
     /* Llove 본체와 분리된 독립 진입점이라 최소 스타일만 자체 보유.
        회전 애니메이션은 '잇' 퍼즐(게임 본질)에서만 허용 — 그 외 전부 fadeUp만 사용(Llove 규칙 준용). */
     :root{ --bg:#0e1016; --panel:#151824; --panel2:#1b1f2e; --acc:#9db0d8; --txt:#e6e9f2; --txt2:#8b93a8;
-           --ok:#8ce6bf; --err:#e68c9c; --warn:#e6c98c; --bdr:rgba(157,176,216,.22); }
+           --ok:#8ce6bf; --err:#e68c9c; --warn:#e6c98c; --bdr:rgba(157,176,216,.22);
+           /* 브라우저 기본 캔버스·스크롤바·폼 컨트롤을 다크 기준으로 — 이게 없으면 모바일에서
+              주소창이 접히며 뷰포트가 100dvh를 넘어 늘어날 때 흰색 기본 배경이 드러난다
+              (관리자님 제보: "빠른 스크롤 시 흰색에서 부자연스럽게 확장"). */
+           color-scheme: dark; }
     *{ box-sizing:border-box; margin:0; padding:0; }
-    html,body{ height:100%; }
+    /* html에도 배경색을 깔아 body 밖 영역(오버스크롤·툴바 접힘 구간)까지 확실히 칠한다 */
+    html{ height:100%; background:var(--bg); }
     body{
-      background:radial-gradient(700px 500px at 50% 8%, #171b28 0%, var(--bg) 70%);
+      background:radial-gradient(700px 500px at 50% 8%, #171b28 0%, var(--bg) 70%) var(--bg);
+      background-attachment:fixed;
       color:var(--txt);
       font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;
       min-height:100dvh;
@@ -90,6 +98,26 @@
 
     .util-row{ display:flex; flex-wrap:wrap; gap:6px; }
 
+    /* 설정 항목 — 선택지를 전부 펼쳐 보여주는 행(2026-07-26). 버튼은 기존 .btn.sm/.btn.sm.acc를
+       그대로 쓰고, 여기서는 배치만 담당한다(새 색상값 도입 없음). */
+    .set-row{ padding:10px 0; border-top:1px solid var(--bdr); }
+    .set-row:first-child{ border-top:0; padding-top:2px; }
+    .set-lbl{ font-size:13px; font-weight:700; margin-bottom:7px; }
+    .set-opts{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:5px; }
+    .set-opts .btn.sm{ margin:0; flex:1 1 auto; text-align:center; }
+    .set-row .d{ font-size:11px; color:var(--txt2); line-height:1.5; }
+
+    /* 플레이 화면 상단 설정 요약 배지 */
+    .cfg-bar{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+    .cfg-chip{ font-size:10px; color:var(--txt2); background:var(--panel); border:1px solid var(--bdr);
+      border-radius:999px; padding:3px 9px; }
+
+    /* 조회 중 표시 — 회전 금지 규칙 준수(점 세 개 점멸만 사용) */
+    @keyframes dotBlink{ 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+    .dots span{ animation:dotBlink 1.2s infinite both; }
+    .dots span:nth-child(2){ animation-delay:.2s; }
+    .dots span:nth-child(3){ animation-delay:.4s; }
+
     .choice-box{ background:var(--panel2); border:1px solid var(--bdr); border-radius:12px; padding:12px; margin-bottom:10px; }
     .choice-box .q{ font-size:13px; margin-bottom:10px; line-height:1.6; }
 
@@ -142,25 +170,22 @@
   <div class="screen" id="s-설정">
     <div class="card fu">
       <div class="card-title">⚙ 서바이벌 설정</div>
-      <button class="btn" id="opt-사전"></button>
-      <button class="btn" id="opt-난이도"></button>
-      <button class="btn" id="opt-한방"></button>
-      <button class="btn" id="opt-두음"></button>
-      <button class="btn" id="opt-방향"></button>
-      <button class="btn" id="opt-무한"></button>
-      <button class="btn" id="opt-구"></button>
+      <div id="설정-항목"></div>
+      <div class="set-row" id="설정-사전"></div>
+      <div class="d" id="설정-경고" style="display:none;color:var(--warn);margin-top:8px"></div>
     </div>
     <button class="btn acc fu" onclick="게임_시작()">🚀 시작</button>
   </div>
 
   <!-- 플레이 화면 (원본 show_survival_hud/prompt_next/_handle_playing) -->
   <div class="screen" id="s-플레이">
+    <div class="cfg-bar fu" id="설정요약"></div>
     <div class="hud fu">
       <div class="hud-item"><div class="hud-lbl" id="hud-턴라벨">⏳ 턴</div><div class="hud-val" id="hud-턴"></div>
         <div class="bar-track"><div class="bar-fill" id="hud-바"></div></div></div>
       <div class="hud-item"><div class="hud-lbl">🔥 상태</div><div class="hud-val" id="hud-상태"></div></div>
       <div class="hud-item"><div class="hud-lbl">💡 힌트</div><div class="hud-val" id="hud-힌트"></div></div>
-      <div class="hud-item"><div class="hud-lbl">❤️ 목숨 / ⚠️ 실수</div><div class="hud-val" id="hud-목숨"></div></div>
+      <div class="hud-item"><div class="hud-lbl">❤️ 목숨 · ⚠️ 실수</div><div class="hud-val" id="hud-목숨"></div></div>
     </div>
     <div class="ai-word fu">
       <span id="ai-단어">─</span>

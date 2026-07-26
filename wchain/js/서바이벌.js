@@ -69,37 +69,63 @@ function 선택_모드(mode){
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    서바이벌 설정 (원본 _show_ready/_handle_ready 1~4·D)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* 설정 화면 — 2026-07-26 전면 개편(관리자님 지시).
+   종전에는 항목당 버튼 하나를 계속 눌러 값을 순환시키는 방식이라 "어떤 선택지가 있는지" 자체가
+   보이지 않았다("UX가 상당히 불친절해 여러 가지 옵션이 있으면 그걸 한번에 보여주며 간단한 상태도
+   넣어주면 편했을걸"). 이제 각 항목의 선택지를 전부 한 줄에 펼쳐 놓고 현재 값을 강조한다.
+   새 CSS 클래스·색상값을 만들지 않고 기존 .btn/.btn.acc/.btn.sm/.btn .d 와 기존 변수만 조합한다. */
+const 설정_항목 = [
+  { 키:'diff', 라벨:'🔥 난이도', 설명:'높을수록 제한 턴이 늘고, AI가 희귀어까지 사용합니다.',
+    선택지:[['안온','안온 · 50턴'],['격동','격동 · 75턴'],['초월','초월 · 140턴'],['심연','심연 · 160턴']] },
+  { 키:'dueum', 라벨:'📏 두음법칙', 설명:'‘력→역’처럼 첫소리를 바꿔 잇는 것을 허용할지.',
+    선택지:[['OFF','끄기'],['Flexible','유연'],['Strict','엄격']] },
+  { 키:'rev', 라벨:'🔀 진행 방향', 설명:'끝말잇기는 마지막 글자로, 앞말잇기는 첫 글자로 잇습니다.',
+    선택지:[[false,'끝말잇기'],[true,'앞말잇기']] },
+  { 키:'hanbang', 라벨:'⚔ 한방 모드', 설명:'끄면 상대가 이을 수 없는 ‘한방 단어’ 사용 시 즉시 패배합니다.',
+    선택지:[[false,'끄기'],[true,'켜기']] },
+  { 키:'infinite', 라벨:'🔁 무한 모드', 설명:'턴 제한 없이 계속 이어갑니다.',
+    선택지:[[false,'끄기'],[true,'켜기']] },
+  { 키:'phrase', 라벨:'✂ 구 허용', 설명:'띄어쓰기 한 번(두 단어)까지 한 단어로 인정합니다.',
+    선택지:[[false,'끄기'],[true,'켜기']] },
+];
+
 function 설정_렌더(){
-  document.getElementById('opt-사전').innerHTML = `📚 사전 모드<div class="d">${gs.dict_mode} (Phase 5 국립국어원 연동 후 실사용)</div>`;
-  document.getElementById('opt-난이도').innerHTML = `🔥 난이도<div class="d">${gs.diff}</div>`;
-  document.getElementById('opt-한방').innerHTML = `⚔ 한방 모드<div class="d">${gs.hanbang ? 'ON' : 'OFF'}</div>`;
-  document.getElementById('opt-두음').innerHTML = `📏 두음법칙<div class="d">${gs.dueum}</div>`;
-  document.getElementById('opt-방향').innerHTML = `🔀 진행 방향<div class="d">${gs.rev ? '앞말잇기(첫 글자 기준)' : '끝말잇기(마지막 글자 기준)'}</div>`;
-  document.getElementById('opt-무한').innerHTML = `🔁 무한 모드<div class="d">${gs.infinite ? 'ON' : 'OFF'}</div>`;
-  document.getElementById('opt-구').innerHTML = `✂ 구 허용<div class="d">${gs.phrase ? 'ON(공백 1개, 두 단어까지)' : 'OFF'}</div>`;
+  const 통 = document.getElementById('설정-항목');
+  if(!통) return;
+  통.innerHTML = 설정_항목.map((항목, i) => {
+    const 버튼들 = 항목.선택지.map(([값, 이름], j) => {
+      const 선택됨 = gs[항목.키] === 값;
+      return `<button class="btn sm${선택됨 ? ' acc' : ''}" onclick="설정_선택(${i},${j})"`
+           + `${선택됨 ? ' aria-current="true"' : ''}>${이름}</button>`;
+    }).join('');
+    return `<div class="set-row"><div class="set-lbl">${항목.라벨}</div>`
+         + `<div class="set-opts">${버튼들}</div>`
+         + `<div class="d">${항목.설명}</div></div>`;
+  }).join('');
+
+  // 사전 모드(dict_mode)는 Worker가 아직 우리말샘 한 곳만 서빙해서 실제 판정에 영향이 없다.
+  // 동작하는 것처럼 보여주면 거짓이 되므로 준비 중임을 명시한다(이의/허세 봉인과 같은 🔒 관례).
+  const 사전줄 = document.getElementById('설정-사전');
+  if(사전줄){
+    사전줄.innerHTML = `<div class="set-lbl">🔒 📚 사전 모드 (준비 중)</div>`
+      + `<div class="d">지금은 우리말샘(통합) 한 가지만 사용합니다. 표준국어대사전 선택은 인증키가 준비되면 열립니다.</div>`;
+  }
+
+  // rev + 두음법칙 조합 안내 — 원본 규칙상 앞말잇기에선 두음법칙이 자동으로 꺼진다.
+  // 종전엔 시작 버튼을 눌러야 조용히 바뀌어서 사용자가 이유를 알 수 없었다.
+  const 경고 = document.getElementById('설정-경고');
+  if(경고){
+    const 충돌 = gs.rev && gs.dueum !== 'OFF';
+    경고.textContent = 충돌 ? '※ 앞말잇기에서는 두음법칙이 적용되지 않아, 시작하면 자동으로 꺼집니다.' : '';
+    경고.style.display = 충돌 ? '' : 'none';
+  }
 }
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('opt-사전').onclick = () => { gs.dict_mode = gs.dict_mode === 'Integrated' ? 'Standard' : 'Integrated'; 설정_렌더(); };
-  document.getElementById('opt-난이도').onclick = () => {
-    const order = ['안온','격동','초월','심연'];
-    gs.diff = order[(order.indexOf(gs.diff) + 1) % 4]; 설정_렌더();
-  };
-  document.getElementById('opt-한방').onclick = () => { gs.hanbang = !gs.hanbang; 설정_렌더(); };
-  document.getElementById('opt-두음').onclick = () => {
-    const order = ['OFF','Flexible','Strict'];
-    gs.dueum = order[(order.indexOf(gs.dueum) + 1) % 3]; 설정_렌더();
-  };
-  // 앞말잇기(rev) — 원본 파이썬 엔진에 이미 있던 기능이나 UI 토글이 없어 켤 방법이 없었음(2026-07-24
-  // 발견). find_words/is_hanbang은 이미 gs.rev를 받아 처리하도록 이식돼 있어(Phase 2 대조 검증
-  // 대상) 여기서 값만 노출. 게임_시작()에서 rev+두음법칙 동시 ON이면 두음법칙을 자동 OFF로
-  // 되돌리는 기존 로직(원본 규칙)은 그대로 유지된다.
-  document.getElementById('opt-방향').onclick = () => { gs.rev = !gs.rev; 설정_렌더(); };
-  document.getElementById('opt-무한').onclick = () => { gs.infinite = !gs.infinite; 설정_렌더(); };
-  // 구 허용(phrase) — 원본에 없던 신규 규칙(관리자님 확정, 2026-07-25). validate_word가 공백 1개
-  // (두 단어)까지만 통과시키고, 사전 등재 여부는 기존 국어원 온라인 조회 폴백을 그대로 탄다(로컬
-  // 사전엔 구 항목이 없어 자연히 온라인 경로로 넘어감 — js/게임규칙.js 주석 참조).
-  document.getElementById('opt-구').onclick = () => { gs.phrase = !gs.phrase; 설정_렌더(); };
-});
+
+function 설정_선택(항목번호, 선택번호){
+  const 항목 = 설정_항목[항목번호];
+  gs[항목.키] = 항목.선택지[선택번호][0];
+  설정_렌더();
+}
 
 function 게임_시작(){
   reset_game(gs);
@@ -149,8 +175,11 @@ function 플레이_HUD갱신(){
     st.textContent = status; st.className = 'hud-val status-' + status;
   }
   document.getElementById('hud-힌트').textContent = 표시무한(gs.hints) + '개';
-  document.getElementById('hud-목숨').textContent = `${표시무한(gs.hearts)} / ${gs.strikes}·4`;
+  // 종전 표기 "∞ / 1·4"는 무엇이 목숨이고 무엇이 실수인지 읽히지 않았다(관리자님 지적) —
+  // 라벨 순서 그대로 "목숨 · 실수"를 명시적으로 붙인다.
+  document.getElementById('hud-목숨').textContent = `${표시무한(gs.hearts)}개 · ${gs.strikes}/4`;
   document.getElementById('ai-단어').textContent = gs.ai_last_word ? `『${gs.ai_last_word}』` : '─';
+  설정요약_갱신();
 
   // 저주 표시(아케이드 전용) — 원본 curse_tags
   const 저주줄 = document.getElementById('저주표시');
@@ -163,6 +192,44 @@ function 플레이_HUD갱신(){
     저주줄.style.display = tags.length ? '' : 'none';
   } else {
     저주줄.style.display = 'none';
+  }
+}
+
+// 플레이 중에도 내가 어떤 설정으로 하고 있는지 보이게 하는 요약 배지(2026-07-26 신설).
+// 종전엔 게임에 들어가면 설정을 확인할 방법이 아예 없었다.
+function 설정요약_갱신(){
+  const 통 = document.getElementById('설정요약');
+  if(!통) return;
+  const 칩 = [];
+  if(gs.game_mode === 'ARCADE'){
+    칩.push('🗼 아케이드');
+  } else {
+    칩.push(`🔥 ${gs.diff}`);
+    if(gs.infinite) 칩.push('🔁 무한');
+  }
+  칩.push(gs.rev ? '🔀 앞말잇기' : '🔀 끝말잇기');
+  칩.push(`📏 두음 ${({OFF:'끄기', Flexible:'유연', Strict:'엄격'})[gs.dueum] ?? gs.dueum}`);
+  if(gs.hanbang) 칩.push('⚔ 한방 허용');
+  if(gs.phrase) 칩.push('✂ 구 허용');
+  if(gs.god_mode_active) 칩.push('🔓 GOD MODE');
+  통.innerHTML = 칩.map(t => `<span class="cfg-chip">${t}</span>`).join('');
+}
+
+// 온라인 조회처럼 시간이 걸리는 동안 입력을 잠그고 진행 중임을 보여준다(2026-07-26 신설).
+// 종전엔 로그 한 줄("확인하는 중...")뿐이라 멈춘 것처럼 보였다.
+// 회전 애니메이션 금지 규칙 준수 — 점 세 개 점멸만 사용.
+function 입력_대기표시(켜기, 문구 = '확인 중'){
+  const inp = document.getElementById('단어입력');
+  const btn = document.querySelector('#입력폼 button[type=submit]');
+  if(!inp || !btn) return;
+  inp.disabled = 켜기;
+  btn.disabled = 켜기;
+  if(켜기){
+    inp.placeholder = `${문구}…`;
+    btn.innerHTML = '<span class="dots"><span>·</span><span>·</span><span>·</span></span>';
+  } else {
+    inp.placeholder = '단어를 입력하세요';
+    btn.textContent = '전송';
   }
 }
 
@@ -223,6 +290,7 @@ function 단어_제출(){
   // 폼 기본 제출(새로고침)을 막기 위해 이 함수는 동기적으로 false를 반환하고, 비동기 흐름은
   // 가드로 감싼 IIFE 안에서 처리한다(끝나면 finally로 반드시 가드 해제).
   게임_비동기처리중 = true;
+  입력_대기표시(true, '처리 중');
   (async () => {
     try{
       로그_추가('▶ ' + raw);
@@ -256,6 +324,7 @@ function 단어_제출(){
       await 단어_처리(raw, valid, reason);
     } finally {
       게임_비동기처리중 = false;
+      입력_대기표시(false);
     }
   })();
   return false;
@@ -553,10 +622,12 @@ async function 힌트_실행(){
   // 단어 제출과 같은 재진입 가드를 공유해 연타로 힌트가 이중 차감되지 않게 한다.
   if(게임_비동기처리중) return;
   게임_비동기처리중 = true;
+  입력_대기표시(true, '힌트 찾는 중');
   try{
     await 힌트_본체();
   } finally {
     게임_비동기처리중 = false;
+    입력_대기표시(false);
   }
 }
 
