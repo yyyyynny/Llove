@@ -32,16 +32,25 @@ function 국어원_캐시_저장(캐시){
 }
 
 // 공통 POST 헬퍼 — 타임아웃(AbortController) 포함. 게이트 off·엔드포인트 미설정 시 fetch 없이
-// null, 실패·시간초과 시에도 null을 반환해 호출부가 로컬 판정으로 강등하게 한다. AI 턴마다
-// 실호출이라(캐시 미스 시) 네트워크가 느리면 게임이 멈춘 것처럼 보일 수 있어 상한을 둔다.
-// 1.5초는 실사용(모바일망·프록시 경유)에서 흔한 단어까지 시간초과로 놓치는 사례가 나와
-// 3초로 상향(2026-07-25) — 그래도 실패하면 호출부가 null을 "확인 실패"로 정직하게 구분 처리한다.
-const 국어원_타임아웃_MS = 3000;
-async function 국어원_POST(payload){
+// null, 실패·시간초과 시에도 null을 반환해 호출부가 로컬 판정으로 강등하게 한다.
+//
+// ⚠️ 타임아웃 값은 추정이 아니라 실측으로 정했다(2026-07-26). 관리자님이 실배포 사이트에서
+// "국어"·"이름" 같은 흔한 단어가 "사전 확인 실패"로 거부되는 걸 제보 → Worker 왕복 시간을 직접
+// 재보니 단어 조회 1.17~4.04초(국어 3.96s / 이름 4.04s), 후보 목록 3.92~5.44초(가 5.44s)였다.
+// 그때 상한이 3초라 정상 응답(HTTP 200)이 도착하기 전에 우리가 끊어버리고 있었던 것 —
+// 네트워크 장애가 아니라 우리 설정 문제였다. 실측 최댓값 + 모바일망 여유를 더해 재설정한다.
+//  - 단어 검증: 사용자가 결과를 눈앞에서 기다리는 상황이라 "느려도 정확히"가 맞다 → 8초.
+//  - 후보 목록: AI 턴마다 도는 호출이라 너무 길면 게임이 멈춘 듯 보인다 → 6초.
+//    (구간 B의 난이도 계층화로 낮은 난이도에선 이 호출 자체가 사라져 체감 지연도 함께 줄었다.)
+// 상한을 늘려도 실패는 여전히 날 수 있으므로, null("확인 자체를 못 함") 반환으로 호출부가
+// 오판하지 않게 하는 안전망은 그대로 유지한다.
+const 국어원_타임아웃_단어_MS = 8000;
+const 국어원_타임아웃_후보_MS = 6000;
+async function 국어원_POST(payload, 타임아웃_MS){
   if(!국어원_활성화) return null;
   if(!국어원_WORKERS_ENDPOINT) return null;
   const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 국어원_타임아웃_MS) : null;
+  const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 타임아웃_MS) : null;
   try{
     const res = await fetch(국어원_WORKERS_ENDPOINT, {
       method: 'POST',
@@ -67,7 +76,7 @@ async function 국어원_POST(payload){
 async function 국어원_단어조회(word){
   const 캐시 = 국어원_캐시_로드();
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
-  const data = await 국어원_POST({ 단어: word });
+  const data = await 국어원_POST({ 단어: word }, 국어원_타임아웃_단어_MS);
   if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
   const 존재함 = !!(data && data.존재);
   캐시[word] = 존재함;
@@ -94,7 +103,7 @@ async function 국어원_후보목록조회(글자, 방향){
   const 캐시키 = `${방향}:${글자}`;
   const 캐시 = 국어원_후보캐시_로드();
   if(Object.prototype.hasOwnProperty.call(캐시, 캐시키)) return 캐시[캐시키];
-  const data = await 국어원_POST({ 글자: 글자, 방향: 방향 });
+  const data = await 국어원_POST({ 글자: 글자, 방향: 방향 }, 국어원_타임아웃_후보_MS);
   if(data === null) return [];      // 실패·시간초과는 캐시에 쓰지 않음
   const 목록 = Array.isArray(data.후보) ? data.후보 : [];
   캐시[캐시키] = 목록;
