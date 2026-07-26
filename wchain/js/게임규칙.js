@@ -101,15 +101,41 @@ function ai_generate_word(gs, 추가후보 = []){
   return null;
 }
 
-// 온라인 후보까지 포함해 AI 단어를 고르는 비동기 래퍼(2026-07-24 신설, 관리자님 지시).
-// 국어원_활성화가 켜져 있으면 gs.ai_last_char로 시작/끝나는 실제 단어를 API로 먼저 찾아 로컬
-// 사전과 합치고, 게이트 off거나 API 실패(네트워크 오류 등)면 즉시 빈 배열로 강등돼 기존
-// ai_generate_word(gs)와 동일하게 로컬 사전만으로 동작한다(하이브리드: API 우선, 실패 시 로컬).
-async function ai_generate_word_비동기(gs){
-  let 추가후보 = [];
-  if(국어원_활성화 && gs.ai_last_char){
-    추가후보 = await 국어원_후보목록조회(gs.ai_last_char, gs.rev ? 'end' : 'start');
+// 희귀어 풀(온라인)을 쓸 난이도인지 판정 — 2026-07-26 신설, 관리자님 지시
+// ("희귀어는 어려운 난이도로 보내고, 일반 명사는 낮은 난이도 쪽으로").
+//
+// 근거(실측): 국어원 후보 목록은 우리말샘 원본이라 방언·옛말·고유명사가 그대로 섞여 나온다.
+// '스'로 시작하는 단어를 요청하면 스가랴(성경 인명)·스굼푸·스까락·스께또·스그머니·스나조…처럼
+// 표제어 순서상 앞쪽의 희귀어만 잘려서 온다. 반면 로컬 DICTIONARY(280)+HARD_DICT(80)는 원본
+// 파이썬에서 기계 추출한 자연스러운 일반 단어 집합이다. 이 두 집합의 성격 차이를 그대로
+// 난이도에 매핑한다 — 낮은 난이도는 자연스러운 단어로, 높은 난이도는 희귀어까지.
+//
+// 부수 효과(의도됨): 낮은 난이도에선 온라인 호출 자체가 사라져 AI 턴 지연도 함께 없어진다.
+function 희귀어_난이도인가(gs){
+  if(gs.game_mode === 'ARCADE') return gs.stage >= 11;   // 기존 HARD_DICT 합류 기준과 동일한 층
+  return gs.diff === '초월' || gs.diff === '심연';
+}
+
+// AI 턴·힌트가 공유하는 후보 풀 조회(2026-07-26 신설). 난이도에 따라 온라인 희귀어 풀을
+// 섞을지 정하고, 낮은 난이도에선 로컬 후보가 하나라도 있으면 네트워크를 아예 타지 않는다.
+// 반환값은 ai_generate_word/find_words에 넘길 "추가 후보 배열"(로컬은 호출부가 이미 갖고 있음).
+async function 온라인후보_가져오기(gs){
+  if(!국어원_활성화 || !gs.ai_last_char) return [];
+  if(!희귀어_난이도인가(gs)){
+    // 낮은 난이도 — 로컬 큐레이션 사전에 이을 단어가 있으면 그걸로 충분(희귀어 불필요).
+    const 로컬후보 = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, 0,
+                              gs.stage >= 13 ? 3 : 0);
+    if(로컬후보.length) return [];
+    // 로컬이 완전히 막힌 경우에만 온라인으로 확장(막다른 길 방지 — 기존 폴백 취지 유지).
   }
+  return await 국어원_후보목록조회(gs.ai_last_char, gs.rev ? 'end' : 'start');
+}
+
+// 온라인 후보까지 포함해 AI 단어를 고르는 비동기 래퍼(2026-07-24 신설, 관리자님 지시).
+// 게이트 off·API 실패(네트워크 오류 등)면 빈 배열로 강등돼 기존 ai_generate_word(gs)와 동일하게
+// 로컬 사전만으로 동작한다(하이브리드: 실패 시 로컬 폴백). 어떤 풀을 쓸지는 위 난이도 규칙이 결정.
+async function ai_generate_word_비동기(gs){
+  const 추가후보 = await 온라인후보_가져오기(gs);
   return ai_generate_word(gs, 추가후보);
 }
 
@@ -228,5 +254,6 @@ function arcade_restart_floor(gs){
 
 if (typeof module !== 'undefined') module.exports = {
   validate_word, ai_generate_word, ai_generate_word_비동기, check_title, user_defeat,
-  붕괴확률, arcade_floor_up, arcade_restart_floor
+  붕괴확률, arcade_floor_up, arcade_restart_floor,
+  희귀어_난이도인가, 온라인후보_가져오기
 };

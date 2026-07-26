@@ -481,9 +481,52 @@ function 버튼_허세(){
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    힌트 (원본 handle_hint/deliver_hint — 서바이벌 경로만)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function 버튼_힌트(){
+// 힌트 후보 조회 — 원본 deliver_hint(game.py:1054-1062)와 동일한 필터를 쓴다.
+// ⚠️ 2026-07-26 수정: 종전에는 find_words(..., 0, 0)로 length_filter·min_length를 0으로
+// 하드코딩해, 어둠의 계약(정확히 2글자)·13층 족쇄(3글자 이상)가 걸린 상태에서 "제출하면 반드시
+// 거부당할 단어"의 초성을 알려주고 있었다(원본과의 실제 불일치 — 관리자님이 "힌트 알고리즘이
+// 설계와 다르다"고 지적한 부분). 원본대로 두 필터를 복원한다.
+// 추가로, AI가 높은 난이도에서 온라인 희귀어 풀을 쓰게 되면서 힌트만 로컬 사전을 보면 정답
+// 공간이 어긋나므로(힌트 불가가 잘못 뜸), 같은 풀을 공유하도록 추가후보를 함께 넘긴다.
+function 힌트_후보(gs, 추가후보 = []){
+  const dark_filter = (gs.game_mode === 'ARCADE' && gs.curse_dark_active) ? 2 : 0;
+  const min_len = (gs.game_mode === 'ARCADE' && gs.stage >= 13) ? 3 : 0;
+  const 사전 = 추가후보.length ? [...new Set([...DICTIONARY, ...추가후보])] : DICTIONARY;
+  const 후보 = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, dark_filter, min_len, 사전);
+
+  // 한방 단어 제외 — 원본을 넘어서는 보정(의도적). 원본 deliver_hint는 한방 여부를 안 보는데,
+  // 우리 규칙에선 그렇게 뽑힌 힌트가 "내면 반드시 지는 단어"가 된다:
+  //   · 아케이드    → validate_word가 한방 단어를 무조건 거부(실수 누적)
+  //   · 서바이벌+한방모드 OFF → 노션 11번 반영으로 제출 즉시 패배
+  // 힌트를 따랐다가 죽는 건 힌트의 존재 이유에 정면으로 어긋나므로 여기서 걸러낸다.
+  // (한방모드 ON인 서바이벌에선 한방 단어가 합법이라 그대로 둔다 — AI의 safe_filter와 같은 기준.)
+  const 한방_위험 = (gs.game_mode === 'ARCADE') || !gs.hanbang;
+  if(!한방_위험) return 후보;
+  // 전부 한방이라 안전한 후보가 0개면 빈 배열을 그대로 반환한다 — 호출부가 "❌ [힌트 불가]"를
+  // 띄우고 힌트도 차감하지 않는다. AI의 safe_filter는 "그래도 뭔가 내야 하니" 원본 목록으로
+  // 되돌리는 폴백을 두지만, 힌트는 낼 의무가 없으므로 지는 단어를 알려주느니 없다고 말하는 게 맞다
+  // (실제로 그 상황은 플레이어가 둘 수 있는 합법 수가 없는 막다른 국면이다).
+  return 후보.filter(w => !is_hanbang(w, [...used_words(gs), w], gs.rev, gs.dueum, gs.stage));
+}
+
+// onclick에서 await 없이 불리므로(fire-and-forget) 내부에서 예외가 새어나가지 않게 감싼다.
+function 버튼_힌트(){ 힌트_실행().catch(e => console.error('[힌트] 처리 실패', e)); }
+
+async function 힌트_실행(){
   if(gs.game_state !== 'PLAYING') return;
   if(gs.ai_last_char === null){ 로그_추가('ℹ️ 첫 단어는 자유롭게 입력하세요. 힌트가 필요하지 않습니다.', 'sys'); return; }
+  // 힌트도 온라인 후보를 조회할 수 있게 되면서(높은 난이도) 비동기 창이 생겼다 —
+  // 단어 제출과 같은 재진입 가드를 공유해 연타로 힌트가 이중 차감되지 않게 한다.
+  if(게임_비동기처리중) return;
+  게임_비동기처리중 = true;
+  try{
+    await 힌트_본체();
+  } finally {
+    게임_비동기처리중 = false;
+  }
+}
+
+async function 힌트_본체(){
 
   // 13층 이상 + 힌트 소진 = 시련의 탑 대신 바로 비상 탈출구
   if(gs.game_mode === 'ARCADE' && gs.stage >= 13 && gs.hints <= 0){
@@ -497,7 +540,7 @@ function 버튼_힌트(){
     return;
   }
 
-  const cands = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, 0, 0);
+  const cands = 힌트_후보(gs, await 온라인후보_가져오기(gs));
 
   if(gs.hints !== Infinity && gs.hints <= 0){
     if(gs.game_mode === 'ARCADE'){
@@ -564,6 +607,10 @@ function 버튼_힌트(){
   const hint_word = cands[Math.floor(Math.random() * cands.length)];
   로그_추가(say(gs, `흥... 특별히 힌트를 주지. 남은 힌트: ${표시무한(gs.hints)}`, `💡 [힌트 사용] 남은 힌트: ${표시무한(gs.hints)}. 도움이 되길 바랍니다!`));
   로그_추가(`   🔤 초성 : ${extract_chosung(hint_word)}`);
+  // 원본 deliver_hint(game.py:1071-1072)의 어둠의 계약 안내 — 이식 때 누락됐던 것 복원
+  if(gs.game_mode === 'ARCADE' && gs.curse_dark_active){
+    로그_추가('   ⛓ [어둠의 계약] 2글자 단어만 안내됩니다.', 'sys');
+  }
   플레이_HUD갱신();
 }
 
@@ -575,8 +622,8 @@ function 악마거래_응답(수락){
     if(gs.hints !== Infinity) gs.hints += 3;
     gs.game_state = 'PLAYING';
     로그_추가(say(gs, `크크크... 계약 성립. 『${old}』→『${gs.diff}』 격상. 힌트 3개 지급.`, `계약 성립! 『${old}』→『${gs.diff}』 격상! 힌트 3개를 드릴게요!`), 'ok');
-    // 원본: 계약 즉시 힌트 1회를 바로 제공
-    const cands = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, 0, 0);
+    // 원본: 계약 즉시 힌트 1회를 바로 제공 (힌트_후보로 통일 — 어둠의 계약·13층 족쇄 필터 반영)
+    const cands = 힌트_후보(gs);
     if(cands.length){
       if(gs.hints !== Infinity) gs.hints -= 1;
       const hint_word = cands[Math.floor(Math.random() * cands.length)];
