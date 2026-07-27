@@ -16,7 +16,11 @@ function 새게임상태(){
     user_title: null, history: [], ai_last_word: null, ai_last_char: null,
     last_log: 'System ready.',
     god_mode_active: false, erosion_level: 0,
-    diff: '격동', dict_mode: 'Integrated', hanbang: false, dueum: 'Flexible',
+    // hanbang 기본값: 2026-07-27 관리자님 지시로 false → true. 종전 기본값(끄기)은 곧 "한방
+    // 단어를 내면 제재"라는 뜻인데, 한방 판정이 로컬 280단어 기준이라 정상 단어의 24~44%가
+    // 오판돼 기본 플레이가 사실상 즉사 모드였다. 판정 자체도 고쳤지만(한방_확정인가), 기본값은
+    // 처음 들어온 사람이 규칙을 모른 채 벌을 받지 않는 쪽으로 둔다.
+    diff: '격동', dict_mode: 'Integrated', hanbang: true, dueum: 'Flexible',
     rev: false, pos: false, phrase: false, infinite: false,
   };
 }

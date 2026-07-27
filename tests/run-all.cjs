@@ -24,7 +24,8 @@ const 테스트들 = [
   ['세션10-i 배너 히트박스·프로필 크롭 재활용', 'test-fixes-세션10i.cjs'],
   ['세션10-j/k 창조주 시도 채팅 미저장', 'test-fixes-세션10j.cjs'],
   ['세션10-k 다크·라이트 토글 삭제', 'test-fixes-세션10k.cjs'],
-  ['세션10-l 계정삭제·초기화 채팅 기록 삭제', 'test-fixes-세션10l.cjs']
+  ['세션10-l 계정삭제·초기화 채팅 기록 삭제', 'test-fixes-세션10l.cjs'],
+  ['wchain 한방 판정(즉사 버그) 회귀', 'test-wchain-한방.cjs']
 ];
 
 let 실패 = 0;

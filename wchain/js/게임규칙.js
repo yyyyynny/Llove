@@ -53,24 +53,40 @@ function validate_word(word, gs){
 // 추가후보(2번째 인자): 국어원 API가 온라인으로 찾아준 후보 단어들(있으면). 로컬 사전과 합쳐서
 // 같은 필터·선택 로직을 그대로 태운다 — attack_mode/safe_filter 등 기존 검증된 로직은 전혀
 // 손대지 않고 "입력 풀만 넓히는" 방식이라 회귀 위험이 적다.
+// AI가 이번 턴에 실제로 고를 수 있는 단어 풀. 후보 선택과 **한방 판정**이 같은 사전을 봐야
+// 정합적이므로(2026-07-27), 종전에 ai_generate_word 안에만 있던 계산을 밖으로 꺼내 공유한다.
+function ai_후보사전(gs, 추가후보 = []){
+  let current_dict = 추가후보.length ? [...new Set([...DICTIONARY, ...추가후보])] : DICTIONARY;
+  if(gs.stage >= 11) current_dict = [...new Set([...current_dict, ...HARD_DICT])];
+  return current_dict;
+}
+
+// AI가 한방 단어를 내면 안 되는 국면인지. 아케이드는 validate_word가 사용자의 한방 단어를 항상
+// 거부하므로(45행), AI에게만 허용하면 일방적으로 불리해진다 — hanbang 설정과 무관하게 항상 금지.
+// (2026-07-27 hanbang 기본값을 true로 올리면서 드러난 문제 — 종전엔 기본값이 false라 가려져 있었다.)
+function ai_한방금지인가(gs){ return !gs.hanbang || gs.game_mode === 'ARCADE'; }
+
 function ai_generate_word(gs, 추가후보 = []){
   const search_char = gs.ai_last_char;
   const used = used_words(gs);
   const ai_dueum = gs.dueum;
 
-  let current_dict = 추가후보.length ? [...new Set([...DICTIONARY, ...추가후보])] : DICTIONARY;
-  if(gs.stage >= 11) current_dict = [...new Set([...current_dict, ...HARD_DICT])];
+  const current_dict = ai_후보사전(gs, 추가후보);
 
   const min_len = gs.stage >= 13 ? 3 : 0;
 
+  // ⚠️ 2026-07-27: 판정 사전을 current_dict로 넘긴다. 종전에는 후보 풀에 온라인 희귀어를 넣어
+  // 놓고 한방 판정만 로컬 DICTIONARY(280개)로 해서, 온라인 후보가 거의 전부 "한방"으로 탈락했다
+  // — 난이도 계층화(초월/심연에서 희귀어 사용)가 6초 네트워크만 쓰고 결과는 버리는 상태였다.
   function safe_filter(candidates){
-    if(gs.hanbang) return candidates;
-    const safe = candidates.filter(w => !is_hanbang(w, [...used, w], gs.rev, ai_dueum, gs.stage));
+    if(!ai_한방금지인가(gs)) return candidates;
+    const safe = candidates.filter(
+      w => !is_hanbang(w, [...used, w], gs.rev, ai_dueum, gs.stage, current_dict));
     return safe.length ? safe : candidates;
   }
 
   let attack_mode = false;
-  if(gs.hanbang && gs.attack_streak === 0){
+  if(gs.hanbang && gs.game_mode !== 'ARCADE' && gs.attack_streak === 0){
     let chance;
     if(gs.game_mode === 'SURVIVAL') chance = { 안온:5, 격동:15, 초월:35, 심연:50 }[gs.diff] ?? 15;
     else if(gs.stage <= 4) chance = 10;
@@ -123,12 +139,48 @@ async function 온라인후보_가져오기(gs){
   if(!국어원_활성화 || !gs.ai_last_char) return [];
   if(!희귀어_난이도인가(gs)){
     // 낮은 난이도 — 로컬 큐레이션 사전에 이을 단어가 있으면 그걸로 충분(희귀어 불필요).
-    const 로컬후보 = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, 0,
+    // 어둠의 계약(정확히 2글자)이 걸린 층에서는 그 제약까지 반영해야 "로컬로 충분"이 참이 된다.
+    const dark_filter = (gs.game_mode === 'ARCADE' && gs.curse_dark_active) ? 2 : 0;
+    const 로컬후보 = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, dark_filter,
                               gs.stage >= 13 ? 3 : 0);
     if(로컬후보.length) return [];
     // 로컬이 완전히 막힌 경우에만 온라인으로 확장(막다른 길 방지 — 기존 폴백 취지 유지).
   }
-  return await 국어원_후보목록조회(gs.ai_last_char, gs.rev ? 'end' : 'start');
+  // 조회 실패(null)는 빈 배열로 정규화 — AI 턴은 로컬 사전만으로 안전하게 강등된다.
+  return (await 국어원_후보목록조회(gs.ai_last_char, gs.rev ? 'end' : 'start')) ?? [];
+}
+
+// 이 단어가 **정말** 한방 단어인지 확정 (2026-07-27 신설 — 관리자님 "바로 패배" 제보의 핵심 수정).
+//
+// 로컬 is_hanbang은 280단어짜리 DICTIONARY만 보므로 "이을 단어가 없다"는 결론을 그대로 믿을 수
+// 없다(실측: 흔한 단어의 44%가 오판). 그래서 로컬이 한방이라고 말할 때만 국어원 API로 실제
+// 이을 수 있는 단어가 있는지 한 번 더 확인하고, 있으면 판정을 뒤집는다.
+//
+// 판정 우선순위:
+//   1. 로컬에서 이을 단어를 찾음        → 한방 아님 (네트워크 0건 — 대부분의 턴이 여기서 끝난다)
+//   2. 게이트 off                        → 로컬 판정이 유일한 근거이므로 그대로 (기존 동작 보존)
+//   3. 온라인 조회 실패(null)            → **한방으로 단정하지 않는다.** 확인을 못 했을 뿐인데
+//                                          사용자에게 불이익을 주지 않는다(국어원 실패 공정성).
+//   4. 온라인 후보에 이을 단어가 있음    → 한방 아님
+//   5. 온라인으로도 0개임을 확인         → 한방 확정
+async function 한방_확정인가(word, gs){
+  const used = used_words(gs);
+  if(!is_hanbang(word, used, gs.rev, gs.dueum, gs.stage)) return false;   // 1
+  if(!국어원_활성화) return true;                                          // 2
+
+  const 다음글자 = !gs.rev ? word[word.length - 1] : word[0];
+  // 끝말잇기는 두음법칙 변환형으로도 이을 수 있으므로 그 글자들까지 전부 확인한다
+  // (앞말잇기는 "그 글자로 끝나는 단어"라 변환형이 없다 — find_words의 reverse 분기와 동일).
+  const 조회할글자 = gs.rev ? [다음글자] : get_valid_start_chars(다음글자, gs.dueum);
+
+  for(const 글자 of 조회할글자){
+    const 목록 = await 국어원_후보목록조회(글자, gs.rev ? 'end' : 'start');
+    if(목록 === null) return false;                                        // 3
+    // 이미 쓴 단어·자기 자신을 빼고, 그 층의 길이 제약을 통과하는 후보가 하나라도 남는지 본다.
+    if(find_words(다음글자, [...used, word], gs.rev, gs.dueum, 0,
+                  gs.stage >= 13 ? 3 : 0, 목록).length) return false;      // 4
+  }
+  return true;                                                             // 5
 }
 
 // 온라인 후보까지 포함해 AI 단어를 고르는 비동기 래퍼(2026-07-24 신설, 관리자님 지시).
@@ -255,5 +307,5 @@ function arcade_restart_floor(gs){
 if (typeof module !== 'undefined') module.exports = {
   validate_word, ai_generate_word, ai_generate_word_비동기, check_title, user_defeat,
   붕괴확률, arcade_floor_up, arcade_restart_floor,
-  희귀어_난이도인가, 온라인후보_가져오기
+  희귀어_난이도인가, 온라인후보_가져오기, ai_후보사전, ai_한방금지인가, 한방_확정인가
 };

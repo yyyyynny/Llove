@@ -122,10 +122,19 @@ function find_words(start_char, used, reverse = false, dueum_mode = 'OFF',
 
 // 한방 단어 판정 — 이 단어를 낸 뒤 상대가 이을 단어가 0개면 true.
 // stage>=13: 3글자 족쇄가 걸린 층이므로 min_length=3 기준으로 판정 (원본 동일).
-function is_hanbang(word, used, reverse = false, dueum_mode = 'OFF', stage = 0){
+//
+// ⚠️ 2026-07-27 추가: dictionary_source(6번째 인자).
+// 종전에는 find_words에 사전을 안 넘겨 **항상 로컬 DICTIONARY(280개)만** 뒤졌다. 국어원 API를
+// 켜고 나서 실제 플레이 공간은 우리말샘 전체가 됐는데 판정만 280단어 기준이라, 흔한 단어의
+// 24~44%가 "한방 단어"로 오판됐다(실측: DICTIONARY가 이을 수 있는 시작 글자는 175종뿐).
+// 그 오판이 즉시 패배·실수 누적으로 직결돼 관리자님이 "바로 패배해버림"을 제보한 원인이었다.
+// 인자 기본값을 null(=DICTIONARY)로 둬서 파이썬 원본 대조 벡터는 그대로 통과한다.
+function is_hanbang(word, used, reverse = false, dueum_mode = 'OFF', stage = 0,
+                    dictionary_source = null){
   const next_char = !reverse ? word[word.length - 1] : word[0];
   const min_len = stage >= 13 ? 3 : 0;
-  return find_words(next_char, [...used, word], reverse, dueum_mode, 0, min_len).length === 0;
+  return find_words(next_char, [...used, word], reverse, dueum_mode, 0, min_len,
+                    dictionary_source).length === 0;
 }
 
 // jsdom/node 대조 테스트용 내보내기 (브라우저에선 무시)

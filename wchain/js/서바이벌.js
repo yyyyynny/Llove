@@ -81,7 +81,7 @@ const 설정_항목 = [
     선택지:[['OFF','끄기'],['Flexible','유연'],['Strict','엄격']] },
   { 키:'rev', 라벨:'🔀 진행 방향', 설명:'끝말잇기는 마지막 글자로, 앞말잇기는 첫 글자로 잇습니다.',
     선택지:[[false,'끝말잇기'],[true,'앞말잇기']] },
-  { 키:'hanbang', 라벨:'⚔ 한방 모드', 설명:'끄면 상대가 이을 수 없는 ‘한방 단어’ 사용 시 즉시 패배합니다.',
+  { 키:'hanbang', 라벨:'⚔ 한방 모드', 설명:'켜면 상대가 이을 수 없는 ‘한방 단어’도 자유롭게 쓸 수 있습니다. 끄면 실수 1회로 계산됩니다.',
     선택지:[[false,'끄기'],[true,'켜기']] },
   { 키:'infinite', 라벨:'🔁 무한 모드', 설명:'턴 제한 없이 계속 이어갑니다.',
     선택지:[[false,'끄기'],[true,'켜기']] },
@@ -294,7 +294,7 @@ function 단어_제출(){
   (async () => {
     try{
       로그_추가('▶ ' + raw);
-      const [valid, reason] = validate_word(raw, gs);
+      let [valid, reason] = validate_word(raw, gs);
 
       // 로컬 사전에 없어서만 실패했고 국어원 게이트가 켜져 있으면 온라인 조회로 재확인.
       if(!valid && 국어원_활성화 && reason.endsWith('사전에 없는 단어입니다.')){
@@ -306,19 +306,22 @@ function 단어_제출(){
           로그_추가('⚠️ 국립국어원 사전 확인에 실패했습니다(네트워크 문제로 추정). 같은 단어를 다시 입력해 보세요.', 'warn');
           return;
         }
-        if(!존재함){ await 단어_처리(raw, valid, reason); return; }
-        // API로 사전 등재가 확인된 단어 — validate_word의 다음 단계(한방 판정)를 동일하게 재현
-        // (사전 소속 여부만 API가 대신했을 뿐, 그 이후 규칙은 로컬 판정과 완전히 같아야 한다)
-        if(is_hanbang(raw, used_words(gs), gs.rev, gs.dueum, gs.stage)){
-          if(gs.game_mode === 'ARCADE'){
-            await 단어_처리(raw, false, `『${raw}』은(는) 한방 단어입니다. (아케이드에서 사용 불가)`); return;
-          }
-          if(!gs.hanbang){
-            await 단어_처리(raw, false, `『${raw}』은(는) 한방 단어입니다. (일반 모드에서 사용 불가)`); return;
+        if(존재함){
+          // API로 사전 등재가 확인된 단어 — validate_word의 다음 단계(한방 판정)를 동일하게 재현
+          // (사전 소속 여부만 API가 대신했을 뿐, 그 이후 규칙은 로컬 판정과 완전히 같아야 한다)
+          valid = true; reason = '';
+          if(gs.game_mode === 'ARCADE' && await 한방_확정인가(raw, gs)){
+            valid = false; reason = `『${raw}』은(는) 한방 단어입니다. (아케이드에서 사용 불가)`;
+          } else if(gs.game_mode !== 'ARCADE' && !gs.hanbang && await 한방_확정인가(raw, gs)){
+            valid = false; reason = `『${raw}』은(는) 한방 단어입니다. (일반 모드에서 사용 불가)`;
           }
         }
-        await 단어_처리(raw, true, '');
-        return;
+        // 존재함 === false면 valid/reason을 그대로 둔다(진짜로 사전에 없는 단어).
+      }
+      // 로컬 사전 판정이 "한방 단어"로 막은 경우 — 280단어 기준이라 오판일 수 있으므로
+      // 온라인으로 실제 이을 단어가 있는지 확인해 판정을 뒤집는다(2026-07-27, 즉사 버그 수정).
+      else if(!valid && reason.includes('한방 단어입니다.') && !(await 한방_확정인가(raw, gs))){
+        valid = true; reason = '';
       }
 
       await 단어_처리(raw, valid, reason);
@@ -332,19 +335,26 @@ function 단어_제출(){
 
 async function 단어_처리(raw, valid, reason){
   if(!valid){
-    // ⚠️ 노션 11번 반영: 기본 모드(비아케이드)에서 한방 단어 + 한방모드 OFF면 즉시 패배.
-    //    (원본은 이 경우도 실수 1회로 처리하던 결함 — validate_word 사유 문자열로 정확히 식별)
-    //    GOD MODE는 예외 — 즉시패배는 목숨 소모 없이 발동하는 규칙이라 hearts=∞로도 못 막는데,
-    //    관리자 전용 모드가 오히려 일반 유저보다 쉽게 죽는 건 원본 취지(무한 힌트·목숨)에 어긋남.
-    if(gs.game_mode !== 'ARCADE' && !gs.hanbang && !gs.god_mode_active
-       && reason.endsWith('한방 단어입니다. (일반 모드에서 사용 불가)')){
-      로그_추가(say(gs, `푸하하! ${reason}`, `아쉽지만 ${reason}`), 'err');
-      로그_추가(say(gs, `크윽... 『${raw}』은(는) 이을 수 없는 한방 단어였다. 즉시 패배 처리한다.`,
-                    `『${raw}』은(는) 더 이상 이을 수 없는 한방 단어예요. 이번 판은 여기까지입니다.`), 'err');
-      if(gs.turn > gs.best) gs.best = gs.turn;
-      게임오버(false);
-      return false;
-    }
+    /* ⚠️ 노션 11번(한방 단어 즉시 패배) 철회 — 2026-07-27, 관리자님 지시.
+       ────────────────────────────────────────────────────────────────────
+       Phase 3에서 "원본은 한방 단어도 실수 1회로 넘어가는 결함"이라 보고 즉시 패배로 강화했는데,
+       실플레이에서 이 규칙이 치명적으로 작용했다("바로 패배를 해버림" / "2번째 턴에 강제로
+       패배 — 실수나 목숨 없이"). 원인은 두 가지가 겹친 것:
+         · 한방 판정이 로컬 280단어 기준이라 정상 단어의 24~44%를 한방으로 오판(실측)
+         · 그 오판이 실수 1회가 아니라 목숨도 안 깎고 바로 게임오버로 직결
+       판정 오판은 한방_확정인가()로 따로 고쳤지만, "한 수 잘못 두면 경고 없이 판이 끝난다"는
+       규칙 자체가 게임을 못 하게 만든다는 판단으로 **원본 파이썬대로 실수 1회 누적**으로 되돌린다.
+       (되돌릴 근거를 남겨두기 위해 삭제하지 않고 여기 기록 — 이의/허세 봉인과 같은 관례.)
+
+       철회된 구현:
+         if(gs.game_mode !== 'ARCADE' && !gs.hanbang && !gs.god_mode_active
+            && reason.endsWith('한방 단어입니다. (일반 모드에서 사용 불가)')){
+           ... 로그 2줄 ...
+           if(gs.turn > gs.best) gs.best = gs.turn;
+           게임오버(false);
+           return false;
+         }
+    */
     로그_추가(say(gs, `푸하하! ${reason}`, `아쉽지만 ${reason}`), 'err');
     const result = user_defeat(gs);
     if(result === 'game_over'){ 게임오버(false); return false; }
@@ -410,9 +420,15 @@ async function 단어_처리(raw, valid, reason){
     }
   }
 
-  // AI 턴 — 국어원_활성화 켜져 있으면 온라인 후보 우선(2026-07-24), 실패/off 시 로컬로 안전망
+  // AI 턴 — 국어원_활성화 켜져 있으면 온라인 후보 우선(2026-07-24), 실패/off 시 로컬로 안전망.
+  // 후보 풀(추가후보)을 여기서 직접 받아 두는 이유: 아래 "AI가 한방 단어를 냈는가" 검사도
+  // AI가 고른 것과 **같은 사전**으로 판정해야 하기 때문(2026-07-27). 종전에는 AI는 온라인 풀에서
+  // 고르고 검사는 로컬 280단어로 해서, 정상적인 온라인 단어가 한방으로 오판돼 판이 갑자기
+  // "사용자 승리"로 끝나는 일이 있었다.
   gs.ai_last_char = !gs.rev ? raw[raw.length - 1] : raw[0];
-  const ai_word = await ai_generate_word_비동기(gs);
+  const 추가후보 = await 온라인후보_가져오기(gs);
+  const ai_word = ai_generate_word(gs, 추가후보);
+  const ai_판정사전 = ai_후보사전(gs, 추가후보);
 
   if(ai_word === null){
     if(gs.god_mode_active){
@@ -436,7 +452,8 @@ async function 단어_처리(raw, valid, reason){
     return false;
   }
 
-  if(!gs.hanbang && is_hanbang(ai_word, used_words(gs), gs.rev, gs.dueum, gs.stage)){
+  if(ai_한방금지인가(gs)
+     && is_hanbang(ai_word, used_words(gs), gs.rev, gs.dueum, gs.stage, ai_판정사전)){
     if(gs.god_mode_active){
       로그_추가(`💀 [AI 자폭] 『${ai_word}』는 한방 단어입니다.`, 'sys');
       로그_추가('🔓 [GOD MODE] 자유 입력권 발동.', 'sys');
@@ -603,13 +620,15 @@ function 힌트_후보(gs, 추가후보 = []){
   //   · 서바이벌+한방모드 OFF → 노션 11번 반영으로 제출 즉시 패배
   // 힌트를 따랐다가 죽는 건 힌트의 존재 이유에 정면으로 어긋나므로 여기서 걸러낸다.
   // (한방모드 ON인 서바이벌에선 한방 단어가 합법이라 그대로 둔다 — AI의 safe_filter와 같은 기준.)
-  const 한방_위험 = (gs.game_mode === 'ARCADE') || !gs.hanbang;
+  const 한방_위험 = ai_한방금지인가(gs);
   if(!한방_위험) return 후보;
   // 전부 한방이라 안전한 후보가 0개면 빈 배열을 그대로 반환한다 — 호출부가 "❌ [힌트 불가]"를
   // 띄우고 힌트도 차감하지 않는다. AI의 safe_filter는 "그래도 뭔가 내야 하니" 원본 목록으로
   // 되돌리는 폴백을 두지만, 힌트는 낼 의무가 없으므로 지는 단어를 알려주느니 없다고 말하는 게 맞다
   // (실제로 그 상황은 플레이어가 둘 수 있는 합법 수가 없는 막다른 국면이다).
-  return 후보.filter(w => !is_hanbang(w, [...used_words(gs), w], gs.rev, gs.dueum, gs.stage));
+  // 판정 사전은 후보를 뽑은 사전과 같아야 한다 — 온라인 후보를 포함해 뽑아놓고 로컬 280단어로
+  // 한방을 재면 정상 후보가 전부 탈락해 "힌트 불가"가 잘못 뜬다(2026-07-27).
+  return 후보.filter(w => !is_hanbang(w, [...used_words(gs), w], gs.rev, gs.dueum, gs.stage, 사전));
 }
 
 // onclick에서 await 없이 불리므로(fire-and-forget) 내부에서 예외가 새어나가지 않게 감싼다.
