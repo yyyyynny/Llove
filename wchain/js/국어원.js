@@ -21,7 +21,10 @@ const 국어원_활성화 = true;
 // Cloudflare Workers 엔드포인트(국립국어원 API 프록시). 관리자님이 Worker 배포 후 이 값을 채울 것.
 const 국어원_WORKERS_ENDPOINT = 'https://urimalsaem-llove.hypoqwer.workers.dev/';
 
-const 국어원_캐시_KEY = 'plx_잇는_국어원캐시';
+// 캐시 키에 버전을 붙인다(2026-07-27). 판정 결과(특히 "없는 단어"=false)가 영구 저장되는데,
+// Worker나 판정 규칙이 바뀌어도 옛 결과가 그대로 남아 되돌릴 방법이 없었다. 규칙이 바뀔 때
+// 이 숫자를 올리면 사용자 기기의 옛 캐시가 자연히 무시된다.
+const 국어원_캐시_KEY = 'plx_잇는_국어원캐시_v2';
 function 국어원_캐시_로드(){
   try{ return JSON.parse(localStorage.getItem(국어원_캐시_KEY) || '{}'); }
   catch(e){ return {}; }   // localStorage 차단 환경 무시

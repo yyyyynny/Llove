@@ -230,6 +230,10 @@ function 입력_대기표시(켜기, 문구 = '확인 중'){
   } else {
     inp.placeholder = '단어를 입력하세요';
     btn.textContent = '전송';
+    // 잠금이 풀리는 시점에 포커스를 돌려준다. 턴 처리 중에 불린 프롬프트_갱신()의 focus()는
+    // 입력창이 아직 disabled라 무시되므로(2026-07-26 회귀 — 매 턴 입력창을 다시 탭해야 했다),
+    // 실제로 입력이 가능해지는 여기서 한 번 더 맞춘다. 플레이 화면이 떠 있을 때만.
+    if(document.getElementById('s-플레이')?.classList.contains('active')) inp.focus();
   }
 }
 
@@ -251,7 +255,10 @@ function 프롬프트_갱신(){
   선택박스_숨기기();
   const form = document.getElementById('입력폼');
   form.style.display = '';
-  document.getElementById('단어입력').focus();
+  // 턴 처리 중이면 입력창이 잠겨 있어 focus()가 먹지 않는다 — 잠금 해제 시점(입력_대기표시)이
+  // 대신 포커스를 맞춘다. 여기서 헛되이 부르지 않도록 가드.
+  const inp = document.getElementById('단어입력');
+  if(!inp.disabled) inp.focus();
 }
 
 function 선택박스_보이기(html){
@@ -275,6 +282,12 @@ function 선택박스_숨기기(){ document.getElementById('선택박스').style
 // (전부 동기였던 게이트 off 시절엔 이 창 자체가 없었음 — 비동기 전환으로 새로 생긴 문제.)
 let 게임_비동기처리중 = false;
 
+// 판 세대 토큰(2026-07-27 신설). 온라인 조회를 기다리는 동안 사용자가 리셋·재도전·게임 데이터
+// 삭제를 누르면 gs가 통째로 초기화되는데, 종전에는 진행 중이던 단어_처리 IIFE가 그대로 이어져
+// 새 판에 history를 push하고 게임오버까지 띄웠다. 되돌아온 결과의 세대가 다르면 폐기한다.
+let 게임_세대 = 0;
+function 게임_세대올리기(){ 게임_세대 += 1; 게임_비동기처리중 = false; }
+
 function 단어_제출(){
   if(게임_비동기처리중) return false;   // 앞 입력의 온라인 조회·AI 턴이 끝날 때까지 무시
   const inp = document.getElementById('단어입력');
@@ -291,6 +304,7 @@ function 단어_제출(){
   // 가드로 감싼 IIFE 안에서 처리한다(끝나면 finally로 반드시 가드 해제).
   게임_비동기처리중 = true;
   입력_대기표시(true, '처리 중');
+  const 내세대 = 게임_세대;
   (async () => {
     try{
       로그_추가('▶ ' + raw);
@@ -324,10 +338,15 @@ function 단어_제출(){
         valid = true; reason = '';
       }
 
+      // 조회를 기다리는 사이 리셋·재도전·데이터 삭제가 일어났으면 이 턴의 결과를 버린다
+      // (새 판의 상태를 오염시키지 않기 위해 — 아래 finally도 세대를 확인한다).
+      if(내세대 !== 게임_세대) return;
       await 단어_처리(raw, valid, reason);
     } finally {
-      게임_비동기처리중 = false;
-      입력_대기표시(false);
+      if(내세대 === 게임_세대){
+        게임_비동기처리중 = false;
+        입력_대기표시(false);
+      }
     }
   })();
   return false;
@@ -367,6 +386,10 @@ async function 단어_처리(raw, valid, reason){
     플레이_HUD갱신(); 프롬프트_갱신();
     return false;
   }
+
+  // 원본의 정답 반응(react_correct) — 이식 때 호출부가 통째로 빠져 있어서 맞는 단어를 내도
+  // 화면에 아무 반응이 없었다(2026-07-27 복원). AI 단어 반응(react_ai_word)만 살아 있었다.
+  로그_추가(react_correct(gs), 'ok');
 
   gs.history.push({ word: raw, turn: gs.turn });
   gs.turn += 1;
@@ -639,14 +662,18 @@ async function 힌트_실행(){
   if(gs.ai_last_char === null){ 로그_추가('ℹ️ 첫 단어는 자유롭게 입력하세요. 힌트가 필요하지 않습니다.', 'sys'); return; }
   // 힌트도 온라인 후보를 조회할 수 있게 되면서(높은 난이도) 비동기 창이 생겼다 —
   // 단어 제출과 같은 재진입 가드를 공유해 연타로 힌트가 이중 차감되지 않게 한다.
-  if(게임_비동기처리중) return;
+  // 조용히 return하면 "버튼이 안 먹는다"로 보이므로 이유를 알려준다(2026-07-27).
+  if(게임_비동기처리중){ 로그_추가('⏳ 앞의 처리가 끝난 뒤에 다시 눌러 주세요.', 'sys'); return; }
   게임_비동기처리중 = true;
   입력_대기표시(true, '힌트 찾는 중');
+  const 내세대 = 게임_세대;
   try{
     await 힌트_본체();
   } finally {
-    게임_비동기처리중 = false;
-    입력_대기표시(false);
+    if(내세대 === 게임_세대){
+      게임_비동기처리중 = false;
+      입력_대기표시(false);
+    }
   }
 }
 
@@ -914,6 +941,7 @@ function 게임오버(victory){
 }
 
 function 다시시작(){
+  게임_세대올리기();   // 진행 중이던 턴의 결과가 새 판에 섞이지 않게
   if(gs.game_mode === 'ARCADE'){
     // 원본 _handle_game_over(ARCADE): 설정 화면 없이 곧장 1층부터 재시작
     reset_game(gs);
@@ -934,6 +962,7 @@ function 다시시작(){
 function 전체리셋(){
   // 원본 !리셋 처리(WordChainGame.run): full_reset() 후 GOD MODE 여부와 무관하게 항상
   // show_init()(페르소나 선택)으로 돌아간다 — god_mode_active는 화면 안내 문구만 다를 뿐 분기 없음.
+  게임_세대올리기();   // 진행 중이던 턴의 결과가 초기화된 상태에 섞이지 않게
   full_reset(gs);
   로그_비우기();
   화면('페르소나');

@@ -59,6 +59,7 @@ function 게임데이터삭제_2단계(){
 }
 function 게임데이터삭제_실행(){
   // 로컬 게임 상태 초기화 (God Mode·페르소나까지 전부 — Llove full_reset과 동일하게 전면 초기화)
+  게임_세대올리기();   // 진행 중이던 턴의 비동기 결과가 초기화 뒤에 되살아나지 않게(서바이벌.js)
   gs.god_mode_active = false;
   full_reset(gs);
 
