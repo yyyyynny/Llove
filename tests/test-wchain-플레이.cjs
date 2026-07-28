@@ -554,6 +554,36 @@ async function main(){
     확인('실패해도 홈으로 보낸다', /\.catch\(e=>\{[\s\S]*?goNav\('sh'/.test(fb));
   }
 
+  /* ── 16. 마일스톤 제안이 AI 턴을 건너뛰지 않는다 (실사용 결함) ────── */
+  console.log('\n[16] 50턴 딜 · 목표 달성 시 상대가 턴을 건너뛰지 않는다');
+  {
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win, { diff: '안온' });      // 목표 50턴
+    const g = 상태(win);
+
+    // 49턴까지 진행한 것처럼 두고 한 수를 둔다 → 50턴 도달
+    await 단어넣기(win, '나무');
+    const 이전상대단어 = g.ai_last_word;
+    g.turn = 49;
+    // 지금 이을 수 있는 실제 단어를 엔진에서 골라 넣는다(아무 단어나 넣으면 실수로 처리된다)
+    const 이을단어 = win.find_words(g.ai_last_char, win.used_words(g), g.rev, g.dueum, 0, 0)[0];
+    확인('테스트가 이을 수 있는 단어를 찾았다', !!이을단어, `ai_last_char=${g.ai_last_char}`);
+    await 단어넣기(win, 이을단어);
+
+    const 대기 = ['DEAL_WAIT', 'SURVIVAL_VICTORY_WAIT'].includes(g.game_state);
+    확인('목표 턴에 도달하면 제안이 뜬다', 대기, `game_state=${g.game_state}`);
+    확인('제안 전에 상대가 자기 턴을 마쳤다', g.ai_last_word !== 이전상대단어,
+         `ai_last_word가 ${g.ai_last_word}로 그대로 — 상대가 턴을 건너뜀`);
+    확인('이어야 할 글자가 상대의 새 단어 기준으로 갱신됨',
+         g.ai_last_char === (g.rev ? g.ai_last_word[0] : g.ai_last_word[g.ai_last_word.length - 1]));
+
+    // '계속'을 고르면 무한 모드로 그대로 이어진다
+    win.생존승리_응답(true);
+    확인('계속을 고르면 무한 모드로 진행', g.infinite === true && g.game_state === 'PLAYING');
+    확인('계속 후에도 이어야 할 글자가 유지됨', g.ai_last_char !== null);
+  }
+
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
   process.exit(실패 ? 1 : 0);
 }

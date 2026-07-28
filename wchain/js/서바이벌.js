@@ -512,29 +512,6 @@ async function 단어_처리(raw, valid, reason){
   if(gs.game_mode === 'ARCADE') gs.stage_turn += 1;
   check_title(gs);
 
-  // 50턴 무한 모드 제안 (서바이벌 · 초월/심연, 유한 모드일 때만)
-  const max_t = get_max_turns(gs);
-  if(gs.game_mode === 'SURVIVAL' && gs.turn === 50 && ['초월','심연'].includes(gs.diff) && !gs.infinite){
-    gs.game_state = 'DEAL_WAIT';
-    로그_추가(대사(gs, '단어_처리_7'), 'sys');
-    플레이_HUD갱신();
-    선택박스_보이기(`
-      <div class="q">${document.querySelector('.log').lastChild.textContent}</div>
-      <button class="btn sm acc" onclick="딜_응답(true)">수락</button>
-      <button class="btn sm" onclick="딜_응답(false)">거절</button>`);
-    return false;
-  }
-  // 목표 턴 달성 (서바이벌 · 유한 모드)
-  if(gs.game_mode === 'SURVIVAL' && !gs.infinite && gs.turn >= max_t){
-    if(gs.turn > gs.best) gs.best = gs.turn;
-    gs.game_state = 'SURVIVAL_VICTORY_WAIT';
-    로그_추가(대사(gs, '단어_처리_6', [max_t]), 'ok');
-    플레이_HUD갱신();
-    선택박스_보이기(`
-      <button class="btn sm acc" onclick="생존승리_응답(true)">계속</button>
-      <button class="btn sm" onclick="생존승리_응답(false)">종료</button>`);
-    return false;
-  }
   // 층 목표 달성 (아케이드)
   if(gs.game_mode === 'ARCADE'){
     const target = get_stage_target(gs);
@@ -635,10 +612,48 @@ async function 단어_처리(raw, valid, reason){
   gs.ai_last_word = ai_word;
   로그_추가(react_ai_word(gs, ai_word));
   플레이_HUD갱신(); 프롬프트_갱신();
+
+  // ⚠️ 2026-07-29: 50턴 딜·목표 달성 제안을 **AI 턴 뒤로** 옮겼다.
+  // 종전에는 사용자 단어를 받자마자(AI 턴 전에) 제안하고 return해서, 상대가 그 턴을 통째로
+  // 건너뛰고 gs.ai_last_char도 이전 단어의 것으로 남았다 — 수락/거절 후 사용자가 방금 자기가
+  // 이었던 그 글자로 또 내야 했다. AI가 응답한 뒤에 묻는 것이 흐름상으로도 맞다.
+  if(서바이벌_제안_확인()) return false;
   // 콜롬비나 음성 배선(Phase 6) — 게이트(음성생성_활성화) off인 동안은 음성생성호출이 즉시 null을
   // 반환해 음성재생 자체가 호출되지 않는다(네트워크·오디오 재생 0건, 기존 동작과 동일). 화면
   // 흐름을 막지 않도록 결과를 기다리지 않는 fire-and-forget으로 둔다.
   (async () => { const 음성 = await 음성생성호출(ai_word); if (음성) 음성재생(음성); })();
+  return false;
+}
+
+// 서바이벌 마일스톤 제안 — AI 턴이 끝난 뒤에 건다(위 주석 참조).
+// 제안을 띄웠으면 true를 돌려줘 호출부가 그 턴을 여기서 끝내게 한다.
+function 서바이벌_제안_확인(){
+  if(gs.game_mode !== 'SURVIVAL' || gs.infinite) return false;
+
+  // 50턴 무한 모드 제안 (초월/심연, 유한 모드일 때만)
+  if(gs.turn === 50 && ['초월','심연'].includes(gs.diff)){
+    gs.game_state = 'DEAL_WAIT';
+    로그_추가(대사(gs, '단어_처리_7'), 'sys');
+    플레이_HUD갱신();
+    선택박스_보이기(`
+      <div class="q">${document.querySelector('.log').lastChild.textContent}</div>
+      <button class="btn sm acc" onclick="딜_응답(true)">수락</button>
+      <button class="btn sm" onclick="딜_응답(false)">거절</button>`);
+    return true;
+  }
+
+  // 목표 턴 달성
+  const max_t = get_max_turns(gs);
+  if(gs.turn >= max_t){
+    if(gs.turn > gs.best) gs.best = gs.turn;
+    gs.game_state = 'SURVIVAL_VICTORY_WAIT';
+    로그_추가(대사(gs, '단어_처리_6', [max_t]), 'ok');
+    플레이_HUD갱신();
+    선택박스_보이기(`
+      <button class="btn sm acc" onclick="생존승리_응답(true)">계속</button>
+      <button class="btn sm" onclick="생존승리_응답(false)">종료</button>`);
+    return true;
+  }
   return false;
 }
 
