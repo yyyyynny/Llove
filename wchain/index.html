@@ -294,6 +294,7 @@
       <button class="btn sm" onclick="버튼_설명()">📖 설명</button>
       <button class="btn sm" onclick="버튼_상태()">🔄 상태</button>
       <button class="btn sm" onclick="버튼_리셋()">⏹ 리셋</button>
+      <button class="btn sm" id="btn-관리자" onclick="관리자_패널열기()" style="display:none">🔓 관리자</button>
     </div>
   </div>
 
@@ -334,6 +335,16 @@
     🔒 이의 있음 · 그 단어 없어!는 <b>재설계 중</b>이라 현재 동작하지 않습니다 — 다음 업데이트에서
     국립국어원 사전으로 실제 판정을 다시 확인하는 방식으로 돌아옵니다.</p>
     <button class="btn" style="margin-top:10px;text-align:center" onclick="버튼_설명닫기()">닫기</button>
+  </div>
+</div>
+
+<!-- 관리자 패널 (백도어 승인 후에만 열림) — 턴·층 이동 / 다음 상대 단어 지정 /
+     목숨·힌트·실수 조정 / 상태 강제를 토글 난립 없이 모달 하나에 모았다. -->
+<div class="modal-bg" id="관리자Bg" onclick="if(event.target===this)관리자_패널닫기()">
+  <div class="modal-bx">
+    <h3>🔓 관리자 패널</h3>
+    <div id="관리자-본문"></div>
+    <button class="btn" style="margin-top:12px;text-align:center" onclick="관리자_패널닫기()">닫기</button>
   </div>
 </div>
 

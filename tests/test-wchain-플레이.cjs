@@ -397,6 +397,70 @@ async function main(){
          win.대사(g, '존재하지_않는_키').includes('대사 없음'));
   }
 
+  /* ── 13. GOD MODE 관리자 패널 (2026-07-29 제보 8) ─────────────────── */
+  console.log('\n[13] 관리자 패널');
+  {
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    const d = win.document;
+    판시작(win);
+
+    확인('백도어 전에는 관리자 버튼이 숨겨져 있다',
+         d.getElementById('btn-관리자').style.display === 'none');
+
+    // 백도어 승인
+    d.getElementById('단어입력').value = 'yyyyynny';
+    win.단어_제출();
+    확인('백도어 승인 후 관리자 버튼이 열린다',
+         d.getElementById('btn-관리자').style.display !== 'none');
+    확인('GOD MODE 진입 안내', 로그텍스트(win).includes('관리자'));
+
+    // 1구역 — 턴 이동 (1~99)
+    win.관리자_패널열기();
+    확인('패널이 열린다', d.getElementById('관리자Bg').classList.contains('show'));
+    d.getElementById('관리자-턴').value = '47';
+    win.관리자_턴이동();
+    확인('서바이벌에서 47턴으로 이동', 상태(win).turn === 47, `turn=${상태(win).turn}`);
+
+    d.getElementById('관리자-턴').value = '150';           // 범위 밖
+    win.관리자_턴이동();
+    확인('1~99 밖은 거부되고 턴이 그대로', 상태(win).turn === 47);
+    확인('거부 사유를 알려준다', 로그텍스트(win).includes('1~99 사이의 정수만'));
+
+    // 2구역 — 다음 상대 단어 지정
+    d.getElementById('관리자-단어').value = '나비';
+    win.관리자_단어지정();
+    확인('단어 예약이 기록된다', 값(win, '강제_AI단어') === '나비');
+    d.getElementById('관리자-단어').value = 'apple';       // 한글 아님
+    win.관리자_단어지정();
+    확인('한글이 아니면 거부', 로그텍스트(win).includes('한글 단어만'));
+
+    // 3구역 — 자원 조정
+    win.관리자_자원('hearts', 3);
+    확인('목숨을 3으로 설정', 상태(win).hearts === 3);
+    상태(win).strikes = 2;
+    win.관리자_실수초기화();
+    확인('실수를 0으로 초기화', 상태(win).strikes === 0);
+
+    // 예약한 단어가 실제 AI 턴에 쓰이는지 — '나비'는 '나'로 시작
+    win.관리자_패널닫기();
+    상태(win).ai_last_char = null;
+    await 단어넣기(win, '가나');           // 끝 글자 '나' → 예약 '나비'가 이어진다
+    확인('예약한 단어를 상대가 실제로 냈다', 상태(win).ai_last_word === '나비',
+         `ai_last_word=${상태(win).ai_last_word}`);
+    확인('예약은 1회만 쓰인다', 값(win, '강제_AI단어') === null);
+
+    // 4구역 — 상태 강제
+    const { win: w2 } = 페이지열기();
+    await 대사대기(w2);
+    판시작(w2);
+    w2.갓모드_활성화();
+    w2.관리자_강제('승리');
+    확인('즉시 승리로 게임오버 화면 전환',
+         w2.document.getElementById('s-오버').classList.contains('active'));
+    확인('승리 표시(🏆)', w2.document.getElementById('오버-이모지').textContent === '🏆');
+  }
+
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
   process.exit(실패 ? 1 : 0);
 }

@@ -348,6 +348,9 @@ function 프롬프트_갱신(){
     el.textContent = 이의허세_봉인 ? `🔒 ${라벨}` : 라벨;
     el.classList.toggle('locked', 이의허세_봉인);   // 활성 버튼과 같은 비중으로 보이지 않게
   }
+  // 관리자 패널 버튼 — 백도어 승인 후에만 보인다(토글 난립 대신 버튼 하나로 통일)
+  const 관리자btn = document.getElementById('btn-관리자');
+  if(관리자btn) 관리자btn.style.display = gs.god_mode_active ? '' : 'none';
   선택박스_숨기기();
   const form = document.getElementById('입력폼');
   form.style.display = '';
@@ -382,7 +385,7 @@ let 게임_비동기처리중 = false;
 // 삭제를 누르면 gs가 통째로 초기화되는데, 종전에는 진행 중이던 단어_처리 IIFE가 그대로 이어져
 // 새 판에 history를 push하고 게임오버까지 띄웠다. 되돌아온 결과의 세대가 다르면 폐기한다.
 let 게임_세대 = 0;
-function 게임_세대올리기(){ 게임_세대 += 1; 게임_비동기처리중 = false; }
+function 게임_세대올리기(){ 게임_세대 += 1; 게임_비동기처리중 = false; 강제_AI단어 = null; }
 
 function 단어_제출(){
   if(게임_비동기처리중) return false;   // 앞 입력의 온라인 조회·AI 턴이 끝날 때까지 무시
@@ -542,10 +545,28 @@ async function 단어_처리(raw, valid, reason){
   // 고르고 검사는 로컬 280단어로 해서, 정상적인 온라인 단어가 한방으로 오판돼 판이 갑자기
   // "사용자 승리"로 끝나는 일이 있었다.
   gs.ai_last_char = !gs.rev ? raw[raw.length - 1] : raw[0];
-  const 추가후보 = await 온라인후보_가져오기(gs);
-  const ai_word = ai_generate_word(gs, 추가후보);
-  const ai_판정사전 = ai_후보사전(gs, 추가후보);
-  온라인조회_보고();   // 희귀어를 실제로 받아 썼는지 / 못 받았는지를 화면에 남긴다
+  // 관리자 패널에서 다음 상대 단어를 지정해 뒀으면 그것을 먼저 쓴다(1회 소비).
+  // 잇기 규칙에 맞지 않으면 예약을 버리고 평소대로 진행한다 — 판이 깨지지 않게.
+  let 추가후보 = [], ai_판정사전 = null, ai_word = null;
+  if(강제_AI단어){
+    const 예약 = 강제_AI단어; 강제_AI단어 = null;
+    const 이어짐 = !gs.rev
+      ? dueum_check(gs.ai_last_char, 예약[0], gs.dueum)
+      : 예약[예약.length - 1] === gs.ai_last_char;
+    if(이어짐 && !used_words(gs).includes(예약)){
+      ai_word = 예약;
+      ai_판정사전 = ai_후보사전(gs, [예약]);
+      로그_추가(`🔓 [관리자] 지정 단어 『${예약}』를 사용합니다.`, 'sys');
+    } else {
+      로그_추가(`🔓 [관리자] 『${예약}』는 지금 이을 수 없어 예약을 버립니다.`, 'warn');
+    }
+  }
+  if(ai_word === null){
+    추가후보 = await 온라인후보_가져오기(gs);
+    ai_word = ai_generate_word(gs, 추가후보);
+    ai_판정사전 = ai_후보사전(gs, 추가후보);
+    온라인조회_보고();   // 희귀어를 실제로 받아 썼는지 / 못 받았는지를 화면에 남긴다
+  }
 
   if(ai_word === null){
     if(gs.god_mode_active){
@@ -1060,7 +1081,158 @@ function 갓모드_활성화(){
   gs.user_title = '최고 관리자님';
   if(gs.persona === null) gs.persona = 'Arrogant';
   로그_추가('🔓 어서 오십시오, 최고 관리자님. (힌트 ∞ · 목숨 ∞)', 'ok');
+  로그_추가('🔓 보조 버튼에 「관리자」가 열렸습니다.', 'sys');
   if(gs.game_state === 'PLAYING'){ 플레이_HUD갱신(); 프롬프트_갱신(); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   관리자 패널 (2026-07-29 신설 — 관리자님 지시)
+   ────────────────────────────────────────────────────────────────
+   "백도어 승인 후 원래 Gemini일 때를 생각해 보면 완전 천하무적인데, 지금은 AI도 없고
+    그냥 코드만 굴러가는 거니까 (…) 따로 새 토글 하나 만들어서 턴수 이동이나 전의 위엄을
+    살리면 좋겠어 (…) 누르면 10턴 이동이 아니라 1~99까지 자유롭게 이동할 수 있도록"
+
+   자연어 지시를 알아듣는 AI는 없으므로, 같은 결과를 내는 조작을 직접 제공한다.
+   토글을 넷 만들면 지저분하다는 지시에 따라 **버튼 하나 → 모달 하나**에 네 구역을 모았다.
+   백도어(god_mode_active) 승인 후에만 버튼이 보인다.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+// 다음 AI 턴에 강제로 낼 단어(1회 소비). 단어_처리의 AI 턴이 이 값을 먼저 확인한다.
+let 강제_AI단어 = null;
+
+function 관리자_패널열기(){
+  if(!gs.god_mode_active) return;
+  const 아케 = gs.game_mode === 'ARCADE';
+  document.getElementById('관리자-본문').innerHTML = `
+    <div class="set-sec" style="margin-bottom:8px">
+      <div class="set-lbl">${아케 ? '층 이동' : '턴 이동'}</div>
+      <div class="srs" style="margin-bottom:8px">1~99 사이 값으로 즉시 이동합니다.
+        현재 ${아케 ? `${gs.stage}층` : `${gs.turn}턴`}.</div>
+      <div style="display:flex;gap:6px">
+        <input id="관리자-턴" type="number" min="1" max="99" value="${아케 ? gs.stage : gs.turn || 1}"
+          style="flex:1;font-family:var(--fn);font-size:15px;color:var(--txt);background:var(--elev);
+                 border:1px solid var(--bdr);border-radius:8px;padding:9px 12px;outline:none">
+        <button class="btn sm acc" style="margin:0" onclick="관리자_턴이동()">이동</button>
+      </div>
+    </div>
+
+    <div class="set-sec" style="margin-bottom:8px">
+      <div class="set-lbl">다음 상대 단어 지정</div>
+      <div class="srs" style="margin-bottom:8px">상대가 다음 턴에 낼 단어를 직접 정합니다(1회).
+        ${강제_AI단어 ? `현재 예약: 『${강제_AI단어}』` : '예약 없음.'}</div>
+      <div style="display:flex;gap:6px">
+        <input id="관리자-단어" placeholder="예) 사과" maxlength="20" autocomplete="off"
+          style="flex:1;font-family:var(--fn);font-size:15px;color:var(--txt);background:var(--elev);
+                 border:1px solid var(--bdr);border-radius:8px;padding:9px 12px;outline:none">
+        <button class="btn sm acc" style="margin:0" onclick="관리자_단어지정()">예약</button>
+      </div>
+    </div>
+
+    <div class="set-sec" style="margin-bottom:8px">
+      <div class="set-lbl">목숨 · 힌트 · 실수</div>
+      <div class="srs" style="margin-bottom:8px">현재 목숨 ${표시무한(gs.hearts)} ·
+        힌트 ${표시무한(gs.hints)} · 실수 ${gs.strikes}/4</div>
+      <div class="fs-opts">
+        <button class="fs-opt" onclick="관리자_자원('hearts', 1)">목숨 1</button>
+        <button class="fs-opt" onclick="관리자_자원('hearts', 3)">목숨 3</button>
+        <button class="fs-opt" onclick="관리자_자원('hearts', Infinity)">목숨 ∞</button>
+        <button class="fs-opt" onclick="관리자_자원('hints', 1)">힌트 1</button>
+        <button class="fs-opt" onclick="관리자_자원('hints', 5)">힌트 5</button>
+        <button class="fs-opt" onclick="관리자_자원('hints', Infinity)">힌트 ∞</button>
+        <button class="fs-opt" onclick="관리자_실수초기화()">실수 0</button>
+      </div>
+    </div>
+
+    <div class="set-sec">
+      <div class="set-lbl">상태 강제</div>
+      <div class="srs" style="margin-bottom:8px">연출·엔딩을 바로 확인합니다.</div>
+      <div class="fs-opts">
+        <button class="fs-opt" onclick="관리자_강제('승리')">즉시 승리</button>
+        <button class="fs-opt" onclick="관리자_강제('패배')">즉시 패배</button>
+        <button class="fs-opt" onclick="관리자_강제('시련')">시련의 탑</button>
+        <button class="fs-opt" onclick="관리자_강제('소프트락')">20층 소프트락</button>
+      </div>
+    </div>`;
+  document.getElementById('관리자Bg').classList.add('show');
+}
+function 관리자_패널닫기(){ document.getElementById('관리자Bg').classList.remove('show'); }
+
+// 패널 안에서 뭔가 바꾼 뒤 화면·패널을 함께 갱신
+function 관리자_반영(문구){
+  로그_추가('🔓 [관리자] ' + 문구, 'ok');
+  플레이_HUD갱신();
+  관리자_패널열기();   // 현재값 표시를 다시 그린다
+}
+
+function 관리자_턴이동(){
+  const v = Number(document.getElementById('관리자-턴').value);
+  if(!Number.isInteger(v) || v < 1 || v > 99){
+    로그_추가('🔓 [관리자] 1~99 사이의 정수만 가능합니다.', 'err'); return;
+  }
+  if(gs.game_mode === 'ARCADE'){
+    gs.stage = v;
+    // 층을 건너뛰면 그 층의 진행도·시작 턴도 함께 맞춰야 목표 달성 판정이 어긋나지 않는다
+    gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
+    gs.curse_dark_active = false; gs.curse_dark_strikes = 0;
+    gs.trial_rejected_floor = -1; gs.trial_attempts_this_floor = 0;
+    gs.ai_last_char = null; gs.ai_last_word = null;
+    관리자_반영(`${v}층으로 이동. 목표 ${get_stage_target(gs)}턴.`);
+  } else {
+    gs.turn = v;
+    if(gs.turn > gs.best) gs.best = gs.turn;
+    관리자_반영(`${v}턴으로 이동. 목표 ${gs.infinite ? '∞' : get_max_turns(gs)}턴.`);
+  }
+  프롬프트_갱신();
+}
+
+function 관리자_단어지정(){
+  const w = (document.getElementById('관리자-단어').value || '').trim();
+  if(!w){ 강제_AI단어 = null; 관리자_반영('다음 상대 단어 예약을 해제했습니다.'); return; }
+  if(!/^[가-힣]+( [가-힣]+)?$/.test(w)){
+    로그_추가('🔓 [관리자] 한글 단어만 지정할 수 있습니다(공백 1개까지).', 'err'); return;
+  }
+  강제_AI단어 = w;
+  관리자_반영(`다음 상대 단어를 『${w}』로 예약했습니다.`);
+}
+
+function 관리자_자원(키, 값){
+  gs[키] = 값;
+  관리자_반영(`${키 === 'hearts' ? '목숨' : '힌트'}을(를) ${표시무한(값)}(으)로 설정했습니다.`);
+}
+function 관리자_실수초기화(){ gs.strikes = 0; 관리자_반영('실수를 0으로 되돌렸습니다.'); }
+
+function 관리자_강제(무엇){
+  관리자_패널닫기();
+  if(무엇 === '승리'){
+    if(gs.game_mode === 'SURVIVAL' && gs.turn > gs.best) gs.best = gs.turn;
+    if(gs.game_mode === 'ARCADE' && gs.stage > gs.best) gs.best = gs.stage;
+    로그_추가('🔓 [관리자] 즉시 승리 처리.', 'ok');
+    게임오버(true); return;
+  }
+  if(무엇 === '패배'){
+    로그_추가('🔓 [관리자] 즉시 패배 처리.', 'err');
+    게임오버(false); return;
+  }
+  if(무엇 === '시련'){
+    if(gs.game_mode !== 'ARCADE'){
+      로그_추가('🔓 [관리자] 시련의 탑은 아케이드 전용입니다.', 'err'); return;
+    }
+    gs.game_state = 'TRIAL_WAIT';
+    로그_추가('░▒▓ [시련의 탑] ▓▒░ (관리자 호출)', 'sys');
+    선택박스_보이기(`
+      <div class="q">[1] 시간의 계약 — 이번 층 즉시 클리어 / 다음 1층 목표 턴 ×1.3<br>
+      [2] 생명의 계약 — 목숨+1·힌트+1 / 다음 2층 두음법칙 OFF<br>
+      [3] 어둠의 계약 — 목숨+1·힌트+3 / 이번 층 2글자 단어만 허용</div>
+      <button class="btn sm acc" onclick="시련_응답(1)">시간의 계약</button>
+      <button class="btn sm acc" onclick="시련_응답(2)">생명의 계약</button>
+      <button class="btn sm acc" onclick="시련_응답(3)">어둠의 계약</button>
+      <button class="btn sm" onclick="시련_응답(0)">거절</button>`);
+    return;
+  }
+  if(무엇 === '소프트락'){
+    gs.game_state = 'SOFTLOCKED';
+    소프트락_진입();
+  }
 }
 
 if (typeof module !== 'undefined') module.exports = { gs, get_status };
