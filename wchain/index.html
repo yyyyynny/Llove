@@ -36,6 +36,70 @@
          주소창이 접히며 뷰포트가 100dvh를 넘어 늘어날 때 흰색 기본 배경이 드러난다. */
       color-scheme: dark;
     }
+    /* 페이퍼만 라이트 — 브라우저 기본 캔버스·스크롤바가 테마와 어긋나지 않게 */
+    body[data-theme="paper"]{ color-scheme: light; }
+
+    /* ── Llove 테마 연동 (2026-07-29, 관리자님 지시) ────────────────────────────
+       "공유는 기본 설정이 아니라 토글을 마련해서, 누르면 Llove의 현재 테마와 연동되도록 하고
+        기본적으로는 따로 구분을 할 수 있도록"
+       기본은 위 :root(잇는 고유 다크). 설정에서 연동을 켜면 body[data-theme]에 Llove가
+       localStorage('plx_테마')에 저장해 둔 테마 이름이 붙어 아래 블록이 :root를 덮어쓴다.
+       같은 도메인(GitHub Pages)이라 localStorage가 그대로 공유되므로 통신이 필요 없다.
+       아래 값은 Llove/style.css에서 그대로 가져온 것 — wchain이 안 쓰는 --exp·--mono만 뺐다. */
+[data-theme="antique"]{
+  --bg:#111009;--card:#1a1710;--elev:#222018;--bdr:#302a20;--bdrg:#483e2e;
+  --acc:#b8956a;--accl:#d4b48a;--accd:#6e5438;
+  --txt:#e8e0d0;--txt2:#9a8e7a;--txtm:#504535;
+  --ok:#78b878;--err:#c07070;--inf:#7898c8;--warn:#e09060;
+  --fn:'Gowun Batang',serif;
+}
+[data-theme="navy"]{
+  --bg:#080d18;--card:#0d1425;--elev:#121c32;--bdr:#1c2a42;--bdrg:#263a58;
+  --acc:#5090f0;--accl:#78b0ff;--accd:#2c5898;
+  --txt:#d8e8ff;--txt2:#6888b0;--txtm:#324860;
+  --ok:#48d898;--err:#d85868;--inf:#48c0e0;--warn:#e09060;
+  --fn:'Noto Sans KR',sans-serif;
+}
+[data-theme="midnight"]{
+  --bg:#08060f;--card:#0e0c1c;--elev:#141228;--bdr:#201c3c;--bdrg:#302858;
+  --acc:#8e62f0;--accl:#b090ff;--accd:#5438a8;
+  --txt:#e0d8ff;--txt2:#7870a8;--txtm:#3c3860;
+  --ok:#58d888;--err:#d85878;--inf:#58c0f0;--warn:#e09060;
+  --fn:'Noto Sans KR',sans-serif;
+}
+[data-theme="paper"]{
+  --bg:#ede8df;--card:#f5f1ea;--elev:#faf8f4;--bdr:#d8d0c0;--bdrg:#c0b8a8;
+  --acc:#7a5228;--accl:#9a7040;--accd:#b89868;
+  --txt:#281e12;--txt2:#786050;--txtm:#a89880;
+  --ok:#386840;--err:#a82828;--inf:#284888;--warn:#a86020;
+  --fn:'Nanum Myeongjo',serif;
+}
+[data-theme="forest"]{
+  --bg:#060c08;--card:#0c1410;--elev:#101a12;--bdr:#1a2c1e;--bdrg:#263e2a;
+  --acc:#52a868;--accl:#72c888;--accd:#2e6040;
+  --txt:#d0e8d4;--txt2:#6a9870;--txtm:#304838;
+  --ok:#72c888;--err:#c87858;--inf:#68a8c8;--warn:#e09060;
+  --fn:'Noto Sans KR',sans-serif;
+}
+
+    /* 커스텀 테마 — Llove의 커스텀 테마 에디터가 저장한 raw 4색(--c-*)에서 파생.
+       연동 켤 때 localStorage('plx_커스텀')을 읽어 --c-* 를 세팅한다(js/테마연동.js). */
+[data-theme="custom"]{
+  --bg:var(--c-bg,#0e0e14);
+  --card:var(--c-card,#161620);
+  --elev:color-mix(in srgb, var(--c-card,#161620) 84%, var(--c-txt,#e8e8f0) 9%);
+  --bdr:color-mix(in srgb, var(--c-card,#161620) 70%, var(--c-txt,#e8e8f0) 20%);
+  --bdrg:color-mix(in srgb, var(--c-card,#161620) 55%, var(--c-acc,#8080ff) 32%);
+  --acc:var(--c-acc,#8080ff);
+  --accl:color-mix(in srgb, var(--c-acc,#8080ff) 62%, #ffffff 38%);
+  --accd:color-mix(in srgb, var(--c-acc,#8080ff) 64%, #000000 30%);
+  --txt:var(--c-txt,#e8e8f0);
+  --txt2:color-mix(in srgb, var(--c-txt,#e8e8f0) 60%, var(--c-bg,#0e0e14) 40%);
+  --txtm:color-mix(in srgb, var(--c-txt,#e8e8f0) 38%, var(--c-bg,#0e0e14) 62%);
+  --ok:#60d890;--err:#d86070;--inf:#60b8e8;--warn:#e09060;
+  --fn:var(--c-fn,'Noto Sans KR',sans-serif);
+}
+
     *{ box-sizing:border-box; margin:0; padding:0; }
     /* html에도 배경색을 깔아 body 밖 영역(오버스크롤·툴바 접힘 구간)까지 확실히 칠한다 */
     html{ height:100%; background:var(--bg); }
@@ -108,7 +172,8 @@
     .fs-opts{ display:flex; flex-wrap:wrap; gap:6px; }
     .fs-opt{ padding:7px 12px; border:1px solid var(--bdr); border-radius:8px; background:var(--elev);
       color:var(--txt2); font-family:var(--fn); font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
-    .fs-opt.on{ border-color:var(--acc); color:var(--acc); background:rgba(157,176,216,.12);
+    .fs-opt.on{ border-color:var(--acc); color:var(--acc);
+      background:color-mix(in srgb, var(--acc) 12%, transparent);
       box-shadow:inset 0 0 0 1px var(--acc); }
     /* ON/OFF 토글 = Llove .mt 스위치 그대로 (38×22, 손잡이 16px) */
     .mtw{ display:flex; align-items:center; gap:8px; }
@@ -132,7 +197,7 @@
     .hud-item{ background:var(--card); border:1px solid var(--bdr); border-radius:10px; padding:7px 9px; }
     .hud-lbl{ font-size:10px; color:var(--txt2); margin-bottom:2px; }
     .hud-val{ font-size:13px; font-weight:700; white-space:nowrap; }
-    .bar-track{ background:#0b0d14; border-radius:999px; height:5px; overflow:hidden; margin-bottom:10px; }
+    .bar-track{ background:var(--bg); border-radius:999px; height:5px; overflow:hidden; margin-bottom:10px; }
     .bar-fill{ height:100%; background:linear-gradient(90deg,var(--acc),var(--accl)); transition:width .3s; min-width:2px; }
     .status-🟢{ color:var(--ok); } .status-🟡{ color:var(--warn); } .status-🔴{ color:var(--err); }
 
@@ -142,14 +207,15 @@
     .ai-word .aw-lbl{ font-size:10px; font-weight:400; letter-spacing:2px; color:var(--txt2); margin-bottom:5px; }
     .ai-word small{ display:block; font-size:12px; color:var(--txt2); font-weight:400; margin-top:7px; }
     .ai-word small .need{ display:inline-block; font-size:17px; font-weight:800; color:var(--acc);
-      background:rgba(157,176,216,.12); border:1px solid var(--acc); box-shadow:inset 0 0 0 1px var(--acc);
+      background:color-mix(in srgb, var(--acc) 12%, transparent);
+      border:1px solid var(--acc); box-shadow:inset 0 0 0 1px var(--acc);
       border-radius:8px; padding:1px 9px; margin:0 2px; vertical-align:-2px; }
     /* 첫 턴엔 상대 단어가 없다 — 카드를 안내 한 줄로 접는다 */
     .ai-word.empty .aw-lbl, .ai-word.empty #ai-단어{ display:none; }
     .ai-word.empty{ padding:16px 14px; }
     .ai-word.empty small{ margin-top:0; font-size:14px; color:var(--txt); }
 
-    .log{ flex:1; min-height:120px; max-height:min(50dvh, 420px); overflow-y:auto; background:#0b0d14;
+    .log{ flex:1; min-height:120px; overflow-y:auto; background:var(--bg);
       border:1px solid var(--bdr); border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:13px; line-height:1.7; }
     .log .line{ margin-bottom:4px; }
     .log .line.me{ color:var(--acc); font-weight:700; }
@@ -256,11 +322,15 @@
       <div id="설정-토글"></div>
     </div>
     <div class="set-sec fu s3">
+      <div class="set-lbl">화면</div>
+      <div id="설정-화면"></div>
+    </div>
+    <div class="set-sec fu s4">
       <div class="set-lbl">사전</div>
       <div class="set-row" id="설정-사전" style="cursor:default"></div>
     </div>
     <div class="set-warn" id="설정-경고" style="display:none"></div>
-    <button class="btn acc fu s4" onclick="게임_시작()">시작</button>
+    <button class="btn acc fu s5" onclick="게임_시작()">시작</button>
     <a class="back" href="javascript:void(0)" onclick="뒤로_모드()">← 모드 다시 고르기</a>
   </div>
 
@@ -373,6 +443,7 @@
 <script src="js/엔진.js"></script>
 <script src="js/게임상태.js"></script>
 <script src="js/대사.js"></script>
+<script src="js/테마연동.js"></script>
 <script src="js/게임규칙.js"></script>
 <script src="js/국어원.js"></script>
 <script src="js/음성.js"></script>
@@ -380,6 +451,6 @@
 <script src="js/연동.js"></script>
 <!-- 부트스트랩 — 페르소나 대사(data/대사.json)를 먼저 적재한다.
      첫 화면(페르소나 선택)에는 대사가 쓰이지 않으므로 화면을 막지 않고 뒤에서 받아 둔다. -->
-<script>대사_로드();</script>
+<script>테마_적용(); 대사_로드();</script>
 </body>
 </html>

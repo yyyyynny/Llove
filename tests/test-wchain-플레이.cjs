@@ -262,11 +262,11 @@ async function main(){
     win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
     const d = win.document;
 
-    확인('섹션 3개(게임 규칙·특수 규칙·사전)가 set-sec로 놓임',
-         d.querySelectorAll('#s-설정 .set-sec').length === 3);
+    확인('섹션 4개(게임 규칙·특수 규칙·화면·사전)가 set-sec로 놓임',
+         d.querySelectorAll('#s-설정 .set-sec').length === 4);
     확인('섹션 라벨이 set-lbl · 첫 라벨에 모드 이름',
          [...d.querySelectorAll('#s-설정 .set-lbl')].map(e => e.textContent).join(',')
-           === '서바이벌 · 게임 규칙,특수 규칙,사전');
+           === '서바이벌 · 게임 규칙,특수 규칙,화면,사전');
 
     // 칩 항목: 난이도 4 / 진행 방향 2 / 두음법칙 3, 각 그룹에서 선택은 정확히 1개
     const 칩행 = [...d.querySelectorAll('#설정-규칙 .set-row')];
@@ -459,6 +459,53 @@ async function main(){
     확인('즉시 승리로 게임오버 화면 전환',
          w2.document.getElementById('s-오버').classList.contains('active'));
     확인('승리 표시(🏆)', w2.document.getElementById('오버-이모지').textContent === '🏆');
+  }
+
+  /* ── 14. Llove 테마 연동 토글 (2026-07-29 제보 3) ─────────────────── */
+  console.log('\n[14] Llove 테마 연동');
+  {
+    const { win } = 페이지열기();
+    const d = win.document;
+    win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
+
+    // 기본은 꺼짐 — 잇는 고유 테마(관리자님: "기본적으로는 따로 구분을 할 수 있도록")
+    확인('연동 기본값은 꺼짐', win.테마연동_켜짐() === false);
+    확인('꺼진 상태에서는 data-theme가 없다(잇는 :root 기본)',
+         !d.body.hasAttribute('data-theme'));
+    const 화면행 = d.querySelector('#설정-화면 .set-row');
+    확인('설정 화면에 연동 토글이 있다', !!화면행?.querySelector('.mt input'));
+    확인('꺼짐 설명이 잇는 고유 테마를 안내', 화면행.textContent.includes('잇는 고유 테마'));
+
+    // Llove가 저장해 둔 테마를 흉내 내고 연동을 켠다
+    win.localStorage.setItem('plx_테마', 'forest');
+    win.테마연동_설정(true);
+    확인('연동을 켜면 Llove 테마가 적용된다', d.body.getAttribute('data-theme') === 'forest');
+    확인('theme-color 메타도 따라간다',
+         d.querySelector('meta[name="theme-color"]').getAttribute('content') === '#060c08');
+    win.설정_렌더();
+    확인('설명이 현재 Llove 테마를 알려준다',
+         d.querySelector('#설정-화면 .set-row').textContent.includes('포레스트'));
+
+    // 다시 끄면 잇는 고유 테마로 복귀
+    win.테마연동_설정(false);
+    확인('끄면 잇는 테마로 돌아온다', !d.body.hasAttribute('data-theme'));
+    확인('theme-color도 복귀',
+         d.querySelector('meta[name="theme-color"]').getAttribute('content') === '#0e1016');
+
+    // Llove에서 테마를 고른 적이 없으면 연동해도 깨지지 않는다
+    win.localStorage.removeItem('plx_테마');
+    win.테마연동_설정(true);
+    확인('Llove 테마가 없으면 잇는 기본으로 폴백', !d.body.hasAttribute('data-theme'));
+    win.설정_렌더();
+    확인('그 사실을 설명에 알려준다',
+         d.querySelector('#설정-화면 .set-row').textContent.includes('아직 테마를 고른 적이 없어'));
+
+    // 잇는에서 조작해도 Llove 설정(plx_테마)은 건드리지 않는다
+    win.localStorage.setItem('plx_테마', 'navy');
+    win.테마연동_설정(false);
+    win.테마연동_설정(true);
+    확인('연동 조작이 Llove의 plx_테마를 바꾸지 않는다',
+         win.localStorage.getItem('plx_테마') === 'navy');
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);

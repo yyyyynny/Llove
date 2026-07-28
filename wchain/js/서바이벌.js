@@ -151,6 +151,17 @@ function 설정_렌더(){
          + `onchange="설정_토글('${항목.키}', this.checked)"><span class="mtt"><span class="mtth"></span></span></span></span></label>`;
   }).join('');
 
+  // 화면 섹션 — Llove 테마 연동 토글 하나(2026-07-29). 기본은 꺼짐(잇는 고유 테마).
+  const 화면줄 = document.getElementById('설정-화면');
+  if(화면줄){
+    const 켬 = 테마연동_켜짐();
+    화면줄.innerHTML = `<label class="set-row"><span class="sri">🎨</span>`
+      + `<div style="flex:1"><div class="srl">Llove 테마 연동</div>`
+      + `<div class="srs">${테마연동_설명()}</div></div>`
+      + `<span class="mtw"><span class="mt"><input type="checkbox"${켬 ? ' checked' : ''} `
+      + `onchange="설정_테마연동(this.checked)"><span class="mtt"><span class="mtth"></span></span></span></span></label>`;
+  }
+
   // 사전 모드(dict_mode)는 Worker가 아직 우리말샘 한 곳만 서빙해서 실제 판정에 영향이 없다.
   // 동작하는 것처럼 보여주면 거짓이 되므로 준비 중임을 명시한다(이의/허세 봉인과 같은 🔒 관례).
   const 사전줄 = document.getElementById('설정-사전');
@@ -179,6 +190,12 @@ function 설정_선택(항목번호, 선택번호){
 
 function 설정_토글(키, 켬){
   gs[키] = 켬;
+  설정_렌더();
+}
+
+// 테마 연동은 gs가 아니라 localStorage에 저장된다(판이 바뀌어도 유지되는 화면 설정).
+function 설정_테마연동(켬){
+  테마연동_설정(켬);
   설정_렌더();
 }
 
