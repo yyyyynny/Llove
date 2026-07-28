@@ -246,15 +246,15 @@ function check_title(gs){
   if(gs.game_mode === 'SURVIVAL'){
     if(gs.turn === 95 && ['초월','심연'].includes(gs.diff)){
       gs.user_title = is_arrogant(gs) ? '각성자' : '숙련자님';
-      로그_추가(say(gs, "⚔ [각성] 95턴 생존. '각성자'가 되었군.", '⚔ [각성] 95턴 돌파! 숙련자님 축하드립니다!'));
+      로그_추가(대사(gs, 'check_title_4'));
     } else if(gs.turn === 100 && ['안온','격동'].includes(gs.diff)){
       gs.user_title = is_arrogant(gs) ? '각성자' : '숙련자님';
-      로그_추가(say(gs, "🎉 100턴. '각성자'로 인정하마.", '🎉 100턴 돌파! 축하드립니다, 숙련자님!'));
+      로그_추가(대사(gs, 'check_title_3'));
     } else if(gs.turn === 200 && ['초월','심연'].includes(gs.diff)){
       gs.user_title = is_arrogant(gs) ? '초월자' : '마스터님';
-      로그_추가(say(gs, "🎉 [HIDDEN] 200턴... '초월자'.", '🎉 [HIDDEN] 200턴 달성! 진정한 마스터님!'));
+      로그_추가(대사(gs, 'check_title_2'));
     } else if(gs.turn > 0 && gs.turn % 30 === 0 && ![60,90,95,100,150,200].includes(gs.turn)){
-      로그_추가(say(gs, `흥... ${gs.turn}턴. 조금은 봐줄 만하군.`, `🎉 [MILESTONE] ${gs.turn}턴 돌파!`));
+      로그_추가(대사(gs, 'check_title_1', [gs.turn]));
     }
   } else if(gs.game_mode === 'ARCADE'){
     if(gs.stage >= 14 && !['탑의지배자','탑의주인님'].includes(gs.user_title)){
@@ -267,16 +267,16 @@ function check_title(gs){
 function user_defeat(gs){
   if(gs.game_mode === 'SURVIVAL'){
     if(['안온','격동'].includes(gs.diff) && gs.turn >= 90 && gs.turn <= 99){
-      로그_추가(say(gs, '이런... 100턴 직전에 미끄러지다니. (깔깔)', '아쉽네요... 100턴이 바로 앞이었는데!'));
+      로그_추가(대사(gs, 'user_defeat_4'));
     } else if(['초월','심연'].includes(gs.diff) && gs.turn >= 85 && gs.turn <= 94){
-      로그_추가(say(gs, "95턴 '각성' 바로 직전이었는데.", '아쉽네요! 95턴 달성이 코앞이었어요!'));
+      로그_추가(대사(gs, 'user_defeat_3'));
     }
   }
 
   gs.strikes += 1;
 
   if(gs.strikes < 4){
-    로그_추가(say(gs, `쯧쯧... ⚠️ [실수 ${gs.strikes}/4]`, `⚠️ [실수 ${gs.strikes}/4] 힘내세요!`));
+    로그_추가(대사(gs, 'user_defeat_2', [gs.strikes]));
     return 'continue';
   }
 
@@ -287,15 +287,15 @@ function user_defeat(gs){
 
   if(gs.hearts === 0){
     if(gs.game_mode === 'SURVIVAL'){
-      로그_추가(say(gs, `푸하하! [4회 실수] 패배다, ${title(gs)}!`, '💀 [4회 실수] 패배했습니다. 수고하셨어요!'));
+      로그_추가(대사(gs, 'user_defeat_패배', {칭호: title(gs)}));
       if(gs.turn > gs.best) gs.best = gs.turn;
     } else {
-      로그_추가(say(gs, `크크크... ${gs.stage}층이 네 한계였나, ${title(gs)}.`, `수고하셨습니다! ${gs.stage}층까지 잘하셨어요!`));
+      로그_추가(대사(gs, 'user_defeat_한계', {층: gs.stage, 칭호: title(gs)}));
       if(gs.stage > gs.best) gs.best = gs.stage;
     }
     return 'game_over';
   } else {
-    로그_추가(say(gs, `💔 [목숨 -1] 남은 목숨: ${h}. 더 집중하지 못하나?`, `💔 [목숨 -1] 남은 목숨: ${h}. 괜찮아요, 다시 해봐요!`));
+    로그_추가(대사(gs, 'user_defeat_1', [h]));
     if(gs.game_mode === 'ARCADE') return 'restart_floor';   // Phase 4에서 실제 층 재시작 연결
     return 'continue';
   }
@@ -336,13 +336,12 @@ function arcade_floor_up(gs, ai_defeated){
   if(gs.curse_life_floors > 0) 로그_추가(`⛓ [생명의 계약] 두음법칙 OFF 유지 (${gs.curse_life_floors}층 남음)`, 'sys');
 
   if(ai_defeated){
-    로그_추가(say(gs, '크윽... 단어가 없다. 이번 층은 네가 가져라.', '앗... 단어가 없네요! 이번 층은 통과하셨습니다!'), 'ok');
+    로그_추가(대사(gs, 'arcade_floor_up_3'), 'ok');
   } else {
-    로그_추가(say(gs, `흥... ${cleared}층은 클리어했군. ${gs.stage}층으로 진입한다.`, `🎉 [${cleared}층 클리어!] ${gs.stage}층으로 진입합니다!`), 'ok');
+    로그_추가(대사(gs, 'arcade_floor_up_2', [cleared, gs.stage]), 'ok');
   }
   if(gs.stage === 13){
-    로그_추가(say(gs, '얄팍한 두 글자 단어로 연명하는 꼴은 여기까지다. 이제 세 마디 이상의 무게를 증명해라.',
-                  '이제부터 두 글자 단어는 시스템에서 접수하지 않습니다. 조금 더 성의 있는 단어를 준비해 주시죠.'), 'warn');
+    로그_추가(대사(gs, 'arcade_floor_up_1'), 'warn');
   }
   gs.ai_last_char = null; gs.ai_last_word = null;
 }

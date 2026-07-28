@@ -361,10 +361,14 @@
 <script src="js/사전.js"></script>
 <script src="js/엔진.js"></script>
 <script src="js/게임상태.js"></script>
+<script src="js/대사.js"></script>
 <script src="js/게임규칙.js"></script>
 <script src="js/국어원.js"></script>
 <script src="js/음성.js"></script>
 <script src="js/서바이벌.js"></script>
 <script src="js/연동.js"></script>
+<!-- 부트스트랩 — 페르소나 대사(data/대사.json)를 먼저 적재한다.
+     첫 화면(페르소나 선택)에는 대사가 쓰이지 않으므로 화면을 막지 않고 뒤에서 받아 둔다. -->
+<script>대사_로드();</script>
 </body>
 </html>

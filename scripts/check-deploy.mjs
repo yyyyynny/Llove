@@ -25,6 +25,38 @@ const 진입점있음 = existsSync('Llove/index.html');
 확인('루트 관문 index.html(리다이렉트)이 존재한다', existsSync('index.html'));
 확인('wchain/index.html 이세계 진입점이 존재한다', existsSync('wchain/index.html'));
 
+// wchain 페르소나 대사 — 2026-07-29부터 코드가 아니라 data/대사.json이 원본이다.
+// 이 파일이 없거나 깨지면 게임 대사가 전부 "[대사 없음: 키]"로 뜨므로 배포 전에 막는다.
+{
+  const 대사경로 = 'wchain/data/대사.json';
+  const 있음 = existsSync(대사경로);
+  확인('wchain/data/대사.json(페르소나 대사)이 존재한다', 있음);
+  if (있음) {
+    let 표 = null;
+    try { 표 = JSON.parse(readFileSync(대사경로, 'utf8')); } catch (e) { /* 아래에서 실패 처리 */ }
+    확인('대사.json이 올바른 JSON이다', !!표 && typeof 표 === 'object');
+    if (표) {
+      const 키 = Object.keys(표);
+      확인(`대사 항목이 비어 있지 않다 (${키.length}건)`, 키.length > 0);
+      const 불완전 = 키.filter(k => !표[k] || !표[k].폭군 || !표[k].비서);
+      확인('모든 대사가 폭군·비서 두 문구를 갖춘다', 불완전.length === 0,
+           불완전.slice(0, 5).join(', '));
+      // 코드가 참조하는 키가 전부 있는지 (키 오타 = 화면에 "[대사 없음]" 노출)
+      const 참조 = new Set();
+      for (const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']) {
+        const p = `wchain/js/${f}`;
+        if (!existsSync(p)) continue;
+        for (const m of readFileSync(p, 'utf8').matchAll(/대사\(gs,\s*'([^']+)'(\s*\+)?/g)) {
+          if (!m[2]) 참조.add(m[1]);   // 조립 키(접두사 + 변수)는 정적 검사 대상에서 제외
+        }
+      }
+      const 누락 = [...참조].filter(k => !표[k]);
+      확인(`코드가 참조하는 대사 키 ${참조.size}개가 전부 존재한다`, 누락.length === 0,
+           누락.slice(0, 5).join(', '));
+    }
+  }
+}
+
 if (진입점있음) {
   const html = readFileSync('Llove/index.html', 'utf8');
 

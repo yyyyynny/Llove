@@ -14,6 +14,8 @@ import { join } from 'node:path';
 // 저장소 재편(2026-07-19): 앱 본체가 Llove/ 하위로 이동 (루트 index.html은 관문 리다이렉트)
 const HTML_PATH = 'Llove/index.html';
 const JS_DIR = 'Llove/js';
+// '잇는'(wchain)도 같은 규율로 검사한다 — 종전엔 이 스크립트가 Llove만 보고 있었다.
+const WCHAIN_JS_DIR = 'wchain/js';
 
 // 인라인 <script> 블록만 추출 (src 속성이 있는 외부 스크립트는 제외)
 function 인라인스크립트_추출(html) {
@@ -75,6 +77,26 @@ function main() {
     if (!문법검사(join(JS_DIR, f), `js/${f}`)) 실패++;
   }
 
+  // 1-b) wchain('잇는') 분할 파일 전수 검사
+  // ⚠️ 2026-07-29에 발견: 이 스크립트가 Llove/js만 훑고 wchain/js는 아예 검사하지 않고 있었다.
+  //    wchain 파일이 8개까지 늘어난 동안 문법 검증 그물 밖에 있었던 것 — CLAUDE.md의
+  //    "node --check 의무화"가 절반만 지켜지고 있었다.
+  let wchain파일들 = [];
+  try {
+    wchain파일들 = readdirSync(WCHAIN_JS_DIR).filter((f) => f.endsWith('.js')).sort();
+  } catch {
+    console.error(`❌ ${WCHAIN_JS_DIR}/ 폴더를 읽을 수 없습니다.`);
+    process.exit(1);
+  }
+  if (wchain파일들.length === 0) {
+    console.error(`❌ ${WCHAIN_JS_DIR}/ 폴더에 .js 파일이 없습니다.`);
+    process.exit(1);
+  }
+  for (const f of wchain파일들) {
+    검사수++;
+    if (!문법검사(join(WCHAIN_JS_DIR, f), `wchain/js/${f}`)) 실패++;
+  }
+
   // 2) index.html에 남은 인라인 <script> 블록 검사 (있을 때만)
   let html;
   try {
@@ -98,7 +120,8 @@ function main() {
     console.error(`\n검증 실패: ${실패}개 파일/블록에서 문법 오류가 발견되었습니다.`);
     process.exit(1);
   }
-  console.log(`\n전체 ${검사수}개 JS 파일/블록 문법 검증 통과. (js/*.js ${js파일들.length}개 + 인라인 ${블록들.length}개)`);
+  console.log(`\n전체 ${검사수}개 JS 파일/블록 문법 검증 통과. `
+    + `(Llove/js ${js파일들.length}개 + wchain/js ${wchain파일들.length}개 + 인라인 ${블록들.length}개)`);
 }
 
 main();

@@ -43,6 +43,12 @@ function 페이지열기({ 온라인 = '정상' } = {}){
     pretendToBeVisual: true,
     beforeParse(win){
       win.fetch = async (url, opt) => {
+        // data/*.json은 디스크에서 그대로 읽어 준다 — 페르소나 대사(data/대사.json)가 실제 파일과
+        // 맞물리는지까지 이 테스트로 검증된다(키 오타·JSON 깨짐이 여기서 잡힌다).
+        if(typeof url === 'string' && url.startsWith('data/')){
+          const 본문 = fs.readFileSync(path.join(WCHAIN, url), 'utf8');
+          return { ok: true, json: async () => JSON.parse(본문) };
+        }
         const payload = JSON.parse(opt.body);
         요청기록.push(payload);
         if(온라인 === '실패') throw new Error('네트워크 실패(스텁)');
@@ -83,6 +89,9 @@ async function 단어넣기(win, 단어){
   for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
   await 잠깐(5);
 }
+
+// 대사(data/대사.json)는 비동기로 적재된다 — 판을 시작하기 전에 반드시 기다린다.
+async function 대사대기(win){ await win.대사_로드(); }
 
 async function main(){
   console.log('\n━━━ wchain 실제 페이지 플레이 회귀 테스트 ━━━\n');
@@ -336,6 +345,56 @@ async function main(){
     상태(w2).stage = 9;
     w2.전체리셋(); w2.선택_페르소나('Polite'); w2.선택_모드('SURVIVAL');
     확인('모드 재선택만으로도 층이 1로 초기화', 상태(w2).stage === 1, `stage=${상태(w2).stage}`);
+  }
+
+  /* ── 12. 페르소나 대사 분리 (2026-07-29 제보 6) ───────────────────── */
+  console.log('\n[12] 페르소나 대사 (data/대사.json)');
+  {
+    const 표 = JSON.parse(fs.readFileSync(path.join(WCHAIN, 'data/대사.json'), 'utf8'));
+    const 키목록 = Object.keys(표);
+    확인(`대사 ${키목록.length}건이 JSON에 있다`, 키목록.length >= 60);
+    확인('모든 항목이 폭군·비서 두 문구를 갖춘다',
+         키목록.every(k => 표[k].폭군 && 표[k].비서),
+         키목록.filter(k => !표[k].폭군 || !표[k].비서).join(','));
+
+    // 코드가 참조하는 키가 전부 JSON에 있는지 (오타·누락 방지)
+    const 고정키 = new Set(), 조립접두 = new Set();
+    for(const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']){
+      const src = fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8');
+      for(const m of src.matchAll(/대사\(gs,\s*'([^']+)'(\s*\+)?/g)){
+        if(m[2]) 조립접두.add(m[1]); else 고정키.add(m[1]);
+      }
+    }
+    확인(`코드가 참조하는 키 ${고정키.size}개가 전부 JSON에 있다`,
+         [...고정키].every(k => 표[k]), [...고정키].filter(k => !표[k]).join(','));
+    확인('JSON에 죽은 키가 없다',
+         키목록.every(k => 고정키.has(k) || [...조립접두].some(p => k.startsWith(p))),
+         키목록.filter(k => !고정키.has(k) && ![...조립접두].some(p => k.startsWith(p))).join(','));
+
+    // 로직 파일에는 대사 문자열이 남아 있지 않아야 한다(say 정의 한 곳만 예외)
+    const say호출 = ['게임규칙.js', '서바이벌.js']
+      .map(f => (fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8').match(/say\(gs,/g) || []).length)
+      .reduce((a, b) => a + b, 0);
+    확인('로직 파일에 인라인 say() 호출이 남아 있지 않다', say호출 === 0, `${say호출}건 남음`);
+
+    // 실제 렌더링 — 페르소나에 따라 다른 문구가 나오고 자리표시자가 채워진다
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    const g = 상태(win);
+    g.persona = 'Arrogant'; g.user_title = '필멸자';
+    const 폭군문구 = win.대사(g, 'user_defeat_패배', { 칭호: win.title(g) });
+    g.persona = 'Polite';
+    const 비서문구 = win.대사(g, 'user_defeat_패배', { 칭호: win.title(g) });
+    확인('페르소나별로 다른 문구가 나온다', 폭군문구 !== 비서문구);
+    확인('이름 자리표시자가 채워진다', 폭군문구.includes('필멸자') && !폭군문구.includes('{칭호}'),
+         폭군문구);
+
+    g.persona = 'Arrogant';
+    const 위치문구 = win.대사(g, 'user_defeat_3', [2]);   // `⚠️ [실수 {0}/4]` 계열
+    확인('위치 자리표시자가 채워진다', !/\{\d\}/.test(위치문구), 위치문구);
+
+    확인('없는 키는 조용히 비지 않고 표시된다',
+         win.대사(g, '존재하지_않는_키').includes('대사 없음'));
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
