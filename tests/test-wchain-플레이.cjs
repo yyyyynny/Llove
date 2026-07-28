@@ -198,6 +198,64 @@ async function main(){
          ?.querySelector('.btn.acc')?.textContent === '켜기');
   }
 
+  /* ── 8. UI 구조 (2026-07-28 정돈) ──────────────────────────────────── */
+  console.log('\n[8] UI 구조');
+  {
+    const { win } = 페이지열기();
+    const d = win.document;
+
+    // 진입 화면에서는 타이틀 블록이 온전히 보이고, 플레이 중에는 접힌다
+    확인('진입 화면에서는 타이틀이 펼쳐짐', !d.body.classList.contains('playing'));
+    판시작(win);
+    확인('플레이 중에는 body.playing으로 타이틀을 접음', d.body.classList.contains('playing'));
+
+    // 첫 턴 — 상대 단어가 없으므로 카드를 안내 한 줄로 접는다
+    확인('첫 턴에는 상대 단어 카드가 접힘', d.querySelector('.ai-word').classList.contains('empty'));
+
+    await 단어넣기(win, '나무');
+    확인('상대가 단어를 내면 카드가 펼쳐짐',
+         !d.querySelector('.ai-word').classList.contains('empty'));
+    확인('상대 단어 라벨이 표시됨', d.getElementById('ai-라벨').textContent === '상대의 단어');
+    확인('이어야 할 글자가 배지로 강조됨', !!d.querySelector('#prompt-안내 .need'));
+    확인('배지 안에 실제 글자가 들어감',
+         d.querySelector('#prompt-안내 .need').textContent === 상태(win).ai_last_char,
+         `배지=${d.querySelector('#prompt-안내 .need')?.textContent} / 기대=${상태(win).ai_last_char}`);
+    확인('끝말잇기는 "시작하는"으로 안내', d.getElementById('prompt-안내').textContent.includes('시작하는'));
+    확인('내가 낸 단어에 me 클래스', !!d.querySelector('#로그 .line.me'));
+
+    // HUD — 진행바가 HUD 밖으로 나가고 상태 배지는 턴 칸 안으로 들어갔다
+    확인('HUD가 3칸', d.querySelectorAll('.hud .hud-item').length === 3);
+    확인('진행바가 HUD 밖에 있음', !d.querySelector('.hud .bar-track') && !!d.querySelector('.bar-track'));
+    확인('상태 배지가 턴 칸 안에 있음', !!d.querySelector('.hud .hud-item #hud-상태'));
+
+    // 봉인 버튼은 시각적으로 강등
+    확인('봉인 버튼에 locked 클래스', d.getElementById('btn-이의').classList.contains('locked')
+         && d.getElementById('btn-허세').classList.contains('locked'));
+
+    // 앞말잇기는 안내 문구가 뒤집힌다
+    const { win: w2 } = 페이지열기();
+    판시작(w2, { rev: true, dueum: 'OFF' });
+    await 단어넣기(w2, '나무');
+    확인('앞말잇기는 "끝나는"으로 안내',
+         w2.document.getElementById('prompt-안내').textContent.includes('끝나는'));
+  }
+
+  /* ── 9. 설정 화면 선택지 격자 ──────────────────────────────────────── */
+  console.log('\n[9] 설정 화면 선택지 격자');
+  {
+    const { win } = 페이지열기();
+    win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
+    const 행들 = [...win.document.querySelectorAll('#설정-항목 .set-row')];
+    const 열클래스 = 행들.map(r => {
+      const o = r.querySelector('.set-opts');
+      return [o.children.length, [...o.classList].find(c => /^c\d$/.test(c))];
+    });
+    확인('선택지 개수마다 c2/c3/c4 열 클래스가 붙음',
+         열클래스.every(([n, c]) => c === 'c' + n), JSON.stringify(열클래스));
+    확인('난이도는 4개(2×2 격자)', 열클래스[0][0] === 4 && 열클래스[0][1] === 'c4');
+    확인('두음법칙은 3개(3열)', 열클래스[1][0] === 3 && 열클래스[1][1] === 'c3');
+  }
+
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
   process.exit(실패 ? 1 : 0);
 }

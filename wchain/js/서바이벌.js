@@ -21,6 +21,8 @@ function 화면(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById('s-' + id);
   if(el) el.classList.add('active');
+  // 플레이 중에는 타이틀 블록을 접어 화면을 로그·입력창에 내준다(CSS의 body.playing 규칙).
+  document.body.classList.toggle('playing', id === '플레이');
 }
 
 /* ── 로그 ── */
@@ -98,8 +100,10 @@ function 설정_렌더(){
       return `<button class="btn sm${선택됨 ? ' acc' : ''}" onclick="설정_선택(${i},${j})"`
            + `${선택됨 ? ' aria-current="true"' : ''}>${이름}</button>`;
     }).join('');
+    // 선택지 개수를 클래스로 넘겨 격자 열 수를 정한다(c2·c3·c4 — index.html의 .set-opts 규칙).
+    // 종전 flex-wrap은 난이도 4개를 3+1로 깨뜨리고 버튼 폭도 글자 수대로 들쭉날쭉했다.
     return `<div class="set-row"><div class="set-lbl">${항목.라벨}</div>`
-         + `<div class="set-opts">${버튼들}</div>`
+         + `<div class="set-opts c${항목.선택지.length}">${버튼들}</div>`
          + `<div class="d">${항목.설명}</div></div>`;
   }).join('');
 
@@ -164,7 +168,7 @@ function 플레이_HUD갱신(){
     document.getElementById('hud-바').style.width = pct + '%';
     const st = document.getElementById('hud-상태');
     const status = get_status(gs.stage_turn, target);
-    st.textContent = status; st.className = 'hud-val status-' + status;
+    st.textContent = status; st.className = 'status-' + status;
   } else {
     const max_t = gs.infinite ? 0 : get_max_turns(gs);
     턴라벨.textContent = '⏳ 턴';
@@ -172,13 +176,18 @@ function 플레이_HUD갱신(){
     document.getElementById('hud-바').style.width = ((!gs.infinite && max_t) ? Math.min(100, Math.round(gs.turn / max_t * 100)) : 0) + '%';
     const st = document.getElementById('hud-상태');
     const status = gs.infinite ? '🟢' : get_status(gs.turn, max_t);
-    st.textContent = status; st.className = 'hud-val status-' + status;
+    st.textContent = status; st.className = 'status-' + status;
   }
   document.getElementById('hud-힌트').textContent = 표시무한(gs.hints) + '개';
   // 종전 표기 "∞ / 1·4"는 무엇이 목숨이고 무엇이 실수인지 읽히지 않았다(관리자님 지적) —
   // 라벨 순서 그대로 "목숨 · 실수"를 명시적으로 붙인다.
   document.getElementById('hud-목숨').textContent = `${표시무한(gs.hearts)}개 · ${gs.strikes}/4`;
-  document.getElementById('ai-단어').textContent = gs.ai_last_word ? `『${gs.ai_last_word}』` : '─';
+  // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
+  document.getElementById('ai-단어').textContent = gs.ai_last_word || '─';
+  const 라벨 = document.getElementById('ai-라벨');
+  if(라벨) 라벨.textContent = '상대의 단어';
+  // 첫 턴엔 상대 단어가 없으므로 카드를 안내문 한 줄로 접는다(CSS .ai-word.empty)
+  document.querySelector('.ai-word')?.classList.toggle('empty', !gs.ai_last_word);
   설정요약_갱신();
 
   // 저주 표시(아케이드 전용) — 원본 curse_tags
@@ -237,10 +246,19 @@ function 입력_대기표시(켜기, 문구 = '확인 중'){
   }
 }
 
+// innerHTML로 글자를 강조하므로, 화면에 넣기 전에 HTML 특수문자를 막는다.
+// (ai_last_char는 검증된 단어에서 온 한 글자라 실질 위험은 없지만, 문자열이 DOM으로 가는
+//  경로에는 예외 없이 이스케이프를 둔다.)
+const HTML막기 = s => String(s).replace(/[&<>"']/g,
+  c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
 function 프롬프트_갱신(){
   const 안내 = document.getElementById('prompt-안내');
-  안내.textContent = gs.ai_last_char
-    ? `『${gs.ai_last_char}』(으)로 시작하는 단어를 입력하세요`
+  // 이어야 할 글자는 이 화면에서 제일 중요한 정보인데 종전엔 작은 회색 안내문에 묻혀 있었다 —
+  // 배지로 띄워 한눈에 들어오게 한다(2026-07-28). 방향에 따라 '시작/끝'도 정확히 구분한다.
+  안내.innerHTML = gs.ai_last_char
+    ? `<span class="need">${HTML막기(gs.ai_last_char)}</span>(으)로 `
+      + `${gs.rev ? '끝나는' : '시작하는'} 단어`
     : '첫 단어를 자유롭게 입력하세요';
   document.getElementById('btn-먼저').style.display = (gs.ai_last_char === null) ? '' : 'none';
   // 이의·허세는 봉인 중(위 '봉인' 주석 참조) — 버튼은 남겨 존재를 알리되 비활성으로 표시해
@@ -251,6 +269,7 @@ function 프롬프트_갱신(){
     const el = document.getElementById(id);
     el.style.display = gs.ai_last_word ? '' : 'none';
     el.textContent = 이의허세_봉인 ? `🔒 ${라벨}` : 라벨;
+    el.classList.toggle('locked', 이의허세_봉인);   // 활성 버튼과 같은 비중으로 보이지 않게
   }
   선택박스_숨기기();
   const form = document.getElementById('입력폼');
@@ -307,7 +326,7 @@ function 단어_제출(){
   const 내세대 = 게임_세대;
   (async () => {
     try{
-      로그_추가('▶ ' + raw);
+      로그_추가('▶ ' + raw, 'me');
       let [valid, reason] = validate_word(raw, gs);
 
       // 로컬 사전에 없어서만 실패했고 국어원 게이트가 켜져 있으면 온라인 조회로 재확인.

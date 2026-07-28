@@ -44,6 +44,16 @@
     .sub{ font-size:12px; color:var(--txt2); margin-bottom:22px; text-align:center; }
     .back{ margin:18px auto 0; display:inline-block; font-size:12px; color:var(--txt2); text-decoration:none; }
     .back:hover{ color:var(--acc); }
+    /* 파괴적 동작(게임 데이터 삭제)은 진입 화면에서 존재만 알리고 시선은 끌지 않게 */
+    .back.danger{ margin-top:10px; font-size:11px; color:var(--err); opacity:.45; }
+    .back.danger:hover{ opacity:.9; color:var(--err); }
+
+    /* 플레이 중에는 타이틀 블록을 한 줄로 접는다 — 종전엔 게임 화면에서도 로고가 190px를
+       차지해 정작 중요한 로그·입력창이 밀려났다. 표시/숨김만 바꾸고 마크업은 그대로 둔다. */
+    body.playing .badge, body.playing .sub{ display:none; }
+    body.playing h1{ font-size:15px; letter-spacing:3px; margin-bottom:12px; opacity:.75; }
+    body.playing .wrap{ padding-top:12px; }
+
 
     .card{ background:var(--panel); border:1px solid var(--bdr); border-radius:14px; padding:16px; margin-bottom:10px; }
     .card-title{ font-size:11px; color:var(--txt2); letter-spacing:1px; margin-bottom:8px; }
@@ -61,22 +71,37 @@
     .btn .d{ font-size:11px; color:var(--txt2); margin-top:2px; }
     .row{ display:flex; flex-wrap:wrap; gap:0; }
 
-    /* HUD */
-    .hud{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
-    .hud-item{ background:var(--panel); border:1px solid var(--bdr); border-radius:10px; padding:9px 11px; }
-    .hud-lbl{ font-size:10px; color:var(--txt2); margin-bottom:3px; }
-    .hud-val{ font-size:14px; font-weight:700; }
-    .bar-track{ background:#0b0d14; border-radius:999px; height:7px; overflow:hidden; margin-top:6px; }
-    .bar-fill{ height:100%; background:linear-gradient(90deg,var(--acc),#c7d3ee); transition:width .3s; }
+    /* HUD — 2×2 네 박스(약 200px)에서 한 줄 세 칸으로 압축(2026-07-28).
+       종전엔 '상태' 칸이 이모지 하나만 담고도 박스를 통째로 썼다. 상태는 턴 칸에 붙이고,
+       진행바는 폭을 다 쓰도록 HUD 밖으로 뺐다. */
+    .hud{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:6px; }
+    .hud-item{ background:var(--panel); border:1px solid var(--bdr); border-radius:10px; padding:7px 9px; }
+    .hud-lbl{ font-size:10px; color:var(--txt2); margin-bottom:2px; }
+    .hud-val{ font-size:13px; font-weight:700; white-space:nowrap; }
+    .bar-track{ background:#0b0d14; border-radius:999px; height:5px; overflow:hidden; margin-bottom:10px; }
+    .bar-fill{ height:100%; background:linear-gradient(90deg,var(--acc),#c7d3ee); transition:width .3s; min-width:2px; }
     .status-🟢{ color:var(--ok); } .status-🟡{ color:var(--warn); } .status-🔴{ color:var(--err); }
 
-    .ai-word{ text-align:center; font-size:20px; font-weight:700; padding:14px; background:var(--panel2);
+    /* 상대 단어 카드 — 종전엔 큰 글씨 단어 하나뿐이라 "이게 상대가 낸 말인지 내가 낼 말인지"가
+       읽히지 않았고, 정작 제일 중요한 '이어야 할 글자'가 작은 회색 안내문에 묻혀 있었다. */
+    .ai-word{ text-align:center; font-size:22px; font-weight:700; padding:12px 14px 14px; background:var(--panel2);
       border:1px solid var(--bdr); border-radius:12px; margin-bottom:10px; }
-    .ai-word small{ display:block; font-size:11px; color:var(--txt2); font-weight:400; margin-top:4px; }
+    .ai-word .aw-lbl{ font-size:10px; font-weight:400; letter-spacing:2px; color:var(--txt2); margin-bottom:5px; }
+    .ai-word small{ display:block; font-size:12px; color:var(--txt2); font-weight:400; margin-top:7px; }
+    .ai-word small .need{ display:inline-block; font-size:17px; font-weight:800; color:var(--acc);
+      background:rgba(157,176,216,.12); border:1px solid var(--bdrg,rgba(157,176,216,.45));
+      border-radius:8px; padding:1px 9px; margin:0 2px; vertical-align:-2px; }
+    /* 첫 턴엔 상대 단어가 없다 — 라벨·빈 자리(─)·안내문이 같은 말을 세 번 하게 되므로 안내만 남긴다 */
+    .ai-word.empty .aw-lbl, .ai-word.empty #ai-단어{ display:none; }
+    .ai-word.empty{ padding:16px 14px; }
+    .ai-word.empty small{ margin-top:0; font-size:14px; color:var(--txt); }
 
     .log{ flex:1; min-height:120px; max-height:min(50dvh, 420px); overflow-y:auto; background:#0b0d14; border:1px solid var(--bdr);
       border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:13px; line-height:1.7; }
     .log .line{ margin-bottom:4px; }
+    /* 내가 낸 단어를 상대 대사와 확실히 구분(2026-07-28) — 종전엔 전부 같은 톤이라 로그가
+       길어지면 내 차례에 무엇을 냈는지 되짚기 어려웠다. */
+    .log .line.me{ color:var(--acc); font-weight:700; }
     .log .line.sys{ color:var(--txt2); font-size:12px; }
     .log .line.err{ color:var(--err); }
     .log .line.ok{ color:var(--ok); }
@@ -96,16 +121,32 @@
     .input-row button{ font-family:inherit; font-size:14px; font-weight:700; color:#fff; background:linear-gradient(135deg,#3a4470,#2a3358);
       border:none; border-radius:12px; padding:0 18px; cursor:pointer; }
 
-    .util-row{ display:flex; flex-wrap:wrap; gap:6px; }
+    /* 보조 버튼 — 종전엔 flex-wrap이라 글자 수대로 폭이 제각각이고 줄바꿈도 들쭉날쭉했다.
+       3열 격자로 고정해 눈이 열을 따라가게 한다(2026-07-28). */
+    .util-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+    /* 3열에 '🔒 그 단어 없어!'까지 한 줄로 들어가도록 글자·좌우 여백을 좁힌다 */
+    .util-row .btn.sm{ margin:0; width:100%; text-align:center; font-size:11px; padding:10px 4px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    /* 봉인된 기능은 존재만 알리고 활성 버튼과 같은 비중으로 보이지 않게 */
+    .util-row .btn.sm.locked{ opacity:.5; }
 
     /* 설정 항목 — 선택지를 전부 펼쳐 보여주는 행(2026-07-26). 버튼은 기존 .btn.sm/.btn.sm.acc를
        그대로 쓰고, 여기서는 배치만 담당한다(새 색상값 도입 없음). */
     .set-row{ padding:10px 0; border-top:1px solid var(--bdr); }
     .set-row:first-child{ border-top:0; padding-top:2px; }
     .set-lbl{ font-size:13px; font-weight:700; margin-bottom:7px; }
-    .set-opts{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:5px; }
-    .set-opts .btn.sm{ margin:0; flex:1 1 auto; text-align:center; }
+    /* 선택지는 격자로 — flex-wrap이던 종전에는 난이도 4개가 3+1로 깨져 '심연'만 혼자 넓어졌고,
+       2지선다도 글자 수대로 폭이 달라졌다. 개수별로 열을 정해 항상 균등하게 놓는다. */
+    .set-opts{ display:grid; gap:6px; margin-bottom:6px; }
+    .set-opts.c2, .set-opts.c4{ grid-template-columns:repeat(2,1fr); }
+    .set-opts.c3{ grid-template-columns:repeat(3,1fr); }
+    .set-opts .btn.sm{ margin:0; width:100%; text-align:center; }
     .set-row .d{ font-size:11px; color:var(--txt2); line-height:1.5; }
+    /* 시작 버튼 — 설정이 길어 스크롤 밖으로 밀려나 있었다. 아래에 붙여 항상 닿게 한다.
+       떠 있는 버튼이 마지막 항목을 가리지 않도록 카드 아래에 그만큼 여유를 준다. */
+    #s-설정 > .btn.acc{ position:sticky; bottom:8px; margin-bottom:0;
+      background:linear-gradient(135deg,#3a4470,#2a3358); box-shadow:0 6px 22px rgba(0,0,0,.65); }
+    #s-설정 > .card{ margin-bottom:14px; }
 
     /* 플레이 화면 상단 설정 요약 배지 */
     .cfg-bar{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
@@ -154,7 +195,7 @@
       </button>
     </div>
     <a class="back" href="../Llove/">← 학습 세계로 돌아가기</a>
-    <a class="back" href="javascript:void(0)" style="color:var(--err);opacity:.75" onclick="게임데이터삭제_1단계()">🗑 게임 데이터 삭제</a>
+    <a class="back danger" href="javascript:void(0)" onclick="게임데이터삭제_1단계()">🗑 게임 데이터 삭제</a>
   </div>
 
   <!-- 모드 선택 (원본 _show_mode_select) -->
@@ -181,13 +222,14 @@
   <div class="screen" id="s-플레이">
     <div class="cfg-bar fu" id="설정요약"></div>
     <div class="hud fu">
-      <div class="hud-item"><div class="hud-lbl" id="hud-턴라벨">⏳ 턴</div><div class="hud-val" id="hud-턴"></div>
-        <div class="bar-track"><div class="bar-fill" id="hud-바"></div></div></div>
-      <div class="hud-item"><div class="hud-lbl">🔥 상태</div><div class="hud-val" id="hud-상태"></div></div>
+      <div class="hud-item"><div class="hud-lbl" id="hud-턴라벨">⏳ 턴</div>
+        <div class="hud-val"><span id="hud-턴"></span> <span id="hud-상태"></span></div></div>
       <div class="hud-item"><div class="hud-lbl">💡 힌트</div><div class="hud-val" id="hud-힌트"></div></div>
       <div class="hud-item"><div class="hud-lbl">❤️ 목숨 · ⚠️ 실수</div><div class="hud-val" id="hud-목숨"></div></div>
     </div>
+    <div class="bar-track fu"><div class="bar-fill" id="hud-바"></div></div>
     <div class="ai-word fu">
+      <div class="aw-lbl" id="ai-라벨">상대의 단어</div>
       <span id="ai-단어">─</span>
       <small id="prompt-안내">첫 단어를 자유롭게 입력하세요</small>
       <div id="저주표시" style="display:none;margin-top:6px;font-size:11px;color:var(--err)"></div>
