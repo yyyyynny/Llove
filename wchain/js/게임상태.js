@@ -39,6 +39,11 @@ function get_stage_target(gs){
 function used_words(gs){ return gs.history.map(h => h.word); }
 
 function reset_game(gs){
+  // ⚠️ 2026-07-29: gs.stage 초기화 추가. 종전에는 reset_game이 층을 건드리지 않아, 모든 진입 경로가
+  // full_reset이나 다시시작()을 거치는 덕에 우연히 안전했다. 설정 화면 뒤로가기(모드 재선택)가
+  // 생기면서 "아케이드 7층에서 나갔다가 서바이벌 시작" 같은 경로가 열려 실제 결함이 된다
+  // (stage>=13이면 3글자 족쇄가 서바이벌에도 걸린다).
+  gs.stage = 1;
   gs.turn = 0; gs.stage_turn = 0; gs.stage_start_turn = 0; gs.score = 0;
   gs.hints = gs.god_mode_active ? Infinity : 3;
   gs.hearts = gs.god_mode_active ? Infinity : 2;

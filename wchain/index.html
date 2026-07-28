@@ -242,12 +242,13 @@
         <div class="d">13층 타워 등반 · 목숨 2개 · 시련의 탑</div>
       </button>
     </div>
+    <a class="back" href="javascript:void(0)" onclick="뒤로_페르소나()">← 페르소나 다시 고르기</a>
   </div>
 
   <!-- 서바이벌 설정 — Llove 설정창(set-sec/set-row/.mt/.fs-opt) 문법 그대로 (2026-07-28) -->
   <div class="screen" id="s-설정">
     <div class="set-sec fu s1">
-      <div class="set-lbl">게임 규칙</div>
+      <div class="set-lbl" id="설정-제목">게임 규칙</div>
       <div id="설정-규칙"></div>
     </div>
     <div class="set-sec fu s2">
@@ -260,6 +261,7 @@
     </div>
     <div class="set-warn" id="설정-경고" style="display:none"></div>
     <button class="btn acc fu s4" onclick="게임_시작()">시작</button>
+    <a class="back" href="javascript:void(0)" onclick="뒤로_모드()">← 모드 다시 고르기</a>
   </div>
 
   <!-- 플레이 화면 (원본 show_survival_hud/prompt_next/_handle_playing) -->

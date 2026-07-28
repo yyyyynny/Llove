@@ -255,8 +255,9 @@ async function main(){
 
     확인('섹션 3개(게임 규칙·특수 규칙·사전)가 set-sec로 놓임',
          d.querySelectorAll('#s-설정 .set-sec').length === 3);
-    확인('섹션 라벨이 set-lbl',
-         [...d.querySelectorAll('#s-설정 .set-lbl')].map(e => e.textContent).join(',') === '게임 규칙,특수 규칙,사전');
+    확인('섹션 라벨이 set-lbl · 첫 라벨에 모드 이름',
+         [...d.querySelectorAll('#s-설정 .set-lbl')].map(e => e.textContent).join(',')
+           === '서바이벌 · 게임 규칙,특수 규칙,사전');
 
     // 칩 항목: 난이도 4 / 진행 방향 2 / 두음법칙 3, 각 그룹에서 선택은 정확히 1개
     const 칩행 = [...d.querySelectorAll('#설정-규칙 .set-row')];
@@ -278,6 +279,63 @@ async function main(){
     // 토글 항목 3개(.mt 스위치), 사전 행은 잠금(🔒) 표시
     확인('토글 항목 3개(한방·무한·구)', d.querySelectorAll('#설정-토글 .mt input').length === 3);
     확인('사전 행은 잠금 표시', d.getElementById('설정-사전').textContent.includes('🔒'));
+  }
+
+  /* ── 10. 네비게이션·모드 (2026-07-29 제보 1·2·7) ─────────────────── */
+  console.log('\n[10] 뒤로가기 · 아케이드 설정 · 모드 이름');
+  {
+    const { win } = 페이지열기();
+    const d = win.document;
+    const 활성 = () => [...d.querySelectorAll('.screen.active')].map(e => e.id).join();
+
+    // 1번 — 뒤로가기
+    win.선택_페르소나('Polite');
+    확인('페르소나 선택 후 모드 화면', 활성() === 's-모드');
+    win.뒤로_페르소나();
+    확인('모드 → 페르소나로 되돌아감', 활성() === 's-페르소나');
+    win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
+    확인('모드 선택 후 설정 화면', 활성() === 's-설정');
+    win.뒤로_모드();
+    확인('설정 → 모드로 되돌아감', 활성() === 's-모드');
+
+    // 2번 — 아케이드도 설정 화면을 거친다
+    win.선택_모드('ARCADE');
+    확인('아케이드도 설정 화면을 거침', 활성() === 's-설정');
+    확인('아케이드 설정 제목', d.getElementById('설정-제목').textContent === '아케이드 · 게임 규칙');
+    const 칩라벨 = [...d.querySelectorAll('#설정-규칙 .srl')].map(e => e.textContent);
+    확인('아케이드에서는 난이도 항목이 숨겨짐', !칩라벨.includes('난이도'), 칩라벨.join(','));
+    확인('아케이드에도 두음법칙·방향은 노출', 칩라벨.includes('두음법칙') && 칩라벨.includes('진행 방향'));
+    const 토글라벨 = [...d.querySelectorAll('#설정-토글 .srl')].map(e => e.textContent);
+    확인('아케이드에서는 무한 모드가 숨겨짐', !토글라벨.includes('무한 모드'), 토글라벨.join(','));
+    const 한방행 = [...d.querySelectorAll('#설정-토글 .set-row')].find(r => r.textContent.includes('한방 모드'));
+    확인('아케이드 한방 모드는 잠금(스위치 없음)',
+         !한방행.querySelector('.mt input') && 한방행.textContent.includes('🔒'));
+    확인('잠금 이유를 함께 표시', 한방행.textContent.includes('탑의 규칙'));
+
+    // 7번 — 서바이벌에도 모드 이름이 뜬다
+    win.게임_시작();
+    확인('아케이드 요약에 모드 이름', d.getElementById('설정요약').textContent.includes('아케이드'));
+    win.전체리셋(); win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL'); win.게임_시작();
+    확인('서바이벌 요약에도 모드 이름', d.getElementById('설정요약').textContent.includes('서바이벌'),
+         d.getElementById('설정요약').textContent);
+  }
+
+  /* ── 11. reset_game의 stage 초기화 (뒤로가기로 새로 열린 경로) ────── */
+  console.log('\n[11] 모드 전환 시 층 초기화');
+  {
+    const { win } = 페이지열기();
+    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    상태(win).stage = 7;                       // 아케이드 7층까지 올라간 상태를 흉내
+    win.버튼_리셋();                           // 전체 리셋 → 페르소나
+    win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL'); win.게임_시작();
+    확인('서바이벌로 넘어오면 층이 1로 초기화', 상태(win).stage === 1, `stage=${상태(win).stage}`);
+
+    // 뒤로가기 경로(리셋을 거치지 않음)도 같은지 — 이 경로가 이번에 새로 열렸다
+    const { win: w2 } = 페이지열기();
+    w2.선택_페르소나('Polite'); w2.선택_모드('ARCADE'); w2.게임_시작();
+    상태(w2).stage = 9;
+    w2.전체리셋(); w2.선택_페르소나('Polite'); w2.선택_모드('SURVIVAL');
+    확인('모드 재선택만으로도 층이 1로 초기화', 상태(w2).stage === 1, `stage=${상태(w2).stage}`);
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
