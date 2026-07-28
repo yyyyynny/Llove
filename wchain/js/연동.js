@@ -57,20 +57,40 @@ function 게임데이터삭제_2단계(){
     '<b>마지막 확인</b>입니다. 정말로 삭제하시겠습니까?<br><br>이 작업은 되돌릴 수 없습니다.',
     '영구 삭제', 게임데이터삭제_실행);
 }
+// 잇는이 이 기기에 남긴 로컬 흔적 — "게임 데이터 삭제"면 이것도 지워야 이름과 동작이 맞는다.
+// (2026-07-29 발견: 종전에는 Firestore의 잇는개방 필드만 되돌리고 캐시는 그대로 남겼다.)
+const 잇는_로컬키 = ['plx_잇는_국어원캐시_v2', 'plx_잇는_국어원후보캐시', 'plx_잇는_테마연동'];
+
+function 잇는_로컬삭제(){
+  try{
+    for(const k of 잇는_로컬키) localStorage.removeItem(k);
+    // 과거 버전 키도 함께 청소 — 버전 접미사를 올리기 전에 저장된 캐시가 남아 있을 수 있다.
+    localStorage.removeItem('plx_잇는_국어원캐시');
+  }catch(e){ /* localStorage 차단 환경 — 지울 것도 없다 */ }
+}
+
 function 게임데이터삭제_실행(){
   // 로컬 게임 상태 초기화 (God Mode·페르소나까지 전부 — Llove full_reset과 동일하게 전면 초기화)
   게임_세대올리기();   // 진행 중이던 턴의 비동기 결과가 초기화 뒤에 되살아나지 않게(서바이벌.js)
   gs.god_mode_active = false;
   full_reset(gs);
+  잇는_로컬삭제();
 
-  const 학습세계로 = () => { location.href = '../Llove/'; };
+  // 학습 세계 홈으로. 종전에는 '../Llove/'로만 보냈는데, Llove는 온보딩 화면이 기본 표시라
+  // Firestore 응답이 올 때까지(또는 실패하면 영원히) 로그인 전 설명 화면이 덮여 있었다
+  // — 관리자님 제보 "강제로 Llove 처음 들어오는 그 화면으로 이동을 함".
+  // Llove 쪽 인증상태_변경도 함께 고쳤고(온보딩을 Firestore 응답 전에 걷음), 여기서는
+  // 해시로 의도를 명시해 Llove가 홈으로 바로 가도록 신호를 준다.
+  const 학습세계로 = () => { location.href = '../Llove/#home'; };
 
   if(fbAuth && fbAuth.currentUser && fbDb){
     fbDb.collection('users').doc(fbAuth.currentUser.uid).update({ 잇는개방: false })
       .then(학습세계로)
       .catch(e => { console.error('[연동] 잇는개방 재잠금 실패', e); 학습세계로(); });
   } else {
-    // 비로그인(게스트)이면 Firestore에 애초에 저장된 상태가 없으므로 로컬 초기화만으로 충분
-    학습세계로();
+    // 비로그인(게스트·백도어)이면 Firestore에 쓸 대상이 없다. 종전에는 아무 안내 없이 이동해
+    // "서버 기록까지 지워졌다"고 오해할 수 있었다 — 무엇이 지워졌는지 분명히 알리고 넘어간다.
+    로그_추가('ℹ️ 로그인되어 있지 않아 이 기기의 기록만 지웠습니다(서버 기록은 그대로).', 'sys');
+    setTimeout(학습세계로, 600);
   }
 }

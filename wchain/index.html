@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <!--
     '잇는'(임시 이름 — 최종 미정) — Llove의 이세계(끝말잇기 게임 차원).
-    서바이벌·아케이드 두 모드 모두 실플레이 가능. 국립국어원 API 연동 실사용 중.
+    서바이벌·아케이드 두 모드 모두 실플레이 가능. 우리말샘(국립국어원 오픈API) 연동 실사용 중.
     같은 GitHub Pages·같은 도메인이라 구글 로그인은 자동 공유(Firebase 연동 완료).
     상세 설계·게이트 정책·이식 규칙은 wchain/시스템.md 참조.
   -->
@@ -105,7 +105,16 @@
     html{ height:100%; background:var(--bg); }
     /* Llove와 동일하게 플랫 단색 배경 — 종전 radial-gradient는 생성형 사이트 상투 장식이라 제거 */
     body{ background:var(--bg); color:var(--txt); font-family:var(--fn); min-height:100dvh; }
+    /* 데스크탑에서 화면이 안 찬다는 제보(2026-07-29) — 원인 두 가지를 함께 고친다.
+       ① .log에 max-height:min(50dvh,420px) 상한이 있어 세로가 남아도 로그가 안 늘어났다(제거됨).
+       ② 폭이 520px 고정이라 넓은 화면에서 좁은 기둥으로 남았다 → 화면이 넓으면 640px까지 넓힌다.
+       세로도 dvh로 꽉 채우되, .wrap이 스크롤 컨테이너가 아니라 페이지 자체가 늘어나게 둔다. */
     .wrap{ max-width:520px; margin:0 auto; padding:20px 16px 40px; min-height:100dvh; display:flex; flex-direction:column; }
+    @media (min-width:760px){
+      .wrap{ max-width:640px; padding:28px 20px 40px; }
+      /* 플레이 화면은 세로가 남는 만큼 로그가 자라야 화면이 찬다 */
+      body.playing .wrap{ padding-top:20px; }
+    }
     .screen{ display:none; flex:1; flex-direction:column; }
     .screen.active{ display:flex; }
     @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
@@ -398,12 +407,12 @@
     중복 단어는 쓸 수 없고, 구 허용을 켜면 띄어쓰기 한 번(두 단어)까지 이어 쓸 수 있습니다.</p><br>
     <p><b>한방 단어</b>(상대가 더 이상 이을 수 없는 단어) — 한방 모드가 <b>켜기</b>(기본값)면
     자유롭게 쓸 수 있고, <b>끄기</b>면 실수 1회로 계산됩니다. 아케이드에서는 항상 쓸 수 없습니다.
-    한방인지 여부는 국립국어원 사전으로 실제 확인합니다.</p><br>
+    한방인지 여부는 우리말샘 사전으로 실제 확인합니다.</p><br>
     <p><b>서바이벌</b> — 안온 50턴 / 격동 75턴 / 초월 140턴 / 심연 160턴. 실수 4회 누적마다 목숨 1개 차감,
     목숨 소진 시 패배합니다.</p><br>
     <p><b>버튼</b> — 힌트(초성 공개), 먼저 해(첫 턴에만), 상태(HUD 다시 표시), 리셋(현재 판 초기화).<br>
     🔒 이의 있음 · 그 단어 없어!는 <b>재설계 중</b>이라 현재 동작하지 않습니다 — 다음 업데이트에서
-    국립국어원 사전으로 실제 판정을 다시 확인하는 방식으로 돌아옵니다.</p>
+    우리말샘 사전으로 실제 판정을 다시 확인하는 방식으로 돌아옵니다.</p>
     <button class="btn" style="margin-top:10px;text-align:center" onclick="버튼_설명닫기()">닫기</button>
   </div>
 </div>
@@ -434,7 +443,7 @@
 <!-- Phase 2: 한글 엔진 — 파이썬 원본과 전수 대조 완료(12/12).
      Phase 3: 게임 상태·규칙·서바이벌 UI — validate_word 500/500 대조 완료.
      Phase 4: 아케이드 + 게임 데이터 삭제(Firebase, Llove와 같은 프로젝트 — 로그인 자동 공유).
-     Phase 5: 국립국어원 API 연동(국어원_활성화=true, 실사용 중) — 실패 시 로컬 사전 폴백.
+     Phase 5: 우리말샘 API 연동(국어원_활성화=true, 실사용 중) — 실패 시 로컬 사전 폴백.
      클래식 스크립트·전역 공유(Llove와 동일 원칙). 로드 순서 고정. -->
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-auth-compat.js"></script>

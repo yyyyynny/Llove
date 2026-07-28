@@ -88,6 +88,10 @@ function 로그아웃실행(){
 }
 
 // 인증 상태 변경 — 로그인 성공 시 Firestore 사용자 문서 로드(기존) 또는 이름 입력(신규)
+// 온보딩(#onboarding)은 position:fixed·z-index:9999로 기본 표시라, 걷어내지 않으면 그 아래 화면이
+// 무엇이든 가려진다. 인증이 끝난 사용자에게 남아 있으면 안 되므로 한 곳으로 모아 둔다.
+function 온보딩_걷기(){ document.getElementById('onboarding')?.classList.add('gone'); }
+
 function 인증상태_변경(user){
   if(!user){ 현재UID = null; return; }
   현재UID = user.uid;
@@ -96,14 +100,23 @@ function 인증상태_변경(user){
   fbDb.collection('users').doc(user.uid).get().then(snap=>{
     if(snap.exists){
       사용자데이터_적용(snap.data(), user);
-      document.getElementById('onboarding')?.classList.add('gone'); // 자동 로그인 시 온보딩 건너뜀
+      온보딩_걷기();     // 자동 로그인 시 온보딩 건너뜀
       goNav('sh', null);
     } else {
-      // 신규 사용자: 이름 입력 화면
+      // 신규 사용자: 이름 입력 화면 (온보딩은 그대로 둔다 — 처음 온 사람에겐 보여줘야 한다)
       사용자.프로필이미지 = 사용자.프로필이미지 || '⚔️';
       goNav('sn', null);
     }
-  }).catch(e=> console.error('[Firestore] 사용자 문서 로드 실패', e));
+  }).catch(e=>{
+    // ⚠️ 2026-07-29: 종전에는 실패를 콘솔에만 찍고 끝냈다. #onboarding은 position:fixed·z-index:9999로
+    // **기본 표시**라, Firestore가 느리거나 실패하면 이미 로그인된 사용자에게도 "로그인 전 설명 화면"이
+    // 영영 덮인 채 남았다(wchain에서 게임 데이터 삭제 후 돌아올 때 관리자님이 겪으신 증상).
+    // 인증은 이미 끝났으므로 온보딩은 걷고 홈으로 보낸 뒤, 데이터를 못 읽었다는 사실만 알린다.
+    console.error('[Firestore] 사용자 문서 로드 실패', e);
+    온보딩_걷기();
+    goNav('sh', null);
+    showToastMsg('저장된 데이터를 불러오지 못했습니다. 네트워크를 확인해 주세요.');
+  });
 }
 
 // Firestore 루트 문서 → 사용자 런타임 객체 + 상태 변수 반영 (KNOWLEDGE 13-1)

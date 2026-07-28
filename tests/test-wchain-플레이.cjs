@@ -508,6 +508,52 @@ async function main(){
          win.localStorage.getItem('plx_테마') === 'navy');
   }
 
+  /* ── 15. 문구·레이아웃·삭제 (2026-07-29 제보 4·9·10) ──────────────── */
+  console.log('\n[15] 우리말샘 문구 · 데스크탑 · 데이터 삭제');
+  {
+    const html = fs.readFileSync(path.join(WCHAIN, 'index.html'), 'utf8');
+    const 서바 = fs.readFileSync(path.join(WCHAIN, 'js/서바이벌.js'), 'utf8');
+
+    // 4번 — 실제 소스는 우리말샘 하나뿐인데 화면은 "국립국어원"이라고 말하고 있었다
+    확인('조회 중 문구가 우리말샘', 서바.includes('우리말샘에서 찾아보는 중'));
+    확인('사용자에게 보이는 문구에 "국립국어원 사전"이 남지 않음',
+         !서바.includes('국립국어원 사전'));
+    확인('설명서도 우리말샘', html.includes('우리말샘 사전으로 실제 확인합니다'));
+
+    // 9번 — 데스크탑에서 세로·가로가 차야 한다
+    확인('로그 높이 상한(420px)이 제거됨', !html.includes('max-height:min(50dvh, 420px)'));
+    확인('넓은 화면용 미디어 쿼리가 있다', /@media \(min-width:760px\)/.test(html));
+    확인('넓은 화면에서 폭이 넓어진다', /max-width:640px/.test(html));
+
+    // 10번 — 삭제가 로컬 흔적까지 지우고, 온보딩을 건너뛴 홈으로 보낸다
+    const 연동 = fs.readFileSync(path.join(WCHAIN, 'js/연동.js'), 'utf8');
+    확인('삭제가 잇는 로컬 캐시도 지운다', 연동.includes('잇는_로컬삭제'));
+    확인('캐시 키 3종 + 구버전 키를 지운다',
+         연동.includes('plx_잇는_국어원캐시_v2') && 연동.includes('plx_잇는_국어원후보캐시')
+         && 연동.includes('plx_잇는_테마연동') && 연동.includes("removeItem('plx_잇는_국어원캐시')"));
+    확인('온보딩을 건너뛴 홈으로 보낸다', 연동.includes("'../Llove/#home'"));
+    확인('비로그인 시 무엇이 지워졌는지 알린다', 연동.includes('서버 기록은 그대로'));
+
+    // 실제 삭제 동작 — 캐시가 비워지는지
+    const { win } = 페이지열기();
+    win.localStorage.setItem('plx_잇는_국어원캐시_v2', '{"가":true}');
+    win.localStorage.setItem('plx_잇는_국어원후보캐시', '{"start:가":[]}');
+    win.localStorage.setItem('plx_테마', 'navy');          // Llove 것 — 건드리면 안 된다
+    win.잇는_로컬삭제();
+    확인('삭제 후 잇는 캐시가 비워진다',
+         !win.localStorage.getItem('plx_잇는_국어원캐시_v2')
+         && !win.localStorage.getItem('plx_잇는_국어원후보캐시'));
+    확인('Llove의 localStorage는 건드리지 않는다',
+         win.localStorage.getItem('plx_테마') === 'navy');
+
+    // 10번 — Llove 쪽 온보딩 버그(Firestore 실패 시 영영 안 걷힘)
+    const fb = fs.readFileSync(path.join(루트, 'Llove/js/firebase.js'), 'utf8');
+    확인('Llove 온보딩 걷기가 한 함수로 모임', fb.includes('function 온보딩_걷기()'));
+    확인('Firestore 실패 경로에서도 온보딩을 걷는다',
+         /\.catch\(e=>\{[\s\S]*?온보딩_걷기\(\)/.test(fb));
+    확인('실패해도 홈으로 보낸다', /\.catch\(e=>\{[\s\S]*?goNav\('sh'/.test(fb));
+  }
+
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
   process.exit(실패 ? 1 : 0);
 }
