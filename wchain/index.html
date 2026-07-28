@@ -7,6 +7,11 @@
   <!-- 모바일 브라우저 UI(주소창)까지 배경색을 맞춰 스크롤 시 흰 띠가 드러나지 않게 한다 -->
   <meta name="theme-color" content="#0e1016">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%97%3C/text%3E%3C/svg%3E">
+  <!-- 폰트 실로드 — 종전엔 font-family 선언만 있고 링크가 없어 시스템 폰트로 떨어졌다.
+       Llove(스타일시트 상단 CDN 폰트)와 같은 서체 기반을 공유한다. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <!--
     '잇는'(임시 이름 — 최종 미정) — Llove의 이세계(끝말잇기 게임 차원).
     서바이벌·아케이드 두 모드 모두 실플레이 가능. 국립국어원 API 연동 실사용 중.
@@ -14,144 +19,170 @@
     상세 설계·게이트 정책·이식 규칙은 wchain/시스템.md 참조.
   -->
   <style>
-    /* Llove 본체와 분리된 독립 진입점이라 최소 스타일만 자체 보유.
+    /* Llove 본체와 분리된 독립 진입점이라 스타일을 자체 보유하되, 2026-07-28부터
+       **디자인 언어는 Llove(style.css)를 그대로 따른다** — 토큰 이름(--card/--elev/--bdr/--bdrg/
+       --acc·accl·accd/--txt·txt2·txtm/--fn), 설정 화면 문법(set-sec/set-row/sri·srl·srs, .mt 토글,
+       .fs-opt 칩), 버튼 공식(.btn-acc = accd→acc 그라디언트 + 어두운 글자)까지 전부 Llove 실측값.
+       색 값만 wchain 고유 다크 팔레트(이세계 정체성 — 관리자님 확정).
        회전 애니메이션은 '잇' 퍼즐(게임 본질)에서만 허용 — 그 외 전부 fadeUp만 사용(Llove 규칙 준용). */
-    :root{ --bg:#0e1016; --panel:#151824; --panel2:#1b1f2e; --acc:#9db0d8; --txt:#e6e9f2; --txt2:#8b93a8;
-           --ok:#8ce6bf; --err:#e68c9c; --warn:#e6c98c; --bdr:rgba(157,176,216,.22);
-           /* 브라우저 기본 캔버스·스크롤바·폼 컨트롤을 다크 기준으로 — 이게 없으면 모바일에서
-              주소창이 접히며 뷰포트가 100dvh를 넘어 늘어날 때 흰색 기본 배경이 드러난다
-              (관리자님 제보: "빠른 스크롤 시 흰색에서 부자연스럽게 확장"). */
-           color-scheme: dark; }
+    :root{
+      --bg:#0e1016; --card:#151824; --elev:#1b1f2e;
+      --bdr:#262e44; --bdrg:#38445f;
+      --acc:#9db0d8; --accl:#c7d3ee; --accd:#55668f;
+      --txt:#e6e9f2; --txt2:#8b93a8; --txtm:#4c5468;
+      --ok:#8ce6bf; --err:#e68c9c; --warn:#e6c98c;
+      --fn:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;
+      /* 브라우저 기본 캔버스·스크롤바·폼 컨트롤을 다크 기준으로 — 이게 없으면 모바일에서
+         주소창이 접히며 뷰포트가 100dvh를 넘어 늘어날 때 흰색 기본 배경이 드러난다. */
+      color-scheme: dark;
+    }
     *{ box-sizing:border-box; margin:0; padding:0; }
     /* html에도 배경색을 깔아 body 밖 영역(오버스크롤·툴바 접힘 구간)까지 확실히 칠한다 */
     html{ height:100%; background:var(--bg); }
-    body{
-      background:radial-gradient(700px 500px at 50% 8%, #171b28 0%, var(--bg) 70%) var(--bg);
-      background-attachment:fixed;
-      color:var(--txt);
-      font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;
-      min-height:100dvh;
-    }
+    /* Llove와 동일하게 플랫 단색 배경 — 종전 radial-gradient는 생성형 사이트 상투 장식이라 제거 */
+    body{ background:var(--bg); color:var(--txt); font-family:var(--fn); min-height:100dvh; }
     .wrap{ max-width:520px; margin:0 auto; padding:20px 16px 40px; min-height:100dvh; display:flex; flex-direction:column; }
     .screen{ display:none; flex:1; flex-direction:column; }
     .screen.active{ display:flex; }
     @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
-    .fu{ animation:fadeUp .32s cubic-bezier(.22,1,.36,1) both; }
+    .fu{ animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both; }
+    /* Llove의 스태거 지연(.s1~.s6)과 동일 */
+    .s1{animation-delay:.05s}.s2{animation-delay:.10s}.s3{animation-delay:.15s}
+    .s4{animation-delay:.20s}.s5{animation-delay:.25s}.s6{animation-delay:.30s}
 
-    .badge{ font-size:12px; letter-spacing:4px; color:var(--acc); margin-bottom:10px; text-align:center; }
-    h1{ font-size:26px; font-weight:900; letter-spacing:1px; margin-bottom:4px; text-align:center;
-      background:linear-gradient(180deg,#ffffff,#aab6d8); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
-    .sub{ font-size:12px; color:var(--txt2); margin-bottom:22px; text-align:center; }
+    /* 헤더 — 그라디언트 텍스트·영문 부제 제거(AI 사이트 상투 장식). 담백하게. */
+    .badge{ font-size:11px; letter-spacing:6px; color:var(--txt2); margin-bottom:6px; text-align:center; }
+    h1{ font-size:24px; font-weight:800; margin-bottom:20px; text-align:center; color:var(--txt); }
     .back{ margin:18px auto 0; display:inline-block; font-size:12px; color:var(--txt2); text-decoration:none; }
     .back:hover{ color:var(--acc); }
     /* 파괴적 동작(게임 데이터 삭제)은 진입 화면에서 존재만 알리고 시선은 끌지 않게 */
     .back.danger{ margin-top:10px; font-size:11px; color:var(--err); opacity:.45; }
     .back.danger:hover{ opacity:.9; color:var(--err); }
 
-    /* 플레이 중에는 타이틀 블록을 한 줄로 접는다 — 종전엔 게임 화면에서도 로고가 190px를
-       차지해 정작 중요한 로그·입력창이 밀려났다. 표시/숨김만 바꾸고 마크업은 그대로 둔다. */
-    body.playing .badge, body.playing .sub{ display:none; }
-    body.playing h1{ font-size:15px; letter-spacing:3px; margin-bottom:12px; opacity:.75; }
+    /* 플레이 중에는 타이틀 블록을 한 줄로 접는다 — 게임 화면에서 로고가 자리를 먹지 않게. */
+    body.playing .badge{ display:none; }
+    body.playing h1{ font-size:14px; letter-spacing:3px; margin-bottom:12px; opacity:.6; }
     body.playing .wrap{ padding-top:12px; }
 
+    /* 카드 = Llove .set-sec 실측값 그대로 (card 배경 / 1px bdr / radius 14 / padding 14 16) */
+    .card, .set-sec{ background:var(--card); border:1px solid var(--bdr); border-radius:14px;
+      padding:14px 16px; margin-bottom:10px; }
+    /* 섹션 라벨 = Llove .set-lbl 그대로 */
+    .card-title, .set-lbl{ font-size:12px; font-weight:700; color:var(--txt2); text-transform:uppercase;
+      letter-spacing:1.4px; margin-bottom:10px; }
 
-    .card{ background:var(--panel); border:1px solid var(--bdr); border-radius:14px; padding:16px; margin-bottom:10px; }
-    .card-title{ font-size:11px; color:var(--txt2); letter-spacing:1px; margin-bottom:8px; }
-    .card-title b{ color:var(--txt); }
-
-    .btn{ display:block; width:100%; text-align:left; font-family:inherit; font-size:14px; color:var(--txt);
-      background:var(--panel); border:1px solid var(--bdr); border-radius:12px; padding:13px 16px; margin-bottom:8px;
-      cursor:pointer; transition:background .18s,border-color .18s,transform .1s; }
+    /* 목록 버튼 = Llove .aopt 문법(elev 배경, hover 시 살짝 오른쪽 + 보더 강조) */
+    .btn{ display:block; width:100%; text-align:left; font-family:var(--fn); font-size:14px; color:var(--txt);
+      background:var(--elev); border:1px solid var(--bdr); border-radius:10px; padding:12px 15px; margin-bottom:8px;
+      cursor:pointer; transition:transform .15s,border-color .2s,background .2s; }
+    .card > .btn:hover{ transform:translateX(3px); }
+    .btn:hover{ border-color:var(--bdrg); }
     .btn:active{ transform:scale(.98); }
-    .btn:hover{ background:var(--panel2); border-color:rgba(157,176,216,.4); }
-    .btn.acc{ background:linear-gradient(135deg,#3a4470,#2a3358); border-color:rgba(157,176,216,.5); color:#fff; font-weight:700; text-align:center; }
-    .btn.acc:hover{ filter:brightness(1.12); }
-    .btn.sm{ display:inline-block; width:auto; padding:9px 14px; font-size:12px; margin:0 6px 6px 0; }
+    /* 강조 버튼 = Llove .btn-acc 공식 그대로(accd→acc 그라디언트 + 어두운 글자) */
+    .btn.acc{ background:linear-gradient(135deg,var(--accd),var(--acc)); color:var(--bg); border:none;
+      font-weight:700; text-align:center; letter-spacing:.3px; transition:transform .2s,box-shadow .2s; }
+    .btn.acc:hover{ transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.3); }
+    .btn.acc:active{ transform:scale(.97); }
+    /* 소형 버튼 = Llove .fs-opt 칩 계열(선택박스·보조 버튼 공용 — JS 생성 마크업이 이 클래스를 쓴다) */
+    .btn.sm{ display:inline-block; width:auto; padding:8px 13px; font-size:13px; font-weight:600;
+      color:var(--txt2); border-radius:8px; margin:0 6px 6px 0; }
+    .btn.sm:hover{ border-color:var(--accd); color:var(--acc); transform:none; }
+    .btn.sm.acc{ color:var(--bg); }
     .btn:disabled, .input-row button:disabled, .input-row input:disabled{ opacity:.4; cursor:not-allowed; }
-    .btn .d{ font-size:11px; color:var(--txt2); margin-top:2px; }
-    .row{ display:flex; flex-wrap:wrap; gap:0; }
+    .btn .d{ font-size:11px; color:var(--txt2); margin-top:2px; font-weight:400; }
 
-    /* HUD — 2×2 네 박스(약 200px)에서 한 줄 세 칸으로 압축(2026-07-28).
-       종전엔 '상태' 칸이 이모지 하나만 담고도 박스를 통째로 썼다. 상태는 턴 칸에 붙이고,
-       진행바는 폭을 다 쓰도록 HUD 밖으로 뺐다. */
+    /* ── 설정 화면: Llove 설정창(set-sec/set-row) 실측값 그대로 이식 ── */
+    .set-row{ display:flex; align-items:center; gap:11px; padding:10px 0; border-bottom:1px solid var(--bdr);
+      cursor:pointer; transition:opacity .2s; }
+    .set-row:last-child{ border-bottom:none; padding-bottom:2px; }
+    .set-row:hover{ opacity:.85; }
+    /* 칩 선택 항목은 세로 배치(라벨 행 + 칩 줄) — Llove '화면 크기' 행과 같은 변형 */
+    .set-row.col{ flex-direction:column; align-items:stretch; gap:9px; cursor:default; }
+    .set-row.col:hover{ opacity:1; }
+    .set-row .top{ display:flex; align-items:center; gap:11px; }
+    .sri{ font-size:20px; width:26px; text-align:center; flex-shrink:0; }
+    .srl{ font-size:14px; font-weight:500; }
+    .srs{ font-size:13px; color:var(--txt2); margin-top:2px; line-height:1.5; }
+    .sra{ color:var(--txtm); font-size:16px; }
+    /* 다지선다 칩 = Llove .fs-opt 그대로(틴트만 wchain accent) */
+    .fs-opts{ display:flex; flex-wrap:wrap; gap:6px; }
+    .fs-opt{ padding:7px 12px; border:1px solid var(--bdr); border-radius:8px; background:var(--elev);
+      color:var(--txt2); font-family:var(--fn); font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
+    .fs-opt.on{ border-color:var(--acc); color:var(--acc); background:rgba(157,176,216,.12);
+      box-shadow:inset 0 0 0 1px var(--acc); }
+    /* ON/OFF 토글 = Llove .mt 스위치 그대로 (38×22, 손잡이 16px) */
+    .mtw{ display:flex; align-items:center; gap:8px; }
+    .mt{ position:relative; display:inline-block; width:38px; height:22px; flex-shrink:0; }
+    .mt input{ opacity:0; width:0; height:0; }
+    .mtt{ position:absolute; cursor:pointer; inset:0; background:var(--elev); border:1px solid var(--bdr);
+      transition:.3s; border-radius:22px; }
+    .mtth{ position:absolute; height:16px; width:16px; left:2px; bottom:2px; background:var(--acc);
+      border-radius:50%; transition:.3s; }
+    .mt input:checked+.mtt{ background:var(--bdrg); border-color:var(--accd); }
+    .mt input:checked+.mtt .mtth{ transform:translateX(16px); }
+    .set-warn{ font-size:12px; color:var(--warn); margin:2px 2px 10px; line-height:1.5; }
+    /* 시작 버튼 — 설정이 길어도 항상 닿게 sticky. 떠 있는 버튼이 마지막 섹션을 가리지 않도록
+       마지막 set-sec 아래에 버튼 높이만큼 여유를 둔다. */
+    #s-설정 > .btn.acc{ position:sticky; bottom:8px; margin-bottom:0; padding:13px 22px; font-size:15px;
+      box-shadow:0 6px 22px rgba(0,0,0,.65); }
+    #s-설정 > .set-sec:last-of-type{ margin-bottom:16px; }
+
+    /* HUD — 한 줄 세 칸 + 전폭 진행바 */
     .hud{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:6px; }
-    .hud-item{ background:var(--panel); border:1px solid var(--bdr); border-radius:10px; padding:7px 9px; }
+    .hud-item{ background:var(--card); border:1px solid var(--bdr); border-radius:10px; padding:7px 9px; }
     .hud-lbl{ font-size:10px; color:var(--txt2); margin-bottom:2px; }
     .hud-val{ font-size:13px; font-weight:700; white-space:nowrap; }
     .bar-track{ background:#0b0d14; border-radius:999px; height:5px; overflow:hidden; margin-bottom:10px; }
-    .bar-fill{ height:100%; background:linear-gradient(90deg,var(--acc),#c7d3ee); transition:width .3s; min-width:2px; }
+    .bar-fill{ height:100%; background:linear-gradient(90deg,var(--acc),var(--accl)); transition:width .3s; min-width:2px; }
     .status-🟢{ color:var(--ok); } .status-🟡{ color:var(--warn); } .status-🔴{ color:var(--err); }
 
-    /* 상대 단어 카드 — 종전엔 큰 글씨 단어 하나뿐이라 "이게 상대가 낸 말인지 내가 낼 말인지"가
-       읽히지 않았고, 정작 제일 중요한 '이어야 할 글자'가 작은 회색 안내문에 묻혀 있었다. */
-    .ai-word{ text-align:center; font-size:22px; font-weight:700; padding:12px 14px 14px; background:var(--panel2);
+    /* 상대 단어 카드 — '이어야 할 글자'는 fs-opt.on과 같은 톤의 배지로 강조 */
+    .ai-word{ text-align:center; font-size:22px; font-weight:700; padding:12px 14px 14px; background:var(--card);
       border:1px solid var(--bdr); border-radius:12px; margin-bottom:10px; }
     .ai-word .aw-lbl{ font-size:10px; font-weight:400; letter-spacing:2px; color:var(--txt2); margin-bottom:5px; }
     .ai-word small{ display:block; font-size:12px; color:var(--txt2); font-weight:400; margin-top:7px; }
     .ai-word small .need{ display:inline-block; font-size:17px; font-weight:800; color:var(--acc);
-      background:rgba(157,176,216,.12); border:1px solid var(--bdrg,rgba(157,176,216,.45));
+      background:rgba(157,176,216,.12); border:1px solid var(--acc); box-shadow:inset 0 0 0 1px var(--acc);
       border-radius:8px; padding:1px 9px; margin:0 2px; vertical-align:-2px; }
-    /* 첫 턴엔 상대 단어가 없다 — 라벨·빈 자리(─)·안내문이 같은 말을 세 번 하게 되므로 안내만 남긴다 */
+    /* 첫 턴엔 상대 단어가 없다 — 카드를 안내 한 줄로 접는다 */
     .ai-word.empty .aw-lbl, .ai-word.empty #ai-단어{ display:none; }
     .ai-word.empty{ padding:16px 14px; }
     .ai-word.empty small{ margin-top:0; font-size:14px; color:var(--txt); }
 
-    .log{ flex:1; min-height:120px; max-height:min(50dvh, 420px); overflow-y:auto; background:#0b0d14; border:1px solid var(--bdr);
-      border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:13px; line-height:1.7; }
+    .log{ flex:1; min-height:120px; max-height:min(50dvh, 420px); overflow-y:auto; background:#0b0d14;
+      border:1px solid var(--bdr); border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:13px; line-height:1.7; }
     .log .line{ margin-bottom:4px; }
-    /* 내가 낸 단어를 상대 대사와 확실히 구분(2026-07-28) — 종전엔 전부 같은 톤이라 로그가
-       길어지면 내 차례에 무엇을 냈는지 되짚기 어려웠다. */
     .log .line.me{ color:var(--acc); font-weight:700; }
     .log .line.sys{ color:var(--txt2); font-size:12px; }
     .log .line.err{ color:var(--err); }
     .log .line.ok{ color:var(--ok); }
     .log .line.warn{ color:var(--warn); }
 
-    /* 커스텀 스크롤바 — 로그·모달 공용. 기본 브라우저 스크롤바 대신 테마에 맞춘 얇은 바로 교체. */
+    /* 커스텀 스크롤바 — 로그·모달 공용 */
     .log, .modal-bx{ scrollbar-width:thin; scrollbar-color:var(--bdr) transparent; }
     .log::-webkit-scrollbar, .modal-bx::-webkit-scrollbar{ width:6px; }
     .log::-webkit-scrollbar-track, .modal-bx::-webkit-scrollbar-track{ background:transparent; }
     .log::-webkit-scrollbar-thumb, .modal-bx::-webkit-scrollbar-thumb{ background:var(--bdr); border-radius:999px; }
-    .log:hover::-webkit-scrollbar-thumb, .modal-bx:hover::-webkit-scrollbar-thumb{ background:rgba(157,176,216,.45); }
+    .log:hover::-webkit-scrollbar-thumb, .modal-bx:hover::-webkit-scrollbar-thumb{ background:var(--bdrg); }
 
     .input-row{ display:flex; gap:8px; margin-bottom:10px; }
-    .input-row input{ flex:1; font-family:inherit; font-size:15px; color:var(--txt); background:var(--panel);
-      border:1px solid var(--bdr); border-radius:12px; padding:12px 14px; outline:none; }
+    .input-row input{ flex:1; font-family:var(--fn); font-size:15px; color:var(--txt); background:var(--elev);
+      border:1px solid var(--bdr); border-radius:10px; padding:12px 14px; outline:none; }
     .input-row input:focus{ border-color:var(--acc); }
-    .input-row button{ font-family:inherit; font-size:14px; font-weight:700; color:#fff; background:linear-gradient(135deg,#3a4470,#2a3358);
-      border:none; border-radius:12px; padding:0 18px; cursor:pointer; }
+    .input-row button{ font-family:var(--fn); font-size:14px; font-weight:700; color:var(--bg);
+      background:linear-gradient(135deg,var(--accd),var(--acc)); border:none; border-radius:10px;
+      padding:0 18px; cursor:pointer; letter-spacing:.3px; }
 
-    /* 보조 버튼 — 종전엔 flex-wrap이라 글자 수대로 폭이 제각각이고 줄바꿈도 들쭉날쭉했다.
-       3열 격자로 고정해 눈이 열을 따라가게 한다(2026-07-28). */
+    /* 보조 버튼 3열 격자 */
     .util-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-    /* 3열에 '🔒 그 단어 없어!'까지 한 줄로 들어가도록 글자·좌우 여백을 좁힌다 */
     .util-row .btn.sm{ margin:0; width:100%; text-align:center; font-size:11px; padding:10px 4px;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    /* 봉인된 기능은 존재만 알리고 활성 버튼과 같은 비중으로 보이지 않게 */
     .util-row .btn.sm.locked{ opacity:.5; }
 
-    /* 설정 항목 — 선택지를 전부 펼쳐 보여주는 행(2026-07-26). 버튼은 기존 .btn.sm/.btn.sm.acc를
-       그대로 쓰고, 여기서는 배치만 담당한다(새 색상값 도입 없음). */
-    .set-row{ padding:10px 0; border-top:1px solid var(--bdr); }
-    .set-row:first-child{ border-top:0; padding-top:2px; }
-    .set-lbl{ font-size:13px; font-weight:700; margin-bottom:7px; }
-    /* 선택지는 격자로 — flex-wrap이던 종전에는 난이도 4개가 3+1로 깨져 '심연'만 혼자 넓어졌고,
-       2지선다도 글자 수대로 폭이 달라졌다. 개수별로 열을 정해 항상 균등하게 놓는다. */
-    .set-opts{ display:grid; gap:6px; margin-bottom:6px; }
-    .set-opts.c2, .set-opts.c4{ grid-template-columns:repeat(2,1fr); }
-    .set-opts.c3{ grid-template-columns:repeat(3,1fr); }
-    .set-opts .btn.sm{ margin:0; width:100%; text-align:center; }
-    .set-row .d{ font-size:11px; color:var(--txt2); line-height:1.5; }
-    /* 시작 버튼 — 설정이 길어 스크롤 밖으로 밀려나 있었다. 아래에 붙여 항상 닿게 한다.
-       떠 있는 버튼이 마지막 항목을 가리지 않도록 카드 아래에 그만큼 여유를 준다. */
-    #s-설정 > .btn.acc{ position:sticky; bottom:8px; margin-bottom:0;
-      background:linear-gradient(135deg,#3a4470,#2a3358); box-shadow:0 6px 22px rgba(0,0,0,.65); }
-    #s-설정 > .card{ margin-bottom:14px; }
-
-    /* 플레이 화면 상단 설정 요약 배지 */
+    /* 플레이 화면 상단 설정 요약 — fs-opt 계열의 사각 칩(알약 제거) */
     .cfg-bar{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
-    .cfg-chip{ font-size:10px; color:var(--txt2); background:var(--panel); border:1px solid var(--bdr);
-      border-radius:999px; padding:3px 9px; }
+    .cfg-chip{ font-size:11px; font-weight:600; color:var(--txt2); background:var(--elev);
+      border:1px solid var(--bdr); border-radius:6px; padding:3px 8px; }
 
     /* 조회 중 표시 — 회전 금지 규칙 준수(점 세 개 점멸만 사용) */
     @keyframes dotBlink{ 0%,80%,100%{opacity:.25} 40%{opacity:1} }
@@ -159,8 +190,9 @@
     .dots span:nth-child(2){ animation-delay:.2s; }
     .dots span:nth-child(3){ animation-delay:.4s; }
 
-    .choice-box{ background:var(--panel2); border:1px solid var(--bdr); border-radius:12px; padding:12px; margin-bottom:10px; }
+    .choice-box{ background:var(--elev); border:1px solid var(--bdr); border-radius:12px; padding:12px; margin-bottom:10px; }
     .choice-box .q{ font-size:13px; margin-bottom:10px; line-height:1.6; }
+    .choice-box .btn{ background:var(--card); }
 
     .result{ text-align:center; padding:20px 0; }
     .result .emoji{ font-size:44px; margin-bottom:10px; }
@@ -170,7 +202,7 @@
     .modal-bg{ position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.6); display:flex; align-items:center;
       justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .25s; }
     .modal-bg.show{ opacity:1; pointer-events:all; }
-    .modal-bx{ background:var(--panel); border:1px solid var(--bdr); border-radius:16px; padding:20px; max-width:400px;
+    .modal-bx{ background:var(--card); border:1px solid var(--bdr); border-radius:16px; padding:20px; max-width:400px;
       max-height:80vh; overflow-y:auto; width:100%; font-size:13px; line-height:1.7; text-align:left; }
     .modal-bx h3{ font-size:15px; margin-bottom:10px; }
   </style>
@@ -179,12 +211,11 @@
 <div class="wrap">
   <div class="badge">잇 는</div>
   <h1>끝말잇기</h1>
-  <div class="sub">Dark Fantasy Edition</div>
 
   <!-- 페르소나 선택 (원본 show_init/_handle_init) -->
   <div class="screen active" id="s-페르소나">
     <div class="card fu">
-      <div class="card-title">페르소나를 선택하세요</div>
+      <div class="card-title">페르소나 선택</div>
       <button class="btn" onclick="선택_페르소나('Arrogant')">
         <b>폭군</b> — 냉혹하고 조롱하는 심판
         <div class="d">호칭: 필멸자 → 각성자 → 초월자</div>
@@ -202,20 +233,33 @@
   <div class="screen" id="s-모드">
     <div class="card fu">
       <div class="card-title">게임 모드</div>
-      <button class="btn acc" onclick="선택_모드('SURVIVAL')">🕰 서바이벌 모드<div class="d">턴 제한 내 생존 · 실수 4회마다 목숨 차감</div></button>
-      <button class="btn acc" onclick="선택_모드('ARCADE')">🗼 아케이드 모드<div class="d">13층 타워 등반 · 목숨 2개 · 시련의 탑</div></button>
+      <button class="btn" onclick="선택_모드('SURVIVAL')">
+        <b>서바이벌 모드</b>
+        <div class="d">턴 제한 내 생존 · 실수 4회마다 목숨 차감</div>
+      </button>
+      <button class="btn" onclick="선택_모드('ARCADE')">
+        <b>아케이드 모드</b>
+        <div class="d">13층 타워 등반 · 목숨 2개 · 시련의 탑</div>
+      </button>
     </div>
   </div>
 
-  <!-- 서바이벌 설정 (원본 _show_ready/_handle_ready) -->
+  <!-- 서바이벌 설정 — Llove 설정창(set-sec/set-row/.mt/.fs-opt) 문법 그대로 (2026-07-28) -->
   <div class="screen" id="s-설정">
-    <div class="card fu">
-      <div class="card-title">⚙ 서바이벌 설정</div>
-      <div id="설정-항목"></div>
-      <div class="set-row" id="설정-사전"></div>
-      <div class="d" id="설정-경고" style="display:none;color:var(--warn);margin-top:8px"></div>
+    <div class="set-sec fu s1">
+      <div class="set-lbl">게임 규칙</div>
+      <div id="설정-규칙"></div>
     </div>
-    <button class="btn acc fu" onclick="게임_시작()">🚀 시작</button>
+    <div class="set-sec fu s2">
+      <div class="set-lbl">특수 규칙</div>
+      <div id="설정-토글"></div>
+    </div>
+    <div class="set-sec fu s3">
+      <div class="set-lbl">사전</div>
+      <div class="set-row" id="설정-사전" style="cursor:default"></div>
+    </div>
+    <div class="set-warn" id="설정-경고" style="display:none"></div>
+    <button class="btn acc fu s4" onclick="게임_시작()">시작</button>
   </div>
 
   <!-- 플레이 화면 (원본 show_survival_hud/prompt_next/_handle_playing) -->
@@ -258,7 +302,7 @@
       <div class="msg" id="오버-메시지"></div>
       <div class="stat" id="오버-통계"></div>
       <button class="btn acc" onclick="다시시작()">재도전</button>
-      <button class="btn" onclick="전체리셋()">전체 초기화</button>
+      <button class="btn" style="text-align:center" onclick="전체리셋()">전체 초기화</button>
     </div>
   </div>
 
@@ -287,7 +331,7 @@
     <p><b>버튼</b> — 힌트(초성 공개), 먼저 해(첫 턴에만), 상태(HUD 다시 표시), 리셋(현재 판 초기화).<br>
     🔒 이의 있음 · 그 단어 없어!는 <b>재설계 중</b>이라 현재 동작하지 않습니다 — 다음 업데이트에서
     국립국어원 사전으로 실제 판정을 다시 확인하는 방식으로 돌아옵니다.</p>
-    <button class="btn" style="margin-top:10px" onclick="버튼_설명닫기()">닫기</button>
+    <button class="btn" style="margin-top:10px;text-align:center" onclick="버튼_설명닫기()">닫기</button>
   </div>
 </div>
 

@@ -188,14 +188,20 @@ async function main(){
     확인('전송 버튼·입력창에 disabled 스타일 적용',
          html.includes('.input-row button:disabled') && html.includes('.input-row input:disabled'));
 
-    // 설정 화면 설명도 새 규칙을 반영해야 한다
+    // 설정 화면(Llove 문법 이식 후): 한방 모드는 .mt 토글이며 기본 켜짐, srs가 상태 설명을 보여준다
     win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
-    const 설정 = win.document.getElementById('설정-항목').textContent;
-    확인('설정 화면 한방 모드 설명이 새 규칙과 일치',
-         설정.includes('실수 1회로 계산됩니다') && !설정.includes('즉시 패배합니다'));
-    확인('한방 모드 기본 선택이 "켜기"', [...win.document.querySelectorAll('#설정-항목 .set-row')]
-         .find(r => r.textContent.includes('한방 모드'))
-         ?.querySelector('.btn.acc')?.textContent === '켜기');
+    const 한방행 = [...win.document.querySelectorAll('#설정-토글 .set-row')]
+      .find(r => r.textContent.includes('한방 모드'));
+    확인('한방 모드 토글이 기본 켜짐', 한방행?.querySelector('.mt input')?.checked === true);
+    확인('켬 상태 설명이 새 규칙과 일치', 한방행?.textContent.includes('자유롭게 쓸 수 있습니다'));
+    // 토글을 끄면 srs가 "실수 1회" 규칙 설명으로 바뀐다
+    const 스위치 = 한방행.querySelector('.mt input');
+    스위치.checked = false;
+    스위치.dispatchEvent(new win.Event('change'));
+    const 한방행2 = [...win.document.querySelectorAll('#설정-토글 .set-row')]
+      .find(r => r.textContent.includes('한방 모드'));
+    확인('끔 상태 설명이 실수 1회 규칙을 안내', 한방행2?.textContent.includes('실수 1회로 계산됩니다'));
+    확인('토글 조작이 gs에 반영됨', 상태(win).hanbang === false);
   }
 
   /* ── 8. UI 구조 (2026-07-28 정돈) ──────────────────────────────────── */
@@ -240,20 +246,38 @@ async function main(){
          w2.document.getElementById('prompt-안내').textContent.includes('끝나는'));
   }
 
-  /* ── 9. 설정 화면 선택지 격자 ──────────────────────────────────────── */
-  console.log('\n[9] 설정 화면 선택지 격자');
+  /* ── 9. 설정 화면 — Llove 문법(set-sec/set-row/fs-opt/.mt) 이식 검증 ── */
+  console.log('\n[9] 설정 화면 Llove 문법');
   {
     const { win } = 페이지열기();
     win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
-    const 행들 = [...win.document.querySelectorAll('#설정-항목 .set-row')];
-    const 열클래스 = 행들.map(r => {
-      const o = r.querySelector('.set-opts');
-      return [o.children.length, [...o.classList].find(c => /^c\d$/.test(c))];
-    });
-    확인('선택지 개수마다 c2/c3/c4 열 클래스가 붙음',
-         열클래스.every(([n, c]) => c === 'c' + n), JSON.stringify(열클래스));
-    확인('난이도는 4개(2×2 격자)', 열클래스[0][0] === 4 && 열클래스[0][1] === 'c4');
-    확인('두음법칙은 3개(3열)', 열클래스[1][0] === 3 && 열클래스[1][1] === 'c3');
+    const d = win.document;
+
+    확인('섹션 3개(게임 규칙·특수 규칙·사전)가 set-sec로 놓임',
+         d.querySelectorAll('#s-설정 .set-sec').length === 3);
+    확인('섹션 라벨이 set-lbl',
+         [...d.querySelectorAll('#s-설정 .set-lbl')].map(e => e.textContent).join(',') === '게임 규칙,특수 규칙,사전');
+
+    // 칩 항목: 난이도 4 / 진행 방향 2 / 두음법칙 3, 각 그룹에서 선택은 정확히 1개
+    const 칩행 = [...d.querySelectorAll('#설정-규칙 .set-row')];
+    확인('칩 항목 3개(난이도·방향·두음)', 칩행.length === 3);
+    확인('칩 개수: 난이도 4 · 방향 2 · 두음 3',
+         칩행.map(r => r.querySelectorAll('.fs-opt').length).join(',') === '4,2,3');
+    확인('각 그룹에서 .on(선택)이 정확히 1개',
+         칩행.every(r => r.querySelectorAll('.fs-opt.on').length === 1));
+    확인('행 구조가 Llove(sri+srl+srs)', 칩행.every(r =>
+         r.querySelector('.sri') && r.querySelector('.srl') && r.querySelector('.srs')));
+
+    // 칩 실클릭 → gs 반영 + srs가 선택된 값의 설명으로 갱신
+    const 심연칩 = [...d.querySelectorAll('#설정-규칙 .fs-opt')].find(c => c.textContent === '심연');
+    심연칩.click();
+    확인('칩 클릭이 gs에 반영됨(난이도 심연)', 상태(win).diff === '심연');
+    const 난이도행 = [...d.querySelectorAll('#설정-규칙 .set-row')][0];
+    확인('srs가 선택 값 설명으로 갱신됨', 난이도행.textContent.includes('160턴'));
+
+    // 토글 항목 3개(.mt 스위치), 사전 행은 잠금(🔒) 표시
+    확인('토글 항목 3개(한방·무한·구)', d.querySelectorAll('#설정-토글 .mt input').length === 3);
+    확인('사전 행은 잠금 표시', d.getElementById('설정-사전').textContent.includes('🔒'));
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
