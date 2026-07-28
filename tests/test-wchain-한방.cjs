@@ -154,7 +154,9 @@ async function main(){
   console.log('\n[9] AI 후보 풀 정합성 (결함 ③)');
   {
     const { ctx, gs } = 세계만들기();
-    gs.diff = '심연'; gs.hanbang = false; gs.dueum = 'OFF';   // 안전 필터가 켜지는 조건
+    // 안전 필터가 켜지는 조건(hanbang off). 난이도는 격동 — 탐욕도 0이라 균등 랜덤이므로
+    // 이 검사(후보 풀 정합성)가 난이도별 선택 편향에 흔들리지 않는다.
+    gs.diff = '격동'; gs.hanbang = false; gs.dueum = 'OFF';
     gs.ai_last_char = '스';
     // 온라인 후보끼리 서로 이어지는 상황('스나락' → '락바위'). 로컬 사전에는 '락'으로 시작하는
     // 단어가 없어서, 로컬 기준 판정은 '스나락'을 한방으로 오판한다.
@@ -206,6 +208,75 @@ async function main(){
     }
     확인(`6번째 인자 생략 = null = DICTIONARY (${전체.length}단어 × 3조합)`, 불일치 === 0,
          `${불일치}건 불일치 — 파이썬 대조 벡터가 깨진다`);
+  }
+
+  /* ── 12. 난이도가 실제로 다른가 (2026-07-29 제보 5) ────────────────── */
+  console.log('\n[12] 난이도 차등');
+  {
+    const { ctx } = 세계만들기({ 게이트: false });
+
+    // 목숨·힌트 — 종전엔 전 난이도 2개/3개로 동일했다
+    const 자원 = d => {
+      const gs = ctx.새게임상태(); gs.game_mode = 'SURVIVAL'; gs.diff = d;
+      ctx.reset_game(gs);
+      return `${gs.hearts}/${gs.hints}`;
+    };
+    확인('난이도별 목숨/힌트가 다르다 (안온3/5 · 격동2/3 · 초월2/2 · 심연1/1)',
+         ['안온','격동','초월','심연'].map(자원).join(' ') === '3/5 2/3 2/2 1/1',
+         ['안온','격동','초월','심연'].map(자원).join(' '));
+    const 아케 = ctx.새게임상태(); 아케.game_mode = 'ARCADE'; 아케.diff = '심연';
+    ctx.reset_game(아케);
+    확인('아케이드는 난이도와 무관하게 목숨2·힌트3 고정',
+         아케.hearts === 2 && 아케.hints === 3);
+
+    // AI 성향 — "사용자에게 남는 선택지 수"가 난이도에 따라 단조 감소해야 한다
+    const 평균남는수 = diff => {
+      let 합 = 0, n = 0;
+      for(const 시작 of ['가','사','기','자']){
+        for(let i = 0; i < 120; i++){
+          const gs = ctx.새게임상태();
+          gs.game_mode = 'SURVIVAL'; gs.diff = diff; gs.hanbang = true; gs.dueum = 'OFF';
+          gs.ai_last_char = 시작;
+          const w = ctx.ai_generate_word(gs, []);
+          if(!w) continue;
+          합 += ctx.find_words(w[w.length - 1], [w], false, 'OFF', 0, 0).length; n++;
+        }
+      }
+      return 합 / n;
+    };
+    const [안온, 격동, 초월, 심연] = ['안온','격동','초월','심연'].map(평균남는수);
+    const 요약 = `안온 ${안온.toFixed(2)} > 격동 ${격동.toFixed(2)} > 초월 ${초월.toFixed(2)} > 심연 ${심연.toFixed(2)}`;
+    확인(`AI가 남기는 선택지가 난이도순으로 줄어든다 (${요약})`,
+         안온 > 격동 && 격동 > 초월 && 초월 > 심연);
+    확인('안온과 심연의 차이가 2배 이상', 안온 >= 심연 * 2, 요약);
+
+    // 공정성 — AI가 "이을 수 없는 단어"로 이기지 않는다
+    let 막힘 = 0, 총 = 0;
+    for(const 시작 of ['가','사','기','자','바']){
+      for(let i = 0; i < 100; i++){
+        const gs = ctx.새게임상태();
+        gs.game_mode = 'SURVIVAL'; gs.diff = '심연'; gs.hanbang = true; gs.dueum = 'OFF';
+        gs.ai_last_char = 시작;
+        const w = ctx.ai_generate_word(gs, []);
+        if(!w) continue;
+        총++;
+        if(ctx.find_words(w[w.length - 1], [w], false, 'OFF', 0, 0).length === 0) 막힘++;
+      }
+    }
+    // 로컬 사전이 좁아 "모든 후보가 막다른 길"인 글자가 있으므로 0%는 불가능하다.
+    // 요구 조건은 "이을 수 있는 대안이 있는데도 굳이 막다른 수를 두지 않는다".
+    확인(`심연이라도 막다른 수를 남발하지 않는다 (${(막힘/총*100).toFixed(1)}%)`,
+         막힘 / 총 < 0.25, `${막힘}/${총}`);
+
+    // 탐욕도 0(격동)은 기존 균등 랜덤과 동일해야 한다 — 회귀 방지
+    const gs2 = ctx.새게임상태();
+    gs2.game_mode = 'SURVIVAL'; gs2.diff = '격동'; gs2.hanbang = true; gs2.dueum = 'OFF';
+    gs2.ai_last_char = '가';
+    const 뽑힘 = new Set();
+    for(let i = 0; i < 300; i++) 뽑힘.add(ctx.ai_generate_word(gs2, []));
+    const 전체후보 = ctx.find_words('가', [], false, 'OFF', 0, 0).length;
+    확인(`격동은 후보 전체에서 고르게 뽑는다 (${뽑힘.size}/${전체후보})`,
+         뽑힘.size === 전체후보, '탐욕도 0인데 편향이 생겼다');
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);

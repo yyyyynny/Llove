@@ -25,8 +25,31 @@ function 새게임상태(){
   };
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   난이도표 (2026-07-29 신설 — 관리자님 "난이도 차이가 안 느껴진다")
+   ────────────────────────────────────────────────────────────────
+   종전에 난이도가 실제로 바꾸던 것은 목표 턴 수·공격턴 확률·온라인 희귀어 사용 여부뿐이었고,
+   목숨·힌트는 전 난이도 2개/3개로 동일했으며 AI가 단어를 고르는 방식도 전부 균등 랜덤이었다.
+   → 목숨·힌트를 차등하고, AI에 **탐욕도**를 준다.
+
+   탐욕도 = "상대(사용자)에게 남는 선택지를 얼마나 줄이려 드는가".
+   각 후보 단어에 대해 '그 단어를 내면 사용자가 이을 수 있는 후보가 몇 개인가'를 세고,
+   탐욕도가 높을수록 그 수가 적은 단어를 고른다. 로컬 사전만으로도 계산되므로
+   **온라인(우리말샘) 공급이 불안정해도 난이도가 성립한다** — 이 설계의 요점.
+     · 음수(안온) = 오히려 선택지를 많이 남기는 쪽을 고른다(봐준다)
+     · 0(격동)    = 균등 랜덤(원본 그대로)
+     · 양수       = 선택지가 적은 쪽을 고른다. 1.0이면 최솟값을 탐욕적으로 집는다.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const 난이도표 = {
+  안온: { 턴:50,  목숨:3, 힌트:5, 탐욕도:-0.6, 공격확률:5  },
+  격동: { 턴:75,  목숨:2, 힌트:3, 탐욕도: 0.0, 공격확률:15 },
+  초월: { 턴:140, 목숨:2, 힌트:2, 탐욕도: 0.30, 공격확률:35 },
+  심연: { 턴:160, 목숨:1, 힌트:1, 탐욕도: 1.0, 공격확률:50 },
+};
+const 난이도설정 = gs => 난이도표[gs.diff] ?? 난이도표.격동;
+
 function get_max_turns(gs){
-  return { 안온:50, 격동:75, 초월:140, 심연:160 }[gs.diff] ?? 75;
+  return 난이도설정(gs).턴;
 }
 
 // 아케이드 층별 목표 턴(원본 targets 표 + 14층 이후 +5씩 무한 증가) — 시간의 계약 걸리면 ×1.3
@@ -45,8 +68,11 @@ function reset_game(gs){
   // (stage>=13이면 3글자 족쇄가 서바이벌에도 걸린다).
   gs.stage = 1;
   gs.turn = 0; gs.stage_turn = 0; gs.stage_start_turn = 0; gs.score = 0;
-  gs.hints = gs.god_mode_active ? Infinity : 3;
-  gs.hearts = gs.god_mode_active ? Infinity : 2;
+  // 목숨·힌트를 난이도표에서 읽는다(2026-07-29). 아케이드는 층 진행이 난이도 역할을 하므로
+  // 원본대로 목숨 2·힌트 3 고정(아래 ARCADE 분기에서 다시 덮어쓴다).
+  const 난 = 난이도설정(gs);
+  gs.hints = gs.god_mode_active ? Infinity : 난.힌트;
+  gs.hearts = gs.god_mode_active ? Infinity : 난.목숨;
   gs.strikes = 0; gs.attack_streak = 0; gs.yield_attempts = 0; gs.dispute_attempts = 0;
   gs.deal_offered = false; gs.command_typo_strikes = 0;
   gs.curse_time_floors = 0; gs.curse_life_floors = 0; gs.curse_dark_active = false; gs.curse_dark_strikes = 0;
@@ -54,6 +80,7 @@ function reset_game(gs){
   gs.history = []; gs.ai_last_word = null; gs.ai_last_char = null; gs.erosion_level = 0;
   if(gs.game_mode === 'ARCADE'){
     gs.hearts = gs.god_mode_active ? Infinity : 2;
+    gs.hints  = gs.god_mode_active ? Infinity : 3;
     gs.trial_tower_entries = 0;
   }
 }
@@ -108,6 +135,6 @@ function react_ai_word(gs, word){
 }
 
 if (typeof module !== 'undefined') module.exports = {
-  새게임상태, get_max_turns, get_stage_target, used_words, reset_game, full_reset,
+  난이도표, 난이도설정, 새게임상태, get_max_turns, get_stage_target, used_words, reset_game, full_reset,
   is_arrogant, say, title, react_correct, react_ai_word
 };

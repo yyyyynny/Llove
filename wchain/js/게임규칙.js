@@ -88,7 +88,7 @@ function ai_generate_word(gs, 추가후보 = []){
   let attack_mode = false;
   if(gs.hanbang && gs.game_mode !== 'ARCADE' && gs.attack_streak === 0){
     let chance;
-    if(gs.game_mode === 'SURVIVAL') chance = { 안온:5, 격동:15, 초월:35, 심연:50 }[gs.diff] ?? 15;
+    if(gs.game_mode === 'SURVIVAL') chance = 난이도설정(gs).공격확률;
     else if(gs.stage <= 4) chance = 10;
     else if(gs.stage <= 8) chance = 30;
     else if(gs.stage <= 12) chance = 50;
@@ -104,7 +104,7 @@ function ai_generate_word(gs, 추가후보 = []){
     }
     if(attack_cands.length){
       gs.attack_streak = 1;
-      return attack_cands[Math.floor(Math.random() * attack_cands.length)];
+      return 탐욕_선택(gs, attack_cands, used, current_dict);
     }
   }
 
@@ -112,9 +112,47 @@ function ai_generate_word(gs, 추가후보 = []){
   const safe = safe_filter(cands);
   if(safe.length){
     gs.attack_streak = 0;
-    return safe[Math.floor(Math.random() * safe.length)];
+    return 탐욕_선택(gs, safe, used, current_dict);
   }
   return null;
+}
+
+// 난이도 탐욕도에 따라 후보 하나를 고른다 (2026-07-29 신설 — 관리자님 "난이도 차이가 안 느껴진다").
+//
+// 각 후보에 대해 "이 단어를 내면 사용자가 이을 수 있는 후보가 몇 개 남는가"를 세고, 그 수를 기준으로
+// 정렬한 뒤 탐욕도만큼 한쪽 끝에서 뽑는다. 판정 함수(validate_word·is_hanbang)는 전혀 건드리지 않고
+// **선택 단계만** 바꾸므로 파이썬 대조는 그대로 통과한다.
+//
+// 탐욕도 0(격동)이면 기존과 완전히 동일한 균등 랜덤이라 회귀가 없다.
+function 탐욕_선택(gs, 후보들, used, 사전){
+  const 탐욕도 = 난이도설정(gs).탐욕도;
+  if(!탐욕도 || 후보들.length < 2) return 후보들[Math.floor(Math.random() * 후보들.length)];
+
+  const min_len = gs.stage >= 13 ? 3 : 0;
+  // 후보 수 계산은 후보마다 사전을 훑으므로, 후보가 아주 많으면 비용이 커진다.
+  // 무작위로 40개만 표본으로 뽑아 그 안에서 고른다(체감 차이는 유지되고 비용은 상한이 걸린다).
+  const 표본 = 후보들.length > 40
+    ? [...후보들].sort(() => Math.random() - 0.5).slice(0, 40)
+    : 후보들;
+
+  const 점수 = 표본.map(w => ({
+    단어: w,
+    남는수: find_words(!gs.rev ? w[w.length - 1] : w[0], [...used, w],
+                      gs.rev, gs.dueum, 0, min_len, 사전).length,
+  }));
+  // ⚠️ 공정성 한계: 탐욕도가 높으면 "남는 수 0"(=사용자가 이을 수 없는 한방 단어)이 최적이 되어
+  // 심연에서 AI가 답이 없는 단어를 내고 이기는 국면이 나온다(실측 평균 0.63). 이길 수 없는 수를
+  // 두는 건 난이도가 아니라 불공정이므로, **이을 수 있는 후보가 하나라도 있으면 0짜리는 제외**한다.
+  // (한방 모드가 꺼져 있으면 safe_filter가 이미 걸러내므로, 이 가드는 한방 허용 상태를 위한 것.)
+  const 이을수있음 = 점수.filter(x => x.남는수 > 0);
+  const 대상 = 이을수있음.length ? 이을수있음 : 점수;
+
+  // 탐욕도>0이면 남는 수가 적은 순, <0이면 많은 순
+  대상.sort((a, b) => (탐욕도 > 0 ? a.남는수 - b.남는수 : b.남는수 - a.남는수));
+
+  // |탐욕도|가 1이면 맨 앞(최적) 하나, 0에 가까울수록 넓은 구간에서 무작위.
+  const 폭 = Math.max(1, Math.round(대상.length * (1 - Math.abs(탐욕도))));
+  return 대상[Math.floor(Math.random() * 폭)].단어;
 }
 
 // 희귀어 풀(온라인)을 쓸 난이도인지 판정 — 2026-07-26 신설, 관리자님 지시
@@ -135,7 +173,14 @@ function 희귀어_난이도인가(gs){
 // AI 턴·힌트가 공유하는 후보 풀 조회(2026-07-26 신설). 난이도에 따라 온라인 희귀어 풀을
 // 섞을지 정하고, 낮은 난이도에선 로컬 후보가 하나라도 있으면 네트워크를 아예 타지 않는다.
 // 반환값은 ai_generate_word/find_words에 넘길 "추가 후보 배열"(로컬은 호출부가 이미 갖고 있음).
+// 마지막 온라인 후보 조회의 결과 — UI가 "왜 희귀어가 안 나오는지"를 화면에 설명하는 데 쓴다.
+// 관리자님 제보: "심연인데 희귀어가 그렇게 많이 나오는 느낌을 못 받았다".
+// 종전에는 조회 실패 시 조용히 빈 배열로 강등돼(?? []) 사용자가 알 방법이 아예 없었다.
+//   상태: '미시도'(낮은 난이도라 안 부름) | '성공' | '실패'(네트워크·시간초과) | '없음'(0건)
+let 마지막_온라인조회 = { 상태:'미시도', 개수:0 };
+
 async function 온라인후보_가져오기(gs){
+  마지막_온라인조회 = { 상태:'미시도', 개수:0 };
   if(!국어원_활성화 || !gs.ai_last_char) return [];
   if(!희귀어_난이도인가(gs)){
     // 낮은 난이도 — 로컬 큐레이션 사전에 이을 단어가 있으면 그걸로 충분(희귀어 불필요).
@@ -147,7 +192,11 @@ async function 온라인후보_가져오기(gs){
     // 로컬이 완전히 막힌 경우에만 온라인으로 확장(막다른 길 방지 — 기존 폴백 취지 유지).
   }
   // 조회 실패(null)는 빈 배열로 정규화 — AI 턴은 로컬 사전만으로 안전하게 강등된다.
-  return (await 국어원_후보목록조회(gs.ai_last_char, gs.rev ? 'end' : 'start')) ?? [];
+  // 다만 "실패해서 강등됐다"는 사실은 기록해 둔다(위 마지막_온라인조회 주석 참조).
+  const 목록 = await 국어원_후보목록조회(gs.ai_last_char, gs.rev ? 'end' : 'start');
+  if(목록 === null){ 마지막_온라인조회 = { 상태:'실패', 개수:0 }; return []; }
+  마지막_온라인조회 = { 상태: 목록.length ? '성공' : '없음', 개수: 목록.length };
+  return 목록;
 }
 
 // 이 단어가 **정말** 한방 단어인지 확정 (2026-07-27 신설 — 관리자님 "바로 패배" 제보의 핵심 수정).
@@ -307,5 +356,6 @@ function arcade_restart_floor(gs){
 if (typeof module !== 'undefined') module.exports = {
   validate_word, ai_generate_word, ai_generate_word_비동기, check_title, user_defeat,
   붕괴확률, arcade_floor_up, arcade_restart_floor,
-  희귀어_난이도인가, 온라인후보_가져오기, ai_후보사전, ai_한방금지인가, 한방_확정인가
+  희귀어_난이도인가, 온라인후보_가져오기, ai_후보사전, ai_한방금지인가, 한방_확정인가, 탐욕_선택,
+  get 마지막_온라인조회(){ return 마지막_온라인조회; }
 };
