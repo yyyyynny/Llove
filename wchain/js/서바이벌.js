@@ -712,6 +712,10 @@ function 서바이벌_제안_확인(){
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function 버튼_양보(){
   if(gs.ai_last_char !== null) return;
+  // 앞 입력의 온라인 조회·AI 턴이 도는 중에 누르면 user_defeat이 겹쳐 목숨이 이중으로 깎인다
+  // (단어_제출·힌트_실행과 같은 재진입 가드를 공유한다). 조용히 무시하지 않고 이유를 알린다.
+  if(게임_비동기처리중){ 로그_추가('⏳ 앞의 처리가 끝난 뒤에 다시 눌러 주세요.', 'sys'); return; }
+  if(gs.game_state !== 'PLAYING') return;
   gs.yield_attempts += 1;
   if(gs.yield_attempts === 1){
     로그_추가(대사(gs, '버튼_양보_1', {칭호: title(gs)}));
