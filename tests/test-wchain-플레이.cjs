@@ -359,12 +359,27 @@ async function main(){
     const 표 = JSON.parse(fs.readFileSync(path.join(WCHAIN, 'data/대사.json'), 'utf8'));
     const 키목록 = Object.keys(표);
     확인(`대사 ${키목록.length}건이 JSON에 있다`, 키목록.length >= 60);
-    확인('모든 항목이 폭군·비서 두 문구를 갖춘다',
-         키목록.every(k => 표[k].폭군 && 표[k].비서),
-         키목록.filter(k => !표[k].폭군 || !표[k].비서).join(','));
+    // 대사_무작위로 뽑는 묶음(react_correct_1~3 등)은 페르소나마다 문구 수가 달라도 되고,
+    // 모자란 칸은 ""로 비워 둔다(그 페르소나에서는 후보에서 빠짐). 따라서 "둘 다 채워져 있을 것"은
+    // 무작위 묶음이 아닌 1:1 대사에만 적용하고, 묶음은 "양쪽 모두 최소 1줄"로 검사한다.
+    const 무작위접두 = new Set();
+    for(const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']){
+      const src = fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8');
+      for(const m of src.matchAll(/대사_무작위\(gs,\s*'([^']+)'/g)) 무작위접두.add(m[1]);
+    }
+    const 무작위키 = k => [...무작위접두].some(p => new RegExp(`^${p}_\\d+$`).test(k));
+    const 단일키목록 = 키목록.filter(k => !무작위키(k));
+    확인('1:1 대사는 폭군·비서 두 문구를 갖춘다',
+         단일키목록.every(k => 표[k].폭군 && 표[k].비서),
+         단일키목록.filter(k => !표[k].폭군 || !표[k].비서).join(','));
+    확인(`무작위 대사 묶음 ${무작위접두.size}종이 양쪽 페르소나에 최소 1줄씩 있다`,
+         [...무작위접두].every(p => {
+           const 묶음 = 키목록.filter(k => new RegExp(`^${p}_\\d+$`).test(k));
+           return 묶음.some(k => 표[k].폭군) && 묶음.some(k => 표[k].비서);
+         }), [...무작위접두].join(','));
 
     // 코드가 참조하는 키가 전부 JSON에 있는지 (오타·누락 방지)
-    const 고정키 = new Set(), 조립접두 = new Set();
+    const 고정키 = new Set(), 조립접두 = new Set(무작위접두);
     for(const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']){
       const src = fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8');
       for(const m of src.matchAll(/대사\(gs,\s*'([^']+)'(\s*\+)?/g)){
@@ -537,11 +552,17 @@ async function main(){
     // 10번 — 삭제가 로컬 흔적까지 지우고, 온보딩을 건너뛴 홈으로 보낸다
     const 연동 = fs.readFileSync(path.join(WCHAIN, 'js/연동.js'), 'utf8');
     확인('삭제가 잇는 로컬 캐시도 지운다', 연동.includes('잇는_로컬삭제'));
-    확인('캐시 키 3종 + 구버전 키를 지운다',
-         연동.includes('plx_잇는_국어원캐시_v2') && 연동.includes('plx_잇는_국어원후보캐시')
-         && 연동.includes('plx_잇는_테마연동') && 연동.includes("removeItem('plx_잇는_국어원캐시')"));
+    확인('캐시 키 3종을 지운다',
+         연동.includes('plx_잇는_국어원캐시_v2') && 연동.includes('plx_잇는_국어원후보캐시_v2')
+         && 연동.includes('plx_잇는_테마연동'));
+    // 버전 접미사를 올릴 때마다 목록을 늘리는 대신 접두사로 쓸어 담는다 — 구버전 키가 남지 않게
+    확인('plx_잇는_ 접두사 키를 전부 쓸어 담는다',
+         연동.includes('잇는_로컬접두') && 연동.includes('startsWith(잇는_로컬접두)'));
     확인('온보딩을 건너뛴 홈으로 보낸다', 연동.includes("'../Llove/#home'"));
-    확인('비로그인 시 무엇이 지워졌는지 알린다', 연동.includes('서버 기록은 그대로'));
+    // 삭제 버튼은 페르소나 화면에 있어 로그창이 안 보인다 — 안내는 모달이어야 읽힌다
+    확인('비로그인 안내가 로그가 아니라 모달로 뜬다',
+         연동.includes('서버(계정) 기록에는 손대지 않았습니다')
+         && /게임데이터_확인모달\('ℹ️ 이 기기의 기록만/.test(연동));
 
     // 실제 삭제 동작 — 캐시가 비워지는지
     const { win } = 페이지열기();
@@ -660,6 +681,71 @@ async function main(){
     확인('해시는 1회용으로 지운다', fb.includes('history.replaceState'));
     확인('DB 미초기화 경로에서도 온보딩을 걷는다',
          /db 미초기화[\s\S]{0,120}온보딩_걷기\(\)/.test(fb));
+  }
+
+  /* ── 19. 실수 폐지 잔여 환산 · 후보 풀 확장 (2026-07-29 2차 점검) ─── */
+  console.log('\n[19] 목숨 환산 잔여분 · 후보 풀 · 캐시');
+  {
+    const { win } = 페이지열기();
+    await 대사대기(win);
+
+    // (1) 실수 폐지 때 난이도표만 4배로 올리고 빠뜨린 상수들 — 아케이드 시작·계약 보상·14층
+    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    const 아케목숨 = 값(win, '아케이드_목숨');
+    확인('아케이드 시작 목숨이 환산값(2×4)', 상태(win).hearts === 아케목숨 && 아케목숨 === 8,
+         `hearts=${상태(win).hearts}`);
+
+    상태(win).hearts = 5;
+    win.시련_응답(2);                                   // 생명의 계약 — 원본 +1
+    확인('생명의 계약 보상도 환산(+4)', 상태(win).hearts === 5 + 값(win, '목숨보상'),
+         `hearts=${상태(win).hearts}`);
+
+    상태(win).hearts = 5;
+    win.시련_응답(3);                                   // 어둠의 계약 — 원본 +1
+    확인('어둠의 계약 보상도 환산(+4)', 상태(win).hearts === 5 + 값(win, '목숨보상'));
+
+    상태(win).stage = 13;
+    win.탑승리_응답(true);                              // 14층 무한 등반 진입
+    확인('14층 진입 목숨이 아케이드 시작값과 같다', 상태(win).hearts === 아케목숨,
+         `hearts=${상태(win).hearts}`);
+
+    // (2) 모드를 바꿔 재시작해도 시련의 탑 진입 횟수가 남지 않는다
+    상태(win).trial_tower_entries = 3;
+    win.전체리셋(); win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL'); win.게임_시작();
+    확인('시련의 탑 진입 횟수가 초기화된다', 상태(win).trial_tower_entries === 0);
+    확인('전체리셋이 세션 수집어도 비운다', 값(win, '세션_수집어').length === 0);
+  }
+  {
+    // (3) 두음법칙 변형 글자까지 후보를 물어본다 — 종전엔 한 글자만 물어 후보가 좁았고,
+    //     한방 판정(변형까지 확인)과 기준이 어긋나 있었다.
+    const { win, 요청기록 } = 페이지열기();
+    await 대사대기(win);
+    판시작(win, { dueum: 'Flexible' });
+    await 단어넣기(win, '가락');                        // '락' → 두음 변형 '낙'
+    const 글자요청 = 요청기록.filter(r => r.글자 !== undefined).map(r => r.글자);
+    확인('원래 글자를 물어본다', 글자요청.includes('락'), 글자요청.join(','));
+    확인('두음 변형 글자도 함께 물어본다', 글자요청.includes('낙'), 글자요청.join(','));
+
+    const { win: w2, 요청기록: 기록2 } = 페이지열기();
+    await 대사대기(w2);
+    판시작(w2, { dueum: 'OFF' });
+    await 단어넣기(w2, '가락');
+    const 글자2 = 기록2.filter(r => r.글자 !== undefined).map(r => r.글자);
+    확인('두음 OFF면 변형을 묻지 않는다', !글자2.includes('낙'), 글자2.join(','));
+  }
+  {
+    // (4) 후보 캐시 — 버전 접미사가 붙고, 빈 목록은 저장하지 않는다.
+    //     빈 목록이 영구히 박히면 Worker를 고쳐도 그 기기에서는 계속 막다른 길이 된다.
+    const 국어원 = fs.readFileSync(path.join(WCHAIN, 'js/국어원.js'), 'utf8');
+    확인('후보 캐시 키에 버전이 붙었다', 국어원.includes("'plx_잇는_국어원후보캐시_v2'"));
+
+    const { win } = 페이지열기({ 온라인: '없음' });     // 후보 0건을 돌려주는 스텁
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '사슴');
+    const 캐시 = JSON.parse(win.localStorage.getItem('plx_잇는_국어원후보캐시_v2') || '{}');
+    확인('빈 후보 목록은 캐시에 남지 않는다', Object.keys(캐시).length === 0,
+         JSON.stringify(캐시));
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);

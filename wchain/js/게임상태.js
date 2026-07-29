@@ -51,6 +51,14 @@ const 난이도표 = {
 };
 const 난이도설정 = gs => 난이도표[gs.diff] ?? 난이도표.격동;
 
+// 목숨 환산 상수 — 실수 폐지(2026-07-29) 전에는 "목숨 1개 = 실수 4회"였다. 그 시절 숫자로 적힌
+// 값들(아케이드 시작 목숨 2, 시련의 계약 보상 +1, 14층 진입 목숨 2)을 같은 실효 기회 수로 옮기려면
+// 4를 곱해야 한다. 난이도표만 환산하고 이 셋을 빠뜨려서 아케이드 후반이 유독 각박했다.
+// 값을 흩뿌리지 않도록 여기 한 곳에 모아 둔다.
+const 실수환산 = 4;
+const 아케이드_목숨 = 2 * 실수환산;   // 원본 목숨 2개
+const 목숨보상 = 1 * 실수환산;        // 시련의 탑 계약 보상(원본 +1)
+
 function get_max_turns(gs){
   return 난이도설정(gs).턴;
 }
@@ -72,7 +80,7 @@ function reset_game(gs){
   gs.stage = 1;
   gs.turn = 0; gs.stage_turn = 0; gs.stage_start_turn = 0; gs.score = 0;
   // 목숨·힌트를 난이도표에서 읽는다(2026-07-29). 아케이드는 층 진행이 난이도 역할을 하므로
-  // 원본대로 목숨 2·힌트 3 고정(아래 ARCADE 분기에서 다시 덮어쓴다).
+  // 원본대로 목숨(아케이드_목숨)·힌트 3 고정(아래 ARCADE 분기에서 다시 덮어쓴다).
   const 난 = 난이도설정(gs);
   gs.hints = gs.god_mode_active ? Infinity : 난.힌트;
   gs.hearts = gs.god_mode_active ? Infinity : 난.목숨;
@@ -81,10 +89,10 @@ function reset_game(gs){
   gs.curse_time_floors = 0; gs.curse_life_floors = 0; gs.curse_dark_active = false; gs.curse_dark_strikes = 0;
   gs.trial_rejected_floor = -1; gs.trial_attempts_this_floor = 0;
   gs.history = []; gs.ai_last_word = null; gs.ai_last_char = null; gs.erosion_level = 0;
+  gs.trial_tower_entries = 0;   // 아케이드 전용 값이지만 모드를 바꿔 재시작할 때도 남으면 안 된다
   if(gs.game_mode === 'ARCADE'){
-    gs.hearts = gs.god_mode_active ? Infinity : 8;   // 종전 목숨2 × 실수4회와 같은 실효 기회
+    gs.hearts = gs.god_mode_active ? Infinity : 아케이드_목숨;   // 종전 목숨2 × 실수4회
     gs.hints  = gs.god_mode_active ? Infinity : 3;
-    gs.trial_tower_entries = 0;
   }
 }
 
@@ -114,30 +122,20 @@ function title(gs){
   return gs.user_title || (is_arrogant(gs) ? '필멸자' : '사용자님');
 }
 
+/* 정답 반응·AI 단어 반응 — 2026-07-29 문구를 data/대사.json으로 옮겼다.
+   관리자님 지시("코드에 있는 각 페르소나별 대화는 전부 코드에서 빼고 폴더로 정리")의 마지막 잔여분.
+   나머지 62곳은 앞서 옮겼는데 이 둘만 배열 리터럴이라 코드에 남아 있었다.
+   키는 react_correct_1~3 · react_ai_word_1~4(비서는 3줄 — 4번 칸이 ""이면 자동으로 빠진다). */
 function react_correct(gs){
-  const a = ['흥... 이번엔 맞췄군.', '크크... 제법 하는데?', '그래, 그 정도는 해줘야지.'];
-  const p = ['좋아요! 잘하고 계십니다!', '정답입니다! 훌륭해요!', '멋진 단어 선택이에요!'];
-  const pool = is_arrogant(gs) ? a : p;
-  return pool[Math.floor(Math.random() * pool.length)];
+  return 대사_무작위(gs, 'react_correct');
 }
 
 function react_ai_word(gs, word){
-  const a = [
-    `흥... 『${word}』이다.`,
-    `크크... 『${word}』. 이을 수 있겠나?`,
-    `『${word}』... 받아라, ${title(gs)}여.`,
-    `감히 이어 보거라. 『${word}』.`,
-  ];
-  const p = [
-    `제 단어는 『${word}』입니다!`,
-    `『${word}』(으)로 이어가겠습니다!`,
-    `음... 『${word}』 어떠세요?`,
-  ];
-  const pool = is_arrogant(gs) ? a : p;
-  return pool[Math.floor(Math.random() * pool.length)];
+  // 위치형 {0}=단어, 이름형 {칭호} 둘 다 쓰이므로 두 키를 함께 넘긴다.
+  return 대사_무작위(gs, 'react_ai_word', { 0: word, 칭호: title(gs) });
 }
 
 if (typeof module !== 'undefined') module.exports = {
-  난이도표, 난이도설정, 새게임상태, get_max_turns, get_stage_target, used_words, reset_game, full_reset,
+  난이도표, 난이도설정, 실수환산, 아케이드_목숨, 목숨보상, 새게임상태, get_max_turns, get_stage_target, used_words, reset_game, full_reset,
   is_arrogant, say, title, react_correct, react_ai_word
 };

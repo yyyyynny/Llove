@@ -310,11 +310,11 @@
       <div class="card-title">게임 모드</div>
       <button class="btn" onclick="선택_모드('SURVIVAL')">
         <b>서바이벌 모드</b>
-        <div class="d">턴 제한 내 생존 · 실수 4회마다 목숨 차감</div>
+        <div class="d">난이도별 목표 턴까지 생존 · 틀리면 목숨 1개 차감</div>
       </button>
       <button class="btn" onclick="선택_모드('ARCADE')">
         <b>아케이드 모드</b>
-        <div class="d">13층 타워 등반 · 목숨 2개 · 시련의 탑</div>
+        <div class="d">13층 타워 등반 · 목숨 8개 · 시련의 탑</div>
       </button>
     </div>
     <a class="back" href="javascript:void(0)" onclick="뒤로_페르소나()">← 페르소나 다시 고르기</a>
@@ -418,7 +418,7 @@
 </div>
 
 <!-- 관리자 패널 (백도어 승인 후에만 열림) — 턴·층 이동 / 다음 상대 단어 지정 /
-     목숨·힌트·실수 조정 / 상태 강제를 토글 난립 없이 모달 하나에 모았다. -->
+     목숨·힌트 조정 / 상태 강제를 토글 난립 없이 모달 하나에 모았다. -->
 <div class="modal-bg" id="관리자Bg" onclick="if(event.target===this)관리자_패널닫기()">
   <div class="modal-bx">
     <h3>🔓 관리자 패널</h3>
@@ -443,7 +443,8 @@
 <!-- Phase 2: 한글 엔진 — 파이썬 원본과 전수 대조 완료(12/12).
      Phase 3: 게임 상태·규칙·서바이벌 UI — validate_word 500/500 대조 완료.
      Phase 4: 아케이드 + 게임 데이터 삭제(Firebase, Llove와 같은 프로젝트 — 로그인 자동 공유).
-     Phase 5: 우리말샘 API 연동(국어원_활성화=true, 실사용 중) — 실패 시 로컬 사전 폴백.
+     Phase 5: 우리말샘 API 연동(국어원_활성화=true, 실사용 중) — 판정 기준이 우리말샘이고
+     data/사전.json은 유행어·줄임말 보조 칸이다(2026-07-29 내부 사전 폐지).
      클래식 스크립트·전역 공유(Llove와 동일 원칙). 로드 순서 고정. -->
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-auth-compat.js"></script>

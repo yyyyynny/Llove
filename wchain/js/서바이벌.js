@@ -256,8 +256,7 @@ function 플레이_HUD갱신(){
     st.textContent = status; st.className = 'status-' + status;
   }
   document.getElementById('hud-힌트').textContent = 표시무한(gs.hints) + '개';
-  // 종전 표기 "∞ / 1·4"는 무엇이 목숨이고 무엇이 실수인지 읽히지 않았다(관리자님 지적) —
-  // 라벨 순서 그대로 "목숨 · 실수"를 명시적으로 붙인다.
+  // 실수(strikes) 폐지(2026-07-29)로 이 칸은 목숨 하나만 보여준다 — 종전 "목숨 · 실수" 2단 표기 삭제.
   document.getElementById('hud-목숨').textContent = `${표시무한(gs.hearts)}개`;
   // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
   document.getElementById('ai-단어').textContent = gs.ai_last_word || '─';
@@ -865,8 +864,8 @@ async function 힌트_본체(){
         로그_추가('░▒▓ [시련의 탑] ▓▒░', 'sys');
         선택박스_보이기(`
           <div class="q">[1] 시간의 계약 — 이번 층 즉시 클리어 / 다음 1층 목표 턴 ×1.3<br>
-          [2] 생명의 계약 — 목숨+1·힌트+1 / 다음 2층 두음법칙 OFF<br>
-          [3] 어둠의 계약 — 목숨+1·힌트+3 / 이번 층 2글자 단어만 허용</div>
+          [2] 생명의 계약 — 목숨+${목숨보상}·힌트+1 / 다음 2층 두음법칙 OFF<br>
+          [3] 어둠의 계약 — 목숨+${목숨보상}·힌트+3 / 이번 층 2글자 단어만 허용</div>
           <button class="btn sm acc" onclick="시련_응답(1)">시간의 계약</button>
           <button class="btn sm acc" onclick="시련_응답(2)">생명의 계약</button>
           <button class="btn sm acc" onclick="시련_응답(3)">어둠의 계약</button>
@@ -973,7 +972,10 @@ function 시련_응답(선택){
     gs.curse_time_floors = 1;
     플레이_HUD갱신(); 프롬프트_갱신();
   } else if(선택 === 2){
-    gs.hearts += 1;
+    // ⚠️ 2026-07-29 환산: 실수(strikes) 폐지로 목숨 1개 = 기회 1회가 됐다. 종전 목숨 1개는
+    // 실수 4회를 품고 있었으므로 +1 그대로 두면 계약의 가치가 4분의 1로 쪼그라든다.
+    // 난이도표를 4배로 올린 것과 같은 기준으로 여기도 함께 환산한다(목숨보상 = 4).
+    gs.hearts += 목숨보상;
     if(gs.hints !== Infinity) gs.hints += 1;
     gs.curse_life_floors = 2;
     gs.game_state = 'PLAYING';
@@ -981,7 +983,7 @@ function 시련_응답(선택){
     로그_추가(대사(gs, '시련_응답_3', [h, 표시무한(gs.hints)]), 'ok');
     플레이_HUD갱신(); 프롬프트_갱신();
   } else if(선택 === 3){
-    gs.hearts += 1;
+    gs.hearts += 목숨보상;   // 위 생명의 계약과 같은 환산
     if(gs.hints !== Infinity) gs.hints += 3;
     gs.curse_dark_active = true;
     gs.game_state = 'PLAYING';
@@ -1040,7 +1042,10 @@ function 탈출_응답(도망){
 function 탑승리_응답(계속){
   if(계속){
     gs.stage = 14; gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
-    gs.hearts = gs.god_mode_active ? Infinity : 2;
+    // 원본은 2였는데, 실수 폐지 뒤로 그건 "두 번 틀리면 끝"이라는 뜻이 됐다(종전 실효 8회).
+    // 아케이드 시작값(아케이드_목숨=8)과 같은 기준으로 맞춘다 — 14층부터는 무한 등반이라
+    // 시작보다 각박할 이유가 없다.
+    gs.hearts = gs.god_mode_active ? Infinity : 아케이드_목숨;
     gs.user_title = is_arrogant(gs) ? '탑의지배자' : '탑의주인님';
     gs.game_state = 'PLAYING';
     로그_추가(`🚀 [14층 진입] 무한 등반. 목표: ${get_stage_target(gs)}턴`, 'ok');
@@ -1102,6 +1107,7 @@ function 전체리셋(){
   // show_init()(페르소나 선택)으로 돌아간다 — god_mode_active는 화면 안내 문구만 다를 뿐 분기 없음.
   게임_세대올리기();   // 진행 중이던 턴의 결과가 초기화된 상태에 섞이지 않게
   full_reset(gs);
+  세션_비우기();       // 이전 판의 수집 단어·조회 실패 카운터를 새 판으로 넘기지 않는다
   로그_비우기();
   화면('페르소나');
 }
@@ -1260,8 +1266,8 @@ function 관리자_강제(무엇){
     로그_추가('░▒▓ [시련의 탑] ▓▒░ (관리자 호출)', 'sys');
     선택박스_보이기(`
       <div class="q">[1] 시간의 계약 — 이번 층 즉시 클리어 / 다음 1층 목표 턴 ×1.3<br>
-      [2] 생명의 계약 — 목숨+1·힌트+1 / 다음 2층 두음법칙 OFF<br>
-      [3] 어둠의 계약 — 목숨+1·힌트+3 / 이번 층 2글자 단어만 허용</div>
+      [2] 생명의 계약 — 목숨+${목숨보상}·힌트+1 / 다음 2층 두음법칙 OFF<br>
+      [3] 어둠의 계약 — 목숨+${목숨보상}·힌트+3 / 이번 층 2글자 단어만 허용</div>
       <button class="btn sm acc" onclick="시련_응답(1)">시간의 계약</button>
       <button class="btn sm acc" onclick="시련_응답(2)">생명의 계약</button>
       <button class="btn sm acc" onclick="시련_응답(3)">어둠의 계약</button>

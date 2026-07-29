@@ -67,18 +67,29 @@ const 진입점있음 = existsSync('Llove/index.html');
     if (표) {
       const 키 = Object.keys(표);
       확인(`대사 항목이 비어 있지 않다 (${키.length}건)`, 키.length > 0);
-      const 불완전 = 키.filter(k => !표[k] || !표[k].폭군 || !표[k].비서);
-      확인('모든 대사가 폭군·비서 두 문구를 갖춘다', 불완전.length === 0,
-           불완전.slice(0, 5).join(', '));
       // 코드가 참조하는 키가 전부 있는지 (키 오타 = 화면에 "[대사 없음]" 노출)
-      const 참조 = new Set();
+      const 참조 = new Set(), 무작위접두 = new Set();
       for (const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']) {
         const p = `wchain/js/${f}`;
         if (!existsSync(p)) continue;
-        for (const m of readFileSync(p, 'utf8').matchAll(/대사\(gs,\s*'([^']+)'(\s*\+)?/g)) {
+        const src = readFileSync(p, 'utf8');
+        for (const m of src.matchAll(/대사\(gs,\s*'([^']+)'(\s*\+)?/g)) {
           if (!m[2]) 참조.add(m[1]);   // 조립 키(접두사 + 변수)는 정적 검사 대상에서 제외
         }
+        // 대사_무작위(gs, '접두') — 접두_1, 접두_2 … 중 하나를 무작위로 고르는 묶음
+        for (const m of src.matchAll(/대사_무작위\(gs,\s*'([^']+)'/g)) 무작위접두.add(m[1]);
       }
+      // 무작위 묶음은 페르소나별 문구 수가 달라도 되고(모자란 칸은 ""), 묶음 단위로 검사한다.
+      const 무작위키 = k => [...무작위접두].some(p2 => new RegExp(`^${p2}_\\d+$`).test(k));
+      const 불완전 = 키.filter(k => !무작위키(k)).filter(k => !표[k] || !표[k].폭군 || !표[k].비서);
+      확인('1:1 대사가 폭군·비서 두 문구를 갖춘다', 불완전.length === 0,
+           불완전.slice(0, 5).join(', '));
+      const 빈묶음 = [...무작위접두].filter(p2 => {
+        const 묶음 = 키.filter(k => new RegExp(`^${p2}_\\d+$`).test(k));
+        return !(묶음.some(k => 표[k].폭군) && 묶음.some(k => 표[k].비서));
+      });
+      확인(`무작위 대사 묶음 ${무작위접두.size}종이 양쪽 페르소나에 최소 1줄씩 있다`,
+           빈묶음.length === 0, 빈묶음.join(', '));
       const 누락 = [...참조].filter(k => !표[k]);
       확인(`코드가 참조하는 대사 키 ${참조.size}개가 전부 존재한다`, 누락.length === 0,
            누락.slice(0, 5).join(', '));

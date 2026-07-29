@@ -52,4 +52,25 @@ function 대사(gs, 키, 값){
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { 대사_로드, 대사, get 대사표(){ return 대사표; } };
+// 같은 상황에 여러 문구를 두고 하나를 무작위로 고르는 대사(정답 반응·AI 단어 반응 등).
+// `접두_1`, `접두_2`, … 순번 키를 훑어 **그 페르소나의 문구가 비어 있지 않은 것만** 후보로 삼는다.
+//   → 폭군 4줄 / 비서 3줄처럼 개수가 달라도 되고(모자란 쪽은 ""로 두면 된다),
+//     관리자님이 문구를 늘리고 싶으면 JSON에 다음 번호 키만 추가하면 코드 수정이 필요 없다.
+function 대사_무작위(gs, 접두, 값){
+  const 후보 = [];
+  for(let i = 1; ; i++){
+    const 항목 = 대사표[접두 + '_' + i];
+    if(!항목) break;
+    const 문구 = is_arrogant(gs) ? 항목.폭군 : 항목.비서;
+    if(문구) 후보.push(접두 + '_' + i);
+  }
+  if(!후보.length){
+    console.warn('[대사] 무작위 후보 없음:', 접두);
+    return `[대사 없음: ${접두}]`;
+  }
+  return 대사(gs, 후보[Math.floor(Math.random() * 후보.length)], 값);
+}
+
+if (typeof module !== 'undefined') module.exports = {
+  대사_로드, 대사, 대사_무작위, get 대사표(){ return 대사표; }
+};
