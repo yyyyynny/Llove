@@ -13,6 +13,10 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+// 2026-07-29: 런타임 사전이 폐지되면서(우리말샘 90% 전환) 파이썬 대조의 기준 사전이 갈 곳을
+// 잃었다. 대조는 "고정 사전"이 있어야만 성립하므로 픽스처로 옮겨 두고 여기서 주입한다.
+const { 원본_DICTIONARY, 원본_HARD_DICT } = require('./fixtures/원본사전.cjs');
+const 원본사전 = [...new Set([...원본_DICTIONARY, ...원본_HARD_DICT])];
 
 const JS_DIR = path.join(__dirname, '..', 'wchain', 'js');
 
@@ -25,7 +29,7 @@ function 확인(이름, 조건, 비고 = ''){
 // ── 게임 세계 하나를 만든다 ──────────────────────────────────────────────
 // 국어원.js는 fetch·localStorage에 의존하므로 로드하지 않고 그 자리에 스텁을 넣는다
 // (게이트 상수와 후보목록조회 함수만 있으면 게임규칙.js가 그대로 돌아간다).
-function 세계만들기({ 게이트 = true, 온라인 = '정상', 모드 = 'SURVIVAL' } = {}){
+function 세계만들기({ 게이트 = true, 온라인 = '정상', 모드 = 'SURVIVAL', 보조사전 = null } = {}){
   const 조회기록 = [];
   const ctx = {
     console,
@@ -38,8 +42,10 @@ function 세계만들기({ 게이트 = true, 온라인 = '정상', 모드 = 'SUR
       조회기록.push({ 글자, 방향 });
       if(온라인 === '실패') return null;
       if(온라인 === '없음') return [];
-      // 13층 3글자 족쇄까지 통과하도록 3글자로 만든다.
-      return 방향 === 'end' ? ['우리' + 글자] : [글자 + '우리'];
+      // 13층 3글자 족쇄까지 통과하도록 3글자. 실제 우리말샘처럼 여러 개를 주고,
+      // 끝 글자가 다시 조회 가능한 글자가 되게 해서 판이 이어지도록 한다.
+      const 꼬리 = ['가', '나', '다', '라', '마'];
+      return 꼬리.map(t => 방향 === 'end' ? t + '우' + 글자 : 글자 + '우' + t);
     },
     로그_추가(){},          // UI 레이어 스텁
     표시무한: n => (n === Infinity ? '∞' : String(n)),
@@ -50,6 +56,9 @@ function 세계만들기({ 게이트 = true, 온라인 = '정상', 모드 = 'SUR
   for(const f of ['사전.js', '엔진.js', '게임상태.js', '게임규칙.js']){
     vm.runInContext(fs.readFileSync(path.join(JS_DIR, f), 'utf8'), ctx, { filename: f });
   }
+  // 런타임 보조 사전은 비어 있는 게 정상(관리자님이 유행어를 채울 칸). 테스트가 로컬 사전을
+  // 전제로 하는 경우에만 원본 픽스처를 주입한다.
+  if(보조사전) vm.runInContext('추가사전 = ' + JSON.stringify(보조사전) + ';', ctx);
   const gs = ctx.새게임상태();
   gs.game_mode = 모드;
   gs.persona = 'Polite';
@@ -70,7 +79,7 @@ async function main(){
   /* ── 1. 제보 재현: 흔한 단어가 한방으로 오판되지 않는다 ────────────── */
   console.log('[1] 흔한 단어 오판 (제보 ①② 재현)');
   {
-    const { ctx, gs } = 세계만들기();
+    const { ctx, gs } = 세계만들기({ 보조사전: 원본사전 });
     // 버그의 전제(로컬 사전이 좁다)가 실제로 성립하는지 먼저 확인 — 이게 깨지면 테스트가 무의미
     const 로컬오판 = 흔한말.filter(w => ctx.is_hanbang(w, [], false, 'Flexible', 0));
     확인(`로컬 판정만으로는 ${로컬오판.length}개가 한방으로 보인다(버그 전제 성립)`,
@@ -83,10 +92,10 @@ async function main(){
   }
 
   /* ── 2. 로컬 사전 단어 전수 ──────────────────────────────────────── */
-  console.log('\n[2] 로컬 사전 단어 전수 (DICTIONARY + HARD_DICT)');
+  console.log('\n[2] 원본 사전 단어 전수 (파이썬 대조 픽스처 360단어)');
   {
-    const { ctx, gs, 값 } = 세계만들기();
-    const 전체 = [...new Set([...값('DICTIONARY'), ...값('HARD_DICT')])];
+    const { ctx, gs } = 세계만들기({ 보조사전: 원본사전 });
+    const 전체 = 원본사전;
     const 로컬오판 = 전체.filter(w => ctx.is_hanbang(w, [], false, 'Flexible', 0));
     확인(`로컬 판정으로는 ${전체.length}개 중 ${로컬오판.length}개가 한방(전제 성립)`,
          로컬오판.length > 0);
@@ -100,14 +109,14 @@ async function main(){
   /* ── 3. 온라인 조회 실패는 한방으로 단정하지 않는다 ─────────────────── */
   console.log('\n[3] 국어원 실패 공정성');
   {
-    const { ctx, gs } = 세계만들기({ 온라인: '실패' });
+    const { ctx, gs } = 세계만들기({ 온라인: '실패', 보조사전: 원본사전 });
     확인('조회 실패(null) 시 한방으로 단정하지 않음', (await ctx.한방_확정인가('사랑', gs)) === false);
   }
 
   /* ── 4. 정말 이을 단어가 없으면 한방으로 확정한다 ──────────────────── */
   console.log('\n[4] 진짜 한방 단어는 그대로 한방');
   {
-    const { ctx, gs } = 세계만들기({ 온라인: '없음' });
+    const { ctx, gs } = 세계만들기({ 온라인: '없음', 보조사전: 원본사전 });
     확인('온라인으로도 후보 0개면 한방 확정', (await ctx.한방_확정인가('사랑', gs)) === true);
     확인('로컬에서 이을 수 있으면 애초에 한방 아님', (await ctx.한방_확정인가('나무', gs)) === false);
   }
@@ -115,7 +124,7 @@ async function main(){
   /* ── 5. 게이트 off면 기존(로컬 전용) 동작을 그대로 유지 ─────────────── */
   console.log('\n[5] 게이트 off 하위 호환');
   {
-    const { ctx, gs, 조회기록 } = 세계만들기({ 게이트: false });
+    const { ctx, gs, 조회기록 } = 세계만들기({ 게이트: false, 보조사전: 원본사전 });
     확인('게이트 off면 로컬 판정 그대로', (await ctx.한방_확정인가('사랑', gs)) === true);
     확인('게이트 off면 네트워크 호출 0건', 조회기록.length === 0);
   }
@@ -123,7 +132,7 @@ async function main(){
   /* ── 6. 로컬로 충분하면 네트워크를 타지 않는다(성능 회귀 방지) ──────── */
   console.log('\n[6] 불필요한 네트워크 호출 없음');
   {
-    const { ctx, gs, 조회기록 } = 세계만들기();
+    const { ctx, gs, 조회기록 } = 세계만들기({ 보조사전: 원본사전 });
     await ctx.한방_확정인가('나무', gs);   // '무'로 시작하는 단어가 로컬에 있음
     확인('로컬에서 답이 나면 조회 0건', 조회기록.length === 0, `${조회기록.length}건 호출됨`);
   }
@@ -131,7 +140,7 @@ async function main(){
   /* ── 7. 두음법칙 변환형까지 조회한다 ────────────────────────────────── */
   console.log('\n[7] 두음법칙 변환형 조회');
   {
-    const { ctx, gs, 조회기록 } = 세계만들기({ 온라인: '없음' });
+    const { ctx, gs, 조회기록 } = 세계만들기({ 온라인: '없음', 보조사전: 원본사전 });
     gs.dueum = 'Flexible';
     await ctx.한방_확정인가('폭력', gs);   // 다음 글자 '력' → 두음 변환형 '역'
     const 글자들 = 조회기록.map(r => r.글자);
@@ -143,7 +152,7 @@ async function main(){
   /* ── 8. 앞말잇기(rev)는 end 방향으로 조회 ──────────────────────────── */
   console.log('\n[8] 앞말잇기 방향');
   {
-    const { ctx, gs, 조회기록 } = 세계만들기();
+    const { ctx, gs, 조회기록 } = 세계만들기({ 보조사전: 원본사전 });
     gs.rev = true; gs.dueum = 'OFF';
     // '뿌리'의 앞 글자 '뿌'로 끝나는 단어는 로컬에 없다 → 로컬 판정은 한방, 온라인이 뒤집어야 한다.
     확인('rev 모드에서 온라인 후보로 한방이 풀림', (await ctx.한방_확정인가('뿌리', gs)) === false);
@@ -179,7 +188,7 @@ async function main(){
   /* ── 10. hanbang 기본값 변경의 아케이드 부작용 방지 ────────────────── */
   console.log('\n[10] 기본값 변경 부작용 (아케이드)');
   {
-    const { ctx } = 세계만들기();
+    const { ctx } = 세계만들기({ 보조사전: 원본사전 });
     const 기본 = ctx.새게임상태();
     확인('hanbang 기본값이 true(켜기)', 기본.hanbang === true);
 
@@ -195,25 +204,25 @@ async function main(){
   /* ── 11. is_hanbang 하위 호환 (파이썬 대조 무회귀) ──────────────────── */
   console.log('\n[11] is_hanbang 하위 호환');
   {
-    const { ctx, 값 } = 세계만들기();
-    const 전체 = [...new Set([...값('DICTIONARY'), ...값('HARD_DICT')])];
+    const { ctx } = 세계만들기({ 보조사전: 원본사전 });
+    const 전체 = 원본사전;
     let 불일치 = 0;
     for(const w of 전체){
       for(const [rev, du] of [[false,'OFF'],[false,'Flexible'],[true,'OFF']]){
         const 인자없이 = ctx.is_hanbang(w, [], rev, du, 0);
         const null명시 = ctx.is_hanbang(w, [], rev, du, 0, null);
-        const DICT명시 = ctx.is_hanbang(w, [], rev, du, 0, 값('DICTIONARY'));
+        const DICT명시 = ctx.is_hanbang(w, [], rev, du, 0, 원본사전);
         if(인자없이 !== null명시 || 인자없이 !== DICT명시) 불일치++;
       }
     }
-    확인(`6번째 인자 생략 = null = DICTIONARY (${전체.length}단어 × 3조합)`, 불일치 === 0,
+    확인(`6번째 인자 생략 = null = 현재 보조 사전 (${전체.length}단어 × 3조합)`, 불일치 === 0,
          `${불일치}건 불일치 — 파이썬 대조 벡터가 깨진다`);
   }
 
   /* ── 12. 난이도가 실제로 다른가 (2026-07-29 제보 5) ────────────────── */
   console.log('\n[12] 난이도 차등');
   {
-    const { ctx } = 세계만들기({ 게이트: false });
+    const { ctx } = 세계만들기({ 게이트: false, 보조사전: 원본사전 });
 
     // 목숨·힌트 — 종전엔 전 난이도 2개/3개로 동일했다
     const 자원 = d => {
@@ -277,6 +286,88 @@ async function main(){
     const 전체후보 = ctx.find_words('가', [], false, 'OFF', 0, 0).length;
     확인(`격동은 후보 전체에서 고르게 뽑는다 (${뽑힘.size}/${전체후보})`,
          뽑힘.size === 전체후보, '탐욕도 0인데 편향이 생겼다');
+  }
+
+  /* ── 13. 내부 사전 폐지 · 우리말샘 90% 전환 (2026-07-29) ──────────── */
+  console.log('\n[13] 내부 사전 폐지 — 우리말샘이 기준');
+  {
+    // 런타임 보조 사전은 비어 있는 게 정상이다(관리자님이 유행어·줄임말을 채울 칸).
+    const { ctx, gs, 값, 조회기록 } = 세계만들기();
+    확인('보조 사전은 기본적으로 비어 있다', 값('추가사전').length === 0);
+    확인('DICTIONARY·HARD_DICT 전역이 더 이상 없다',
+         (() => { try{ 값('DICTIONARY'); return false; }catch(e){ return true; } })());
+
+    // 빈 사전에서도 우리말샘만으로 AI가 단어를 낸다
+    gs.diff = '격동'; gs.dueum = 'OFF'; gs.ai_last_char = '가';
+    const 후보 = await ctx.온라인후보_가져오기(gs);
+    확인('전 난이도가 우리말샘을 조회한다(격동도)', 조회기록.length === 1, `${조회기록.length}건`);
+    const w = ctx.ai_generate_word(gs, 후보);
+    확인('빈 사전에서도 AI가 단어를 낸다', typeof w === 'string' && w.length > 0, String(w));
+
+    // 사용자 단어 판정도 우리말샘 기준 — 보조 사전에 없으면 "사전에 없는 단어" 사유로 넘긴다
+    const [ok1, 사유] = ctx.validate_word('가나다', gs);
+    확인('보조 사전에 없으면 온라인 확인 경로로 넘긴다',
+         ok1 === false && 사유.endsWith('사전에 없는 단어입니다.'), 사유);
+
+    // 보조 사전에 넣은 유행어는 즉시 인정된다 (관리자님이 나중에 채울 경로)
+    const { ctx: c2, gs: g2 } = 세계만들기({ 보조사전: ['갑분싸', '싸바싸바'] });
+    g2.dueum = 'OFF'; g2.hanbang = true; g2.ai_last_char = null;
+    const [ok2] = c2.validate_word('갑분싸', g2);
+    확인('보조 사전(유행어)에 넣으면 바로 인정된다', ok2 === true);
+  }
+
+  /* ── 14. 오프라인 안전망 (로컬 사전이 사라진 대가) ────────────────── */
+  console.log('\n[14] 우리말샘 불통 시 안전망');
+  {
+    // `세션_수집어`·`마지막_온라인조회`는 최상위 let이라 vm 컨텍스트의 속성이 아니다 — 값()으로 읽는다.
+    const { ctx, gs, 값 } = 세계만들기();
+    gs.diff = '격동'; gs.dueum = 'OFF';
+
+    // 정상일 때 받은 단어는 세션에 쌓인다
+    gs.ai_last_char = '가';
+    await ctx.온라인후보_가져오기(gs);
+    확인('받은 후보가 세션 사전에 쌓인다', 값('세션_수집어').length > 0,
+         JSON.stringify(값('세션_수집어')));
+    확인('세션 사전이 AI 후보 풀에 포함된다',
+         ctx.ai_후보사전(gs, []).length > 0);
+
+    // 실패가 이어지면 불통으로 판정 — 조용히 이상하게 돌지 않게
+    const { ctx: c3, gs: g3, 값: v3 } = 세계만들기({ 온라인: '실패' });
+    g3.ai_last_char = '가';
+    await c3.온라인후보_가져오기(g3);
+    확인('처음 한 번 실패로는 불통이 아니다', c3.우리말샘_불통인가() === false);
+    await c3.온라인후보_가져오기(g3);
+    await c3.온라인후보_가져오기(g3);
+    확인('연속 3회 실패하면 불통으로 판정', c3.우리말샘_불통인가() === true);
+    확인('실패 상태가 마지막_온라인조회에 기록된다',
+         v3('마지막_온라인조회').상태 === '실패');
+
+    // 성공하면 카운터가 초기화된다
+    const { ctx: c4, gs: g4, 값: v4 } = 세계만들기();
+    g4.ai_last_char = '가';
+    await c4.온라인후보_가져오기(g4);
+    확인('성공하면 실패 카운터가 초기화된다', c4.우리말샘_불통인가() === false);
+    c4.세션_비우기();
+    확인('세션 비우기가 수집어를 초기화한다', v4('세션_수집어').length === 0);
+  }
+
+  /* ── 15. 난이도 슬라이스 (후보 출처 대신 구간으로) ────────────────── */
+  console.log('\n[15] 난이도 슬라이스');
+  {
+    const { ctx } = 세계만들기();
+    const 목록 = Array.from({ length: 100 }, (_, i) => '단어' + i);
+    const 몫 = d => {
+      const gs = ctx.새게임상태(); gs.game_mode = 'SURVIVAL'; gs.diff = d;
+      return ctx.난이도_슬라이스(gs, 목록).length;
+    };
+    const r = ['안온','격동','초월','심연'].map(몫);
+    확인(`난이도가 높을수록 넓은 구간을 쓴다 (${r.join(' < ')})`,
+         r[0] < r[1] && r[1] < r[2] && r[2] === r[3]);
+    확인('안온은 앞쪽(흔한 말) 구간만', r[0] === 40);
+    확인('초월·심연은 전체(희귀어 포함)', r[2] === 100);
+    const 아케 = ctx.새게임상태(); 아케.game_mode = 'ARCADE';
+    확인('아케이드는 슬라이스하지 않는다(층이 난이도 역할)',
+         ctx.난이도_슬라이스(아케, 목록).length === 100);
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);

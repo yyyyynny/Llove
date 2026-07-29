@@ -97,8 +97,11 @@ function extract_chosung(word){
 function find_words(start_char, used, reverse = false, dueum_mode = 'OFF',
                     length_filter = 0, min_length = 0, dictionary_source = null){
   const result = [];
+  // 2026-07-29: 기본 사전이 DICTIONARY(280) → 추가사전(보조, 기본 비어 있음)으로 바뀌었다.
+  // 실질적으로 호출부는 거의 항상 dictionary_source를 넘긴다(우리말샘 후보 풀).
+  // 인자를 생략하면 보조 사전만 보게 되는데, 이는 "온라인을 못 쓰는 상황"과 같은 의미다.
   const current_dict = (dictionary_source !== null && dictionary_source !== undefined)
-    ? dictionary_source : DICTIONARY;
+    ? dictionary_source : 추가사전;
   const used_set = new Set(used);   // 원본은 리스트 in 검사 — 의미 동일, 성능만 개선
 
   if(!reverse){
@@ -128,7 +131,8 @@ function find_words(start_char, used, reverse = false, dueum_mode = 'OFF',
 // 켜고 나서 실제 플레이 공간은 우리말샘 전체가 됐는데 판정만 280단어 기준이라, 흔한 단어의
 // 24~44%가 "한방 단어"로 오판됐다(실측: DICTIONARY가 이을 수 있는 시작 글자는 175종뿐).
 // 그 오판이 즉시 패배·실수 누적으로 직결돼 관리자님이 "바로 패배해버림"을 제보한 원인이었다.
-// 인자 기본값을 null(=DICTIONARY)로 둬서 파이썬 원본 대조 벡터는 그대로 통과한다.
+// 인자 기본값 null은 이제 "보조 사전(추가사전)"을 뜻한다. 파이썬 원본 대조는
+// tests/fixtures/원본사전.cjs의 고정 벡터를 dictionary_source로 주입해 계속 수행한다.
 function is_hanbang(word, used, reverse = false, dueum_mode = 'OFF', stage = 0,
                     dictionary_source = null){
   const next_char = !reverse ? word[word.length - 1] : word[0];

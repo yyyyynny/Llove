@@ -25,6 +25,35 @@ const 진입점있음 = existsSync('Llove/index.html');
 확인('루트 관문 index.html(리다이렉트)이 존재한다', existsSync('index.html'));
 확인('wchain/index.html 이세계 진입점이 존재한다', existsSync('wchain/index.html'));
 
+// wchain 보조 사전 — 2026-07-29부터 게임의 사전 기준은 우리말샘이고, data/사전.json은
+// "우리말샘에 없는 유행어·줄임말"을 담는 보조 칸이다(비어 있는 것이 정상).
+// 파일이 없거나 깨지면 보조 단어가 조용히 무시되므로 배포 전에 확인한다.
+{
+  const 사전경로 = 'wchain/data/사전.json';
+  const 있음 = existsSync(사전경로);
+  확인('wchain/data/사전.json(보조 사전)이 존재한다', 있음);
+  if (있음) {
+    let 표 = null;
+    try { 표 = JSON.parse(readFileSync(사전경로, 'utf8')); } catch (e) { /* 아래에서 실패 처리 */ }
+    확인('사전.json이 올바른 JSON이다', !!표 && typeof 표 === 'object');
+    if (표) {
+      확인('추가단어가 배열이다', Array.isArray(표.추가단어));
+      if (Array.isArray(표.추가단어)) {
+        const 이상 = 표.추가단어.filter(w => typeof w !== 'string' || !w.trim());
+        확인(`추가단어 ${표.추가단어.length}건이 전부 비지 않은 문자열이다`, 이상.length === 0,
+             JSON.stringify(이상.slice(0, 3)));
+        const 공백초과 = 표.추가단어.filter(w => typeof w === 'string' && (w.match(/ /g) || []).length > 1);
+        확인('공백이 1개를 넘는 항목이 없다(구 허용 규칙)', 공백초과.length === 0,
+             공백초과.slice(0, 3).join(', '));
+      }
+    }
+  }
+  // 런타임 코드에 옛 하드코딩 사전이 남아 있지 않은지 — 되살아나면 판정 기준이 다시 갈린다
+  const 사전js = existsSync('wchain/js/사전.js') ? readFileSync('wchain/js/사전.js', 'utf8') : '';
+  확인('wchain/js/사전.js에 하드코딩 단어 배열이 남아 있지 않다',
+       !/const\s+(DICTIONARY|HARD_DICT)\s*=/.test(사전js));
+}
+
 // wchain 페르소나 대사 — 2026-07-29부터 코드가 아니라 data/대사.json이 원본이다.
 // 이 파일이 없거나 깨지면 게임 대사가 전부 "[대사 없음: 키]"로 뜨므로 배포 전에 막는다.
 {

@@ -55,9 +55,13 @@ function 페이지열기({ 온라인 = '정상' } = {}){
         if(payload.단어 !== undefined){
           return { ok: true, json: async () => ({ 존재: true }) };
         }
-        // 후보 목록 — 요청한 글자로 이을 수 있는 3글자 단어를 만들어 준다
+        // 후보 목록 — 실제 우리말샘은 글자당 10~수백 개를 준다. 하나만 주면 AI가 곧바로
+        // 막혀(기권 = 사용자 승리) 테스트가 게임 흐름을 재현하지 못하므로, 서로 이어지는
+        // 3글자 후보 여러 개를 준다(끝 글자가 다시 조회 가능한 글자가 되도록).
+        const 꼬리 = ['가', '나', '다', '라', '마'];
         const 후보 = 온라인 === '없음' ? []
-          : (payload.방향 === 'end' ? ['우리' + payload.글자] : [payload.글자 + '우리']);
+          : 꼬리.map(t => payload.방향 === 'end' ? t + '우' + payload.글자
+                                                 : payload.글자 + '우' + t);
         return { ok: true, json: async () => ({ 후보 }) };
       };
     }
@@ -567,7 +571,9 @@ async function main(){
     const 이전상대단어 = g.ai_last_word;
     g.turn = 49;
     // 지금 이을 수 있는 실제 단어를 엔진에서 골라 넣는다(아무 단어나 넣으면 실수로 처리된다)
-    const 이을단어 = win.find_words(g.ai_last_char, win.used_words(g), g.rev, g.dueum, 0, 0)[0];
+    // 사전이 폐지돼 find_words 기본 사전은 비어 있다 — AI가 쓰는 풀(우리말샘+세션)을 넘겨야 한다.
+    const 풀 = win.ai_후보사전(g, await win.온라인후보_가져오기(g));
+    const 이을단어 = win.find_words(g.ai_last_char, win.used_words(g), g.rev, g.dueum, 0, 0, 풀)[0];
     확인('테스트가 이을 수 있는 단어를 찾았다', !!이을단어, `ai_last_char=${g.ai_last_char}`);
     await 단어넣기(win, 이을단어);
 

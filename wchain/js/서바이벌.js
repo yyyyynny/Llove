@@ -201,6 +201,7 @@ function 설정_테마연동(켬){
 
 function 게임_시작(){
   reset_game(gs);
+  세션_비우기();   // 이전 판에서 모은 단어·실패 카운터를 새 판으로 들고 가지 않는다
   if(gs.rev && gs.dueum !== 'OFF'){ gs.dueum = 'OFF'; }   // 원본: 앞말잇기는 두음법칙 자동 OFF
   gs.game_state = 'PLAYING';
   로그_비우기();
@@ -336,13 +337,20 @@ const HTML막기 = s => String(s).replace(/[&<>"']/g,
 // 느끼셨을 때 그게 난이도 설정 탓인지 네트워크 탓인지 화면만 봐서는 구분할 수 없었다.
 function 온라인조회_보고(){
   const r = 마지막_온라인조회;
-  if(r.상태 === '미시도') return;   // 낮은 난이도라 애초에 안 부른 경우 — 조용히
+  if(r.상태 === '미시도') return;   // 게이트 off 등 — 조용히
   if(r.상태 === '실패'){
-    로그_추가('⚠️ 우리말샘에 연결하지 못해 로컬 사전으로 진행합니다.', 'warn');
+    // 2026-07-29: 로컬 사전이 없어졌으므로 "로컬로 진행"이라는 말은 더 이상 사실이 아니다.
+    // 이번 판에서 이미 받아 둔 단어(세션 사전)로 버틴다는 걸 정확히 알린다.
+    if(우리말샘_불통인가()){
+      로그_추가('⛔ 우리말샘에 계속 연결하지 못하고 있습니다. 네트워크를 확인해 주세요 — '
+              + '이번 판에서 받아 둔 단어만으로 진행 중이라 곧 막힐 수 있습니다.', 'err');
+    } else {
+      로그_추가('⚠️ 우리말샘에 연결하지 못해 이번 판에서 받아 둔 단어로 진행합니다.', 'warn');
+    }
   } else if(r.상태 === '없음'){
-    로그_추가('🌐 우리말샘에 이을 단어가 없어 로컬 사전으로 진행합니다.', 'sys');
+    로그_추가('🌐 우리말샘에 이을 단어가 없습니다.', 'sys');
   } else {
-    로그_추가(`🌐 우리말샘 후보 ${r.개수}개를 함께 사용합니다.`, 'sys');
+    로그_추가(`🌐 우리말샘 후보 ${r.개수}개를 사용합니다.`, 'sys');
   }
 }
 
@@ -439,6 +447,7 @@ function 단어_제출(){
         if(존재함){
           // API로 사전 등재가 확인된 단어 — validate_word의 다음 단계(한방 판정)를 동일하게 재현
           // (사전 소속 여부만 API가 대신했을 뿐, 그 이후 규칙은 로컬 판정과 완전히 같아야 한다)
+          세션_수집(raw);   // 확인된 단어는 세션 사전에 쌓는다(네트워크가 끊겨도 판이 이어지게)
           valid = true; reason = '';
           if(gs.game_mode === 'ARCADE' && await 한방_확정인가(raw, gs)){
             valid = false; reason = `『${raw}』은(는) 한방 단어입니다. (아케이드에서 사용 불가)`;
@@ -584,7 +593,9 @@ async function 단어_처리(raw, valid, reason){
     return false;
   }
 
-  if(ai_한방금지인가(gs)
+  // 다음 글자를 아직 우리말샘에 물어본 적 없으면 한방인지 알 수 없다 — 모르는 걸 근거로
+  // "AI가 한방을 냈으니 사용자 승리"로 판을 끝내면 안 된다(2026-07-29 사전 폐지의 여파).
+  if(ai_한방금지인가(gs) && 한방_판정가능인가(ai_word, gs)
      && is_hanbang(ai_word, used_words(gs), gs.rev, gs.dueum, gs.stage, ai_판정사전)){
     if(gs.god_mode_active){
       로그_추가(`💀 [AI 자폭] 『${ai_word}』는 한방 단어입니다.`, 'sys');
@@ -780,7 +791,7 @@ function 버튼_허세_원본(){
 function 힌트_후보(gs, 추가후보 = []){
   const dark_filter = (gs.game_mode === 'ARCADE' && gs.curse_dark_active) ? 2 : 0;
   const min_len = (gs.game_mode === 'ARCADE' && gs.stage >= 13) ? 3 : 0;
-  const 사전 = 추가후보.length ? [...new Set([...DICTIONARY, ...추가후보])] : DICTIONARY;
+  const 사전 = ai_후보사전(gs, 추가후보);   // AI 턴과 같은 풀(우리말샘 + 세션 + 보조 사전)
   const 후보 = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, dark_filter, min_len, 사전);
 
   // 한방 단어 제외 — 원본을 넘어서는 보정(의도적). 원본 deliver_hint는 한방 여부를 안 보는데,
