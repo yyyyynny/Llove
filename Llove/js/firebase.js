@@ -96,7 +96,22 @@ function 인증상태_변경(user){
   if(!user){ 현재UID = null; return; }
   현재UID = user.uid;
   사용자.이메일 = user.email || '';
-  if(!fbDb){ console.error('[Firestore] db 미초기화'); return; }
+
+  // ⚠️ 2026-07-29: '잇는'에서 「학습 세계로 돌아가기」·「게임 데이터 삭제」로 넘어오면 로그인 전
+  // 설명 화면이 뜬다는 제보. 원인은 #onboarding이 position:fixed·z-index:9999로 **기본 표시**인데
+  // .gone은 Firestore get()이 끝나야 붙는다는 것 — 그 왕복 동안(느리면 수 초) 온보딩이 덮인다.
+  // 잇는은 `../Llove/#home`으로 넘어오므로, 그 해시가 있으면 **Firestore를 기다리지 않고 즉시**
+  // 걷는다. 이미 인증된 사용자가 다른 화면에서 돌아온 것이 확실하기 때문(신규 가입자는 해시 없음).
+  if(location.hash === '#home'){
+    온보딩_걷기();
+    history.replaceState(null, '', location.pathname + location.search);  // 해시는 1회용
+  }
+
+  if(!fbDb){
+    console.error('[Firestore] db 미초기화');
+    온보딩_걷기();   // 인증은 됐는데 DB가 없다 — 온보딩에 갇히지 않게
+    return;
+  }
   fbDb.collection('users').doc(user.uid).get().then(snap=>{
     if(snap.exists){
       사용자데이터_적용(snap.data(), user);

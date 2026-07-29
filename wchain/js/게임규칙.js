@@ -302,7 +302,8 @@ function check_title(gs){
   }
 }
 
-// 패배 처리(실수 4회 → 목숨 -1) — 원본 100턴/95턴 직전 탈락 특수 대사 포함
+// 패배 처리(틀리면 목숨 -1) — 원본 100턴/95턴 직전 탈락 특수 대사 포함.
+// 2026-07-29: 원본의 '실수(strikes) 4회 = 목숨 1개' 2단 구조를 폐지하고 목숨 하나로 통일했다.
 function user_defeat(gs){
   if(gs.game_mode === 'SURVIVAL'){
     if(['안온','격동'].includes(gs.diff) && gs.turn >= 90 && gs.turn <= 99){
@@ -312,14 +313,9 @@ function user_defeat(gs){
     }
   }
 
-  gs.strikes += 1;
-
-  if(gs.strikes < 4){
-    로그_추가(대사(gs, 'user_defeat_2', [gs.strikes]));
-    return 'continue';
-  }
-
-  gs.strikes = 0;
+  // 2026-07-29 관리자님 지시: "실수 값을 없애고 목숨 값으로만 진행" — 종전의 2단 구조
+  // (실수 4회가 쌓여야 목숨 1개 소모)를 없애고 **틀리면 곧바로 목숨 -1**로 통일했다.
+  // 실효 기회 수를 유지하려고 난이도표의 목숨을 종전의 4배 선으로 올렸다(난이도표 주석 참조).
   gs.hearts -= 1;
   const h = gs.hearts === Infinity ? '∞' : String(gs.hearts);
   if(gs.hearts < 0) gs.hearts = 0;
@@ -335,7 +331,9 @@ function user_defeat(gs){
     return 'game_over';
   } else {
     로그_추가(대사(gs, 'user_defeat_1', [h]));
-    if(gs.game_mode === 'ARCADE') return 'restart_floor';   // Phase 4에서 실제 층 재시작 연결
+    // 아케이드의 '층 재시작'은 원본에서 "목숨 1개를 대가로 층을 다시"라는 뜻이었는데,
+    // 목숨이 한 번에 하나씩 깎이게 되면서 그 대가 관계가 사라졌다 → 층 재시작 폐지.
+    // 이제 두 모드 모두 목숨이 0이 될 때까지 그 자리에서 계속 이어간다.
     return 'continue';
   }
 }

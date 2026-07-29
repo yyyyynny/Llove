@@ -110,9 +110,10 @@ async function main(){
     확인('게임오버 화면으로 넘어가지 않음',
          !win.document.getElementById('s-오버').classList.contains('active'),
          '즉시 패배가 아직 살아 있다');
-    확인('실수 1회로 계산됨', 상태(win).strikes === 1, `strikes=${상태(win).strikes}`);
-    확인('목숨은 그대로', 상태(win).hearts === 2, `hearts=${상태(win).hearts}`);
-    확인('실수 안내가 화면에 나옴', 로그텍스트(win).includes('[실수 1/4]'));
+    // 2026-07-29 실수 폐지 — 틀리면 곧바로 목숨 -1(격동 기본 7 → 6)
+    확인('목숨이 1개 깎인다', 상태(win).hearts === 6, `hearts=${상태(win).hearts}`);
+    확인('목숨 감소 안내가 화면에 나옴', 로그텍스트(win).includes('[목숨 -1]'));
+    확인('실수(strikes) 개념이 더는 쓰이지 않는다', 상태(win).strikes === 0);
   }
 
   /* ── 2. 정상 단어는 한방으로 막히지 않는다 ──────────────────────────── */
@@ -193,10 +194,11 @@ async function main(){
     const { win } = 페이지열기();
     const html = fs.readFileSync(path.join(WCHAIN, 'index.html'), 'utf8');
 
-    확인('설명서가 실수 1회 규칙을 안내',
-         win.document.getElementById('설명Bg').textContent.includes('실수 1회로 계산됩니다'));
-    확인('설명서에 "즉시 패배" 문구가 남아 있지 않음',
-         !win.document.getElementById('설명Bg').textContent.includes('즉시 패배'));
+    확인('설명서가 목숨 규칙을 안내',
+         win.document.getElementById('설명Bg').textContent.includes('목숨 1개가 깎입니다'));
+    확인('설명서에 "즉시 패배"·"실수" 문구가 남아 있지 않음',
+         !win.document.getElementById('설명Bg').textContent.includes('즉시 패배')
+         && !win.document.getElementById('설명Bg').textContent.includes('실수 4회'));
     확인('낡은 주석(게이트 봉인) 제거', !html.includes('국어원_활성화=false 봉인'));
     확인('전송 버튼·입력창에 disabled 스타일 적용',
          html.includes('.input-row button:disabled') && html.includes('.input-row input:disabled'));
@@ -213,7 +215,7 @@ async function main(){
     스위치.dispatchEvent(new win.Event('change'));
     const 한방행2 = [...win.document.querySelectorAll('#설정-토글 .set-row')]
       .find(r => r.textContent.includes('한방 모드'));
-    확인('끔 상태 설명이 실수 1회 규칙을 안내', 한방행2?.textContent.includes('실수 1회로 계산됩니다'));
+    확인('끔 상태 설명이 목숨 규칙을 안내', 한방행2?.textContent.includes('목숨 1개가 깎입니다'));
     확인('토글 조작이 gs에 반영됨', 상태(win).hanbang === false);
   }
 
@@ -426,10 +428,14 @@ async function main(){
     win.관리자_턴이동();
     확인('서바이벌에서 47턴으로 이동', 상태(win).turn === 47, `turn=${상태(win).turn}`);
 
-    d.getElementById('관리자-턴').value = '150';           // 범위 밖
+    // 상한 499 — 심연 목표가 160턴이라 99로는 닿지 않았다(관리자님 제보)
+    d.getElementById('관리자-턴').value = '160';
     win.관리자_턴이동();
-    확인('1~99 밖은 거부되고 턴이 그대로', 상태(win).turn === 47);
-    확인('거부 사유를 알려준다', 로그텍스트(win).includes('1~99 사이의 정수만'));
+    확인('심연 목표(160턴)까지 이동 가능', 상태(win).turn === 160, `turn=${상태(win).turn}`);
+    d.getElementById('관리자-턴').value = '500';           // 범위 밖
+    win.관리자_턴이동();
+    확인('1~499 밖은 거부되고 턴이 그대로', 상태(win).turn === 160);
+    확인('거부 사유를 알려준다', 로그텍스트(win).includes('1~499 사이의 정수만'));
 
     // 2구역 — 다음 상대 단어 지정
     d.getElementById('관리자-단어').value = '나비';
@@ -442,9 +448,8 @@ async function main(){
     // 3구역 — 자원 조정
     win.관리자_자원('hearts', 3);
     확인('목숨을 3으로 설정', 상태(win).hearts === 3);
-    상태(win).strikes = 2;
-    win.관리자_실수초기화();
-    확인('실수를 0으로 초기화', 상태(win).strikes === 0);
+    win.관리자_자원('hints', 5);
+    확인('힌트를 5로 설정', 상태(win).hints === 5);
 
     // 예약한 단어가 실제 AI 턴에 쓰이는지 — '나비'는 '나'로 시작
     win.관리자_패널닫기();
@@ -588,6 +593,73 @@ async function main(){
     win.생존승리_응답(true);
     확인('계속을 고르면 무한 모드로 진행', g.infinite === true && g.game_state === 'PLAYING');
     확인('계속 후에도 이어야 할 글자가 유지됨', g.ai_last_char !== null);
+  }
+
+  /* ── 17. 우리말샘 붙임표(-) 폴백 (2026-07-29 제보 2) ──────────────── */
+  console.log('\n[17] 합성어 붙임표 폴백');
+  {
+    // 실측: 우리말샘 표제어는 합성어에 붙임표가 들어간다(가마솥 → `가마-솥`).
+    // Worker가 붙임표를 지우지 않고 정확 비교해서 합성어가 전부 "사전에 없는 단어"가 됐다.
+    // 그 상황을 그대로 흉내 내는 스텁: 붙임표가 든 형태만 존재한다고 답한다.
+    let html = fs.readFileSync(path.join(WCHAIN, 'index.html'), 'utf8');
+    const 순서 = [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map(m => m[1]);
+    html = html.replace(/<script src="https:\/\/[^"]+"><\/script>/g, '');
+    for(const src of 순서){
+      html = html.replace(`<script src="${src}"></script>`,
+        `<script>${fs.readFileSync(path.join(WCHAIN, src), 'utf8').replace(/<\/script>/g, '<\\/script>')}</script>`);
+    }
+    const 물어본단어 = [];
+    const dom = new JSDOM(html, {
+      runScripts: 'dangerously', url: 'https://example.invalid/wchain/', pretendToBeVisual: true,
+      beforeParse(w){
+        w.fetch = async (url, opt) => {
+          if(typeof url === 'string' && url.startsWith('data/')){
+            return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
+          }
+          const p = JSON.parse(opt.body);
+          if(p.단어 !== undefined){
+            물어본단어.push(p.단어);
+            // 우리말샘 실제 표제어와 같은 집합 — 붙여 쓴 형태는 없다
+            const 등재 = ['가마-솥', '뽕-나무', '눈-사람'];
+            return { ok: true, json: async () => ({ 존재: 등재.includes(p.단어) }) };
+          }
+          return { ok: true, json: async () => ({ 후보: [] }) };
+        };
+      }
+    });
+    const w = dom.window;
+
+    확인('붙여 쓴 형태로는 못 찾는다(제보 상황 재현)',
+         (await w.국어원_POST({ 단어: '가마솥' }, 1000)).존재 === false);
+    확인('붙임표를 끼워 재시도해 찾아낸다', (await w.국어원_단어조회('가마솥')) === true);
+    확인('실제로 붙임표 변형을 물어봤다', 물어본단어.includes('가마-솥'), 물어본단어.join(','));
+    확인('뽕나무도 통과', (await w.국어원_단어조회('뽕나무')) === true);
+    확인('눈사람도 통과', (await w.국어원_단어조회('눈사람')) === true);
+    확인('진짜 없는 단어는 그대로 없음', (await w.국어원_단어조회('없는말말')) === false);
+
+    // 변형 생성 규칙
+    확인('2~6글자 한글만 변형을 만든다',
+         w.붙임표_변형('가마솥').length === 2 && w.붙임표_변형('가').length === 0
+         && w.붙임표_변형('두 단어').length === 0);
+    확인('변형은 가능한 모든 위치',
+         w.붙임표_변형('가마솥').join(',') === '가-마솥,가마-솥');
+  }
+
+  /* ── 18. Llove 복귀 시 온보딩 (제보 1) ───────────────────────────── */
+  console.log('\n[18] 학습 세계 복귀');
+  {
+    const html = fs.readFileSync(path.join(WCHAIN, 'index.html'), 'utf8');
+    확인('돌아가기 링크가 온보딩을 건너뛴 홈으로 간다',
+         html.includes('href="../Llove/#home"'));
+    const 연동 = fs.readFileSync(path.join(WCHAIN, 'js/연동.js'), 'utf8');
+    확인('데이터 삭제도 같은 목적지', 연동.includes("'../Llove/#home'"));
+
+    const fb = fs.readFileSync(path.join(루트, 'Llove/js/firebase.js'), 'utf8');
+    확인('Llove가 #home 해시를 보면 즉시 온보딩을 걷는다',
+         /location\.hash === '#home'[\s\S]{0,120}온보딩_걷기\(\)/.test(fb));
+    확인('해시는 1회용으로 지운다', fb.includes('history.replaceState'));
+    확인('DB 미초기화 경로에서도 온보딩을 걷는다',
+         /db 미초기화[\s\S]{0,120}온보딩_걷기\(\)/.test(fb));
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);

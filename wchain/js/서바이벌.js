@@ -86,10 +86,10 @@ const 설정_항목 = [
   // `모드` = 이 항목이 의미를 갖는 게임 모드. 없으면 두 모드 모두에 표시.
   // `잠금(gs)` = 그 모드에서 규칙상 고정인 항목 — 조작을 막고 이유를 함께 보여준다.
   { 키:'diff', 종류:'칩', 아이콘:'🔥', 라벨:'난이도', 모드:['SURVIVAL'],
-    선택지:[['안온','안온','50턴 · 목숨3 힌트5 — 상대가 쉬운 단어로 봐줍니다'],
-           ['격동','격동','75턴 · 목숨2 힌트3 — 상대가 아무 단어나 냅니다'],
-           ['초월','초월','140턴 · 목숨2 힌트2 — 상대가 잇기 어려운 단어를 노립니다 (+희귀어)'],
-           ['심연','심연','160턴 · 목숨1 힌트1 — 상대가 매번 최악의 수를 둡니다 (+희귀어, 거래 불가)']] },
+    선택지:[['안온','안온','50턴 · 목숨10 힌트5 — 상대가 쉬운 단어로 봐줍니다'],
+           ['격동','격동','75턴 · 목숨7 힌트3 — 상대가 아무 단어나 냅니다'],
+           ['초월','초월','140턴 · 목숨5 힌트2 — 상대가 잇기 어려운 단어를 노립니다'],
+           ['심연','심연','160턴 · 목숨3 힌트1 — 상대가 매번 최악의 수를 둡니다 (거래 불가)']] },
   { 키:'rev', 종류:'칩', 아이콘:'🔁', 라벨:'진행 방향',
     선택지:[[false,'끝말잇기','마지막 글자로 잇습니다'],[true,'앞말잇기','첫 글자로 잇습니다 (두음법칙 미적용)']] },
   { 키:'dueum', 종류:'칩', 아이콘:'📏', 라벨:'두음법칙',
@@ -99,7 +99,7 @@ const 설정_항목 = [
     잠금:gs => gs.game_mode === 'ARCADE',
     잠금설명:'아케이드에서는 한방 단어를 쓸 수 없습니다 (탑의 규칙)',
     켬설명:'상대가 이을 수 없는 한방 단어도 자유롭게 쓸 수 있습니다',
-    끔설명:'한방 단어를 내면 실수 1회로 계산됩니다' },
+    끔설명:'한방 단어를 내면 목숨 1개가 깎입니다' },
   { 키:'infinite', 종류:'토글', 아이콘:'🔄', 라벨:'무한 모드', 모드:['SURVIVAL'],
     켬설명:'턴 제한 없이 계속 이어갑니다',
     끔설명:'난이도별 목표 턴까지 생존하면 승리합니다' },
@@ -258,7 +258,7 @@ function 플레이_HUD갱신(){
   document.getElementById('hud-힌트').textContent = 표시무한(gs.hints) + '개';
   // 종전 표기 "∞ / 1·4"는 무엇이 목숨이고 무엇이 실수인지 읽히지 않았다(관리자님 지적) —
   // 라벨 순서 그대로 "목숨 · 실수"를 명시적으로 붙인다.
-  document.getElementById('hud-목숨').textContent = `${표시무한(gs.hearts)}개 · ${gs.strikes}/4`;
+  document.getElementById('hud-목숨').textContent = `${표시무한(gs.hearts)}개`;
   // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
   document.getElementById('ai-단어').textContent = gs.ai_last_word || '─';
   const 라벨 = document.getElementById('ai-라벨');
@@ -502,12 +502,6 @@ async function 단어_처리(raw, valid, reason){
     로그_추가(대사(gs, '단어_처리_8', [reason]), 'err');
     const result = user_defeat(gs);
     if(result === 'game_over'){ 게임오버(false); return false; }
-    if(result === 'restart_floor'){
-      로그_추가(`🔄 [${gs.stage}층 재시작]`, 'err');
-      arcade_restart_floor(gs);
-      플레이_HUD갱신(); 프롬프트_갱신();
-      return false;
-    }
     플레이_HUD갱신(); 프롬프트_갱신();
     return false;
   }
@@ -685,10 +679,6 @@ function 버튼_양보(){
     gs.yield_attempts = 0;
     const result = user_defeat(gs);
     if(result === 'game_over'){ 게임오버(false); return; }
-    if(result === 'restart_floor'){
-      로그_추가(`🔄 [${gs.stage}층 재시작]`, 'err');
-      arcade_restart_floor(gs);
-    }
   }
   플레이_HUD갱신(); 프롬프트_갱신();
 }
@@ -899,7 +889,13 @@ async function 힌트_본체(){
     return;
   }
 
-  if(!cands.length){ 로그_추가('❌ [힌트 불가] 조건에 맞는 단어를 찾을 수 없습니다.', 'sys'); return; }
+  if(!cands.length){
+    // 관리자님 제보: "힌트 불가라고 뜨면 내가 진 건가?" — 아니다. 힌트로 **안전하게** 안내할
+    // 단어를 못 찾았을 뿐 판은 그대로 진행된다. 오해하지 않게 명시하고 힌트도 차감하지 않는다.
+    로그_추가('❌ [힌트 불가] 안내할 만한 단어를 찾지 못했습니다. 진 것이 아니니 직접 입력해 보세요 '
+            + '(힌트는 차감되지 않았습니다).', 'sys');
+    return;
+  }
 
   if(gs.god_mode_active){
     const answer = cands[Math.floor(Math.random() * cands.length)];
@@ -1149,10 +1145,10 @@ function 관리자_패널열기(){
   document.getElementById('관리자-본문').innerHTML = `
     <div class="set-sec" style="margin-bottom:8px">
       <div class="set-lbl">${아케 ? '층 이동' : '턴 이동'}</div>
-      <div class="srs" style="margin-bottom:8px">1~99 사이 값으로 즉시 이동합니다.
+      <div class="srs" style="margin-bottom:8px">1~499 사이 값으로 즉시 이동합니다.
         현재 ${아케 ? `${gs.stage}층` : `${gs.turn}턴`}.</div>
       <div style="display:flex;gap:6px">
-        <input id="관리자-턴" type="number" min="1" max="99" value="${아케 ? gs.stage : gs.turn || 1}"
+        <input id="관리자-턴" type="number" min="1" max="499" value="${아케 ? gs.stage : gs.turn || 1}"
           style="flex:1;font-family:var(--fn);font-size:15px;color:var(--txt);background:var(--elev);
                  border:1px solid var(--bdr);border-radius:8px;padding:9px 12px;outline:none">
         <button class="btn sm acc" style="margin:0" onclick="관리자_턴이동()">이동</button>
@@ -1172,17 +1168,16 @@ function 관리자_패널열기(){
     </div>
 
     <div class="set-sec" style="margin-bottom:8px">
-      <div class="set-lbl">목숨 · 힌트 · 실수</div>
+      <div class="set-lbl">목숨 · 힌트</div>
       <div class="srs" style="margin-bottom:8px">현재 목숨 ${표시무한(gs.hearts)} ·
-        힌트 ${표시무한(gs.hints)} · 실수 ${gs.strikes}/4</div>
+        힌트 ${표시무한(gs.hints)}</div>
       <div class="fs-opts">
         <button class="fs-opt" onclick="관리자_자원('hearts', 1)">목숨 1</button>
-        <button class="fs-opt" onclick="관리자_자원('hearts', 3)">목숨 3</button>
+        <button class="fs-opt" onclick="관리자_자원('hearts', 10)">목숨 10</button>
         <button class="fs-opt" onclick="관리자_자원('hearts', Infinity)">목숨 ∞</button>
         <button class="fs-opt" onclick="관리자_자원('hints', 1)">힌트 1</button>
         <button class="fs-opt" onclick="관리자_자원('hints', 5)">힌트 5</button>
         <button class="fs-opt" onclick="관리자_자원('hints', Infinity)">힌트 ∞</button>
-        <button class="fs-opt" onclick="관리자_실수초기화()">실수 0</button>
       </div>
     </div>
 
@@ -1209,8 +1204,10 @@ function 관리자_반영(문구){
 
 function 관리자_턴이동(){
   const v = Number(document.getElementById('관리자-턴').value);
-  if(!Number.isInteger(v) || v < 1 || v > 99){
-    로그_추가('🔓 [관리자] 1~99 사이의 정수만 가능합니다.', 'err'); return;
+  // 상한 499 — 심연 목표가 160턴이고 아케이드는 14층부터 무한 등반이라 99로는 닿지 않았다
+  // (관리자님 제보: "심연에서 160 이동이 불가함").
+  if(!Number.isInteger(v) || v < 1 || v > 499){
+    로그_추가('🔓 [관리자] 1~499 사이의 정수만 가능합니다.', 'err'); return;
   }
   if(gs.game_mode === 'ARCADE'){
     gs.stage = v;
@@ -1242,7 +1239,6 @@ function 관리자_자원(키, 값){
   gs[키] = 값;
   관리자_반영(`${키 === 'hearts' ? '목숨' : '힌트'}을(를) ${표시무한(값)}(으)로 설정했습니다.`);
 }
-function 관리자_실수초기화(){ gs.strikes = 0; 관리자_반영('실수를 0으로 되돌렸습니다.'); }
 
 function 관리자_강제(무엇){
   관리자_패널닫기();
