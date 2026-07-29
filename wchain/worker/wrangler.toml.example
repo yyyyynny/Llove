@@ -1,0 +1,11 @@
+# Cloudflare Workers 배포 설정 예시 — 실제로 쓰려면 파일명을 wrangler.toml로 바꾸고
+# (이 폴더에서 wrangler.toml은 .gitignore로 막혀 있지 않으니, 인증키를 여기 적지 말 것 —
+#  키는 반드시 `wrangler secret put OPENDICT_API_KEY` 또는 대시보드 Variables에서 등록.
+#  대시보드에서 코드만 붙여넣어 배포한다면 이 파일은 필요 없다 — 참고용.)
+
+name = "urimalsaem-llove"
+main = "우리말샘-worker.mjs"
+compatibility_date = "2026-07-01"
+
+# 인증키는 여기 적지 않는다. 배포 후 아래 명령으로 등록:
+#   npx wrangler secret put OPENDICT_API_KEY

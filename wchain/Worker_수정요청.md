@@ -3,6 +3,12 @@
 > 2026-07-29 실측으로 확인한 **Cloudflare Worker 쪽 결함 3건**입니다.
 > 이 저장소 밖(Cloudflare 대시보드)이라 제가 고칠 수 없어 따로 정리합니다.
 > 엔드포인트: `https://urimalsaem-llove.hypoqwer.workers.dev/`
+>
+> **✅ 2026-07-29(추가): 아래 3건을 반영한 전체 Worker 코드를 새로 작성해 뒀습니다.**
+> `wchain/worker/우리말샘-worker.mjs` — 배포 방법은 `wchain/worker/README.md` 참조.
+> Cloudflare 대시보드에 코드를 붙여넣고 `OPENDICT_API_KEY`만 등록하면 됩니다(직접 코드를
+> 짜실 필요 없이 그대로 배포하시면 됩니다). ①②는 이 코드로 해결되고, ③(정렬)은 오픈API에
+> 인기순 옵션이 확인되지 않아 이번엔 반영하지 못했습니다(README "남은 일" 참조).
 
 ---
 
