@@ -59,9 +59,11 @@ function 페이지열기({ 온라인 = '정상' } = {}){
         // 막혀(기권 = 사용자 승리) 테스트가 게임 흐름을 재현하지 못하므로, 서로 이어지는
         // 3글자 후보 여러 개를 준다(끝 글자가 다시 조회 가능한 글자가 되도록).
         const 꼬리 = ['가', '나', '다', '라', '마'];
+        // '적음' = 지금 Worker가 실제로 보이는 상태(글자당 2~10개)를 재현한다
+        const 쓸꼬리 = 온라인 === '적음' ? 꼬리.slice(0, 2) : 꼬리;
         const 후보 = 온라인 === '없음' ? []
-          : 꼬리.map(t => payload.방향 === 'end' ? t + '우' + payload.글자
-                                                 : payload.글자 + '우' + t);
+          : 쓸꼬리.map(t => payload.방향 === 'end' ? t + '우' + payload.글자
+                                                   : payload.글자 + '우' + t);
         return { ok: true, json: async () => ({ 후보 }) };
       };
     }
@@ -746,6 +748,81 @@ async function main(){
     const 캐시 = JSON.parse(win.localStorage.getItem('plx_잇는_국어원후보캐시_v2') || '{}');
     확인('빈 후보 목록은 캐시에 남지 않는다', Object.keys(캐시).length === 0,
          JSON.stringify(캐시));
+  }
+
+  /* ── 20. 후보 부족 안내 · 힌트 낭비 호출 · 값 이중 관리 (2026-07-29 3차) ── */
+  console.log('\n[20] 막다른 길 안내 · 힌트 조회 순서 · 설명 문구 동기화');
+  {
+    // (1) 후보가 3개 이하면 "곧 막힐 수 있습니다" 경고로 바뀐다
+    const { win } = 페이지열기({ 온라인: '적음' });
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '사슴');
+    const 로그 = 로그텍스트(win);
+    확인('후보가 적으면 곧 막힌다고 경고한다', 로그.includes('곧 막힐 수 있습니다'),
+         로그.split('\n').filter(l => l.includes('우리말샘 후보')).join(' | '));
+
+    const { win: w2 } = 페이지열기();          // 후보 5개 = 넉넉
+    await 대사대기(w2);
+    판시작(w2);
+    await 단어넣기(w2, '사슴');
+    확인('후보가 넉넉하면 경고하지 않는다', !로그텍스트(w2).includes('곧 막힐 수 있습니다'));
+  }
+  {
+    // (2) 막다른길_확인 — 이을 단어를 못 찾으면 미리 알리고, 있으면 조용하다
+    const { win } = 페이지열기({ 온라인: '없음' });
+    await 대사대기(win);
+    판시작(win);
+    상태(win).ai_last_char = '가';
+    await win.막다른길_확인(값(win, '게임_세대'), '가');
+    확인('이을 단어가 없으면 미리 알린다', 로그텍스트(win).includes('찾지 못했습니다'));
+    확인('진 것이 아님을 함께 알린다', 로그텍스트(win).includes('그대로 입력해 보세요'));
+
+    const { win: w2 } = 페이지열기();
+    await 대사대기(w2);
+    판시작(w2);
+    상태(w2).ai_last_char = '가';
+    await w2.막다른길_확인(값(w2, '게임_세대'), '가');
+    확인('이을 단어가 있으면 조용하다', !로그텍스트(w2).includes('찾지 못했습니다'));
+
+    // 되돌아왔을 때 판이 바뀌었으면 버린다(리셋 중 되살아나지 않게)
+    const { win: w3 } = 페이지열기({ 온라인: '없음' });
+    await 대사대기(w3);
+    판시작(w3);
+    상태(w3).ai_last_char = '가';
+    await w3.막다른길_확인(값(w3, '게임_세대') - 1, '가');
+    확인('세대가 다르면 안내를 버린다', !로그텍스트(w3).includes('찾지 못했습니다'));
+  }
+  {
+    // (3) 힌트가 0이면 결과를 쓰지도 않을 온라인 조회를 하지 않는다(최대 6초 왕복 낭비)
+    const { win, 요청기록 } = 페이지열기();
+    await 대사대기(win);
+    판시작(win, { diff: '격동' });
+    await 단어넣기(win, '사슴');
+    상태(win).hints = 0; 상태(win).deal_offered = false;
+    const 이전 = 요청기록.filter(r => r.글자 !== undefined).length;
+    win.버튼_힌트();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    const 이후 = 요청기록.filter(r => r.글자 !== undefined).length;
+    확인('힌트 소진 상태에서는 후보를 조회하지 않는다', 이후 === 이전, `${이전} → ${이후}`);
+    확인('대신 악마의 거래가 열린다', 상태(win).game_state === 'DEVIL_WAIT',
+         상태(win).game_state);
+  }
+  {
+    // (4) 난이도 설명의 숫자가 난이도표와 어긋나지 않는다(종전엔 손으로 적어 둬 실제로 어긋났다)
+    const { win } = 페이지열기();
+    const 표 = 값(win, '난이도표');
+    const 설명 = 값(win, "설정_항목.find(x => x.키 === 'diff').선택지");
+    확인('난이도 칩 설명이 난이도표 값을 그대로 쓴다',
+         설명.every(([키, , 문구]) =>
+           문구.includes(`${표[키].턴}턴`) && 문구.includes(`목숨${표[키].목숨}`)
+           && 문구.includes(`힌트${표[키].힌트}`)),
+         설명.map(x => x[2]).join(' | '));
+
+    // (5) 층 재시작 폐지로 호출부가 사라진 함수가 남아 있지 않다
+    확인('arcade_restart_floor가 봉인됐다', typeof win.arcade_restart_floor === 'undefined');
+    const 규칙 = fs.readFileSync(path.join(WCHAIN, 'js/게임규칙.js'), 'utf8');
+    확인('봉인 근거가 주석으로 남아 있다', 규칙.includes('봉인 (2026-07-29) — 아케이드'));
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);

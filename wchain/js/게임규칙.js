@@ -411,15 +411,21 @@ function arcade_floor_up(gs, ai_defeated){
   gs.ai_last_char = null; gs.ai_last_word = null;
 }
 
-// 실수 4회로 목숨 소진 → 같은 층 재시작(서바이벌과 달리 게임오버 아님)
+/* ⚠️ 봉인 (2026-07-29) — 아케이드 '층 재시작'
+   원본에서 이 함수는 "실수 4회로 목숨 1개를 잃으면 그 대가로 층을 처음부터 다시"라는 뜻이었다.
+   실수(strikes)를 폐지하고 목숨 하나로 통일하면서 그 대가 관계 자체가 사라져 호출부가 없어졌다
+   (이제 두 모드 모두 목숨이 0이 될 때까지 그 자리에서 계속 이어간다 — user_defeat 참조).
+   되살릴 근거를 남겨 두려고 지우지 않고 주석으로 보존한다(이의/허세 봉인과 같은 관례).
+
 function arcade_restart_floor(gs){
   gs.stage_turn = 0; gs.curse_dark_strikes = 0;
   gs.ai_last_char = null; gs.ai_last_word = null;
 }
+*/
 
 if (typeof module !== 'undefined') module.exports = {
   validate_word, ai_generate_word, ai_generate_word_비동기, check_title, user_defeat,
-  붕괴확률, arcade_floor_up, arcade_restart_floor,
+  붕괴확률, arcade_floor_up,   // arcade_restart_floor는 봉인(위 주석)
   온라인후보_가져오기, 세션_수집, 세션_비우기, 우리말샘_불통인가, 난이도_슬라이스,
   조회한_글자인가, 한방_판정가능인가,
   get 세션_수집어(){ return 세션_수집어; }, ai_후보사전, ai_한방금지인가, 한방_확정인가, 탐욕_선택,
