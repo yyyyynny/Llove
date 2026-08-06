@@ -19,13 +19,16 @@
 2. **Edit code** → 이 폴더의 `우리말샘-worker.mjs` 내용 전체를 복사해 붙여넣기.
    - 파일 상단에 `export default { async fetch(request, env) {...} }` 형태(ES Module)입니다.
      대시보드 에디터가 "Module Worker"로 인식하는지 확인하세요(Service Worker 문법이 아닙니다).
-3. **Settings → Variables and Secrets** → `OPENDICT_API_KEY`를 **Secret**으로 등록
-   (국립국어원 오픈API 인증키. 이미 예전 Worker에 등록돼 있었다면 이름만 맞으면 그대로 재사용 가능
-   — 이름이 다르면 새로 등록하거나 코드의 `env.OPENDICT_API_KEY` 부분을 실제 변수명에 맞게 바꾸세요).
+3. **Settings → Variables and Secrets** — 이미 `URIMALSAEM_KEY`가 Secret으로 등록돼 있다면
+   그대로 재사용됩니다(코드가 `env.URIMALSAEM_KEY`를 읽습니다). 우리말샘 오픈API 공식 문서상
+   인증키 파라미터는 `key` 하나뿐이라, 함께 있는 `URIMALSAEM_CERTKEY_NO`는 이 호출에 쓰지
+   않습니다(용도가 다른 값으로 보입니다 — 예전 Worker가 왜 등록해 뒀는지는 확인 필요).
+   변수 이름이 다르다면 코드의 `env.URIMALSAEM_KEY` 부분을 실제 이름에 맞게 바꾸세요.
 4. **Deploy**.
 
 CLI(`wrangler`)로 배포하려면 `wrangler.toml.example`을 참고해 `wrangler.toml`을 만들고
-`npx wrangler deploy` 후 `npx wrangler secret put OPENDICT_API_KEY`로 키를 등록하세요.
+`npx wrangler deploy` 후 `npx wrangler secret put URIMALSAEM_KEY`로 키를 등록하세요
+(이미 등록돼 있다면 이 단계는 건너뛰어도 됩니다).
 
 ## 배포 후 확인
 

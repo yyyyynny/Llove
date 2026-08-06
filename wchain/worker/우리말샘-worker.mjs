@@ -8,7 +8,7 @@
 //   요청  POST { 글자: "가", 방향: "start"|"end" } → 응답 { 후보: ["가나다", ...] }
 //   실패 시 4xx/5xx만 반환하면 된다 — 클라이언트는 res.ok가 아니면 null로 강등해 로컬 안전망을 탄다.
 //
-// 인증키: Cloudflare 대시보드 Worker 설정 > Variables and Secrets 에 OPENDICT_API_KEY로 등록.
+// 인증키: Cloudflare 대시보드 Worker 설정 > Variables and Secrets 에 URIMALSAEM_KEY로 등록(관리자님이 이미 등록해 두신 시크릿 이름 — 우리말샘 오픈API 공식 문서상 인증키 파라미터는 'key' 하나뿐이라, 화면에 함께 있던 URIMALSAEM_CERTKEY_NO는 이 호출에 쓰지 않는다).
 // (CLAUDE.md 원칙: "API 키는 Cloudflare Workers만, 프론트 노출 금지" — 이 파일에 키를 직접 적지 말 것.)
 
 const 국어원_API_기준주소 = 'https://opendict.korean.go.kr/api/search';
@@ -58,7 +58,7 @@ function 붙임표_변형(word){
 // ── 오픈API 호출 ───────────────────────────────────────────────────────
 async function 오픈API_검색(env, { q, method, start = 1, num = 10 }){
   const url = new URL(국어원_API_기준주소);
-  url.searchParams.set('key', env.OPENDICT_API_KEY);
+  url.searchParams.set('key', env.URIMALSAEM_KEY);
   url.searchParams.set('q', q);
   url.searchParams.set('req_type', 'json');
   url.searchParams.set('advanced', 'y');
@@ -152,8 +152,8 @@ export default {
     if(request.method !== 'POST'){
       return json응답({ error: 'POST만 허용됩니다.' }, 405, origin);
     }
-    if(!env.OPENDICT_API_KEY){
-      return json응답({ error: '서버 설정 오류: OPENDICT_API_KEY 미등록' }, 500, origin);
+    if(!env.URIMALSAEM_KEY){
+      return json응답({ error: '서버 설정 오류: URIMALSAEM_KEY 미등록' }, 500, origin);
     }
 
     let payload;
