@@ -1,17 +1,31 @@
-// '잇는' — 우리말샘(국립국어원 오픈API) 프록시 Worker (2026-07-29 전면 재작성)
+// '잇는' — 우리말샘(국립국어원 오픈API) 프록시 Worker (2026-07-29 정정판)
 //
-// wchain/Worker_수정요청.md에 정리된 3가지 결함(①붙임표 오판 ②후보 부족 ③희귀어 편중)을
-// 반영한 새 구현. 배포 방법은 이 폴더의 README.md 참조.
+// wchain/Worker_수정요청.md에 정리된 결함(①붙임표 오판 ②후보 부족)을 반영한 구현.
+// 배포 방법은 이 폴더의 README.md 참조.
+//
+// ⚠️ 2026-07-29 정정: 첫 버전에서 URIMALSAEM_CERTKEY_NO를 빼먹었었다. 압축 이전 대화 기록을
+// 뒤져 확인한 결과, 이 API는 key 하나만으로는 안 되고 **certkey_no를 함께 보내야** 정상 응답한다
+// (예전 세션이 서브에이전트로 국립국어원 공식 문서 원문을 직접 읽어 확인했고, 그 구조로 실제
+// "필연" 단어 뜻풀이 응답까지 받아 검증했던 코드가 있었다 — 이 파일은 그 검증된 구조를 기준으로
+// 삼고, 이번 점검에서 찾은 결함만 얹었다). Cloudflare에 이미 등록된 두 시크릿(URIMALSAEM_KEY·
+// URIMALSAEM_CERTKEY_NO)을 그대로 재사용한다 — 새로 등록할 것 없음.
 //
 // 클라이언트(wchain/js/국어원.js)와의 계약 — 이 형태는 바꾸지 말 것(바꾸면 클라이언트도 함께 고쳐야 함):
 //   요청  POST { 단어: "가마솥" }              → 응답 { 존재: true|false }
 //   요청  POST { 글자: "가", 방향: "start"|"end" } → 응답 { 후보: ["가나다", ...] }
 //   실패 시 4xx/5xx만 반환하면 된다 — 클라이언트는 res.ok가 아니면 null로 강등해 로컬 안전망을 탄다.
 //
-// 인증키: Cloudflare 대시보드 Worker 설정 > Variables and Secrets 에 URIMALSAEM_KEY로 등록(관리자님이 이미 등록해 두신 시크릿 이름 — 우리말샘 오픈API 공식 문서상 인증키 파라미터는 'key' 하나뿐이라, 화면에 함께 있던 URIMALSAEM_CERTKEY_NO는 이 호출에 쓰지 않는다).
 // (CLAUDE.md 원칙: "API 키는 Cloudflare Workers만, 프론트 노출 금지" — 이 파일에 키를 직접 적지 말 것.)
 
 const 국어원_API_기준주소 = 'https://opendict.korean.go.kr/api/search';
+
+// opendict가 User-Agent 없는 요청을 걸러내는 사례가 있어(예전 검증된 코드에 이미 포함돼 있던
+// 방어) 그대로 유지한다 — 지워서 다시 막힐 이유가 없다.
+const 공통_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Accept': 'application/json, text/plain, */*',
+  'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+};
 
 // ── CORS ────────────────────────────────────────────────────────────────
 // 이 Worker는 인증키를 대신 들고 있는 공용 프록시라, 아무 origin이나 허용하면 다른 사이트가
@@ -37,17 +51,20 @@ function json응답(본문, status, origin){
   });
 }
 
-// ── 붙임표(-) · 캐리트(^) 정규화 ───────────────────────────────────────────
+// ── 붙임표(-) · 캐럿(^) 정규화 ───────────────────────────────────────────
 // 우리말샘은 합성어 표제어에 붙임표를(`가마-솥`), 띄어 쓰는 합성어에 캐럿을(`가마솥^밥`) 넣어
-// 등재한다. 게임은 사용자가 붙여 쓴 한 덩어리 문자열만 다루므로, 비교·응답 양쪽에서 둘 다 지운다
-// (Worker_수정요청.md ① — "^도 함께 지워야 합니다").
+// 등재한다. 게임은 사용자가 붙여 쓴 한 덩어리 문자열만 다루므로, 비교·응답 양쪽에서 둘 다 지운다.
+//
+// ⚠️ 예전 코드는 이 항목들을 정규화하지 않고 **통째로 버렸다**(`if (w.includes('-') || ...)
+// continue`). num=100으로 넉넉히 받아도, '사'처럼 흔한 글자는 받은 100건 중 대부분이 합성어라
+// 필터에 걸려 사라져 실제로는 2개만 남았다 — Worker_수정요청.md ②의 정확한 원인. 이번엔 버리지
+// 않고 정규화해서 그대로 후보에 포함한다.
 const 정규화 = w => String(w).replace(/[-^]/g, '').trim();
 
 // word 문자열 중간에 가능한 모든 위치에 붙임표를 끼운 변형 목록(2~6글자 한글만).
 // 종전엔 이 일을 클라이언트(wchain/js/국어원.js의 붙임표_변형)가 했다 — 단어 하나 확인에 최대
 // 5회 왕복(브라우저→Worker→오픈API)이 났다. Worker가 대신 하면 왕복이 1홉(Worker→오픈API)으로
-// 줄어 훨씬 빠르다. 클라이언트 쪽 폴백은 안전망으로 당분간 남겨 둔다(이 Worker가 실배포·검증되면
-// 걷어내도 된다).
+// 줄어 훨씬 빠르다. 클라이언트 쪽 폴백은 안전망으로 당분간 남겨 둔다.
 function 붙임표_변형(word){
   if(!/^[가-힣]{2,6}$/.test(word)) return [];
   const 변형 = [];
@@ -56,37 +73,42 @@ function 붙임표_변형(word){
 }
 
 // ── 오픈API 호출 ───────────────────────────────────────────────────────
-async function 오픈API_검색(env, { q, method, start = 1, num = 10 }){
+// key·certkey_no 둘 다 필수(위 2026-07-29 정정 주석 참조).
+async function 오픈API_검색(env, { q, advanced, target, method, start = 1, num = 10 }){
   const url = new URL(국어원_API_기준주소);
+  url.searchParams.set('certkey_no', env.URIMALSAEM_CERTKEY_NO);
   url.searchParams.set('key', env.URIMALSAEM_KEY);
-  url.searchParams.set('q', q);
+  url.searchParams.set('target_type', 'search');
   url.searchParams.set('req_type', 'json');
-  url.searchParams.set('advanced', 'y');
-  url.searchParams.set('method', method);   // exact | start | end
-  url.searchParams.set('target', '1');      // 1 = 표제어 검색
+  url.searchParams.set('part', 'word');
+  url.searchParams.set('sort', 'dict');
+  if(advanced) url.searchParams.set('advanced', 'y');
+  if(target) url.searchParams.set('target', String(target));
+  if(method) url.searchParams.set('method', method);   // exact | include | start | end
   url.searchParams.set('start', String(start));
   url.searchParams.set('num', String(num));
+  url.searchParams.set('q', q);
 
-  const res = await fetch(url.toString());
+  const res = await fetch(url.toString(), { headers: 공통_HEADERS });
   if(!res.ok) throw new Error('오픈API HTTP ' + res.status);
   const data = await res.json();
   const channel = data && data.channel;
   const items = (channel && Array.isArray(channel.item)) ? channel.item : [];
-  const total = channel ? Number(channel.total) || 0 : 0;
-  return { items, total };
+  return { items };
 }
 
 // ── ① 단어 존재 여부 ───────────────────────────────────────────────────
+// advanced=y&target=1&method=exact — "자세히 찾기" 모드로 정확 일치만 받는다(기본 검색은
+// 부분/포함 일치라 관련 없는 단어까지 섞여 존재 판정이 느슨해질 수 있어 이쪽을 쓴다).
 // method=exact는 opendict 자체가 문자열을 정확 비교하므로, 붙여 쓴 입력("가마솥")으로는
 // 붙임표 표제어("가마-솥")를 찾지 못한다. 원본 그대로 먼저 시도하고, 못 찾으면 가능한 위치에
 // 붙임표를 끼운 변형을 **병렬로** 전부 시도한다(직렬이면 변형 수만큼 왕복이 쌓인다).
 async function 단어존재조회(env, word){
   const 시도할것 = [word, ...붙임표_변형(word)];
   const 결과들 = await Promise.all(
-    시도할것.map(w => 오픈API_검색(env, { q: w, method: 'exact', num: 1 })
-      .catch(() => ({ items: [], total: 0 }))));   // 개별 실패는 "없음"으로 취급, 전체는 아래서 판단
+    시도할것.map(w => 오픈API_검색(env, { q: w, advanced: true, target: 1, method: 'exact', num: 1 })
+      .catch(() => ({ items: [] }))));   // 개별 실패는 "없음"으로 취급, 전체는 아래서 판단
 
-  // 하나라도 정규화 일치하는 표제어를 찾으면 존재.
   for(const { items } of 결과들){
     if(items.some(it => 정규화(it.word) === 정규화(word))) return true;
   }
@@ -94,23 +116,21 @@ async function 단어존재조회(env, word){
 }
 
 // ── ② 후보 목록(글자로 시작/끝나는 단어) ───────────────────────────────
-// 종전 결함: num이 기본값(10)에 머물러 있었고, 붙임표 든 표제어를 필터링 없이 정규화도 안 하고
-// 그대로 버려서(또는 그대로 내보내서 클라이언트 판정이 깨져서) '사' 같은 흔한 글자도 후보가
-// 2개뿐이었다. num을 크게 올리고, 필요하면 다음 페이지까지 병렬로 받는다.
+// advanced=y&target=1&method=start|end — "이 글자로 시작/끝나는 단어" 전방/후방 일치.
+// num=100(예전과 동일) + 필요하면 다음 페이지까지 병렬로 받는다. 붙임표 든 표제어는
+// 버리지 않고 정규화해서 포함한다(위 "정규화" 주석 — 후보 부족의 실제 원인 수정).
 const 후보_페이지당개수 = 100;
 const 후보_최대페이지 = 3;   // 최대 300개. 페이지 수를 늘리면 후보는 늘지만 왕복도 늘어난다.
 
 async function 후보목록조회(env, 글자, 방향){
   const method = 방향 === 'end' ? 'end' : 'start';
 
-  // 총 개수를 먼저 몰라도 병렬로 여러 페이지를 쏘고, 빈 페이지는 버린다(총량이 페이지당개수보다
-  // 적으면 뒤 페이지는 자연히 빈 배열로 온다 — 오픈API가 범위를 벗어난 start를 에러 없이
-  // 빈 결과로 돌려주는 걸 전제. 혹시 에러를 낸다면 개별 catch가 빈 배열로 흡수한다).
   const 페이지들 = await Promise.all(
     Array.from({ length: 후보_최대페이지 }, (_, i) => i)
       .map(i => 오픈API_검색(env, {
-        q: 글자, method, start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수,
-      }).catch(() => ({ items: [], total: 0 })))
+        q: 글자, advanced: true, target: 1, method,
+        start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수,
+      }).catch(() => ({ items: [] })))
   );
 
   const 후보 = [];
@@ -122,11 +142,13 @@ async function 후보목록조회(env, 글자, 방향){
       // 접사·구(句) 등 게임에 쓸 수 없는 형태를 거른다:
       //   · 공백이 남아 있으면(캐럿이 아니라 실제 띄어쓰기) 구(句) — 클라이언트가 phrase 설정에
       //     따라 별도로 다루므로 여기서는 온전한 한 단어만 보낸다.
-      //   · 한 글자짜리는 게임 규칙상 의미가 없다(원본도 필터링).
+      //   · 한 글자짜리는 게임 규칙상 의미가 없다.
       //   · 한글이 아닌 문자(로마자 표기 등)가 섞인 표제어는 제외.
       if(!정리됨 || 정리됨.includes(' ')) continue;
       if(정리됨.length < 2) continue;
       if(!/^[가-힣]+$/.test(정리됨)) continue;
+      if(방향 === 'start' && !정리됨.startsWith(글자)) continue;
+      if(방향 === 'end' && !정리됨.endsWith(글자)) continue;
       if(본것.has(정리됨)) continue;
       본것.add(정리됨);
       후보.push(정리됨);
@@ -144,16 +166,14 @@ export default {
       return new Response(null, { status: 204, headers: cors헤더(origin) });
     }
     if(!허용_ORIGIN.has(origin)){
-      // CORS 프리플라이트를 못 넣는 curl 등 서버 간 호출은 여기서 막힌다 — 의도된 동작
-      // (관리자님이 curl로 점검할 때는 Origin 헤더 없이도 도달은 하되, 브라우저가 아니므로
-      //  응답 자체는 받되 CORS 헤더가 'null'이라 실제 사이트에서는 못 쓴다는 뜻).
+      // CORS 프리플라이트를 못 넣는 curl 등 서버 간 호출은 여기서 막힌다 — 의도된 동작.
       return json응답({ error: '허용되지 않은 origin' }, 403, origin);
     }
     if(request.method !== 'POST'){
       return json응답({ error: 'POST만 허용됩니다.' }, 405, origin);
     }
-    if(!env.URIMALSAEM_KEY){
-      return json응답({ error: '서버 설정 오류: URIMALSAEM_KEY 미등록' }, 500, origin);
+    if(!env.URIMALSAEM_KEY || !env.URIMALSAEM_CERTKEY_NO){
+      return json응답({ error: '서버 설정 오류: URIMALSAEM_KEY·URIMALSAEM_CERTKEY_NO 둘 다 필요합니다.' }, 500, origin);
     }
 
     let payload;

@@ -9,9 +9,13 @@
 | 문제 | 이 코드의 대응 |
 |---|---|
 | ① 붙임표(`가마-솥`)가 있는 정상 단어가 "없는 단어" 오답 | 정확 검색이 실패하면 가능한 위치에 붙임표를 끼운 변형을 **Worker가 병렬로** 재시도(클라이언트는 1홉만 왕복) |
-| ② 후보가 글자당 2~10개뿐이라 5수 만에 게임이 막힘 | `num`을 10 → **100**으로, 필요하면 최대 3페이지(300개)까지 병렬 조회 |
-| ② 붙임표 든 표제어를 걸러서 버려 후보가 더 줄어듦 | 버리지 않고 **정규화(붙임표·캐럿 제거)해서** 그대로 후보에 포함 |
+| ② 후보가 글자당 2~10개뿐이라 5수 만에 게임이 막힘 | **진짜 원인은 num이 아니라 필터** — 예전 코드는 `num=100`을 이미 쓰고 있었지만 붙임표 든 항목을 그대로 버려서(합성어가 대부분이라) 실제로는 2~10개만 남았다. 버리지 않고 **정규화해서 포함**시키는 걸로 해결. 여기에 최대 3페이지(300개)까지 병렬 조회도 추가 |
 | ③ 표제어 순 정렬로 희귀어가 앞쪽에 몰림 | (급하지 않음 — 이 코드에서는 손대지 않음, 아래 "남은 일" 참조) |
+
+> ⚠️ **정정 이력**: 이 코드의 첫 버전은 `URIMALSAEM_CERTKEY_NO`를 빠뜨려 배포 후 "서버 설정
+> 오류"만 반환했습니다. 이 API는 `key`(인증키) 하나만으로는 안 되고 발급 시 같이 받은
+> `certkey_no`를 함께 보내야 정상 응답합니다 — 지금 버전은 압축 이전 대화에서 실제로 검증까지
+> 마쳤던 예전 구현을 근거로 두 값을 모두 사용하도록 고쳤습니다.
 
 ## 배포 방법 (Cloudflare 대시보드 — 가장 간단)
 
@@ -19,16 +23,19 @@
 2. **Edit code** → 이 폴더의 `우리말샘-worker.mjs` 내용 전체를 복사해 붙여넣기.
    - 파일 상단에 `export default { async fetch(request, env) {...} }` 형태(ES Module)입니다.
      대시보드 에디터가 "Module Worker"로 인식하는지 확인하세요(Service Worker 문법이 아닙니다).
-3. **Settings → Variables and Secrets** — 이미 `URIMALSAEM_KEY`가 Secret으로 등록돼 있다면
-   그대로 재사용됩니다(코드가 `env.URIMALSAEM_KEY`를 읽습니다). 우리말샘 오픈API 공식 문서상
-   인증키 파라미터는 `key` 하나뿐이라, 함께 있는 `URIMALSAEM_CERTKEY_NO`는 이 호출에 쓰지
-   않습니다(용도가 다른 값으로 보입니다 — 예전 Worker가 왜 등록해 뒀는지는 확인 필요).
-   변수 이름이 다르다면 코드의 `env.URIMALSAEM_KEY` 부분을 실제 이름에 맞게 바꾸세요.
+3. **Settings → Variables and Secrets** — 이미 `URIMALSAEM_KEY`·`URIMALSAEM_CERTKEY_NO`
+   두 개가 Secret으로 등록돼 있다면 **그대로 재사용됩니다**(코드가 `env.URIMALSAEM_KEY`와
+   `env.URIMALSAEM_CERTKEY_NO`를 둘 다 읽습니다 — 이 API는 인증키 하나만으로는 안 되고 발급
+   시 같이 받은 번호를 함께 보내야 정상 응답합니다). 새로 등록할 것 없습니다.
+   변수 이름이 다르다면 코드에서 이 두 이름이 나오는 부분을 실제 이름에 맞게 바꾸세요.
 4. **Deploy**.
 
 CLI(`wrangler`)로 배포하려면 `wrangler.toml.example`을 참고해 `wrangler.toml`을 만들고
-`npx wrangler deploy` 후 `npx wrangler secret put URIMALSAEM_KEY`로 키를 등록하세요
-(이미 등록돼 있다면 이 단계는 건너뛰어도 됩니다).
+`npx wrangler deploy` 후 아래 두 시크릿을 등록하세요(이미 등록돼 있다면 건너뛰어도 됩니다):
+```
+npx wrangler secret put URIMALSAEM_KEY
+npx wrangler secret put URIMALSAEM_CERTKEY_NO
+```
 
 ## 배포 후 확인
 
