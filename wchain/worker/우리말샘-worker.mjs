@@ -74,10 +74,17 @@ function 붙임표_변형(word){
 
 // ── 오픈API 호출 ───────────────────────────────────────────────────────
 // key·certkey_no 둘 다 필수(위 2026-07-29 정정 주석 참조).
+//
+// ⚠️ 2026-07-29 정정 2: 시크릿점검 결과 URIMALSAEM_KEY 길이가 33자였다(정상 32자 — 1글자
+// 초과). Cloudflare Secret 입력창에 복사할 때 끝에 공백·줄바꿈이 한 글자 딸려 들어가면 흔히
+// 이렇게 된다 — 예전 검증된 코드도 실제로 .trim()을 걸어 뒀었는데(압축 이전 대화 기록 확인),
+// 이번에 새로 짜면서 빠뜨렸다. 문자열 그대로 비교하는 API라 공백 한 칸도 "등록 안 된 키"가 된다.
+function 다듬기(v){ return String(v || '').trim(); }
+
 async function 오픈API_검색(env, { q, advanced, target, method, start = 1, num = 10 }){
   const url = new URL(국어원_API_기준주소);
-  url.searchParams.set('certkey_no', env.URIMALSAEM_CERTKEY_NO);
-  url.searchParams.set('key', env.URIMALSAEM_KEY);
+  url.searchParams.set('certkey_no', 다듬기(env.URIMALSAEM_CERTKEY_NO));
+  url.searchParams.set('key', 다듬기(env.URIMALSAEM_KEY));
   url.searchParams.set('target_type', 'search');
   url.searchParams.set('req_type', 'json');
   url.searchParams.set('part', 'word');
@@ -220,8 +227,10 @@ export default {
 
       return json응답({
         URIMALSAEM_KEY_길이: (env.URIMALSAEM_KEY || '').length,
+        URIMALSAEM_KEY_다듬은_길이: 다듬기(env.URIMALSAEM_KEY).length,
         URIMALSAEM_CERTKEY_NO_길이: (env.URIMALSAEM_CERTKEY_NO || '').length,
-        참고: 'key는 보통 32자(16진수), certkey_no는 보통 5자 안팎(숫자)',
+        참고: 'key는 보통 32자(16진수), certkey_no는 보통 5자 안팎(숫자). 원래 길이와 다듬은 길이가'
+            + ' 다르면 앞뒤 공백/줄바꿈이 섞여 있던 것(이제 검색 호출 자체는 다듬어서 보냄).',
         정방향_현재등록순서_결과: 정방향_실패 ? { 실패: 정방향_실패 } : { 성공: true },
         역방향_뒤바꿔본_결과: 역방향_실패 ? { 실패: 역방향_실패 } : { 성공: true },
         결론: !정방향_실패 ? '현재 등록 순서가 맞습니다(성공)'
