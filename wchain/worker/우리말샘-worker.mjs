@@ -90,8 +90,27 @@ async function 오픈API_검색(env, { q, advanced, target, method, start = 1, n
   url.searchParams.set('q', q);
 
   const res = await fetch(url.toString(), { headers: 공통_HEADERS });
-  if(!res.ok) throw new Error('오픈API HTTP ' + res.status);
-  const data = await res.json();
+  const 원문 = await res.text();
+  // ⚠️ 임시 디버그(2026-07-29, 원인 확인용 — 확인되면 지울 것): HTTP 상태·JSON 파싱·API 자체
+  // 에러(응답은 200인데 본문에 {error:{...}}를 담는 관공서 API 흔한 패턴) 세 갈래를 전부
+  // Error 객체에 실어 올린다. 응답 본문 앞부분만 담으므로 요청 URL의 key 값 자체는 안 실린다.
+  if(!res.ok){
+    const err = new Error('HTTP ' + res.status);
+    err._디버그 = { 단계: 'http', 상태: res.status, 본문: 원문.slice(0, 300) };
+    throw err;
+  }
+  let data;
+  try{ data = JSON.parse(원문); }
+  catch(e){
+    const err = new Error('JSON 파싱 실패');
+    err._디버그 = { 단계: 'json파싱', 본문: 원문.slice(0, 300) };
+    throw err;
+  }
+  if(data && data.error){
+    const err = new Error('오픈API 에러 응답');
+    err._디버그 = { 단계: 'api오류', 오류: data.error };
+    throw err;
+  }
   const channel = data && data.channel;
   const items = (channel && Array.isArray(channel.item)) ? channel.item : [];
   return { items };
@@ -103,11 +122,13 @@ async function 오픈API_검색(env, { q, advanced, target, method, start = 1, n
 // method=exact는 opendict 자체가 문자열을 정확 비교하므로, 붙여 쓴 입력("가마솥")으로는
 // 붙임표 표제어("가마-솥")를 찾지 못한다. 원본 그대로 먼저 시도하고, 못 찾으면 가능한 위치에
 // 붙임표를 끼운 변형을 **병렬로** 전부 시도한다(직렬이면 변형 수만큼 왕복이 쌓인다).
-async function 단어존재조회(env, word){
+//
+// 디버그=true면 catch로 삼키지 않고 **원본 실패의 상세**를 그대로 위로 던진다(진단용, 임시).
+async function 단어존재조회(env, word, 디버그 = false){
   const 시도할것 = [word, ...붙임표_변형(word)];
   const 결과들 = await Promise.all(
     시도할것.map(w => 오픈API_검색(env, { q: w, advanced: true, target: 1, method: 'exact', num: 1 })
-      .catch(() => ({ items: [] }))));   // 개별 실패는 "없음"으로 취급, 전체는 아래서 판단
+      .catch(e => { if(디버그) throw e; return { items: [] }; })));
 
   for(const { items } of 결과들){
     if(items.some(it => 정규화(it.word) === 정규화(word))) return true;
@@ -180,9 +201,13 @@ export default {
     try{ payload = await request.json(); }
     catch(e){ return json응답({ error: '잘못된 JSON' }, 400, origin); }
 
+    // ⚠️ 임시 디버그 스위치(2026-07-29): payload.디버그===true면 실패를 삼키지 않고 원인을
+    // 응답에 그대로 담는다. 원인을 확인하면 이 스위치와 관련 코드를 전부 지울 것.
+    const 디버그 = payload.디버그 === true;
+
     try{
       if(typeof payload.단어 === 'string' && payload.단어.trim()){
-        const 존재 = await 단어존재조회(env, payload.단어.trim());
+        const 존재 = await 단어존재조회(env, payload.단어.trim(), 디버그);
         return json응답({ 존재 }, 200, origin);
       }
       if(typeof payload.글자 === 'string' && payload.글자.trim()
@@ -193,6 +218,7 @@ export default {
       return json응답({ error: '요청 형식이 올바르지 않습니다(단어 또는 글자+방향 필요).' }, 400, origin);
     }catch(e){
       console.error('[우리말샘 Worker] 처리 실패', e);
+      if(디버그) return json응답({ error: '오픈API 호출 실패', 디버그: e._디버그 || String(e) }, 502, origin);
       return json응답({ error: '오픈API 호출 실패' }, 502, origin);
     }
   },
