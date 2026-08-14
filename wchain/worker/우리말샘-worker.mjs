@@ -205,14 +205,28 @@ export default {
     // 응답에 그대로 담는다. 원인을 확인하면 이 스위치와 관련 코드를 전부 지울 것.
     const 디버그 = payload.디버그 === true;
 
-    // payload.시크릿점검===true면 API 호출 없이 등록된 두 시크릿의 **길이만** 돌려준다(값은
-    // 절대 안 보냄). key는 공식 문서상 "16진수 32자리", certkey_no는 예전 검증 때 짧은 숫자
-    // (예: 10163, 5자리)였다 — 길이가 뒤바뀌어 있으면 두 값이 서로 바뀌어 등록된 것.
+    // payload.시크릿점검===true면 (1) 등록된 두 시크릿의 **길이만**(값은 절대 안 보냄) 알려주고,
+    // (2) 두 값을 서로 바꿔서 실제로 API를 한 번 호출해 "바뀌어 등록됐다"는 가설을 직접 검증한다
+    // — 정황(길이)만 보고 끝내지 않고 실증까지 한 번에 끝내서 재배포를 왕복하지 않기 위함.
     if(payload.시크릿점검 === true){
+      const 정방향_실패 = await 오픈API_검색(env,
+        { q: '가', advanced: true, target: 1, method: 'exact', num: 1 })
+        .then(() => null).catch(e => e._디버그 || String(e));
+
+      const 바뀐env = { URIMALSAEM_KEY: env.URIMALSAEM_CERTKEY_NO, URIMALSAEM_CERTKEY_NO: env.URIMALSAEM_KEY };
+      const 역방향_실패 = await 오픈API_검색(바뀐env,
+        { q: '가', advanced: true, target: 1, method: 'exact', num: 1 })
+        .then(() => null).catch(e => e._디버그 || String(e));
+
       return json응답({
         URIMALSAEM_KEY_길이: (env.URIMALSAEM_KEY || '').length,
         URIMALSAEM_CERTKEY_NO_길이: (env.URIMALSAEM_CERTKEY_NO || '').length,
-        참고: 'key는 보통 32자(16진수), certkey_no는 보통 5자 안팎(숫자) — 뒤바뀌어 있는지 확인용',
+        참고: 'key는 보통 32자(16진수), certkey_no는 보통 5자 안팎(숫자)',
+        정방향_현재등록순서_결과: 정방향_실패 ? { 실패: 정방향_실패 } : { 성공: true },
+        역방향_뒤바꿔본_결과: 역방향_실패 ? { 실패: 역방향_실패 } : { 성공: true },
+        결론: !정방향_실패 ? '현재 등록 순서가 맞습니다(성공)'
+             : !역방향_실패 ? '두 값이 서로 바뀌어 등록돼 있었습니다 — 대시보드에서 이름을 맞바꿔 주세요'
+             : '둘 다 실패 — 순서 문제가 아니라 값 자체가 잘못됐을 가능성(오탈자·만료 등)',
       }, 200, origin);
     }
 
