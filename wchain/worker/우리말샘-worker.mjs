@@ -205,6 +205,17 @@ export default {
     // 응답에 그대로 담는다. 원인을 확인하면 이 스위치와 관련 코드를 전부 지울 것.
     const 디버그 = payload.디버그 === true;
 
+    // payload.시크릿점검===true면 API 호출 없이 등록된 두 시크릿의 **길이만** 돌려준다(값은
+    // 절대 안 보냄). key는 공식 문서상 "16진수 32자리", certkey_no는 예전 검증 때 짧은 숫자
+    // (예: 10163, 5자리)였다 — 길이가 뒤바뀌어 있으면 두 값이 서로 바뀌어 등록된 것.
+    if(payload.시크릿점검 === true){
+      return json응답({
+        URIMALSAEM_KEY_길이: (env.URIMALSAEM_KEY || '').length,
+        URIMALSAEM_CERTKEY_NO_길이: (env.URIMALSAEM_CERTKEY_NO || '').length,
+        참고: 'key는 보통 32자(16진수), certkey_no는 보통 5자 안팎(숫자) — 뒤바뀌어 있는지 확인용',
+      }, 200, origin);
+    }
+
     try{
       if(typeof payload.단어 === 'string' && payload.단어.trim()){
         const 존재 = await 단어존재조회(env, payload.단어.trim(), 디버그);
