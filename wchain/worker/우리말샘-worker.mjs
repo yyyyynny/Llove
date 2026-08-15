@@ -131,10 +131,16 @@ async function 오픈API_검색(env, { q, advanced, target, method, start = 1, n
 // 붙임표를 끼운 변형을 **병렬로** 전부 시도한다(직렬이면 변형 수만큼 왕복이 쌓인다).
 //
 // 디버그=true면 catch로 삼키지 않고 **원본 실패의 상세**를 그대로 위로 던진다(진단용, 임시).
+//
+// ⚠️ 2026-08-15 정정 3: num=1로 불렀더니 "103 Invalid num value"로 거부됐다(후보 조회의
+// num=100은 정상 동작 확인됨 — '사' 글자로 107건 수신). 예전 검증된 코드도 단어 조회엔
+// num=20을 썼지 1을 쓴 적이 없었다 — 이 API가 num에 최솟값 제약을 두는 것으로 보인다.
+// 존재 확인은 어차피 "1건이라도 있는가"만 보면 되므로 값 자체는 안 써도 되지만, 유효한
+// 범위 안의 값을 보내야 하므로 예전과 같은 20으로 맞춘다.
 async function 단어존재조회(env, word, 디버그 = false){
   const 시도할것 = [word, ...붙임표_변형(word)];
   const 결과들 = await Promise.all(
-    시도할것.map(w => 오픈API_검색(env, { q: w, advanced: true, target: 1, method: 'exact', num: 1 })
+    시도할것.map(w => 오픈API_검색(env, { q: w, advanced: true, target: 1, method: 'exact', num: 20 })
       .catch(e => { if(디버그) throw e; return { items: [] }; })));
 
   for(const { items } of 결과들){
@@ -217,12 +223,12 @@ export default {
     // — 정황(길이)만 보고 끝내지 않고 실증까지 한 번에 끝내서 재배포를 왕복하지 않기 위함.
     if(payload.시크릿점검 === true){
       const 정방향_실패 = await 오픈API_검색(env,
-        { q: '가', advanced: true, target: 1, method: 'exact', num: 1 })
+        { q: '가', advanced: true, target: 1, method: 'exact', num: 20 })
         .then(() => null).catch(e => e._디버그 || String(e));
 
       const 바뀐env = { URIMALSAEM_KEY: env.URIMALSAEM_CERTKEY_NO, URIMALSAEM_CERTKEY_NO: env.URIMALSAEM_KEY };
       const 역방향_실패 = await 오픈API_검색(바뀐env,
-        { q: '가', advanced: true, target: 1, method: 'exact', num: 1 })
+        { q: '가', advanced: true, target: 1, method: 'exact', num: 20 })
         .then(() => null).catch(e => e._디버그 || String(e));
 
       return json응답({
