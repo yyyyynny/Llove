@@ -33,7 +33,7 @@ function 학습설정_마이그레이션(){
   if(학습설정.sq2 === '유의어 변별') 학습설정.sq2 = '예문형';
 }
 
-/* 패널 펼치기/접기 토글 — 세션5 버그8: 회전 대신 ▼/▲ 글자 교체(회전 금지 규칙) */
+/* 패널 펼치기/접기 토글 — 세션5 버그8: 회전 대신 ▼/▲ 글자 교체(기존 화면 톤과 통일된 절제된 표현) */
 function toggleLset(id){
   const panel = document.getElementById(id);
   if(!panel) return;

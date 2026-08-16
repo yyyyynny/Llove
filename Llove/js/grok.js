@@ -115,7 +115,7 @@ function 음성재생(소스){
   }
 }
 
-// 로딩 표시 토글 (회전 금지 — 점 불투명도 펄스)
+// 로딩 표시 토글 — 절제된 점 불투명도 펄스(기존 화면 톤과 통일)
 function 음성생성_로딩(켜기){
   const el = document.getElementById('음성로딩');
   const btn = document.getElementById('음성생성버튼');
