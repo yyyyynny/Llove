@@ -116,6 +116,9 @@ async function main(){
     확인('목숨이 1개 깎인다', 상태(win).hearts === 6, `hearts=${상태(win).hearts}`);
     확인('목숨 감소 안내가 화면에 나옴', 로그텍스트(win).includes('[목숨 -1]'));
     확인('실수(strikes) 개념이 더는 쓰이지 않는다', 상태(win).strikes === 0);
+    // 2026-08-15 신설 — 목숨이 줄면 HUD가 흔들려서 알린다(종전엔 다른 갱신과 똑같이 조용했음)
+    확인('목숨 감소 시 HUD가 흔들린다(.hit)',
+         win.document.getElementById('hud-목숨').classList.contains('hit'));
   }
 
   /* ── 2. 정상 단어는 한방으로 막히지 않는다 ──────────────────────────── */
@@ -245,6 +248,8 @@ async function main(){
          `배지=${d.querySelector('#prompt-안내 .need')?.textContent} / 기대=${상태(win).ai_last_char}`);
     확인('끝말잇기는 "시작하는"으로 안내', d.getElementById('prompt-안내').textContent.includes('시작하는'));
     확인('내가 낸 단어에 me 클래스', !!d.querySelector('#로그 .line.me'));
+    // 2026-08-15 신설 — 새 로그 줄이 fadeUp으로 들어온다(종전엔 즉시 나타나기만 했음)
+    확인('로그 줄에 fu 진입 애니메이션', !!d.querySelector('#로그 .line.fu'));
 
     // HUD — 진행바가 HUD 밖으로 나가고 상태 배지는 턴 칸 안으로 들어갔다
     확인('HUD가 3칸', d.querySelectorAll('.hud .hud-item').length === 3);

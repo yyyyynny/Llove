@@ -30,7 +30,8 @@ function 로그_추가(text, cls){
   const log = document.getElementById('로그');
   if(!log) return;
   const line = document.createElement('div');
-  line.className = 'line' + (cls ? ' ' + cls : '');
+  // fu = Llove와 동일한 fadeUp 진입(2026-08-15 신설) — 매번 새로 만드는 노드라 리트리거 불필요.
+  line.className = 'line fu' + (cls ? ' ' + cls : '');
   line.textContent = text;
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
@@ -38,6 +39,19 @@ function 로그_추가(text, cls){
 function 로그_비우기(){ const l = document.getElementById('로그'); if(l) l.innerHTML = ''; }
 
 const 표시무한 = n => (n === Infinity ? '∞' : String(n));
+
+// 목숨·힌트 감소 시 HUD를 흔들기 위한 이전 값 추적(2026-08-15 신설). null이면 아직 첫 갱신
+// 전이라는 뜻 — 첫 페인트에서 오탐(0에서 시작값으로 "증가"하는 걸 감소로 착각) 방지.
+let _이전힌트 = null, _이전목숨 = null;
+
+// 값이 줄었을 때만 요소를 흔든다. 화면전환.js의 리플로우 재시작 관례(style.animation 토글)를
+// 그대로 재사용 — 연속으로 줄어도 매번 다시 흔들리게 한다.
+function 흔들기(el){
+  if(!el) return;
+  el.classList.add('hit');
+  el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+  setTimeout(() => el.classList.remove('hit'), 450);
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    페르소나 선택 → 모드 선택 (원본 _handle_init/_handle_mode_select)
@@ -210,6 +224,7 @@ function 설정_테마연동(켬){
 function 게임_시작(){
   reset_game(gs);
   세션_비우기();   // 이전 판에서 모은 단어·실패 카운터를 새 판으로 들고 가지 않는다
+  _이전힌트 = null; _이전목숨 = null;   // 새 판 시작값을 "감소"로 오탐하지 않게 추적값도 초기화
   if(gs.rev && gs.dueum !== 'OFF'){ gs.dueum = 'OFF'; }   // 원본: 앞말잇기는 두음법칙 자동 OFF
   gs.game_state = 'PLAYING';
   로그_비우기();
@@ -263,9 +278,17 @@ function 플레이_HUD갱신(){
     const status = gs.infinite ? '🟢' : get_status(gs.turn, max_t);
     st.textContent = status; st.className = 'status-' + status;
   }
-  document.getElementById('hud-힌트').textContent = 표시무한(gs.hints) + '개';
+  // 목숨·힌트가 줄었을 때만 흔들어 알린다(2026-08-15 신설) — 종전엔 다른 갱신과 똑같이
+  // 조용히 숫자만 바뀌어서 목숨을 잃어도 체감이 안 됐다. 텍스트를 덮어쓰기 전에 비교한다.
+  const 힌트요소 = document.getElementById('hud-힌트');
+  const 목숨요소 = document.getElementById('hud-목숨');
+  if(_이전힌트 !== null && typeof gs.hints === 'number' && gs.hints < _이전힌트) 흔들기(힌트요소);
+  if(_이전목숨 !== null && typeof gs.hearts === 'number' && gs.hearts < _이전목숨) 흔들기(목숨요소);
+  _이전힌트 = gs.hints; _이전목숨 = gs.hearts;
+
+  힌트요소.textContent = 표시무한(gs.hints) + '개';
   // 실수(strikes) 폐지(2026-07-29)로 이 칸은 목숨 하나만 보여준다 — 종전 "목숨 · 실수" 2단 표기 삭제.
-  document.getElementById('hud-목숨').textContent = `${표시무한(gs.hearts)}개`;
+  목숨요소.textContent = `${표시무한(gs.hearts)}개`;
   // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
   document.getElementById('ai-단어').textContent = gs.ai_last_word || '─';
   const 라벨 = document.getElementById('ai-라벨');

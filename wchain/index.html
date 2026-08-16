@@ -123,6 +123,21 @@
     .s1{animation-delay:.05s}.s2{animation-delay:.10s}.s3{animation-delay:.15s}
     .s4{animation-delay:.20s}.s5{animation-delay:.25s}.s6{animation-delay:.30s}
 
+    /* 목숨·힌트가 줄었을 때 흔드는 용도 — Llove style.css의 shakeLR과 동일(2026-08-15 신설) */
+    @keyframes shakeLR{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+    .hud-val.hit{ animation:shakeLR .38s ease both; }
+
+    /* 모션에 민감한 사용자를 위한 전역 폴백 — Llove style.css와 동일(wchain은 별도 스타일시트라
+       여기도 따로 넣어야 함). */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
     /* 헤더 — 그라디언트 텍스트·영문 부제 제거(AI 사이트 상투 장식). 담백하게. */
     .badge{ font-size:11px; letter-spacing:6px; color:var(--txt2); margin-bottom:6px; text-align:center; }
     h1{ font-size:24px; font-weight:800; margin-bottom:20px; text-align:center; color:var(--txt); }

@@ -102,11 +102,10 @@ html{scrollbar-gutter:stable}
   transition: background-color .4s, border-color .2s, color .2s, transform .2s;
 }
 
-/* ━━━ 애니메이션 (대각선·회전 금지) ━━━ */
+/* ━━━ 애니메이션 (기존 화면과 톤·속도 통일, 불쾌감 없는 선에서 자유 판단 — 2026-08-15) ━━━ */
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-28px)}}
-@keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 @keyframes auraBreath{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
 @keyframes expFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-64px)}}
 @keyframes shakeLR{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
@@ -115,6 +114,17 @@ html{scrollbar-gutter:stable}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes treeLine{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
 @keyframes starGlow{0%,100%{text-shadow:0 0 6px rgba(184,149,106,.4)}50%{text-shadow:0 0 12px rgba(184,149,106,.7)}}
+
+/* 모션에 민감한 사용자를 위한 전역 폴백 — 새 규칙의 "불쾌감 없음" 조항을 실제로 지킨다.
+   거의 모든 애니메이션·전환을 순간적으로 만들어 사실상 끈다(표준 관례). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 .fu{animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 .s1{animation-delay:.05s}.s2{animation-delay:.10s}.s3{animation-delay:.15s}
@@ -403,9 +413,9 @@ html{scrollbar-gutter:stable}
 .syn-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 .syn-opt{padding:13px 10px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;font-weight:700;color:var(--txt);text-align:center;transition:all .15s;position:relative}
 .syn-opt:hover{border-color:var(--acc);transform:translateY(-1px)}
-.syn-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok)}
+.syn-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop .45s ease both}
 .syn-opt.acceptable{background:rgba(224,144,96,.18);border-color:var(--warn);color:var(--warn)}
-.syn-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7}
+.syn-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7;animation:shakeLR .38s ease both}
 .syn-opt.dim{opacity:.45;pointer-events:none}
 .syn-result{margin-top:14px;padding:13px 14px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);font-size:13px;line-height:1.7;display:none}
 .syn-result.show{display:block;animation:fadeUp .3s cubic-bezier(.22,1,.36,1) both}
@@ -437,8 +447,8 @@ html{scrollbar-gutter:stable}
 .rc-opts{display:flex;flex-direction:column;gap:8px}
 .rc-opt{padding:12px 14px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;color:var(--txt);text-align:left;line-height:1.5;transition:all .15s}
 .rc-opt:hover{border-color:var(--acc);transform:translateY(-1px)}
-.rc-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok)}
-.rc-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7}
+.rc-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop .45s ease both}
+.rc-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7;animation:shakeLR .38s ease both}
 .rc-opt.dim{opacity:.45;pointer-events:none}
 /* 예문형 근사 정답 → 지문 독해 유도 넛지 (세션10-c 항목1) */
 .syn-nudge{margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(120,184,120,.08);border:1px dashed var(--ok);font-size:12px;color:var(--txt2);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
