@@ -24,7 +24,8 @@
        --acc·accl·accd/--txt·txt2·txtm/--fn), 설정 화면 문법(set-sec/set-row/sri·srl·srs, .mt 토글,
        .fs-opt 칩), 버튼 공식(.btn-acc = accd→acc 그라디언트 + 어두운 글자)까지 전부 Llove 실측값.
        색 값만 wchain 고유 다크 팔레트(이세계 정체성 — 관리자님 확정).
-       회전 애니메이션은 '잇' 퍼즐(게임 본질)에서만 허용 — 그 외 전부 fadeUp만 사용(Llove 규칙 준용). */
+       애니메이션은 방식을 제한하지 않고 "기존 화면과 톤·속도 통일 + 불쾌감 없음"으로 판단한다
+       (2026-08-15 CLAUDE.md 행동 규칙 8번 변경). 여기 기본값은 Llove와 같은 fadeUp. */
     :root{
       --bg:#0e1016; --card:#151824; --elev:#1b1f2e;
       --bdr:#262e44; --bdrg:#38445f;
@@ -163,19 +164,28 @@
     .btn{ display:block; width:100%; text-align:left; font-family:var(--fn); font-size:14px; color:var(--txt);
       background:var(--elev); border:1px solid var(--bdr); border-radius:10px; padding:12px 15px; margin-bottom:8px;
       cursor:pointer; transition:transform .15s,border-color .2s,background .2s; }
-    .card > .btn:hover{ transform:translateX(3px); }
     .btn:hover{ border-color:var(--bdrg); }
     .btn:active{ transform:scale(.98); }
     /* 강조 버튼 = Llove .btn-acc 공식 그대로(accd→acc 그라디언트 + 어두운 글자) */
     .btn.acc{ background:linear-gradient(135deg,var(--accd),var(--acc)); color:var(--bg); border:none;
       font-weight:700; text-align:center; letter-spacing:.3px; transition:transform .2s,box-shadow .2s; }
-    .btn.acc:hover{ transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.3); }
+    .btn.acc:hover{ box-shadow:0 6px 20px rgba(0,0,0,.3); }
     .btn.acc:active{ transform:scale(.97); }
     /* 소형 버튼 = Llove .fs-opt 칩 계열(선택박스·보조 버튼 공용 — JS 생성 마크업이 이 클래스를 쓴다) */
     .btn.sm{ display:inline-block; width:auto; padding:8px 13px; font-size:13px; font-weight:600;
       color:var(--txt2); border-radius:8px; margin:0 6px 6px 0; }
-    .btn.sm:hover{ border-color:var(--accd); color:var(--acc); transform:none; }
+    .btn.sm:hover{ border-color:var(--accd); color:var(--acc); }
     .btn.sm.acc{ color:var(--bg); }
+    /* ── 포인터 정밀 기기 전용 hover 이동 (2026-08-15) ─────────────────────
+       터치는 탭 시 :hover 가 눌러붙어 버튼이 밀린 채 남는다. Llove style.css 와 같은 방침으로
+       **이동(transform)만** 마우스 환경에 제한하고 색·그림자는 밖에 남긴다.
+       .btn.sm 의 transform:none 은 위 .card > .btn:hover 의 이동을 취소하는 용도라
+       같은 블록 안에 있어야 효력이 유지된다. ── */
+    @media (hover: hover) and (pointer: fine) {
+      .card > .btn:hover{ transform:translateX(3px); }
+      .btn.acc:hover{ transform:translateY(-2px); }
+      .btn.sm:hover{ transform:none; }
+    }
     .btn:disabled, .input-row button:disabled, .input-row input:disabled{ opacity:.4; cursor:not-allowed; }
     .btn .d{ font-size:11px; color:var(--txt2); margin-top:2px; font-weight:400; }
 

@@ -52,12 +52,36 @@ assert('Llove style.css에 prefers-reduced-motion 폴백이 있다',
 assert('wchain index.html 인라인 스타일에도 prefers-reduced-motion 폴백이 있다',
   WCHAIN_HTML.includes('prefers-reduced-motion: reduce'));
 
+/* (c) 터치 hover 게이팅 — :hover 이동이 포인터 정밀 기기에만 걸리는지.
+   터치는 탭 시 :hover 가 눌러붙어 카드가 들린 채 남는다(모바일 사용이 주라 실제로 계속 보였음). */
+const 게이트 = '@media (hover: hover) and (pointer: fine)';
+assert('Llove style.css에 포인터 게이팅 블록이 있다', LLOVE_CSS.includes(게이트));
+assert('wchain index.html에도 포인터 게이팅 블록이 있다', WCHAIN_HTML.includes(게이트));
+
+// 게이팅 블록 밖에 :hover + transform 이 남아 있으면 실패(=터치에서 또 눌러붙는다)
+const 게이팅밖 = (css) => {
+  const 본체 = css.split(게이트)[0];
+  return [...본체.matchAll(/([^\n{}]*:hover[^{]*)\{([^}]*transform[^}]*)\}/g)]
+    .map(m => m[1].trim());
+};
+const 남은L = 게이팅밖(LLOVE_CSS), 남은W = 게이팅밖(WCHAIN_HTML);
+assert('Llove: 게이팅 밖에 남은 hover 이동이 없다', 남은L.length === 0, 남은L.join(' / '));
+assert('wchain: 게이팅 밖에 남은 hover 이동이 없다', 남은W.length === 0, 남은W.join(' / '));
+
+// 색·테두리 피드백은 게이팅 밖에 남겨 둔다(터치에서도 눌린 느낌이 나야 함)
+assert('색 피드백은 터치에서도 유지된다(.mc:hover 테두리)',
+  /\.mc:hover\{[^}]*border-color/.test(LLOVE_CSS));
+assert('그림자 피드백도 유지된다(.btn-acc:hover)',
+  /\.btn-acc:hover\{[^}]*box-shadow/.test(LLOVE_CSS));
+
 /* 사소한 정리 — 죽은 키프레임 제거, 낡은 주석 정정 */
 assert('죽은 키프레임 scaleIn이 제거됨', !LLOVE_CSS.includes('@keyframes scaleIn'));
 assert('낡은 "회전 완전 금지" 절대 문구가 애니메이션 섹션 주석에서 빠짐',
   !LLOVE_CSS.includes('애니메이션 (대각선·회전 금지)'));
 
 /* (c)·(d)가 기대하는 CSS 재료가 wchain 쪽에 실제로 존재하는지(JS 동작 자체는 플레이 테스트에서 확인) */
+assert('wchain 헤더 주석도 현재 규칙 문구로 정정됨',
+  !WCHAIN_HTML.includes("그 외 전부 fadeUp만 사용"));
 assert('wchain에 shakeLR 키프레임과 .hud-val.hit이 있다',
   WCHAIN_HTML.includes('@keyframes shakeLR') && WCHAIN_HTML.includes('.hud-val.hit'));
 
