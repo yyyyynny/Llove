@@ -110,6 +110,13 @@ html{scrollbar-gutter:stable}
 @keyframes expFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-64px)}}
 @keyframes shakeLR{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 @keyframes correctPop{0%{background:rgba(120,184,120,.4)}100%{background:rgba(120,184,120,.08)}}
+/* correctPop의 짝 — 끝값만 .18로 다르다.
+   ⚠️ 왜 따로 두는가(2026-08-15): CSS 애니메이션은 일반 선언보다 우선하고, fill-mode:both면
+   끝 키프레임 값이 **끝난 뒤에도 계속** 요소를 덮어쓴다. 그래서 자체 배경 .18을 가진 요소
+   (.syn-opt·.rc-opt·#sq7Opts .aopt)에 .08로 끝나는 correctPop을 걸면 정답 배경이 영구히
+   .08로 옅어져, 세션10-o가 "정답/오답 구분이 약하다"며 세워 둔 대비가 도로 무너진다.
+   .aopt는 자체 배경이 없어 .08이 곧 쉬는 값이므로 correctPop을 그대로 쓴다. */
+@keyframes correctPop18{0%{background:rgba(120,184,120,.4)}100%{background:rgba(120,184,120,.18)}}
 @keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes treeLine{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
@@ -362,7 +369,7 @@ html{scrollbar-gutter:stable}
 /* 세션10-o: 문장 배열(sq7) 판정 시 정답/오답 구분이 약했던 문제 — 전역 .aopt.correct/.wrong은
    테두리색만 바뀌어(4지선다 sq1과 공유하는 스타일이라 거기는 손대지 않음) sq6 지문 독해(.rc-opt)·
    예문형(.syn-opt)이 쓰는 "배경 톤 + 글자색" 대비를 sq7에만 스코프해 추가한다. */
-#sq7Opts .aopt.correct{background:rgba(120,184,120,.18);color:var(--ok)}
+#sq7Opts .aopt.correct{background:rgba(120,184,120,.18);color:var(--ok);animation:correctPop18 .45s ease both}
 #sq7Opts .aopt.wrong{background:rgba(192,112,112,.15);color:var(--err);opacity:.7}
 .otxt{font-size:14px;font-weight:500;line-height:1.5}
 .exp-gain{background:rgba(184,149,106,.08);border:1px solid rgba(184,149,106,.22);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
@@ -413,7 +420,7 @@ html{scrollbar-gutter:stable}
 .syn-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 .syn-opt{padding:13px 10px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;font-weight:700;color:var(--txt);text-align:center;transition:all .15s;position:relative}
 .syn-opt:hover{border-color:var(--acc);transform:translateY(-1px)}
-.syn-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop .45s ease both}
+.syn-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop18 .45s ease both}
 .syn-opt.acceptable{background:rgba(224,144,96,.18);border-color:var(--warn);color:var(--warn)}
 .syn-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7;animation:shakeLR .38s ease both}
 .syn-opt.dim{opacity:.45;pointer-events:none}
@@ -447,7 +454,7 @@ html{scrollbar-gutter:stable}
 .rc-opts{display:flex;flex-direction:column;gap:8px}
 .rc-opt{padding:12px 14px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;color:var(--txt);text-align:left;line-height:1.5;transition:all .15s}
 .rc-opt:hover{border-color:var(--acc);transform:translateY(-1px)}
-.rc-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop .45s ease both}
+.rc-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop18 .45s ease both}
 .rc-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7;animation:shakeLR .38s ease both}
 .rc-opt.dim{opacity:.45;pointer-events:none}
 /* 예문형 근사 정답 → 지문 독해 유도 넛지 (세션10-c 항목1) */
