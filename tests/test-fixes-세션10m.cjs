@@ -74,6 +74,18 @@ assert('색 피드백은 터치에서도 유지된다(.mc:hover 테두리)',
 assert('그림자 피드백도 유지된다(.btn-acc:hover)',
   /\.btn-acc:hover\{[^}]*box-shadow/.test(LLOVE_CSS));
 
+/* (d) transition:all 금지 — 의도 안 한 속성(padding·max-height·font-size 등)까지
+   GPU 밖에서 애니메이션한다. 각 규칙이 실제로 바꾸는 속성만 나열해야 한다. */
+for (const [이름, css] of [['Llove/style.css', LLOVE_CSS], ['wchain/index.html', WCHAIN_HTML]]) {
+  const 잔여 = [...css.matchAll(/([^\n{}]*)\{[^}]*transition:\s*all/g)].map(m => m[1].trim().slice(0, 40));
+  assert(`${이름}: transition:all 이 남아 있지 않다`, 잔여.length === 0, 잔여.join(' / '));
+}
+// 의도된 레이아웃 전환은 명시적으로 남아 있어야(아코디언·온보딩 점)
+assert('아코디언(.lset-panel)의 max-height 전환은 명시로 유지',
+  /\.lset-panel\{[^}]*transition:max-height/.test(LLOVE_CSS));
+assert('온보딩 점(.ob-dot)의 알약 확장(width)은 명시로 유지',
+  /\.ob-dot\{[^}]*transition:width/.test(LLOVE_CSS));
+
 /* 사소한 정리 — 죽은 키프레임 제거, 낡은 주석 정정 */
 assert('죽은 키프레임 scaleIn이 제거됨', !LLOVE_CSS.includes('@keyframes scaleIn'));
 assert('낡은 "회전 완전 금지" 절대 문구가 애니메이션 섹션 주석에서 빠짐',
