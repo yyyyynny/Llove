@@ -120,7 +120,13 @@
       body.playing .wrap{ padding-top:20px; }
     }
     .screen{ display:none; flex:1; flex-direction:column; }
-    .screen.active{ display:flex; }
+    /* 화면 전환에 진입 연출을 준다(2026-08-15). 종전엔 display:none→flex 즉시 컷이라
+       Llove(slideIn)와 인상이 갈렸다 — 같은 도메인을 오가는 두 세계인데 전환 감각이 달랐다.
+       Llove 는 나가는 화면(slideOut)까지 타이밍을 맞추지만, wchain 의 화면() 은 클래스만
+       토글하는 동기 함수라 그 기계장치를 들이지 않고 **들어오는 쪽만** 같은 커브·같은 길이로
+       맞춘다(Llove .screen.entering 실측값 .35s). */
+    .screen.active{ display:flex; animation:slideIn .35s var(--ease-out) both; }
+    @keyframes slideIn{ from{opacity:0; transform:translateX(28px)} to{opacity:1; transform:translateX(0)} }
     @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
     .fu{ animation:fadeUp .38s var(--ease-out) both; }
     /* Llove의 스태거 지연(.s1~.s6)과 동일 */

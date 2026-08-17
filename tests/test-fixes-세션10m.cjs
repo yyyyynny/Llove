@@ -102,6 +102,27 @@ for (const [이름, css] of [['Llove/style.css', LLOVE_CSS], ['wchain/index.html
 assert('테마 블록이 --ease-out 을 덮어쓰지 않는다',
   !/\[data-theme[^{]*\{[^}]*--ease-out/.test(LLOVE_CSS) && !/\[data-theme[^{]*\{[^}]*--ease-out/.test(WCHAIN_HTML));
 
+/* (f) wchain 화면 전환 — Llove 와 같은 커브·길이로 인상을 맞춘다.
+   종전엔 display:none→flex 즉시 컷이라 같은 도메인을 오가는 두 세계의 전환 감각이 갈렸다. */
+assert('wchain .screen.active 에 진입 연출이 있다',
+  /\.screen\.active\{[^}]*animation:slideIn/.test(WCHAIN_HTML));
+assert('wchain 에 slideIn 키프레임이 정의됐다', WCHAIN_HTML.includes('@keyframes slideIn'));
+{
+  const L = LLOVE_CSS.match(/\.screen\.entering\{animation:slideIn\s+([0-9.]+s)\s+var\(--ease-out\)/);
+  const W = WCHAIN_HTML.match(/\.screen\.active\{[^}]*animation:slideIn\s+([0-9.]+s)\s+var\(--ease-out\)/);
+  assert('두 앱의 진입 길이·커브가 같다', !!L && !!W && L[1] === W[1],
+    `Llove=${L && L[1]} / wchain=${W && W[1]}`);
+}
+
+/* stagger — 감사 중 "없다"고 봤다가 확인해 보니 **이미 구현돼 있었다**(내 오판 정정).
+   업적 30ms·복습 40ms 로 전문가 권장 30~80ms 범위 안. 회귀로 사라지지 않게 고정한다. */
+{
+  const 업적 = fs.readFileSync(path.join(ROOT, 'Llove', 'js', '업적.js'), 'utf8');
+  const 복습 = fs.readFileSync(path.join(ROOT, 'Llove', 'js', '복습.js'), 'utf8');
+  assert('업적 목록에 stagger 가 있다(30ms 간격)', /animation-delay:\$\{0\.03\*idx\}s/.test(업적));
+  assert('복습 목록에 stagger 가 있다(40ms 간격)', /animation-delay:\$\{idx\*0\.04\}s/.test(복습));
+}
+
 /* 사소한 정리 — 죽은 키프레임 제거, 낡은 주석 정정 */
 assert('죽은 키프레임 scaleIn이 제거됨', !LLOVE_CSS.includes('@keyframes scaleIn'));
 assert('낡은 "회전 완전 금지" 절대 문구가 애니메이션 섹션 주석에서 빠짐',
