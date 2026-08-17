@@ -101,32 +101,55 @@ function 새버전_감지_시작(){
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 renderObDots();
 음성입력_차단_부착();      // v3.7 항목2: 구어 교정 텍스트 입력 음성 차단
-// plx_ 로컬 캐시 적용 — 로그인 전·새로고침 대비 (Firestore 로드 시 그 값으로 다시 덮어씀)
-try{
-  커스텀_복원();  // 항목3: 저장된 커스텀 색·슬롯 먼저 복원(테마가 custom일 때 변수 세팅 선행)
-  const 저장테마 = localStorage.getItem('plx_테마'); if(저장테마) setTheme(저장테마, true);
-  const 저장폰트 = localStorage.getItem('plx_폰트'); if(저장폰트) applyFont(저장폰트, true);
-  // 세션5: 화면 크기 복원 / 세션10-g 항목1: 저장값 없으면 칩·문구는 100% 그대로, zoom만 조용히 0.9
-  const 저장화면 = localStorage.getItem('plx_화면배율');
-  if(저장화면) setFontScale(parseInt(저장화면,10), true);
+/* plx_ 로컬 캐시 적용 — 로그인 전·새로고침 대비 (Firestore 로드 시 그 값으로 다시 덮어씀)
+   ⚠️ 2026-08-15: 종전에는 아래 15개 복원이 **하나의 try** 안에 묶여 있었다. 그래서 예컨대
+   plx_학습설정 값 하나만 깨져도(JSON.parse 예외) 뒤에 오는 랜덤 설정·글자 범위·배너·AI 지침·
+   채팅 기록·아바타·음성 주소 복원이 통째로 조용히 건너뛰어졌다 — 앱은 살아 있는데 설정이
+   절반만 적용된 상태가 되고, catch 주석이 "localStorage 차단 환경 무시"라 원인도 안 보였다.
+   복원 단계는 서로 독립이므로 각각 따로 감싸고, 실패한 항목만 콘솔에 표면화한다. */
+function 복원단계(이름, 작업){
+  try{ 작업(); }
+  catch(e){ console.warn('[복원] ' + 이름 + ' 실패 — 나머지 복원은 계속 진행합니다', e); }
+}
+
+복원단계('커스텀 테마', () => 커스텀_복원());  // 항목3: 테마가 custom일 때 변수 세팅이 선행돼야 함
+복원단계('테마', () => { const v = localStorage.getItem('plx_테마'); if(v) setTheme(v, true); });
+복원단계('글꼴', () => { const v = localStorage.getItem('plx_폰트'); if(v) applyFont(v, true); });
+// 세션5: 화면 크기 복원 / 세션10-g 항목1: 저장값 없으면 칩·문구는 100% 그대로, zoom만 조용히 0.9
+복원단계('화면 배율', () => {
+  const v = localStorage.getItem('plx_화면배율');
+  if(v) setFontScale(parseInt(v,10), true);
   else document.documentElement.style.zoom = '0.9';
-  const 저장배율 = localStorage.getItem('plx_글자배율'); if(저장배율) set글자크기(parseInt(저장배율,10), true);     // 세션5: 글자 크기 복원(텍스트 전용)
-  const 저장학습 = JSON.parse(localStorage.getItem('plx_학습설정')||'null'); if(저장학습) Object.assign(학습설정, 저장학습);  // 세션5 버그7: 학습 설정 복원
-  학습설정_마이그레이션();  // 세션7: 구 '선택지' 값 → '4지선다'/'플래시카드' 변환
-  학습설정_UI동기화();  // 세션6 버그6: 저장값 유무와 무관하게 기본값 기준으로도 항상 버튼 동기화
-  const 저장랜덤 = JSON.parse(localStorage.getItem('plx_랜덤설정')||'null'); if(저장랜덤 && 저장랜덤.가중치) 랜덤설정 = 저장랜덤;  // 세션7 항목8
-  const 저장범위 = localStorage.getItem('plx_글자범위'); set글자범위(저장범위 || '학습', true);  // 세션7 항목10
-  배너프리셋_로드();  // 세션7 항목12: assets/배너/목록.json (없으면 조용히 무시)
-  // 세션10-h: 모바일은 Enter가 줄바꿈이라 안내 문구를 다르게(전송은 버튼으로)
-  { const 입력창 = document.getElementById('askInp');
-    if(입력창) 입력창.placeholder = 모바일_입력환경() ? '질문을 입력하세요... (전송 버튼으로 보내기)' : '질문을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)'; }
-  const 저장지침 = localStorage.getItem('plx_AI지침'); if(저장지침 !== null){ 사용자.AI지침 = 저장지침; }  // 세션6 항목5
+});
+복원단계('글자 배율', () => { const v = localStorage.getItem('plx_글자배율'); if(v) set글자크기(parseInt(v,10), true); });  // 세션5
+복원단계('학습 설정', () => {   // 세션5 버그7
+  const v = JSON.parse(localStorage.getItem('plx_학습설정')||'null');
+  if(v) Object.assign(학습설정, v);
+});
+// ↓ 저장값 파싱이 실패해도 기본값 기준으로는 반드시 돌아야 하는 단계라 위와 분리했다
+복원단계('학습 설정 마이그레이션', () => 학습설정_마이그레이션());  // 세션7: 구 '선택지' → '4지선다'/'플래시카드'
+복원단계('학습 설정 UI 동기화', () => 학습설정_UI동기화());        // 세션6 버그6
+복원단계('랜덤 설정', () => {   // 세션7 항목8
+  const v = JSON.parse(localStorage.getItem('plx_랜덤설정')||'null');
+  if(v && v.가중치) 랜덤설정 = v;
+});
+복원단계('글자 범위', () => { const v = localStorage.getItem('plx_글자범위'); set글자범위(v || '학습', true); });  // 세션7 항목10
+복원단계('배너 프리셋', () => 배너프리셋_로드());  // 세션7 항목12: 없으면 조용히 무시
+// 세션10-h: 모바일은 Enter가 줄바꿈이라 안내 문구를 다르게(전송은 버튼으로)
+복원단계('질문 입력창 안내', () => {
+  const 입력창 = document.getElementById('askInp');
+  if(입력창) 입력창.placeholder = 모바일_입력환경()
+    ? '질문을 입력하세요... (전송 버튼으로 보내기)'
+    : '질문을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)';
+});
+복원단계('AI 지침', () => {   // 세션6 항목5
+  const v = localStorage.getItem('plx_AI지침'); if(v !== null){ 사용자.AI지침 = v; }
   AI지침_상태갱신();
-  프로필프리셋_로드();   // 세션6 항목11: assets/프로필/목록.json (없으면 조용히 무시)
-  채팅기록_로드();       // 세션6 항목4: 게스트 채팅 기록 복원 (로그인 시 보관함_로드가 다시 로드)
-  아바타_적용(document.getElementById('nmAvatar'), 사용자.프로필이미지);  // 세션6: 이름 화면 아바타도 바인딩
-  const 저장음성EP = localStorage.getItem('plx_음성엔드포인트'); if(저장음성EP) 음성엔드포인트 = 저장음성EP;  // 추가기능: 음성 서버 주소 복원
-}catch(e){ /* localStorage 차단 환경 무시 */ }
+});
+복원단계('프로필 프리셋', () => 프로필프리셋_로드());  // 세션6 항목11: 없으면 조용히 무시
+복원단계('채팅 기록', () => 채팅기록_로드());          // 세션6 항목4: 로그인 시 보관함_로드가 다시 로드
+복원단계('이름 화면 아바타', () => 아바타_적용(document.getElementById('nmAvatar'), 사용자.프로필이미지));  // 세션6
+복원단계('음성 서버 주소', () => { const v = localStorage.getItem('plx_음성엔드포인트'); if(v) 음성엔드포인트 = v; });
 예문데이터_로드();          // β8: 정령왕 JSON (구어 27 · 유의어 18 · 한문장 7)
 모드DB_로드();              // β9: 모드별 DB JSON 6종 (각 80개 채움 완료 — 자동 출제)
 토큰표시_갱신();            // β5: 토큰 UI 첫 렌더

@@ -27,6 +27,7 @@ const 테스트들 = [
   ['세션10-l 계정삭제·초기화 채팅 기록 삭제', 'test-fixes-세션10l.cjs'],
   ['세션10-m 애니메이션 통일성·접근성', 'test-fixes-세션10m.cjs'],
   ['세션10-n 키보드 접근성', 'test-fixes-세션10n.cjs'],
+  ['세션10-o 부팅 복원 단계 독립성', 'test-fixes-세션10o.cjs'],
   ['wchain 한방 판정(즉사 버그) 회귀', 'test-wchain-한방.cjs'],
   ['wchain 실제 페이지 플레이 회귀', 'test-wchain-플레이.cjs']
 ];

@@ -101,6 +101,9 @@
   --fn:var(--c-fn,'Noto Sans KR',sans-serif);
 }
 
+    /* 모션 토큰 — Llove style.css 와 같은 커브·같은 이름(디자인 언어 공유, 2026-08-15) */
+    :root{ --ease-out:cubic-bezier(.22,1,.36,1); }
+
     *{ box-sizing:border-box; margin:0; padding:0; }
     /* html에도 배경색을 깔아 body 밖 영역(오버스크롤·툴바 접힘 구간)까지 확실히 칠한다 */
     html{ height:100%; background:var(--bg); }
@@ -119,7 +122,7 @@
     .screen{ display:none; flex:1; flex-direction:column; }
     .screen.active{ display:flex; }
     @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
-    .fu{ animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both; }
+    .fu{ animation:fadeUp .38s var(--ease-out) both; }
     /* Llove의 스태거 지연(.s1~.s6)과 동일 */
     .s1{animation-delay:.05s}.s2{animation-delay:.10s}.s3{animation-delay:.15s}
     .s4{animation-delay:.20s}.s5{animation-delay:.25s}.s6{animation-delay:.30s}

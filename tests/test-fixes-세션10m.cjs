@@ -86,6 +86,22 @@ assert('아코디언(.lset-panel)의 max-height 전환은 명시로 유지',
 assert('온보딩 점(.ob-dot)의 알약 확장(width)은 명시로 유지',
   /\.ob-dot\{[^}]*transition:width/.test(LLOVE_CSS));
 
+/* (e) 모션 커브 토큰화 — 같은 값이 40곳에 하드코딩돼 있어 조정 시 실수 여지가 컸다.
+   값 자체는 바꾸지 않았다(바꾸면 앱 전체 체감이 함께 변함). */
+assert('Llove: --ease-out 토큰이 :root에 정의됐다',
+  /:root\{[^}]*--ease-out:cubic-bezier\(\.22,1,\.36,1\)/.test(LLOVE_CSS));
+assert('wchain: 같은 이름·같은 값으로 토큰이 정의됐다',
+  /:root\{[^}]*--ease-out:cubic-bezier\(\.22,1,\.36,1\)/.test(WCHAIN_HTML));
+for (const [이름, css] of [['Llove/style.css', LLOVE_CSS], ['wchain/index.html', WCHAIN_HTML]]) {
+  // 정의줄 1곳을 뺀 나머지에 하드코딩이 남아 있으면 토큰화가 덜 된 것
+  const 하드 = (css.match(/cubic-bezier\(\.22,1,\.36,1\)/g) || []).length;
+  assert(`${이름}: 커브 하드코딩이 정의 1곳만 남았다`, 하드 === 1, `${하드}곳`);
+  assert(`${이름}: 실제로 var(--ease-out) 를 쓰고 있다`, css.includes('var(--ease-out)'));
+}
+// 테마 블록이 커브를 덮어쓰면 테마마다 모션이 달라진다 — 그런 일이 없어야
+assert('테마 블록이 --ease-out 을 덮어쓰지 않는다',
+  !/\[data-theme[^{]*\{[^}]*--ease-out/.test(LLOVE_CSS) && !/\[data-theme[^{]*\{[^}]*--ease-out/.test(WCHAIN_HTML));
+
 /* 사소한 정리 — 죽은 키프레임 제거, 낡은 주석 정정 */
 assert('죽은 키프레임 scaleIn이 제거됨', !LLOVE_CSS.includes('@keyframes scaleIn'));
 assert('낡은 "회전 완전 금지" 절대 문구가 애니메이션 섹션 주석에서 빠짐',
