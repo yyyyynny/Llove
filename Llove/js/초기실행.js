@@ -68,6 +68,8 @@ function 게스트로그인(){
   showToastMsg('🔓 비로그인 테스트 모드 — 저장은 되지 않습니다');
 }
 document.addEventListener('keydown', 테스트진입_키감지);
+// 키보드만으로도 앱을 쓸 수 있게 — role/tabindex 부여 + Enter/Space 위임 (화면전환.js)
+키보드접근_시작();
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    추가기능: 새 버전 배포 감지 — 새로고침 안내 배너

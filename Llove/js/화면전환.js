@@ -377,3 +377,74 @@ function 랜덤_가중치설정(모드, v){
   사용자데이터_저장({랜덤설정});
   랜덤설정_열기();   // 팝업 즉시 갱신
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   키보드 접근성 (2026-08-15 신설)
+   ────────────────────────────────────────────────────────────────
+   `onclick`만 달린 div/span은 마우스·터치로만 눌린다. Tab으로 도달조차 못 해서
+   **키보드만 쓰는 사용자는 학습 모드 9개(.mc)도, 퀴즈 선택지(.aopt)도 누를 수 없었다** —
+   즉 앱의 핵심 기능이 아예 잠겨 있었다. 전역 keydown은 백도어 감지 하나뿐이었다.
+
+     ① 조작 요소에 role="button" + tabindex="0"을 부여해 Tab 순서에 편입
+     ② 위임 keydown 하나로 Enter/Space → click (요소마다 핸들러를 달지 않는다)
+     ③ MutationObserver로 동적 렌더(.aopt·.ach-item·.act-btn·.ct-slot 등)도 자동 보강
+        — 렌더 호출부를 일일이 찾아 고치지 않아도 앞으로 추가되는 요소까지 덮는다
+
+   제외 대상(조작 요소가 아니라서):
+     · onclick이 event.stopPropagation()뿐인 요소 — 전파 차단용 껍데기
+     · 배경 클릭 닫기(.ov-bg·.modal-bg·.ask-bg·.obj-bg·.ach-detail-bg)
+       → 모달 안에는 이미 실제 <button>이 있어 키보드 경로가 존재한다
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const 키보드_배경선택자 = '.ov-bg, .modal-bg, .ask-bg, .obj-bg, .ach-detail-bg';
+
+function 키보드_조작요소인가(el){
+  if(!el.matches) return false;
+  const oc = el.getAttribute('onclick') || '';
+  // 전파 차단만 하는 껍데기는 누를 대상이 아니다
+  if(/^\s*event\.stopPropagation\(\)\s*;?\s*$/.test(oc)) return false;
+  if(el.matches(키보드_배경선택자)) return false;
+  return true;
+}
+
+// 뿌리(기본 document) 아래의 onclick div/span에 role·tabindex를 붙인다. 이미 처리한 건 건너뛴다.
+function 키보드접근_보강(뿌리){
+  const 범위 = 뿌리 && 뿌리.querySelectorAll ? 뿌리 : document;
+  범위.querySelectorAll('div[onclick], span[onclick]').forEach(el => {
+    if(el.dataset.kb) return;
+    if(!키보드_조작요소인가(el)) return;
+    el.dataset.kb = '1';
+    if(!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+  });
+}
+
+function 키보드접근_시작(){
+  // ② Enter/Space → click (위임)
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target;
+    if(!el || !el.matches || !el.matches('[role="button"][tabindex]')) return;
+    // ⚠️ 마우스로 누를 수 없는 상태면 키보드로도 눌리면 안 된다.
+    // .aopt.disabled·.syn-opt.dim 등은 pointer-events:none으로 비활성되는데, el.click()은
+    // pointer-events를 무시하고 실행된다 — 이 가드가 없으면 채점이 끝난 선택지를 Enter로
+    // 다시 눌러 정답 처리가 중복된다.
+    try{ if(getComputedStyle(el).pointerEvents === 'none') return; }catch(err){ /* 계산 실패 시 통과 */ }
+    e.preventDefault();   // Space로 페이지가 스크롤되지 않게
+    el.click();
+  });
+
+  키보드접근_보강(document);
+
+  // ③ 동적 렌더 자동 보강
+  try{
+    new MutationObserver(변경들 => {
+      for(const 변경 of 변경들){
+        변경.addedNodes.forEach(노드 => {
+          if(노드.nodeType !== 1) return;   // 엘리먼트만
+          if(노드.matches && 노드.matches('div[onclick], span[onclick]')) 키보드접근_보강(노드.parentNode || document);
+          else 키보드접근_보강(노드);
+        });
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+  }catch(e){ console.warn('[키보드] MutationObserver 미지원 — 동적 요소는 보강되지 않습니다', e); }
+}
