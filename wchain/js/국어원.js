@@ -133,6 +133,34 @@ async function 국어원_단어조회(word){
   return false;
 }
 
+// 단어 존재 + 뜻풀이(동음이의어 그룹) 조회 — '이의 있음' 재설계 전용(2026-08-19).
+// 위 국어원_단어조회()는 존재 여부(true/false/null)만 필요한 호출부(단어_제출)용이라 그대로
+// 두고, 뜻풀이 근거가 필요한 곳만 이 함수를 쓴다. Worker 계약(wchain/worker/우리말샘-worker.mjs)의
+// 뜻풀이그룹 필드를 그대로 통과시킨다. 반환값 3가지: { 존재, 뜻풀이그룹 }(조회 성공) /
+// null(게이트 off·미설정·오프라인·실패·시간초과 — "확인 자체를 못 함", 위 함수와 동일 관례).
+// 붙임표 재시도는 하지 않는다 — 여기서 조회하는 단어는 항상 AI가 이미 낸 단어(HARD_DICT·
+// DICTIONARY·온라인 후보 중에서만 골라 이미 유효성이 보장됨)라 합성어 붙임표 오판 케이스가
+// 사실상 없다.
+const 국어원_상세캐시_KEY = 'plx_잇는_국어원상세캐시_v1';
+function 국어원_상세캐시_로드(){
+  try{ return JSON.parse(localStorage.getItem(국어원_상세캐시_KEY) || '{}'); }
+  catch(e){ return {}; }
+}
+function 국어원_상세캐시_저장(캐시){
+  try{ localStorage.setItem(국어원_상세캐시_KEY, JSON.stringify(캐시)); }
+  catch(e){ /* 용량 초과 등 무시 */ }
+}
+async function 국어원_단어조회_상세(word){
+  const 캐시 = 국어원_상세캐시_로드();
+  if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
+  const data = await 국어원_POST({ 단어: word }, 국어원_타임아웃_단어_MS);
+  if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
+  const 결과 = { 존재: !!data.존재, 뜻풀이그룹: Array.isArray(data.뜻풀이그룹) ? data.뜻풀이그룹 : [] };
+  캐시[word] = 결과;
+  국어원_상세캐시_저장(캐시);
+  return 결과;
+}
+
 /* 후보 캐시 키에도 버전을 붙인다(2026-07-29 _v2).
    ────────────────────────────────────────────────────────────────
    종전 키에는 버전이 없어서, Worker가 돌려준 후보 목록이 **영구히** 기기에 남았다.
@@ -177,4 +205,4 @@ async function 국어원_후보목록조회(글자, 방향){
   return 목록;
 }
 
-if (typeof module !== 'undefined') module.exports = { 국어원_단어조회, 국어원_후보목록조회, 국어원_캐시_KEY };
+if (typeof module !== 'undefined') module.exports = { 국어원_단어조회, 국어원_단어조회_상세, 국어원_후보목록조회, 국어원_캐시_KEY };

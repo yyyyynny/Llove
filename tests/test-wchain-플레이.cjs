@@ -256,8 +256,15 @@ async function main(){
     확인('진행바가 HUD 밖에 있음', !d.querySelector('.hud .bar-track') && !!d.querySelector('.bar-track'));
     확인('상태 배지가 턴 칸 안에 있음', !!d.querySelector('.hud .hud-item #hud-상태'));
 
-    // 봉인 버튼은 시각적으로 강등
-    확인('봉인 버튼에 locked 클래스', d.getElementById('btn-이의').classList.contains('locked')
+    // 이의·허세 진행도 라벨(2026-08-19, 봉인 해제) — 아직 안 썼으면 (0/5)에 잠금 없음
+    확인('이의 버튼에 진행도(0/5) 표시', d.getElementById('btn-이의').textContent.includes('(0/5)'));
+    확인('허세 버튼도 같은 진행도(0/5) 표시', d.getElementById('btn-허세').textContent.includes('(0/5)'));
+    확인('소진 전에는 locked 클래스가 없음', !d.getElementById('btn-이의').classList.contains('locked'));
+    // 5회 다 쓰면(가상으로 상태만 채움) 라벨이 (5/5)로 바뀌고 잠금 스타일이 붙는다
+    상태(win).dispute_attempts = 5;
+    win.eval('프롬프트_갱신()');
+    확인('소진 후 (5/5) 표시', d.getElementById('btn-이의').textContent.includes('(5/5)'));
+    확인('소진 후 locked 클래스', d.getElementById('btn-이의').classList.contains('locked')
          && d.getElementById('btn-허세').classList.contains('locked'));
 
     // 앞말잇기는 안내 문구가 뒤집힌다
@@ -828,6 +835,105 @@ async function main(){
     확인('arcade_restart_floor가 봉인됐다', typeof win.arcade_restart_floor === 'undefined');
     const 규칙 = fs.readFileSync(path.join(WCHAIN, 'js/게임규칙.js'), 'utf8');
     확인('봉인 근거가 주석으로 남아 있다', 규칙.includes('봉인 (2026-07-29) — 아케이드'));
+  }
+
+  /* ── 21. '이의 있음'·'그 단어 없어!' 재설계 (2026-08-19, 봉인 해제) ─── */
+  console.log('\n[21] 이의 있음 재설계');
+  {
+    // (a) 사전에 실제로 없는 단어로 판정 → 즉시 취소되고 AI가 새 단어를 낸다
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 가짜단어 = g.ai_last_word;
+    win.fetch = async (url, opt) => {
+      if(typeof url === 'string' && url.startsWith('data/')){
+        return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
+      }
+      const p = JSON.parse(opt.body);
+      if(p.단어 !== undefined) return { ok: true, json: async () => ({ 존재: false, 뜻풀이그룹: [] }) };
+      const 꼬리 = ['가', '나', '다', '라', '마'];
+      const 후보 = 꼬리.map(t => p.방향 === 'end' ? t + '우' + p.글자 : p.글자 + '우' + t);
+      return { ok: true, json: async () => ({ 후보 }) };
+    };
+    await win.버튼_이의();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('없는 단어로 판정되면 즉시 취소된다', g.history.every(h => h.word !== 가짜단어));
+    확인('AI가 새 단어를 낸다', g.ai_last_word !== 가짜단어 && g.ai_last_word !== null,
+         `ai_last_word=${g.ai_last_word}`);
+    확인('취소 로그가 남는다', 로그텍스트(win).includes('취소'));
+    확인('시도 횟수가 1로 기록됨', g.dispute_attempts === 1, `dispute_attempts=${g.dispute_attempts}`);
+  }
+  {
+    // (b) 사전에 실제로 있는 단어 → 뜻풀이를 근거로 기각, AI 단어는 그대로 유지
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 대상단어 = g.ai_last_word;
+    win.fetch = async (url, opt) => {
+      if(typeof url === 'string' && url.startsWith('data/')){
+        return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
+      }
+      const p = JSON.parse(opt.body);
+      if(p.단어 !== undefined){
+        return { ok: true, json: async () => ({ 존재: true, 뜻풀이그룹: [{ 번호: 1, 뜻풀이: ['테스트용 뜻풀이입니다.'] }] }) };
+      }
+      return { ok: true, json: async () => ({ 후보: [] }) };
+    };
+    await win.버튼_이의();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('있는 단어면 기각되고 AI 단어가 유지된다', g.ai_last_word === 대상단어);
+    확인('뜻풀이가 근거로 표시된다', 로그텍스트(win).includes('테스트용 뜻풀이입니다.'));
+    확인('기각도 시도 횟수를 소모한다', g.dispute_attempts === 1, `dispute_attempts=${g.dispute_attempts}`);
+  }
+  {
+    // (c) 확인 자체가 실패(네트워크) → 게임 상태 불변, 시도 횟수도 소모하지 않는다
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 이전단어 = g.ai_last_word;
+    win.fetch = async (url) => {
+      if(typeof url === 'string' && url.startsWith('data/')){
+        return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
+      }
+      throw new Error('네트워크 실패(스텁)');
+    };
+    await win.버튼_이의();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('확인 실패 시 게임 상태는 그대로', g.ai_last_word === 이전단어);
+    확인('확인 실패는 시도 횟수를 소모하지 않는다', g.dispute_attempts === 0, `dispute_attempts=${g.dispute_attempts}`);
+    확인('실패 안내 로그가 남는다', 로그텍스트(win).includes('확인에 실패'));
+  }
+  {
+    // (d) 5회 다 쓰면 조회 자체를 하지 않고 소진 안내만 띄운다
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    g.dispute_attempts = 5;
+    let 호출됨 = false;
+    win.fetch = async (url, opt) => {
+      if(typeof url === 'string' && url.startsWith('data/')){
+        return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
+      }
+      호출됨 = true;
+      return { ok: true, json: async () => ({ 존재: true, 뜻풀이그룹: [] }) };
+    };
+    await win.버튼_이의();
+    확인('소진되면 조회 자체를 하지 않는다', 호출됨 === false);
+    확인('소진 안내 로그가 남는다',
+         로그텍스트(win).includes('다 써버렸다') || 로그텍스트(win).includes('모두 사용'));
+  }
+  {
+    // (e) '그 단어 없어!'는 '이의 있음'과 동일한 실조회를 탄다(더 이상 no-op이 아니다)
+    const { win } = 페이지열기();
+    확인('버튼_허세가 버튼_이의와 동일한 함수(더 이상 no-op이 아님)', 값(win, '버튼_허세 === 버튼_이의'));
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
