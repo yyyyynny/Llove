@@ -106,26 +106,28 @@ async function 오픈API_검색(env, { q, advanced, target, method, start = 1, n
 }
 
 // ── 뜻풀이 동음이의어 그룹화 ─────────────────────────────────────────────
-// opendict 검색 API는 표제어의 뜻 하나(또는 하위 sense 몇 개)마다 item을 하나씩 내려준다.
-// 어원이 다른 동음이의어(예: 필연=必然/筆硯)를 구분할 그룹 키가 필요한데, 2026-08-19 배포 후
-// 실측(curl로 "필연" 조회)한 결과 sup_no만으로는 전부 그룹 1개로 뭉쳐 나왔다(sup_no 필드가
-// 없거나 이름이 다른 것으로 추정) — target_code(사전 표제어 단위의 고유 ID, 검색 API에서
-// view API로 넘어갈 때 쓰는 표준 필드라 존재 가능성이 sup_no보다 높음)를 1순위로 바꾼다.
-// 우선순위: target_code → sup_no → 전부 1그룹(이래도 안 되면 아래 디버그 플래그로 원본 확인).
+// 2026-08-19 디버그:true 진단으로 실제 opendict 응답 구조를 확인한 결과(README.md 기록),
+// item은 표제어당 1개가 아니라 **뜻(sense) 하나당 1개**로 내려오고, sup_no 필드는 아예 없으며
+// target_code는 표제어가 아니라 **sense(뜻풀이) 단위 고유값**이라 필연=必然의 명사·부사 두
+// 뜻조차 서로 다른 target_code를 갖는다 — 그룹 키로 쓸 수 없다(1차 수정에서 잘못 짚었던 부분).
+// 실제로 동음이의어를 구분하는 필드는 sense.origin(한자 등 어원, 예: "必然"/"筆硯")이다 —
+// origin이 같은 sense끼리 한 단어의 여러 뜻으로 묶고, origin이 다르면 별도 그룹으로 나눈다.
+// 순우리말이라 origin이 없는 sense는 표제어(word) 기준으로 하나로 묶는다 — 이 데이터만으로는
+// 순우리말 동음이의어(둘 다 origin 없음)까지는 구분 못 하지만, 어원이 갈리는 한자어 동음이의어
+// (필연 등 실사용 사례)는 이걸로 충분히 해결된다.
 function 뜻풀이_그룹화(items){
-  const 그룹맵 = new Map();   // 그룹 키 → 뜻풀이 배열
+  const 그룹맵 = new Map();   // 그룹 키(origin 또는 word) → 뜻풀이 배열
   for(const it of items){
     if(!it) continue;
-    const 그룹키 = it.target_code != null ? 'tc:' + it.target_code
-      : (it.sup_no != null ? 'sn:' + it.sup_no : '1');
     const sense목록 = Array.isArray(it.sense) ? it.sense : (it.sense ? [it.sense] : []);
-    const 뜻들 = sense목록.map(s => s && s.definition ? String(s.definition) : '').filter(Boolean);
-    if(!뜻들.length) continue;
-    if(!그룹맵.has(그룹키)) 그룹맵.set(그룹키, []);
-    그룹맵.get(그룹키).push(...뜻들);
+    for(const s of sense목록){
+      if(!s || !s.definition) continue;
+      const 그룹키 = s.origin ? ('origin:' + s.origin) : ('word:' + it.word);
+      if(!그룹맵.has(그룹키)) 그룹맵.set(그룹키, []);
+      그룹맵.get(그룹키).push(String(s.definition));
+    }
   }
-  // 등장 순서(= opendict가 준 순서, 대개 흔한 뜻/표제어부터) 그대로 번호만 매긴다 — 그룹 키가
-  // 문자열이라 숫자 정렬은 의미가 없다.
+  // 등장 순서(= opendict가 준 순서, 대개 흔한 뜻/표제어부터) 그대로 번호만 매긴다.
   return [...그룹맵.values()].map((뜻풀이, i) => ({ 번호: i + 1, 뜻풀이 }));
 }
 
