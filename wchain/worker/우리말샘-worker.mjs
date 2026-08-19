@@ -9,7 +9,9 @@
 //   요청  POST { 단어: "가마솥" }
 //     → 응답 { 존재: true|false, 뜻풀이그룹: [{ 번호:1, 뜻풀이:["..."] }, ...] }
 //       (뜻풀이그룹은 동음이의어별로 묶은 배열 — wchain은 존재만, Llove는 이 필드까지 씀.
-//        단어가 없으면 빈 배열.)
+//        단어가 없으면 빈 배열. 그룹화 기준은 아래 뜻풀이_그룹화() 참조.)
+//   요청  POST { 단어: "필연", 디버그: true } → 위 응답에 _원본진단(원본 item 최대 5개) 추가
+//     (그룹화가 또 안 맞을 때 재배포 없이 필드명을 확인하기 위한 진단 전용, 평소엔 안 씀)
 //   요청  POST { 글자: "가", 방향: "start"|"end" } → 응답 { 후보: ["가나다", ...] }
 //   실패 시 4xx/5xx만 반환하면 된다 — 클라이언트는 res.ok가 아니면 null로 강등해 로컬 안전망을 탄다.
 //
@@ -104,27 +106,27 @@ async function 오픈API_검색(env, { q, advanced, target, method, start = 1, n
 }
 
 // ── 뜻풀이 동음이의어 그룹화 ─────────────────────────────────────────────
-// opendict 검색 API는 표제어의 뜻 하나(또는 하위 sense 몇 개)마다 item을 하나씩 내려주고,
-// 어원이 다른 동음이의어(예: 필연=必然/筆硯)는 item.sup_no(어깻번호)로 구분된다. sup_no가
-// 같은 item들의 뜻풀이를 한 그룹으로 묶는다. item.sense는 문서상 단일 객체로 오는 경우가
-// 대부분이지만, 혹시 배열로 오는 경우까지 방어적으로 둘 다 처리한다.
-// ⚠️ sup_no 필드명은 국립국어원 표준 API 문서 기준이며, 배포 후 curl로 실측 검증이 필요하다
-// (README.md 참조). 필드가 없거나 이름이 다르면 전부 1그룹으로 뭉뚱그려지는 정도로 안전하게
-// 저하되고(뜻풀이 자체는 여전히 표시됨), 실측 후 이 함수만 고치면 된다.
+// opendict 검색 API는 표제어의 뜻 하나(또는 하위 sense 몇 개)마다 item을 하나씩 내려준다.
+// 어원이 다른 동음이의어(예: 필연=必然/筆硯)를 구분할 그룹 키가 필요한데, 2026-08-19 배포 후
+// 실측(curl로 "필연" 조회)한 결과 sup_no만으로는 전부 그룹 1개로 뭉쳐 나왔다(sup_no 필드가
+// 없거나 이름이 다른 것으로 추정) — target_code(사전 표제어 단위의 고유 ID, 검색 API에서
+// view API로 넘어갈 때 쓰는 표준 필드라 존재 가능성이 sup_no보다 높음)를 1순위로 바꾼다.
+// 우선순위: target_code → sup_no → 전부 1그룹(이래도 안 되면 아래 디버그 플래그로 원본 확인).
 function 뜻풀이_그룹화(items){
-  const 그룹맵 = new Map();   // 어깻번호(문자열) → 뜻풀이 배열
+  const 그룹맵 = new Map();   // 그룹 키 → 뜻풀이 배열
   for(const it of items){
     if(!it) continue;
-    const 어깻번호 = it.sup_no != null ? String(it.sup_no) : '1';
+    const 그룹키 = it.target_code != null ? 'tc:' + it.target_code
+      : (it.sup_no != null ? 'sn:' + it.sup_no : '1');
     const sense목록 = Array.isArray(it.sense) ? it.sense : (it.sense ? [it.sense] : []);
     const 뜻들 = sense목록.map(s => s && s.definition ? String(s.definition) : '').filter(Boolean);
     if(!뜻들.length) continue;
-    if(!그룹맵.has(어깻번호)) 그룹맵.set(어깻번호, []);
-    그룹맵.get(어깻번호).push(...뜻들);
+    if(!그룹맵.has(그룹키)) 그룹맵.set(그룹키, []);
+    그룹맵.get(그룹키).push(...뜻들);
   }
-  return [...그룹맵.entries()]
-    .sort((a, b) => (parseInt(a[0], 10) || 0) - (parseInt(b[0], 10) || 0))
-    .map(([, 뜻풀이], i) => ({ 번호: i + 1, 뜻풀이 }));
+  // 등장 순서(= opendict가 준 순서, 대개 흔한 뜻/표제어부터) 그대로 번호만 매긴다 — 그룹 키가
+  // 문자열이라 숫자 정렬은 의미가 없다.
+  return [...그룹맵.values()].map((뜻풀이, i) => ({ 번호: i + 1, 뜻풀이 }));
 }
 
 // ── ① 단어 존재 여부 + 뜻풀이 ──────────────────────────────────────────
@@ -133,7 +135,10 @@ function 뜻풀이_그룹화(items){
 // method=exact는 opendict 자체가 문자열을 정확 비교하므로, 붙여 쓴 입력("가마솥")으로는
 // 붙임표 표제어("가마-솥")를 찾지 못한다. 원본 그대로 먼저 시도하고, 못 찾으면 가능한 위치에
 // 붙임표를 끼운 변형을 **병렬로** 전부 시도한다(직렬이면 변형 수만큼 왕복이 쌓인다).
-async function 단어존재조회(env, word){
+// 진단 모드(payload.디버그===true)일 때만 원본 item을 함께 실어 보낸다 — 그룹화 로직이 또
+// 안 맞을 경우 재배포 없이 curl 한 번으로 실제 필드명을 확인하기 위함(README.md 참조).
+// 평소 요청에는 이 인자를 안 넘기므로 기본 응답 크기·계약에 영향 없다.
+async function 단어존재조회(env, word, 진단 = false){
   const 시도할것 = [word, ...붙임표_변형(word)];
   const 결과들 = await Promise.all(
     시도할것.map(w => 오픈API_검색(env, { q: w, advanced: true, target: 1, method: 'exact', num: 20 })
@@ -141,7 +146,11 @@ async function 단어존재조회(env, word){
 
   for(const { items } of 결과들){
     const 일치항목 = items.filter(it => 정규화(it.word) === 정규화(word));
-    if(일치항목.length) return { 존재: true, 뜻풀이그룹: 뜻풀이_그룹화(일치항목) };
+    if(일치항목.length){
+      const 결과 = { 존재: true, 뜻풀이그룹: 뜻풀이_그룹화(일치항목) };
+      if(진단) 결과._원본진단 = 일치항목.slice(0, 5);
+      return 결과;
+    }
   }
   return { 존재: false, 뜻풀이그룹: [] };
 }
@@ -213,8 +222,8 @@ export default {
 
     try{
       if(typeof payload.단어 === 'string' && payload.단어.trim()){
-        const { 존재, 뜻풀이그룹 } = await 단어존재조회(env, payload.단어.trim());
-        return json응답({ 존재, 뜻풀이그룹 }, 200, origin);
+        const 결과 = await 단어존재조회(env, payload.단어.trim(), payload.디버그 === true);
+        return json응답(결과, 200, origin);
       }
       if(typeof payload.글자 === 'string' && payload.글자.trim()
          && (payload.방향 === 'start' || payload.방향 === 'end')){
