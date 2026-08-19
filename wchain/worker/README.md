@@ -21,7 +21,18 @@ Worker 전체 코드입니다. 이 폴더는 참고·배포용이며, `wchain/js
 명사·부사 두 뜻조차 서로 다른 값을 가짐 — 그룹 키로 쓸 수 없었던 것. 실제로 동음이의어를
 구분하는 필드는 `sense.origin`(한자 등 어원)이었습니다. 그룹화 로직을 `origin` 기준으로
 바꿨고, 로컬에서 위 실측 데이터로 재현 테스트해 필연 → 必然(2뜻)/筆硯(1뜻) 2그룹으로 정확히
-갈리는 것까지 확인했습니다. **이 수정을 다시 배포해야 실제 응답에 반영됩니다.**
+갈리는 것까지 확인했습니다. **✅ 재배포 후 실측 완료** — "필연" 실제 배포 응답에서 2그룹으로
+정확히 갈리는 것 확인.
+
+**🆕 2026-08-19 3차(관리자님 승인) — 순우리말 동음이의어(눈=眼/雪 등)까지 분리.** `origin`은
+한자어에만 있어서 순우리말 동음이의어는 여전히 한 그룹으로 뭉쳐 나왔습니다(같은 방법으로
+"눈" 실측 확인). opendict의 `view` API(`target_type=view&method=target_code`)가 돌려주는
+`group_code`(다의어 번호 — 동음이의어를 구분하는 진짜 고유 키, search API엔 없음)로 이 경우만
+추가 조회합니다. 비용을 줄이기 위해: ① 어원 없는 뜻이 2개 이상일 때만 ② 서로 다른
+`target_code`가 6개 이하일 때만(넘으면 조회를 포기하고 기존처럼 1그룹으로 안전 폴백)
+③ 병렬로 조회합니다. 조회에 실패한 뜻은 다른 것과 잘못 합치지 않고 고립시킵니다. 로컬
+회귀 테스트(`tests/test-worker-뜻풀이그룹화.cjs`, 10건)로 정상 케이스·상한 초과·조회 실패
+3가지를 전부 검증했습니다 — **재배포 필요**(view API 실측은 배포 후 아래 ④번으로).
 
 ## 이 Worker가 고치는 것
 
@@ -69,10 +80,16 @@ curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
 
 # ③-b 그래도 1개짜리 그룹만 나오면(또는 뜻풀이그룹이 빈 배열이면) 디버그:true로 원본을 본다.
 #     _원본진단[].target_code / sup_no / sense 가 실제로 어떤 이름·모양인지 확인해서
-#     우리말샘-worker.mjs의 뜻풀이_그룹화() 그룹 키 로직을 그 이름으로 고치면 됨.
+#     우리말샘-worker.mjs의 뜻풀이_그룹화_비동기() 그룹 키 로직을 그 이름으로 고치면 됨.
 curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
   -d '{"단어":"필연","디버그":true}'
+
+# ④ 순우리말 동음이의어 — "눈" 조회 시 뜻풀이그룹이 2개 이상(眼/雪 등)이어야 함(view API
+#    실측, 왕복이 하나 더 늘어 ③보다 응답이 조금 더 걸릴 수 있음 — 정상).
+curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
+  -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
+  -d '{"단어":"눈"}'
 ```
 
 `-H 'Origin: ...'`을 빼고 호출하면(예: Cloudflare 대시보드의 자체 테스트 도구) CORS 허용

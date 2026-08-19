@@ -20,6 +20,7 @@
 // URIMALSAEM_KEY(인증키)·URIMALSAEM_CERTKEY_NO(발급번호) 두 시크릿을 그대로 쓴다 — 둘 다 필수.
 
 const 국어원_API_기준주소 = 'https://opendict.korean.go.kr/api/search';
+const 국어원_API_뷰주소 = 'https://opendict.korean.go.kr/api/view';
 
 // opendict가 User-Agent 없는 요청을 걸러내는 사례가 있어 방어적으로 붙인다.
 const 공통_HEADERS = {
@@ -105,30 +106,88 @@ async function 오픈API_검색(env, { q, advanced, target, method, start = 1, n
   return { items };
 }
 
+// view API — target_code 하나를 상세조회해 group_code(다의어 번호 — 동음이의어를 구분하는
+// 진짜 고유 키, search API 응답엔 없음)를 얻는다. 아래 뜻풀이_그룹화_비동기()에서만 쓴다.
+async function 오픈API_뷰(env, target_code){
+  const url = new URL(국어원_API_뷰주소);
+  url.searchParams.set('certkey_no', 다듬기(env.URIMALSAEM_CERTKEY_NO));
+  url.searchParams.set('key', 다듬기(env.URIMALSAEM_KEY));
+  url.searchParams.set('req_type', 'json');
+  url.searchParams.set('method', 'target_code');
+  url.searchParams.set('q', String(target_code));
+
+  const res = await fetch(url.toString(), { headers: 공통_HEADERS });
+  if(!res.ok) throw new Error('오픈API(view) HTTP ' + res.status);
+  const 원문 = await res.text();
+  let data;
+  try{ data = JSON.parse(원문); }
+  catch(e){ throw new Error('오픈API(view) JSON 파싱 실패'); }
+  if(data && data.error) throw new Error('오픈API(view) 에러: ' + JSON.stringify(data.error));
+  const item = data && data.channel && data.channel.item;
+  return Array.isArray(item) ? (item[0] || null) : (item || null);   // view는 원래 단일 객체
+}
+
 // ── 뜻풀이 동음이의어 그룹화 ─────────────────────────────────────────────
 // 2026-08-19 디버그:true 진단으로 실제 opendict 응답 구조를 확인한 결과(README.md 기록),
 // item은 표제어당 1개가 아니라 **뜻(sense) 하나당 1개**로 내려오고, sup_no 필드는 아예 없으며
 // target_code는 표제어가 아니라 **sense(뜻풀이) 단위 고유값**이라 필연=必然의 명사·부사 두
 // 뜻조차 서로 다른 target_code를 갖는다 — 그룹 키로 쓸 수 없다(1차 수정에서 잘못 짚었던 부분).
-// 실제로 동음이의어를 구분하는 필드는 sense.origin(한자 등 어원, 예: "必然"/"筆硯")이다 —
-// origin이 같은 sense끼리 한 단어의 여러 뜻으로 묶고, origin이 다르면 별도 그룹으로 나눈다.
-// 순우리말이라 origin이 없는 sense는 표제어(word) 기준으로 하나로 묶는다 — 이 데이터만으로는
-// 순우리말 동음이의어(둘 다 origin 없음)까지는 구분 못 하지만, 어원이 갈리는 한자어 동음이의어
-// (필연 등 실사용 사례)는 이걸로 충분히 해결된다.
-function 뜻풀이_그룹화(items){
-  const 그룹맵 = new Map();   // 그룹 키(origin 또는 word) → 뜻풀이 배열
+// 어원(sense.origin, 예: "必然"/"筆硯")이 있는 뜻은 그걸로 정확히 갈린다(한자어 동음이의어는
+// 이걸로 충분).
+//
+// 2026-08-19 3차(관리자님 승인) — 순우리말이라 origin이 없는 뜻(눈=眼/雪 등)은 위 방법으로
+// 구분이 안 됐는데, opendict view API(target_type=view)가 도는 group_code가 진짜 동음이의어
+// 구분 키임을 확인했다. 다만 target_code 하나당 별도 호출이 필요해 비용이 크므로:
+//   ① 어원 없는 뜻이 2개 이상 몰려 있을 때만(1개면 나눌 대상이 없어 스킵)
+//   ② 서로 다른 target_code 개수가 상한(뷰_추가조회_최대) 이내일 때만 — 넘으면 조회를 포기하고
+//      기존처럼 표제어 하나로 합쳐서 보여준다(정확도만 낮아질 뿐 죽지 않는 안전한 폴백)
+//   ③ 병렬로 — 순서대로 기다리면 뜻 개수만큼 왕복이 쌓인다
+// 조회에 실패한 target_code는 다른 것과 잘못 합치지 않고 그 자체로 고립시킨다(틀리게 합치는
+// 것보다 안전).
+const 뷰_추가조회_최대 = 6;
+
+async function 뜻풀이_그룹화_비동기(env, items){
+  const 어원있음 = new Map();   // 'origin:필드값' → 뜻풀이[]
+  const 어원없음 = [];          // { definition, target_code, word } — 순서 보존
+
   for(const it of items){
     if(!it) continue;
     const sense목록 = Array.isArray(it.sense) ? it.sense : (it.sense ? [it.sense] : []);
     for(const s of sense목록){
       if(!s || !s.definition) continue;
-      const 그룹키 = s.origin ? ('origin:' + s.origin) : ('word:' + it.word);
-      if(!그룹맵.has(그룹키)) 그룹맵.set(그룹키, []);
-      그룹맵.get(그룹키).push(String(s.definition));
+      if(s.origin){
+        const 키 = 'origin:' + s.origin;
+        if(!어원있음.has(키)) 어원있음.set(키, []);
+        어원있음.get(키).push(String(s.definition));
+      } else {
+        어원없음.push({ definition: String(s.definition), target_code: s.target_code, word: it.word });
+      }
     }
   }
-  // 등장 순서(= opendict가 준 순서, 대개 흔한 뜻/표제어부터) 그대로 번호만 매긴다.
-  return [...그룹맵.values()].map((뜻풀이, i) => ({ 번호: i + 1, 뜻풀이 }));
+
+  const 어원없음그룹 = new Map();
+  const 고유target = [...new Set(어원없음.map(x => x.target_code).filter(v => v != null))];
+
+  if(어원없음.length >= 2 && 고유target.length >= 2 && 고유target.length <= 뷰_추가조회_최대){
+    const 조회결과 = await Promise.all(고유target.map(tc => 오픈API_뷰(env, tc).catch(() => null)));
+    const target별_그룹코드 = new Map();
+    고유target.forEach((tc, i) => {
+      const view = 조회결과[i];
+      target별_그룹코드.set(tc, (view && view.group_code != null) ? String(view.group_code) : null);
+    });
+    for(const s of 어원없음){
+      const 그룹코드 = s.target_code != null ? target별_그룹코드.get(s.target_code) : null;
+      const 키 = 그룹코드 != null ? ('group:' + 그룹코드) : ('tc:' + s.target_code);
+      if(!어원없음그룹.has(키)) 어원없음그룹.set(키, []);
+      어원없음그룹.get(키).push(s.definition);
+    }
+  } else if(어원없음.length){
+    // 뜻이 1개뿐이거나 target_code가 없거나 상한을 넘음 — 안전하게 표제어 하나로 합친다.
+    어원없음그룹.set('word:' + 어원없음[0].word, 어원없음.map(s => s.definition));
+  }
+
+  // 등장 순서(= opendict가 준 순서, 대개 흔한 뜻부터) 그대로 번호만 매긴다.
+  return [...어원있음.values(), ...어원없음그룹.values()].map((뜻풀이, i) => ({ 번호: i + 1, 뜻풀이 }));
 }
 
 // ── ① 단어 존재 여부 + 뜻풀이 ──────────────────────────────────────────
@@ -149,7 +208,7 @@ async function 단어존재조회(env, word, 진단 = false){
   for(const { items } of 결과들){
     const 일치항목 = items.filter(it => 정규화(it.word) === 정규화(word));
     if(일치항목.length){
-      const 결과 = { 존재: true, 뜻풀이그룹: 뜻풀이_그룹화(일치항목) };
+      const 결과 = { 존재: true, 뜻풀이그룹: await 뜻풀이_그룹화_비동기(env, 일치항목) };
       if(진단) 결과._원본진단 = 일치항목.slice(0, 5);
       return 결과;
     }
