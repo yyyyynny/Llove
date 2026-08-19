@@ -4,8 +4,12 @@
 // 2026-08-15 실배포로 검증 완료(가마솥·뽕나무 존재 확인, '사' 후보 107건·'기' 후보 89건).
 // 배포 방법은 이 폴더의 README.md 참조.
 //
-// 클라이언트(wchain/js/국어원.js)와의 계약 — 이 형태는 바꾸지 말 것(바꾸면 클라이언트도 함께 고쳐야 함):
-//   요청  POST { 단어: "가마솥" }              → 응답 { 존재: true|false }
+// 클라이언트(wchain/js/국어원.js, Llove/js/사전.js)와의 계약 — 기존 필드는 바꾸지 말 것
+// (바꾸면 클라이언트도 함께 고쳐야 함). 새 필드(뜻풀이그룹)는 2026-08-19에 추가:
+//   요청  POST { 단어: "가마솥" }
+//     → 응답 { 존재: true|false, 뜻풀이그룹: [{ 번호:1, 뜻풀이:["..."] }, ...] }
+//       (뜻풀이그룹은 동음이의어별로 묶은 배열 — wchain은 존재만, Llove는 이 필드까지 씀.
+//        단어가 없으면 빈 배열.)
 //   요청  POST { 글자: "가", 방향: "start"|"end" } → 응답 { 후보: ["가나다", ...] }
 //   실패 시 4xx/5xx만 반환하면 된다 — 클라이언트는 res.ok가 아니면 null로 강등해 로컬 안전망을 탄다.
 //
@@ -99,7 +103,31 @@ async function 오픈API_검색(env, { q, advanced, target, method, start = 1, n
   return { items };
 }
 
-// ── ① 단어 존재 여부 ───────────────────────────────────────────────────
+// ── 뜻풀이 동음이의어 그룹화 ─────────────────────────────────────────────
+// opendict 검색 API는 표제어의 뜻 하나(또는 하위 sense 몇 개)마다 item을 하나씩 내려주고,
+// 어원이 다른 동음이의어(예: 필연=必然/筆硯)는 item.sup_no(어깻번호)로 구분된다. sup_no가
+// 같은 item들의 뜻풀이를 한 그룹으로 묶는다. item.sense는 문서상 단일 객체로 오는 경우가
+// 대부분이지만, 혹시 배열로 오는 경우까지 방어적으로 둘 다 처리한다.
+// ⚠️ sup_no 필드명은 국립국어원 표준 API 문서 기준이며, 배포 후 curl로 실측 검증이 필요하다
+// (README.md 참조). 필드가 없거나 이름이 다르면 전부 1그룹으로 뭉뚱그려지는 정도로 안전하게
+// 저하되고(뜻풀이 자체는 여전히 표시됨), 실측 후 이 함수만 고치면 된다.
+function 뜻풀이_그룹화(items){
+  const 그룹맵 = new Map();   // 어깻번호(문자열) → 뜻풀이 배열
+  for(const it of items){
+    if(!it) continue;
+    const 어깻번호 = it.sup_no != null ? String(it.sup_no) : '1';
+    const sense목록 = Array.isArray(it.sense) ? it.sense : (it.sense ? [it.sense] : []);
+    const 뜻들 = sense목록.map(s => s && s.definition ? String(s.definition) : '').filter(Boolean);
+    if(!뜻들.length) continue;
+    if(!그룹맵.has(어깻번호)) 그룹맵.set(어깻번호, []);
+    그룹맵.get(어깻번호).push(...뜻들);
+  }
+  return [...그룹맵.entries()]
+    .sort((a, b) => (parseInt(a[0], 10) || 0) - (parseInt(b[0], 10) || 0))
+    .map(([, 뜻풀이], i) => ({ 번호: i + 1, 뜻풀이 }));
+}
+
+// ── ① 단어 존재 여부 + 뜻풀이 ──────────────────────────────────────────
 // advanced=y&target=1&method=exact — "자세히 찾기" 모드로 정확 일치만 받는다(기본 검색은
 // 부분/포함 일치라 관련 없는 단어까지 섞여 존재 판정이 느슨해질 수 있어 이쪽을 쓴다).
 // method=exact는 opendict 자체가 문자열을 정확 비교하므로, 붙여 쓴 입력("가마솥")으로는
@@ -112,9 +140,10 @@ async function 단어존재조회(env, word){
       .catch(() => ({ items: [] }))));   // 개별 실패는 "없음"으로 취급, 전체는 아래서 판단
 
   for(const { items } of 결과들){
-    if(items.some(it => 정규화(it.word) === 정규화(word))) return true;
+    const 일치항목 = items.filter(it => 정규화(it.word) === 정규화(word));
+    if(일치항목.length) return { 존재: true, 뜻풀이그룹: 뜻풀이_그룹화(일치항목) };
   }
-  return false;
+  return { 존재: false, 뜻풀이그룹: [] };
 }
 
 // ── ② 후보 목록(글자로 시작/끝나는 단어) ───────────────────────────────
@@ -184,8 +213,8 @@ export default {
 
     try{
       if(typeof payload.단어 === 'string' && payload.단어.trim()){
-        const 존재 = await 단어존재조회(env, payload.단어.trim());
-        return json응답({ 존재 }, 200, origin);
+        const { 존재, 뜻풀이그룹 } = await 단어존재조회(env, payload.단어.trim());
+        return json응답({ 존재, 뜻풀이그룹 }, 200, origin);
       }
       if(typeof payload.글자 === 'string' && payload.글자.trim()
          && (payload.방향 === 'start' || payload.방향 === 'end')){

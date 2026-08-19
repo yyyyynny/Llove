@@ -7,6 +7,12 @@ Worker 전체 코드입니다. 이 폴더는 참고·배포용이며, `wchain/js
 **✅ 2026-08-15 실배포로 검증 완료** — 가마솥·뽕나무 존재 확인 정상, '사' 후보 107건·
 '기' 후보 89건(종전 2~4건에서 대폭 개선).
 
+**⚠️ 2026-08-19 계약 추가(아직 미배포)** — 단어 존재 조회 응답에 `뜻풀이그룹` 필드가
+새로 추가됐습니다(동음이의어별로 뜻풀이를 묶은 배열). `Llove/js/사전.js`의 사전 뜻풀이 기능과
+`wchain/js/서바이벌.js`의 "이의 있음" 재설계가 이 필드에 의존합니다 — **이 파일을 다시
+배포하기 전까지는 두 기능이 동작하지 않습니다** (사전은 계속 "찾을 수 없는 단어"만, 이의 있음은
+계속 봉인 상태). 아래 "배포 후 확인"의 ③번 커맨드로 `뜻풀이그룹`이 실제로 오는지 반드시 확인할 것.
+
 ## 이 Worker가 고치는 것
 
 | 문제 | 대응 |
@@ -45,6 +51,14 @@ curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
 curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
   -d '{"글자":"사","방향":"start"}'
+
+# ③ 동음이의어 그룹 — "필연" 조회 시 뜻풀이그룹이 2개 이상(必然/筆硯)이어야 함.
+#    1개짜리 그룹만 나오면 sup_no 필드명이 다르다는 뜻 — 우리말샘-worker.mjs의
+#    뜻풀이_그룹화() 주석 참조해 실제 필드명으로 고칠 것. 뜻풀이그룹 자체가 빈 배열이면
+#    sense.definition 경로가 다른 것이니 응답 원문(JSON 전체)을 한 번 그대로 찍어서 확인.
+curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
+  -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
+  -d '{"단어":"필연"}'
 ```
 
 `-H 'Origin: ...'`을 빼고 호출하면(예: Cloudflare 대시보드의 자체 테스트 도구) CORS 허용
