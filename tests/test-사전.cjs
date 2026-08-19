@@ -13,22 +13,33 @@ load(async (window) => {
   assert('게이트 활성화됨(국어원_활성화 === true)', ev("국어원_활성화") === true);
   assert('Worker 엔드포인트 설정됨(빈 문자열 아님)', ev("국어원_WORKERS_ENDPOINT").length > 0);
 
-  // 1) 조회 성공 경로 — fetch를 모킹해 실제 Worker 응답 형태({존재,뜻풀이,사전})를 흉내낸다
+  // 1) 조회 성공 경로 — fetch를 모킹해 실제 Worker 응답 형태(2026-08-19 계약: {존재,뜻풀이그룹,사전})를 흉내낸다
   ev(`
     window.__fetchCalls = [];
     window.fetch = function(url, opts){
       window.__fetchCalls.push({ url, opts });
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ 존재: true, 뜻풀이: ['사물의 관련이나 일의 결과가 반드시 그렇게 될 수밖에 없음.'], 사전: 'opendict' })
+        json: () => Promise.resolve({ 존재: true, 뜻풀이그룹: [{ 번호: 1, 뜻풀이: ['사물의 관련이나 일의 결과가 반드시 그렇게 될 수밖에 없음.'] }], 사전: 'opendict' })
       });
     };
   `);
   const 성공결과 = await ev("사전_단어조회('필연')");
-  assert('조회 성공 시 뜻풀이 배열 반환', 성공결과 && Array.isArray(성공결과.뜻풀이) && 성공결과.뜻풀이.length === 1);
+  assert('조회 성공 시 뜻풀이그룹 배열 반환', 성공결과 && Array.isArray(성공결과.뜻풀이그룹) && 성공결과.뜻풀이그룹.length === 1);
   assert('조회 성공 시 사전 출처 필드 반환', 성공결과 && 성공결과.사전 === 'opendict');
   assert('설정된 Worker 엔드포인트로 요청함', ev("window.__fetchCalls[0].url") === ev("국어원_WORKERS_ENDPOINT"));
   assert('요청 본문에 단어가 실림', ev("window.__fetchCalls[0].opts.body").includes('필연'));
+
+  // 1-b) 구 계약 폴백 — 아직 옛 Worker가 배포돼 있어 뜻풀이그룹 없이 평면 뜻풀이 배열만 오는 경우
+  ev(`
+    window.fetch = function(){
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ 존재: true, 뜻풀이: ['옛 계약 뜻풀이.'], 사전: 'opendict' }) });
+    };
+  `);
+  const 구계약결과 = await ev("사전_단어조회('옛단어')");
+  assert('구 계약(평면 뜻풀이)도 1그룹으로 정규화됨',
+    구계약결과 && Array.isArray(구계약결과.뜻풀이그룹) && 구계약결과.뜻풀이그룹.length === 1
+    && 구계약결과.뜻풀이그룹[0].뜻풀이[0] === '옛 계약 뜻풀이.');
 
   // 2) 조회 실패(네트워크 오류) 경로 — 안전 강등(null 반환), 앱 크래시 없음
   ev("window.fetch = function(){ return Promise.reject(new Error('network down')); };");
@@ -52,7 +63,7 @@ load(async (window) => {
     window.fetch = function(){
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ 존재: true, 뜻풀이: ['사과나무의 열매.'], 사전: 'opendict' })
+        json: () => Promise.resolve({ 존재: true, 뜻풀이그룹: [{ 번호: 1, 뜻풀이: ['사과나무의 열매.'] }], 사전: 'opendict' })
       });
     };
   `);
@@ -78,16 +89,27 @@ load(async (window) => {
 
   // 6) 렌더링 함수 자체 단위 테스트(게이트·네트워크와 완전히 분리된 순수 함수)
   const 성공HTML = ev("사전결과_HTML({ 뜻풀이: ['사과: 사과나무의 열매.'], 사전: 'opendict' })");
-  assert('사전결과_HTML: 뜻풀이 렌더링', 성공HTML.includes('사과나무의 열매'));
+  assert('사전결과_HTML: 구 계약(평면 뜻풀이)도 렌더링됨', 성공HTML.includes('사과나무의 열매'));
   assert('사전결과_HTML: CC BY-SA 출처 문구', 성공HTML.includes('CC BY-SA 2.0 KR'));
   assert('사전결과_HTML: 국립국어원 명시', 성공HTML.includes('국립국어원'));
   const 실패HTML = ev("사전결과_HTML(null)");
   assert('사전결과_HTML: 실패(null) 시 안내 문구', 실패HTML.includes('찾을 수 없는'));
 
+  // 6-b) 동음이의어(어원이 다른 같은 철자) — 그룹이 둘 이상이면 ①/②로 나눠 보여줘야 함
+  //      (필연=必然/筆硯, 작업인계_노트.md 2026-07-24 메모의 재현 케이스)
+  const 동음이의어HTML = ev(`사전결과_HTML({ 뜻풀이그룹: [
+    { 번호: 1, 뜻풀이: ['사물의 관련이나 일의 결과가 반드시 그렇게 될 수밖에 없음.'] },
+    { 번호: 2, 뜻풀이: ['붓과 벼루를 아울러 이르는 말.'] }
+  ], 사전: 'opendict' })`);
+  assert('사전결과_HTML: 동음이의어 2그룹 모두 렌더링', 동음이의어HTML.includes('반드시 그렇게') && 동음이의어HTML.includes('붓과 벼루'));
+  assert('사전결과_HTML: 동음이의어 그룹 번호(①②) 표시', 동음이의어HTML.includes('①') && 동음이의어HTML.includes('②'));
+  const 단일그룹HTML = ev("사전결과_HTML({ 뜻풀이그룹: [{ 번호: 1, 뜻풀이: ['하나뿐인 뜻.'] }], 사전: 'opendict' })");
+  assert('사전결과_HTML: 그룹이 하나면 ① 표시 없이 기존처럼 번호만', !단일그룹HTML.includes('①') && 단일그룹HTML.includes('1. 하나뿐인 뜻.'));
+
   // 7) 사전 모드 전송은 토큰을 전혀 소모하지 않는다(AI 챗 전용 로직과 완전 분리 확인)
   ev(`
     window.fetch = function(){
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({ 존재: false, 뜻풀이: [], 사전: 'opendict' }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ 존재: false, 뜻풀이그룹: [], 사전: 'opendict' }) });
     };
   `);
   const 토큰전 = ev("사용자.보유토큰");

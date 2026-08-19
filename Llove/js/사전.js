@@ -18,6 +18,16 @@ const 국어원_활성화 = true;
 // 여부만, Llove는 뜻풀이까지 사용). 관리자님이 Worker 배포 후 이 값을 채울 것.
 const 국어원_WORKERS_ENDPOINT = 'https://urimalsaem-llove.hypoqwer.workers.dev/';
 
+// Worker 응답을 뜻풀이그룹(동음이의어별 배열) 형태로 정규화한다. 2026-08-19 계약 확장 —
+// 새 Worker는 { 존재, 뜻풀이그룹 }를 주지만, 아직 옛 Worker가 배포돼 있거나(뜻풀이그룹 필드
+// 없음) 테스트가 구 계약({ 뜻풀이: [...] } 평면 배열)을 흉내 낼 수 있어 둘 다 받아들인다.
+function 뜻풀이그룹_정규화(data){
+  if(!data) return [];
+  if(Array.isArray(data.뜻풀이그룹) && data.뜻풀이그룹.length) return data.뜻풀이그룹;
+  if(Array.isArray(data.뜻풀이) && data.뜻풀이.length) return [{ 번호: 1, 뜻풀이: data.뜻풀이 }];
+  return [];
+}
+
 const 사전_캐시_KEY = 'plx_사전캐시';
 function 사전_캐시_로드(){
   try{ return JSON.parse(localStorage.getItem(사전_캐시_KEY) || '{}'); }
@@ -55,9 +65,8 @@ async function 사전_단어조회(word){
     if(타임아웃ID) clearTimeout(타임아웃ID);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    const 결과 = (data && Array.isArray(data.뜻풀이) && data.뜻풀이.length)
-      ? { 뜻풀이: data.뜻풀이, 사전: data.사전 || 'opendict' }
-      : null;
+    const 그룹 = 뜻풀이그룹_정규화(data);
+    const 결과 = 그룹.length ? { 뜻풀이그룹: 그룹, 사전: data.사전 || 'opendict' } : null;
     캐시[word] = 결과;
     사전_캐시_저장(캐시);
     return 결과;
