@@ -847,6 +847,14 @@ async function main(){
     await 단어넣기(win, '나무');
     const g = 상태(win);
     const 가짜단어 = g.ai_last_word;
+    // 취소 후 재출제는 gs.ai_last_char가 그대로("나무"만 history에 남으므로 다시 "무")라, 안
+    // 지우면 아래 필터가 걸린 새 스텁을 우회해 가짜단어가 다시 뽑힐 수 있다 — 두 안전망 다:
+    //   · localStorage 캐시(plx_잇는_국어원후보캐시_v2) — 예전(필터 안 된) 후보가 그대로 남음
+    //   · 세션_수집어(게임규칙.js 모듈 스코프, "네트워크 끊겨도 이어지게" 하는 안전망) — 방금
+    //     받은 후보가 전부 여기 쌓여서, localStorage를 지워도 이 목록엔 가짜단어가 남아 있다
+    //     (실측: 두 캐시 중 세션_수집어만 지웠을 땐 60회 중 13회 재현되는 진짜 원인이었음).
+    win.localStorage.clear();
+    win.세션_비우기();
     win.fetch = async (url, opt) => {
       if(typeof url === 'string' && url.startsWith('data/')){
         return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
@@ -854,7 +862,12 @@ async function main(){
       const p = JSON.parse(opt.body);
       if(p.단어 !== undefined) return { ok: true, json: async () => ({ 존재: false, 뜻풀이그룹: [] }) };
       const 꼬리 = ['가', '나', '다', '라', '마'];
-      const 후보 = 꼬리.map(t => p.방향 === 'end' ? t + '우' + p.글자 : p.글자 + '우' + t);
+      // 취소된 단어(가짜단어)는 후보에서 뺀다 — 방금 사전에 없다고 판정해 history에서 지운
+      // 참이라 "이미 쓴 단어" 필터에도 안 걸려서, 안 빼면 AI가 우연히 같은 단어를 다시 뽑을 수
+      // 있다(로컬에선 드물게 통과하고 CI에서만 걸리는 진짜 플레이키 원인이었음).
+      const 후보 = 꼬리
+        .map(t => p.방향 === 'end' ? t + '우' + p.글자 : p.글자 + '우' + t)
+        .filter(w => w !== 가짜단어);
       return { ok: true, json: async () => ({ 후보 }) };
     };
     await win.버튼_이의();
