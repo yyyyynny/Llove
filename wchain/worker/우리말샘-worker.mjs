@@ -13,6 +13,10 @@
 //   요청  POST { 단어: "필연", 디버그: true } → 위 응답에 _원본진단(원본 item 최대 5개) 추가
 //     (그룹화가 또 안 맞을 때 재배포 없이 필드명을 확인하기 위한 진단 전용, 평소엔 안 씀)
 //   요청  POST { 글자: "가", 방향: "start"|"end" } → 응답 { 후보: ["가나다", ...] }
+//     2026-08-20에 후보에서 북한어·옛말·방언·전문분야·고유명사를 걸러내는 필터 추가(아래
+//     후보_부적절한가() 참조) — 필드 자체는 안 바뀌었으니 클라이언트 하위 호환.
+//   요청  POST { 글자: "가", 방향: "start", 디버그: true } → 위 응답에 _걸러진표본(필터로
+//     빠진 원본 item 최대 20개) 추가 — 필터 기준이 또 안 맞을 때 진단용, 평소엔 안 씀.
 //   실패 시 4xx/5xx만 반환하면 된다 — 클라이언트는 res.ok가 아니면 null로 강등해 로컬 안전망을 탄다.
 //
 // (CLAUDE.md 원칙: "API 키는 Cloudflare Workers만, 프론트 노출 금지" — 이 파일에 키를 직접 적지 말 것.)
@@ -216,6 +220,27 @@ async function 단어존재조회(env, word, 진단 = false){
   return { 존재: false, 뜻풀이그룹: [] };
 }
 
+// ── 후보 품질 필터 (2026-08-20, 관리자님 제보 기반 실측) ──────────────────
+// 제보: "난이도가 낮은데도 어려운 한자어·북한어·옛말을 쓰고, 초등학교 이름 같은 고유명사도
+// 나온다." curl로 직접 여러 단어를 조회해 확인한 실측 규칙(README.md에 원본 데이터 기록):
+//   · sense.type — "북한어"/"옛말"/"방언"은 확실히 구분되는 값으로 온다(직승기→북한어,
+//     즈믄→옛말, 초가슭→방언 등 실측 확인).
+//   · sense.cat — 비어 있지 않으면 전문 분야·고유명사일 확률이 높다. type은 "일반어"로 남아
+//     있어도 cat만 보고 걸러야 하는 경우가 실제로 있었다(초가팔리→cat:지명, 초가속→cat:책명,
+//     초가청전신→cat:정보·통신, 초가치마케팅→cat:경영 — 전부 type:일반어였다).
+// 표제어(word) 하나에 여러 sense가 있을 수 있어(동음이의어·다의어), **첫 sense**만 본다 —
+// "동무"처럼 흔한 뜻(일반, cat 없음)이 먼저 오고 특수 분야 뜻(광업)이 나중에 오는 경우까지
+// 걸러내면 흔한 단어까지 사라진다(실측: 동무의 sense 1·2는 일반, 3번째만 cat:광업이었지만
+// 그 앞의 흔한 뜻 때문에 포함하는 게 맞다). 첫 sense가 문제라면 표제어 전체를 뺀다.
+const 후보_제외_TYPE = new Set(['북한어', '옛말', '방언']);
+function 후보_부적절한가(it){
+  const 첫sense = Array.isArray(it.sense) ? it.sense[0] : it.sense;
+  if(!첫sense) return false;
+  if(후보_제외_TYPE.has(첫sense.type)) return true;
+  if(첫sense.cat) return true;
+  return false;
+}
+
 // ── ② 후보 목록(글자로 시작/끝나는 단어) ───────────────────────────────
 // advanced=y&target=1&method=start|end — "이 글자로 시작/끝나는 단어" 전방/후방 일치.
 // num=100 + 필요하면 다음 페이지까지 병렬로 받는다. 붙임표 든 표제어는 버리지 않고
@@ -223,7 +248,7 @@ async function 단어존재조회(env, word, 진단 = false){
 const 후보_페이지당개수 = 100;
 const 후보_최대페이지 = 3;   // 최대 300개. 페이지 수를 늘리면 후보는 늘지만 왕복도 늘어난다.
 
-async function 후보목록조회(env, 글자, 방향){
+async function 후보목록조회(env, 글자, 방향, 진단 = false){
   const method = 방향 === 'end' ? 'end' : 'start';
 
   const 페이지들 = await Promise.all(
@@ -236,6 +261,7 @@ async function 후보목록조회(env, 글자, 방향){
 
   const 후보 = [];
   const 본것 = new Set();
+  const 걸러진표본 = [];   // 진단 모드일 때만 채움 — 필터가 또 안 맞을 때 원인 확인용
   for(const { items } of 페이지들){
     for(const it of items){
       if(typeof it.word !== 'string') continue;
@@ -252,10 +278,14 @@ async function 후보목록조회(env, 글자, 방향){
       if(방향 === 'end' && !정리됨.endsWith(글자)) continue;
       if(본것.has(정리됨)) continue;
       본것.add(정리됨);
+      if(후보_부적절한가(it)){
+        if(진단 && 걸러진표본.length < 20) 걸러진표본.push(it);
+        continue;
+      }
       후보.push(정리됨);
     }
   }
-  return 후보;
+  return 진단 ? { 후보, _걸러진표본: 걸러진표본 } : { 후보 };
 }
 
 // ── 진입점 ───────────────────────────────────────────────────────────
@@ -288,8 +318,8 @@ export default {
       }
       if(typeof payload.글자 === 'string' && payload.글자.trim()
          && (payload.방향 === 'start' || payload.방향 === 'end')){
-        const 후보 = await 후보목록조회(env, payload.글자.trim(), payload.방향);
-        return json응답({ 후보 }, 200, origin);
+        const 결과 = await 후보목록조회(env, payload.글자.trim(), payload.방향, payload.디버그 === true);
+        return json응답(결과, 200, origin);
       }
       return json응답({ error: '요청 형식이 올바르지 않습니다(단어 또는 글자+방향 필요).' }, 400, origin);
     }catch(e){

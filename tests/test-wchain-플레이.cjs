@@ -751,13 +751,13 @@ async function main(){
     // (4) 후보 캐시 — 버전 접미사가 붙고, 빈 목록은 저장하지 않는다.
     //     빈 목록이 영구히 박히면 Worker를 고쳐도 그 기기에서는 계속 막다른 길이 된다.
     const 국어원 = fs.readFileSync(path.join(WCHAIN, 'js/국어원.js'), 'utf8');
-    확인('후보 캐시 키에 버전이 붙었다', 국어원.includes("'plx_잇는_국어원후보캐시_v2'"));
+    확인('후보 캐시 키에 버전이 붙었다', 국어원.includes("'plx_잇는_국어원후보캐시_v3'"));
 
     const { win } = 페이지열기({ 온라인: '없음' });     // 후보 0건을 돌려주는 스텁
     await 대사대기(win);
     판시작(win);
     await 단어넣기(win, '사슴');
-    const 캐시 = JSON.parse(win.localStorage.getItem('plx_잇는_국어원후보캐시_v2') || '{}');
+    const 캐시 = JSON.parse(win.localStorage.getItem('plx_잇는_국어원후보캐시_v3') || '{}');
     확인('빈 후보 목록은 캐시에 남지 않는다', Object.keys(캐시).length === 0,
          JSON.stringify(캐시));
   }
@@ -849,7 +849,7 @@ async function main(){
     const 가짜단어 = g.ai_last_word;
     // 취소 후 재출제는 gs.ai_last_char가 그대로("나무"만 history에 남으므로 다시 "무")라, 안
     // 지우면 아래 필터가 걸린 새 스텁을 우회해 가짜단어가 다시 뽑힐 수 있다 — 두 안전망 다:
-    //   · localStorage 캐시(plx_잇는_국어원후보캐시_v2) — 예전(필터 안 된) 후보가 그대로 남음
+    //   · localStorage 캐시(plx_잇는_국어원후보캐시_v3) — 예전(필터 안 된) 후보가 그대로 남음
     //   · 세션_수집어(게임규칙.js 모듈 스코프, "네트워크 끊겨도 이어지게" 하는 안전망) — 방금
     //     받은 후보가 전부 여기 쌓여서, localStorage를 지워도 이 목록엔 가짜단어가 남아 있다
     //     (실측: 두 캐시 중 세션_수집어만 지웠을 땐 60회 중 13회 재현되는 진짜 원인이었음).
