@@ -7,7 +7,9 @@
 // 2026-08-19 3차 수정(관리자님 승인) 검증:
 //   · 한자어 동음이의어(필연=必然/筆硯) — sense.origin 기준, view API 호출 없이 그룹화.
 //   · 순우리말 동음이의어(눈=眼/雪 등) — sense.origin이 없으면 opendict view API로
-//     group_code(다의어 번호)를 물어 그룹을 나눈다. 병렬·개수 상한(6)·조회 실패 시 고립.
+//     group_code(다의어 번호)를 물어 그룹을 나눈다. 병렬·개수 상한(30, 2026-08-22 6→30
+//     상향 — 병렬이라 지연은 안 늘고 Cloudflare subrequest 한도만 여유 안에서 확인)·
+//     조회 실패 시 고립.
 const fs = require('fs');
 const path = require('path');
 const { makeHarness } = require('./load.cjs');
@@ -69,12 +71,14 @@ async function main() {
   }
 
   // (3) 개수 상한 초과 — view를 아예 호출하지 않고 안전하게 1그룹으로 합친다.
+  //     "눈"(순우리말 다의어) 실측으로 어원 없는 뜻이 20개에 육박하는 걸 확인해 상한을
+  //     30으로 올렸다 — 그보다 많은 35개로 상한 초과 케이스를 검증한다.
   {
     global.fetch = async () => { throw new Error('상한 초과 시 view가 호출되면 안 됨'); };
-    const 많은뜻 = Array.from({ length: 8 }, (_, i) =>
+    const 많은뜻 = Array.from({ length: 35 }, (_, i) =>
       ({ word: '많은말', sense: [{ definition: '뜻' + i, target_code: 'T' + i }] }));
     const 결과 = await 뜻풀이_그룹화_비동기(ENV, 많은뜻);
-    assert('상한(6) 초과 시 view 호출 없이 1그룹으로 폴백', 결과.length === 1 && 결과[0].뜻풀이.length === 8);
+    assert('상한(30) 초과 시 view 호출 없이 1그룹으로 폴백', 결과.length === 1 && 결과[0].뜻풀이.length === 35);
   }
 
   // (4) view 조회 일부 실패 — 실패한 것은 다른 그룹과 잘못 합쳐지지 않고 고립된다.
