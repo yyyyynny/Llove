@@ -39,8 +39,9 @@ xAI 크레딧이 없는 동안은 이 Worker를 배포해도 실호출 시 502(`
 
 ## 배포 방법 (크레딧 확보 후)
 
-1. Cloudflare 대시보드에서 새 Worker 생성 (이름은 `wrangler.toml.example` 참조 —
-   Llove의 `xai-api-llove`와 겹치지 않는 별도 이름 사용).
+1. Cloudflare 대시보드에서 새 Worker 생성 (이름은 `wrangler.그록판정.toml.example` 참조 —
+   Llove의 `xai-api-llove`와 겹치지 않는 별도 이름 사용. 이 폴더의 우리말샘 Worker용
+   `wrangler.toml.example`과는 다른 파일이니 혼동 주의).
 2. `그록판정-worker.mjs` 내용을 그대로 붙여넣고 Deploy.
 3. Worker 설정 > Variables and Secrets에서 `XAI_API_KEY` 등록.
 4. 아래로 curl 검증:
