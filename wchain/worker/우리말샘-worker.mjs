@@ -269,16 +269,26 @@ function 후보_부적절한가(it){
 const 후보_페이지당개수 = 100;
 const 후보_최대페이지 = 3;   // 최대 300개. 페이지 수를 늘리면 후보는 늘지만 왕복도 늘어난다.
 
+// 2026-08-22 — 후보 조회가 curl 실측 8.8초로 나와 무엇이 느린지(페이지 개수 자체 vs 페이지당
+// 요청 하나의 원래 속도) 확인이 필요했다. 진단 모드일 때 페이지별 왕복 시간을 재서 같이
+// 돌려준다 — 재배포 한 번으로 원인을 확정한 뒤 페이지 수를 조정하기 위한 임시 계측.
 async function 후보목록조회(env, 글자, 방향, 진단 = false){
   const method = 방향 === 'end' ? 'end' : 'start';
 
+  const 페이지시작 = Date.now();
   const 페이지들 = await Promise.all(
     Array.from({ length: 후보_최대페이지 }, (_, i) => i)
-      .map(i => 오픈API_검색(env, {
-        q: 글자, advanced: true, target: 1, method,
-        start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수,
-      }).catch(() => ({ items: [] })))
+      .map(async i => {
+        const t0 = Date.now();
+        const 결과 = await 오픈API_검색(env, {
+          q: 글자, advanced: true, target: 1, method,
+          start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수,
+        }).catch(() => ({ items: [] }));
+        결과._ms = Date.now() - t0;
+        return 결과;
+      })
   );
+  const 전체ms = Date.now() - 페이지시작;
 
   const 후보 = [];
   const 본것 = new Set();
@@ -306,7 +316,9 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
       후보.push(정리됨);
     }
   }
-  return 진단 ? { 후보, _걸러진표본: 걸러진표본 } : { 후보 };
+  return 진단
+    ? { 후보, _걸러진표본: 걸러진표본, _페이지별ms: 페이지들.map(p => p._ms), _전체ms: 전체ms }
+    : { 후보 };
 }
 
 // ── 진입점 ───────────────────────────────────────────────────────────
