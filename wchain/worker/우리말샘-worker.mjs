@@ -290,6 +290,20 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
   );
   const 전체ms = Date.now() - 페이지시작;
 
+  // 진단 모드일 때만 — 1페이지(start=1)만 유독 느린 게 실측됐다(9.8초 vs 다른 페이지 3.4초).
+  // num(페이지당 개수)을 줄이면 그 1페이지가 빨라지는지 재배포 한 번으로 한꺼번에 확인한다
+  // (10/30/50/100 네 값을 병렬로 같이 쏴서 비교 — 정식 응답에는 영향 없는 별도 호출).
+  let num실험ms = null;
+  if(진단){
+    const 실험값들 = [10, 30, 50, 100];
+    const 실험결과 = await Promise.all(실험값들.map(async n => {
+      const t0 = Date.now();
+      await 오픈API_검색(env, { q: 글자, advanced: true, target: 1, method, start: 1, num: n }).catch(() => null);
+      return Date.now() - t0;
+    }));
+    num실험ms = Object.fromEntries(실험값들.map((n, i) => [n, 실험결과[i]]));
+  }
+
   const 후보 = [];
   const 본것 = new Set();
   const 걸러진표본 = [];   // 진단 모드일 때만 채움 — 필터가 또 안 맞을 때 원인 확인용
@@ -317,7 +331,7 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
     }
   }
   return 진단
-    ? { 후보, _걸러진표본: 걸러진표본, _페이지별ms: 페이지들.map(p => p._ms), _전체ms: 전체ms }
+    ? { 후보, _걸러진표본: 걸러진표본, _페이지별ms: 페이지들.map(p => p._ms), _전체ms: 전체ms, _num실험ms: num실험ms }
     : { 후보 };
 }
 
