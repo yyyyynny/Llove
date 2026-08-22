@@ -42,6 +42,26 @@ Worker 전체 코드입니다. 이 폴더는 참고·배포용이며, `wchain/js
 개수 한도입니다. 단어 하나 조회 시 붙임표 변형 시도(최대 6)까지 더하면 최악의 경우
 6+상한 번 호출되는데, 상한 30이면 최악 36회로 무료 플랜 한도(50)에도 여유 있게 들어갑니다.
 
+**🚨 2026-08-22 성능 회귀 발견·수정(재배포 필요) — 매 턴 단어 검증까지 그룹화 비용을 물고
+있었음.** 관리자님 제보("턴/층 진행이 너무 오래 걸린다")를 재확인하려고 `curl -w`로 직접
+시간을 재봤습니다:
+```
+"학교" 존재 확인 — 4.1초
+"나무" 존재 확인 — 5.9초
+```
+흔한 단어 하나 확인하는 데 4~6초. 원인: `wchain/js/국어원.js`의 `국어원_단어조회()`(게임
+매 턴마다 도는 단어 검증, `존재` 불리언만 쓰고 `뜻풀이그룹`은 전혀 안 봄)조차 Worker의 같은
+`단어` 엔드포인트를 타는데, **Worker는 그룹화가 필요 없는 요청에도 항상
+`뜻풀이_그룹화_비동기()`를 돌리고 있었습니다**(순우리말이면 view API 추가 호출까지 포함) —
+3차(동음이의어 분리) 작업 때 만든 회귀입니다. 요청에 `뜻풀이:true`가 없으면 그룹화를 아예
+건너뛰고 `뜻풀이그룹:[]`로 빠르게 응답하도록 수정했고, 뜻풀이가 실제로 필요한 두 곳
+(`Llove/js/사전.js`의 사전 조회, `wchain/js/국어원.js`의 `국어원_단어조회_상세()`)만 이
+플래그를 켜서 요청하게 클라이언트도 함께 고쳤습니다. Llove 사전 쪽 타임아웃도 2초→8초로
+올렸습니다(그룹화가 필요한 조회는 실측상 수 초가 걸릴 수 있어 2초는 항상 시간초과였을
+가능성이 큽니다). 로컬 회귀 테스트(`tests/test-worker-뜻풀이그룹화.cjs`에 2건 추가, 총 12건)
+로 플래그 유무에 따라 그룹화가 실제로 건너뛰어지는지/도는지 확인했습니다 — **재배포 필요**
+(재배포 후 아래 ⑥번으로 "학교"·"나무" 재실측).
+
 **🆕 2026-08-20 4차(관리자님 제보 기반, 재배포 필요) — 후보 품질 필터.** 제보: "난이도가
 낮은데도 어려운 한자어·북한어·옛말을 쓰고, 초등학교 이름 같은 고유명사도 나온다." `단어`
 조회의 `디버그:true`(이미 배포돼 있어 재배포 없이 바로 조회 가능)로 실제 후보 여러 개를
@@ -98,7 +118,8 @@ npx wrangler secret put URIMALSAEM_CERTKEY_NO
 ## 배포 후 확인
 
 ```bash
-# ① 붙임표 — true 가 나와야 함
+# ① 붙임표 — true 가 나와야 함. 뜻풀이:true를 안 실었으니 뜻풀이그룹은 빈 배열이 정상
+#    (매 턴 단어 검증과 똑같은 "빠른 경로" — 아래 ⑥번 참조).
 curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
   -d '{"단어":"가마솥"}'
@@ -109,22 +130,24 @@ curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -d '{"글자":"사","방향":"start"}'
 
 # ③ 동음이의어 그룹 — "필연" 조회 시 뜻풀이그룹이 2개 이상(必然/筆硯)이어야 함.
+#    뜻풀이:true 필수 — 없으면 그룹화 자체를 건너뛰어 뜻풀이그룹이 항상 빈 배열로 온다.
 curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
-  -d '{"단어":"필연"}'
+  -d '{"단어":"필연","뜻풀이":true}'
 
-# ③-b 그래도 1개짜리 그룹만 나오면(또는 뜻풀이그룹이 빈 배열이면) 디버그:true로 원본을 본다.
-#     _원본진단[].target_code / sup_no / sense 가 실제로 어떤 이름·모양인지 확인해서
-#     우리말샘-worker.mjs의 뜻풀이_그룹화_비동기() 그룹 키 로직을 그 이름으로 고치면 됨.
+# ③-b 그래도 1개짜리 그룹만 나오면(또는 뜻풀이그룹이 빈 배열인데 뜻풀이:true는 실었다면)
+#     디버그:true로 원본을 본다. _원본진단[].target_code / sup_no / sense 가 실제로 어떤
+#     이름·모양인지 확인해서 우리말샘-worker.mjs의 뜻풀이_그룹화_비동기() 그룹 키 로직을
+#     그 이름으로 고치면 됨.
 curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
-  -d '{"단어":"필연","디버그":true}'
+  -d '{"단어":"필연","뜻풀이":true,"디버그":true}'
 
-# ④ 순우리말 동음이의어 — "눈" 조회 시 뜻풀이그룹이 2개 이상(眼/雪 등)이어야 함(view API
-#    실측, 왕복이 하나 더 늘어 ③보다 응답이 조금 더 걸릴 수 있음 — 정상).
+# ④ 순우리말 동음이의어 — "눈" 조회 시 뜻풀이그룹이 여러 개(眼/雪 등)로 갈려야 함(view API
+#    실측, 왕복이 하나 더 늘어 ③보다 응답이 조금 더 걸릴 수 있음 — 정상). 여기도 뜻풀이:true 필수.
 curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
-  -d '{"단어":"눈"}'
+  -d '{"단어":"눈","뜻풀이":true}'
 
 # ⑤ 후보 품질 필터 — "초"로 시작하는 후보에 '초가청전신'·'초가팔리' 같은 전문용어/지명이
 #    더 이상 없어야 함. 개수도 필터 전(46개)보다 줄어든 게 정상.
@@ -136,6 +159,12 @@ curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
 curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
   -d '{"글자":"초","방향":"start","디버그":true}'
+
+# ⑥ 성능 회귀 수정 확인 — 뜻풀이:true 없이 "학교"·"나무"를 확인하면(매 턴 단어 검증과 동일
+#    경로) 1~2초 안팎으로 훨씬 빨라져야 함(수정 전 실측 4~6초). time 커맨드로 직접 재보면 됨.
+time curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
+  -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
+  -d '{"단어":"학교"}' -o /dev/null -w '%{time_total}s\n'
 ```
 
 `-H 'Origin: ...'`을 빼고 호출하면(예: Cloudflare 대시보드의 자체 테스트 도구) CORS 허용

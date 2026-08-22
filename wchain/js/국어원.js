@@ -153,7 +153,10 @@ function 국어원_상세캐시_저장(캐시){
 async function 국어원_단어조회_상세(word){
   const 캐시 = 국어원_상세캐시_로드();
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
-  const data = await 국어원_POST({ 단어: word }, 국어원_타임아웃_단어_MS);
+  // ⚠️ 뜻풀이:true 필수 — 이게 없으면 Worker가 그룹화를 건너뛰고 뜻풀이그룹을 빈 배열로
+  // 돌려준다(2026-08-22, 매 턴 단어 검증까지 이 계산을 물던 성능 회귀 수정 — 위 파일 상단
+  // 참조). 이 함수는 애초에 뜻풀이가 필요해서 부르는 함수이니 반드시 요청한다.
+  const data = await 국어원_POST({ 단어: word, 뜻풀이: true }, 국어원_타임아웃_단어_MS);
   if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
   const 결과 = { 존재: !!data.존재, 뜻풀이그룹: Array.isArray(data.뜻풀이그룹) ? data.뜻풀이그룹 : [] };
   캐시[word] = 결과;

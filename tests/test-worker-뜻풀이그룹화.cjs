@@ -24,9 +24,9 @@ const 함수부 = src.split('// ── 진입점')[0];
 // new Function으로 감싸 필요한 함수를 반환받는다(전역 오염 방지).
 const 로드됨 = new Function(`
   ${함수부}
-  return { 뜻풀이_그룹화_비동기, 오픈API_뷰 };
+  return { 뜻풀이_그룹화_비동기, 오픈API_뷰, 단어존재조회 };
 `)();
-const { 뜻풀이_그룹화_비동기 } = 로드됨;
+const { 뜻풀이_그룹화_비동기, 단어존재조회 } = 로드됨;
 
 const ENV = { URIMALSAEM_KEY: 'test-key', URIMALSAEM_CERTKEY_NO: 'test-certkey' };
 
@@ -105,6 +105,33 @@ async function main() {
     const 단일 = [{ word: '외톨말', sense: [{ definition: '뜻 하나뿐', target_code: 'ONLY' }] }];
     const 결과 = await 뜻풀이_그룹화_비동기(ENV, 단일);
     assert('어원 없는 뜻 1개는 view 호출 없이 그대로 1그룹', 결과.length === 1 && 결과[0].뜻풀이.length === 1);
+  }
+
+  // (6) 성능 회귀 방지 — 뜻풀이 플래그 없이는 그룹화를 절대 안 돈다.
+  //     2026-08-22 발견: Worker가 "존재만" 물어도 항상 동음이의어 그룹화를 계산해서, "학교"·
+  //     "나무" 같은 흔한 단어 하나 확인(매 턴 단어 검증이 쓰는 경로)에 curl 실측 4~6초가
+  //     걸렸다. 뜻풀이가 실제로 필요한 곳(사전 조회·이의있음)만 플래그를 켜서 요청해야 한다.
+  {
+    global.fetch = async (url) => {
+      const q = new URL(url).searchParams.get('q');
+      if(q !== '단어테스트') return { ok: true, text: async () => JSON.stringify({ channel: { item: [] } }) };
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ channel: { item: [
+          { word: '단어테스트', sense: [{ definition: '뜻1', origin: 'origin1', target_code: 'X1' }] },
+          { word: '단어테스트', sense: [{ definition: '뜻2', origin: 'origin2', target_code: 'X2' }] },
+        ] } }),
+      };
+    };
+    const 빠른결과 = await 단어존재조회(ENV, '단어테스트', false, false);
+    assert('뜻풀이 플래그 없으면 그룹화를 계산하지 않는다(뜻풀이그룹 빈 배열)',
+      빠른결과.존재 === true && Array.isArray(빠른결과.뜻풀이그룹) && 빠른결과.뜻풀이그룹.length === 0,
+      JSON.stringify(빠른결과));
+
+    const 상세결과 = await 단어존재조회(ENV, '단어테스트', false, true);
+    assert('뜻풀이:true면 실제로 그룹화가 돈다(2그룹)',
+      상세결과.존재 === true && 상세결과.뜻풀이그룹.length === 2,
+      JSON.stringify(상세결과));
   }
 
   process.exit(finish() > 0 ? 1 : 0);
