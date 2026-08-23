@@ -440,6 +440,21 @@ function 프롬프트_갱신(){
     el.textContent = `${라벨} (${gs.dispute_attempts}/${이의_최대횟수})`;
     el.classList.toggle('locked', 소진);   // 활성 버튼과 같은 비중으로 보이지 않게
   }
+  // '뜻 보기'(2026-08-22 신설) — 판정·소모가 없으니 진행도 라벨도 잠금도 없다. AI가 단어를
+  // 낸 뒤에만 노출(볼 뜻이 없으면 의미 없는 버튼).
+  const 뜻보기btn = document.getElementById('btn-뜻보기');
+  if(뜻보기btn) 뜻보기btn.style.display = gs.ai_last_word ? '' : 'none';
+  // '적절성 검증'(2026-08-22 신설) — 이의있음·허세와 같은 예산(dispute_attempts)을 공유하므로
+  // 진행도 라벨도 같은 값을 보여준다. 그록 게이트가 꺼져 있는 동안은 항상 잠금 스타일만
+  // 표시(버튼_적절성검증이 클릭 시 안내로 처리 — 여기서 숨기지 않는 이유는 존재를 미리
+  // 알려서 다음 업데이트를 기대하게 하기 위함, Llove 실험실 티저와 같은 취지).
+  const 적절성btn = document.getElementById('btn-적절성검증');
+  if(적절성btn){
+    적절성btn.style.display = gs.ai_last_word ? '' : 'none';
+    const 소진 = gs.dispute_attempts >= 이의_최대횟수;
+    적절성btn.textContent = `🤖 적절성 검증${적절성검증_활성화 ? ` (${gs.dispute_attempts}/${이의_최대횟수})` : ' 🔒'}`;
+    적절성btn.classList.toggle('locked', 소진 || !적절성검증_활성화);
+  }
   // 관리자 패널 버튼 — 백도어 승인 후에만 보인다(토글 난립 대신 버튼 하나로 통일)
   const 관리자btn = document.getElementById('btn-관리자');
   if(관리자btn) 관리자btn.style.display = gs.god_mode_active ? '' : 'none';
@@ -789,6 +804,36 @@ function 버튼_양보(){
 const 이의허세_봉인 = false;
 const 이의_최대횟수 = 5;
 
+// 이의있음이든(사전 존재 확인) 적절성 검증이든(그록 판단, 아래 버튼_적절성검증) '이 단어는
+// 무효' 판정이 나오면 그 뒤에 벌어지는 일은 같다 — AI 단어를 취소하고 다시 내게 하거나, AI가
+// 못 내면 사용자 승리. 두 판정 경로가 이 로직을 각자 복제하지 않도록 공용 함수로 뺐다
+// (2026-08-22). 반환값 false면 호출부는 더 진행하지 말고(게임오버·리셋 처리 완료) 즉시
+// return해야 한다.
+async function AI단어_취소_재출제(disputed, 내세대){
+  gs.history = gs.history.filter(h => h.word !== disputed);
+  if(gs.history.length){
+    const prev = gs.history[gs.history.length - 1].word;
+    gs.ai_last_char = !gs.rev ? prev[prev.length - 1] : prev[0];
+  } else {
+    gs.ai_last_char = null;
+  }
+  gs.ai_last_word = null;
+  const new_ai = await ai_generate_word_비동기(gs);
+  if(내세대 !== 게임_세대) return false;   // 대기 중 리셋·재도전이 있었다 — 더 진행하면 안 됨
+  if(new_ai){
+    gs.history.push({ word: new_ai, turn: gs.turn });
+    gs.ai_last_char = !gs.rev ? new_ai[new_ai.length - 1] : new_ai[0];
+    gs.ai_last_word = new_ai;
+    로그_추가(react_ai_word(gs, new_ai));
+    return true;
+  }
+  로그_추가(대사(gs, '버튼_이의_원본_1', [title(gs)]), 'ok');
+  // 원본과 동일: 이의제기로 인한 승리는 서바이벌만 best(턴) 갱신 — 아케이드는 갱신 안 함(원본 그대로)
+  if(gs.game_mode === 'SURVIVAL' && gs.turn > gs.best) gs.best = gs.turn;
+  게임오버(true);
+  return false;
+}
+
 async function 버튼_이의(){
   if(게임_비동기처리중) return;   // 앞 처리(온라인 조회·AI 턴) 진행 중이면 무시(재진입 방지)
   if(!gs.ai_last_word) return;
@@ -817,28 +862,7 @@ async function 버튼_이의(){
     if(!결과.존재){
       // 실제로 사전에 없는 단어 — 즉시 취소하고 AI가 새 단어를 낸다.
       로그_추가(대사(gs, '버튼_이의_원본_2', [disputed]), 'ok');
-      gs.history = gs.history.filter(h => h.word !== disputed);
-      if(gs.history.length){
-        const prev = gs.history[gs.history.length - 1].word;
-        gs.ai_last_char = !gs.rev ? prev[prev.length - 1] : prev[0];
-      } else {
-        gs.ai_last_char = null;
-      }
-      gs.ai_last_word = null;
-      const new_ai = await ai_generate_word_비동기(gs);
-      if(내세대 !== 게임_세대) return;
-      if(new_ai){
-        gs.history.push({ word: new_ai, turn: gs.turn });
-        gs.ai_last_char = !gs.rev ? new_ai[new_ai.length - 1] : new_ai[0];
-        gs.ai_last_word = new_ai;
-        로그_추가(react_ai_word(gs, new_ai));
-      } else {
-        로그_추가(대사(gs, '버튼_이의_원본_1', [title(gs)]), 'ok');
-        // 원본과 동일: 이의제기로 인한 승리는 서바이벌만 best(턴) 갱신 — 아케이드는 갱신 안 함(원본 그대로)
-        if(gs.game_mode === 'SURVIVAL' && gs.turn > gs.best) gs.best = gs.turn;
-        게임오버(true);
-        return;
-      }
+      if(!await AI단어_취소_재출제(disputed, 내세대)) return;
     } else {
       // 실제로 있는 단어 — 뜻풀이를 근거로 이의 기각.
       const 첫뜻 = (결과.뜻풀이그룹[0] && 결과.뜻풀이그룹[0].뜻풀이[0]) || '(뜻풀이를 불러오지 못했습니다)';
@@ -858,6 +882,87 @@ async function 버튼_이의(){
 // 후보에서만 고름) 별도 판정 로직을 둘 이유가 없다. 종전엔 이쪽만 대사 한 줄짜리 no-op이었던
 // 것을 없애고 같은 실조회를 태운다(대사표의 버튼_허세_원본_1은 옛 구현 대조용으로 남겨 둔다).
 const 버튼_허세 = 버튼_이의;
+
+// '뜻 보기' — 이의있음·적절성검증과 달리 판정도 소모도 없다. 그냥 지금 AI가 낸 단어의 뜻을
+// 보여준다(2026-08-22 신설). 우리말샘 조회만 하므로 국어원_단어조회_상세()를 그대로
+// 재사용(캐시도 같이 씀) — 새 API 계약이 필요 없다.
+async function 버튼_뜻보기(){
+  if(게임_비동기처리중) return;
+  if(!gs.ai_last_word) return;
+  게임_비동기처리중 = true;
+  입력_대기표시(true, '뜻 확인 중');
+  const 내세대 = 게임_세대;
+  try{
+    const word = gs.ai_last_word;
+    로그_추가('📖 우리말샘에서 뜻을 찾는 중...', 'sys');
+    const 결과 = await 국어원_단어조회_상세(word);
+    if(내세대 !== 게임_세대) return;
+    const 줄들 = 뜻풀이_로그줄들(결과);
+    if(!줄들){
+      로그_추가(`⚠️ 『${word}』의 뜻을 찾지 못했습니다(네트워크 문제로 추정).`, 'warn');
+      return;
+    }
+    로그_추가(`📖 『${word}』`, 'sys');
+    for(const 줄 of 줄들) 로그_추가(줄, 'sys');
+  } finally {
+    if(내세대 === 게임_세대){
+      게임_비동기처리중 = false;
+      입력_대기표시(false);
+    }
+  }
+}
+
+// '적절성 검증' — 이의있음(사전 존재 확인)과 역할이 다르다: 사전엔 있지만 이 판에서 쓰기엔
+// 부당한 단어인지(희귀 전문용어·옛말·지명·인명류 등, 후보 필터가 못 거른 경계 케이스)를
+// 그록에게 판단시킨다(2026-08-22 신설). wchain/js/그록판정.js·wchain/worker/단어적절성판정
+// -worker.mjs 참조. 아직 게이트 봉인 상태(적절성검증_활성화=false, xAI 크레딧 미구매·Worker
+// 미배포)라 지금은 '준비 중' 안내만 뜨고 dispute_attempts를 소모하지 않는다.
+// 이의있음과 같은 예산(gs.dispute_attempts/이의_최대횟수)을 공유한다 — 판당 이의제기 총량이
+// 버튼 3개(이의있음·허세·적절성검증)로 쪼개져 늘어나지 않게 하기 위함.
+async function 버튼_적절성검증(){
+  if(게임_비동기처리중) return;
+  if(!gs.ai_last_word) return;
+  if(!적절성검증_활성화){
+    로그_추가('🔒 적절성 검증은 그록 연동 후 사용 가능합니다.', 'warn');
+    return;
+  }
+  if(gs.dispute_attempts >= 이의_최대횟수){
+    로그_추가(대사(gs, '버튼_이의_소진'), 'err');
+    return;
+  }
+  게임_비동기처리중 = true;
+  입력_대기표시(true, '적절성 확인 중');
+  const 내세대 = 게임_세대;
+  try{
+    gs.dispute_attempts += 1;
+    const disputed = gs.ai_last_word;
+    로그_추가('🤖 그록에게 판단을 묻는 중...', 'sys');
+    플레이_HUD갱신(); 프롬프트_갱신();
+
+    const 결과 = await 적절성_검증(disputed, gs.ai_last_char);
+    if(내세대 !== 게임_세대) return;
+
+    if(결과 === null){
+      gs.dispute_attempts -= 1;   // 확인 자체를 못 했으니 소모로 치지 않는다
+      로그_추가('⚠️ 적절성 검증에 실패했습니다(네트워크 문제로 추정). 잠시 후 다시 시도해 주세요.', 'warn');
+      return;
+    }
+
+    if(!결과.적절){
+      // 부당하다고 판단됨 — 이의있음의 '없는 단어' 분기와 동일하게 취소·재출제.
+      로그_추가(`🤖 인정합니다, 『${disputed}』는 부당한 단어였습니다${결과.이유 ? ' — ' + 결과.이유 : ''}. 취소하겠습니다.`, 'ok');
+      if(!await AI단어_취소_재출제(disputed, 내세대)) return;
+    } else {
+      로그_추가(`🤖 『${disputed}』는 적절한 단어입니다${결과.이유 ? ' — ' + 결과.이유 : ''}.`, 'err');
+    }
+    플레이_HUD갱신(); 프롬프트_갱신();
+  } finally {
+    if(내세대 === 게임_세대){
+      게임_비동기처리중 = false;
+      입력_대기표시(false);
+    }
+  }
+}
 
 /* ── 봉인 해제 전 구현(대조용, 참고 목적으로 보존) ─────────────────────────
 async function 버튼_이의_원본(){

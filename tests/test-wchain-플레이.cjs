@@ -949,6 +949,90 @@ async function main(){
     확인('버튼_허세가 버튼_이의와 동일한 함수(더 이상 no-op이 아님)', 값(win, '버튼_허세 === 버튼_이의'));
   }
 
+  /* ── 22. '뜻 보기' · '적절성 검증' 버튼 배선 (2026-08-22 신설) ─────────── */
+  console.log('\n[22] 뜻 보기 · 적절성 검증 버튼 배선');
+  {
+    // (a) 뜻 보기 — 동음이의어 2그룹을 ①②로 나눠 로그에 찍고, 판정·소모가 전혀 없다
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 대상단어 = g.ai_last_word;
+    win.fetch = async (url, opt) => {
+      if(typeof url === 'string' && url.startsWith('data/')){
+        return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
+      }
+      const p = JSON.parse(opt.body);
+      if(p.단어 !== undefined){
+        return { ok: true, json: async () => ({ 존재: true, 뜻풀이그룹: [
+          { 번호: 1, 뜻풀이: ['뜻 하나'] },
+          { 번호: 2, 뜻풀이: ['뜻 둘', '뜻 둘의 다른 풀이'] },
+        ] }) };
+      }
+      return { ok: true, json: async () => ({ 후보: [] }) };
+    };
+    await win.버튼_뜻보기();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    const 로그 = 로그텍스트(win);
+    확인('뜻 보기: ①②로 그룹이 나뉘어 표시된다', 로그.includes('① 뜻 하나') && 로그.includes('② 뜻 둘'));
+    확인('뜻 보기: AI 단어는 그대로 유지(취소 아님)', g.ai_last_word === 대상단어);
+    확인('뜻 보기: 이의 시도 횟수를 전혀 소모하지 않는다', g.dispute_attempts === 0,
+         `dispute_attempts=${g.dispute_attempts}`);
+  }
+  {
+    // (b) 뜻 보기 — 조회 실패(네트워크) 시 경고만 뜨고 상태는 그대로
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 대상단어 = g.ai_last_word;
+    win.fetch = async (url) => {
+      if(typeof url === 'string' && url.startsWith('data/')){
+        return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
+      }
+      throw new Error('네트워크 실패(스텁)');
+    };
+    await win.버튼_뜻보기();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('뜻 보기: 실패 시 찾지 못했다는 안내가 뜬다', 로그텍스트(win).includes('찾지 못했습니다'));
+    확인('뜻 보기: 실패해도 AI 단어는 그대로', g.ai_last_word === 대상단어);
+  }
+  {
+    // (c) 적절성 검증 — 게이트가 꺼져 있는 실제 상태에서는 네트워크를 아예 안 타고
+    //     '준비 중' 안내만 뜨며, 시도 횟수를 소모하지 않는다.
+    const { win, 요청기록 } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 요청수_이전 = 요청기록.length;
+    확인('적절성검증_활성화 플래그가 false다(승인 전 기본값)', 값(win, '적절성검증_활성화') === false);
+    await win.버튼_적절성검증();
+    확인('적절성 검증: 게이트 꺼진 상태에서 네트워크를 타지 않는다', 요청기록.length === 요청수_이전);
+    확인('적절성 검증: 준비 중 안내가 뜬다', 로그텍스트(win).includes('그록 연동 후 사용 가능'));
+    확인('적절성 검증: 이의 시도 횟수를 소모하지 않는다', g.dispute_attempts === 0,
+         `dispute_attempts=${g.dispute_attempts}`);
+  }
+  {
+    // (d) 두 버튼 모두 AI 단어가 나오기 전엔 숨겨져 있다가, 나온 뒤 노출된다
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    확인('첫 턴(AI 단어 없음)엔 뜻보기 버튼이 숨겨져 있다',
+         win.document.getElementById('btn-뜻보기').style.display === 'none');
+    확인('첫 턴(AI 단어 없음)엔 적절성검증 버튼이 숨겨져 있다',
+         win.document.getElementById('btn-적절성검증').style.display === 'none');
+    await 단어넣기(win, '나무');
+    확인('AI가 단어를 낸 뒤엔 뜻보기 버튼이 보인다',
+         win.document.getElementById('btn-뜻보기').style.display === '');
+    const 적절성btn = win.document.getElementById('btn-적절성검증');
+    확인('AI가 단어를 낸 뒤엔 적절성검증 버튼이 보인다', 적절성btn.style.display === '');
+    확인('적절성검증 버튼은 게이트가 꺼져 있는 동안 잠금 표시(🔒)를 보여준다',
+         적절성btn.textContent.includes('🔒') && 적절성btn.classList.contains('locked'));
+  }
+
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
   process.exit(실패 ? 1 : 0);
 }
