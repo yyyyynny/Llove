@@ -16,6 +16,11 @@ const HTML_PATH = 'Llove/index.html';
 const JS_DIR = 'Llove/js';
 // '잇는'(wchain)도 같은 규율로 검사한다 — 종전엔 이 스크립트가 Llove만 보고 있었다.
 const WCHAIN_JS_DIR = 'wchain/js';
+// ⚠️ 2026-08-22에 발견: wchain/worker/*.mjs(Cloudflare Worker 소스, .js가 아니라 .mjs라
+// 위 두 폴더 검사에 안 걸림)는 이 스크립트가 생긴 이래 한 번도 자동 검사된 적이 없었다.
+// 이 세션에 Worker 파일을 9번 고치는 동안 매번 사람이 손으로 node --check를 돌려서
+// 넘어간 것 — CI는 문법 오류가 있어도 초록불이 뜨는 사각지대였다. 여기에 편입한다.
+const WORKER_DIR = 'wchain/worker';
 
 // 인라인 <script> 블록만 추출 (src 속성이 있는 외부 스크립트는 제외)
 function 인라인스크립트_추출(html) {
@@ -97,6 +102,23 @@ function main() {
     if (!문법검사(join(WCHAIN_JS_DIR, f), `wchain/js/${f}`)) 실패++;
   }
 
+  // 1-c) wchain/worker/*.mjs (Cloudflare Worker 소스) 전수 검사 — 위 사각지대 메움.
+  let worker파일들 = [];
+  try {
+    worker파일들 = readdirSync(WORKER_DIR).filter((f) => f.endsWith('.mjs')).sort();
+  } catch {
+    console.error(`❌ ${WORKER_DIR}/ 폴더를 읽을 수 없습니다.`);
+    process.exit(1);
+  }
+  if (worker파일들.length === 0) {
+    console.error(`❌ ${WORKER_DIR}/ 폴더에 .mjs 파일이 없습니다.`);
+    process.exit(1);
+  }
+  for (const f of worker파일들) {
+    검사수++;
+    if (!문법검사(join(WORKER_DIR, f), `wchain/worker/${f}`)) 실패++;
+  }
+
   // 2) index.html에 남은 인라인 <script> 블록 검사 (있을 때만)
   let html;
   try {
@@ -121,7 +143,8 @@ function main() {
     process.exit(1);
   }
   console.log(`\n전체 ${검사수}개 JS 파일/블록 문법 검증 통과. `
-    + `(Llove/js ${js파일들.length}개 + wchain/js ${wchain파일들.length}개 + 인라인 ${블록들.length}개)`);
+    + `(Llove/js ${js파일들.length}개 + wchain/js ${wchain파일들.length}개 `
+    + `+ wchain/worker ${worker파일들.length}개 + 인라인 ${블록들.length}개)`);
 }
 
 main();

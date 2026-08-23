@@ -23,6 +23,14 @@
 //     빠진 원본 item 최대 20개) 추가 — 필터 기준이 또 안 맞을 때 진단용, 평소엔 안 씀.
 //   실패 시 4xx/5xx만 반환하면 된다 — 클라이언트는 res.ok가 아니면 null로 강등해 로컬 안전망을 탄다.
 //
+// ── 엣지 캐시(Cache API, 2026-08-22) ────────────────────────────────────
+// 사전 데이터는 사실상 불변인데 여태 요청마다 매번 opendict까지 왕복했다(실측 2.4~3.3초).
+// 디버그:true가 아닌 요청은 caches.default(모든 플레이어가 공유하는 Cloudflare 엣지 캐시,
+// 아래 캐시_조회/캐시_저장 참조)를 거친다 — 한 사람이 "학교"를 조회하면 다음 사람은 같은
+// 답을 수십 ms 안에 받는다. 클라이언트(localStorage)는 그 기기 하나만 빨라지지만, 이건
+// 전원이 같이 빨라진다. 필터·그룹화 로직을 바꿀 때는 아래 캐시_버전을 올릴 것 — 안 올리면
+// 새 배포 후에도 예전 로직으로 만든 캐시 응답이 TTL 끝날 때까지 계속 나간다.
+//
 // (CLAUDE.md 원칙: "API 키는 Cloudflare Workers만, 프론트 노출 금지" — 이 파일에 키를 직접 적지 말 것.)
 // 인증키: Cloudflare 대시보드 Worker 설정 > Variables and Secrets 에 이미 등록된
 // URIMALSAEM_KEY(인증키)·URIMALSAEM_CERTKEY_NO(발급번호) 두 시크릿을 그대로 쓴다 — 둘 다 필수.
@@ -67,6 +75,42 @@ function json응답(본문, status, origin){
 // (붙임표를 정규화 없이 통째로 버리면 '사'처럼 흔한 글자의 후보 대부분이 사라진다 —
 // Worker_수정요청.md ②의 원인.)
 const 정규화 = w => String(w).replace(/[-^]/g, '').trim();
+
+// ── 엣지 캐시 헬퍼 ──────────────────────────────────────────────────────
+// 상세 배경은 파일 상단 헤더 참조. 여기서는 진입점(fetch)에서만 쓰고, 단어존재조회()·
+// 후보목록조회() 등 순수 함수는 건드리지 않는다 — 그래서 테스트(caches 전역이 없는
+// Node/jsdom 환경, tests/test-worker-*.cjs)는 이 함수들과 무관하게 그대로 통과한다.
+const 캐시_버전 = 'v1'; // 필터·그룹화 로직을 바꾸면 이 값을 올릴 것(안 올리면 예전 로직으로
+                        // 만든 캐시 응답이 TTL 끝날 때까지 계속 나간다).
+const 캐시_TTL초 = 60 * 60 * 24 * 3; // 3일 — 사전 데이터는 그새 바뀔 일이 거의 없다.
+
+// caches.default는 GET 요청만 키로 받는다(Cache API 제약). 실제 요청은 POST라 파라미터를
+// URL에 인코딩한 가짜 GET 요청을 키로 쓴다 — Cloudflare 공식 문서가 권장하는 패턴.
+function 캐시키(kind, parts){
+  const url = 'https://itneun-cache.internal/' + 캐시_버전 + '/' + kind + '/'
+    + parts.map(encodeURIComponent).join('/');
+  return new Request(url, { method: 'GET' });
+}
+
+async function 캐시_조회(kind, parts){
+  try{
+    const hit = await caches.default.match(캐시키(kind, parts));
+    if(!hit) return null;
+    return await hit.json();
+  }catch(e){ return null; } // 캐시 API 자체가 실패해도 정상 경로(오픈API 직접 호출)로 진행
+}
+
+// ctx.waitUntil로 응답을 캐시에 쓰는 동안 클라이언트를 기다리게 하지 않는다(써지든 말든
+// 이번 응답과는 무관 — 실패해도 다음 요청이 다시 오픈API를 타면 그만).
+function 캐시_저장(ctx, kind, parts, 결과){
+  try{
+    const res = new Response(JSON.stringify(결과), {
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': `public, max-age=${캐시_TTL초}` },
+    });
+    const p = caches.default.put(캐시키(kind, parts), res);
+    if(ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(p);
+  }catch(e){ /* 캐시 저장 실패는 무시 */ }
+}
 
 // word 문자열 중간에 가능한 모든 위치에 붙임표를 끼운 변형 목록(2~6글자 한글만).
 // Worker가 대신 하면 왕복이 1홉(Worker→오픈API)으로 줄어든다. 클라이언트(국어원.js)의
@@ -342,7 +386,7 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
 
 // ── 진입점 ───────────────────────────────────────────────────────────
 export default {
-  async fetch(request, env){
+  async fetch(request, env, ctx){
     const origin = request.headers.get('Origin') || '';
 
     if(request.method === 'OPTIONS'){
@@ -365,12 +409,29 @@ export default {
 
     try{
       if(typeof payload.단어 === 'string' && payload.단어.trim()){
-        const 결과 = await 단어존재조회(env, payload.단어.trim(), payload.디버그 === true, payload.뜻풀이 === true);
+        const word = payload.단어.trim();
+        const 뜻풀이필요 = payload.뜻풀이 === true;
+        const 디버그 = payload.디버그 === true;
+        const 캐시부분 = [정규화(word), 뜻풀이필요 ? '뜻풀이' : '존재'];
+        if(!디버그){
+          const 캐시됨 = await 캐시_조회('단어', 캐시부분);
+          if(캐시됨) return json응답(캐시됨, 200, origin);
+        }
+        const 결과 = await 단어존재조회(env, word, 디버그, 뜻풀이필요);
+        if(!디버그) 캐시_저장(ctx, '단어', 캐시부분, 결과);
         return json응답(결과, 200, origin);
       }
       if(typeof payload.글자 === 'string' && payload.글자.trim()
          && (payload.방향 === 'start' || payload.방향 === 'end')){
-        const 결과 = await 후보목록조회(env, payload.글자.trim(), payload.방향, payload.디버그 === true);
+        const 글자 = payload.글자.trim();
+        const 디버그 = payload.디버그 === true;
+        const 캐시부분 = [글자, payload.방향];
+        if(!디버그){
+          const 캐시됨 = await 캐시_조회('후보', 캐시부분);
+          if(캐시됨) return json응답(캐시됨, 200, origin);
+        }
+        const 결과 = await 후보목록조회(env, 글자, payload.방향, 디버그);
+        if(!디버그) 캐시_저장(ctx, '후보', 캐시부분, 결과);
         return json응답(결과, 200, origin);
       }
       return json응답({ error: '요청 형식이 올바르지 않습니다(단어 또는 글자+방향 필요).' }, 400, origin);
