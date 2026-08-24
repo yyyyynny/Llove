@@ -131,8 +131,15 @@ function 갱신_음성설정_UI(){
   row.style.display = 사용자.창조주달성 ? 'flex' : 'none';
 }
 /* ━━━ 세션7 항목2: 실험실 — 예정·실험 기능 티저 (전원 노출, 항목 탭 시 티저 안내) ━━━ */
+// ⚠️ 상태 문자열은 사용자가 그대로 읽는 값이다 — 실제 구현 상태와 어긋나지 않게 유지할 것.
+//    '가능' = 지금 바로 쓸 수 있음(아래 실험실_항목탭이 개발자 모드가 아니어도 열어 준다).
+//    '실험' = 창조주/개발자 조건부. '예정' = 아직 못 씀(티저).
+//    2026-08-22 정정: 끝말잇기('잇는')는 서바이벌·아케이드 실플레이 + 우리말샘 실연동까지
+//    끝나 홈 포탈로 이미 들어갈 수 있는데도 '예정'으로 남아 있어, 실험실을 연 사용자에게
+//    "준비 중인 기능입니다"라고 없는 기능처럼 안내하고 있었다. 설명도 음성(봉인 중)을 앞세워
+//    실제와 달랐다 — 실제 내용(사전 검증 배틀)으로 고친다.
 const 실험실_목록 = [
-  {아이콘:'🔗', 이름:'끝말잇기', 설명:'AI 목소리와 함께하는 단어 배틀', 상태:'예정'},
+  {아이콘:'🔗', 이름:'끝말잇기', 설명:'우리말샘 사전으로 판정하는 AI 단어 배틀', 상태:'가능', 열기:'잇는_포탈탭'},
   {아이콘:'🎙', 이름:'음성 생성', 설명:'단어를 캐릭터 목소리로 듣기', 상태:'실험', 열기:'음성설정_탭'},
   {아이콘:'🤖', 이름:'AI 실시간 출제', 설명:'Grok이 매번 새로운 문제를 생성', 상태:'예정'},
   {아이콘:'🧠', 이름:'사고전개 답변', 설명:'AI의 풀이 과정을 함께 보기', 상태:'예정'}
@@ -141,7 +148,7 @@ function 실험실_열기(){
   const 목록 = 실험실_목록.map((it,i)=>
     `<div style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--bdr);cursor:pointer;text-align:left" onclick="실험실_항목탭(${i})">
       <span style="font-size:20px">${it.아이콘}</span>
-      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--txt)">${it.이름} <span style="font-size:10px;color:${it.상태==='실험'?'var(--warn)':'var(--txt2)'};border:1px solid var(--bdr);border-radius:5px;padding:1px 5px">${it.상태}</span></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--txt)">${it.이름} <span style="font-size:10px;color:${it.상태==='가능'?'var(--ok)':it.상태==='실험'?'var(--warn)':'var(--txt2)'};border:1px solid var(--bdr);border-radius:5px;padding:1px 5px">${it.상태}</span></div>
       <div style="font-size:11px;color:var(--txt2);margin-top:2px">${it.설명}</div></div>
       <span style="color:var(--txtm)">›</span>
     </div>`).join('');
@@ -150,8 +157,11 @@ function 실험실_열기(){
 function 실험실_항목탭(i){
   const it = 실험실_목록[i];
   if(!it) return;
-  // 개발자 모드 + 연결 가능한 항목은 실제 기능으로 (예: 음성 생성 패널)
-  if(사용자.개발자모드 && it.열기 && typeof window[it.열기] === 'function'){
+  // 이미 쓸 수 있는 항목('가능')은 누구에게나 바로 연결한다 — 완성된 기능을 티저로 막아 두면
+  // 사용자는 없는 기능으로 오해한다(2026-08-22, 끝말잇기가 그 상태였다).
+  // 개발자 모드는 그 외 항목('실험' 등)도 미리 열어 볼 수 있다(기존 동작 유지).
+  const 열수있음 = it.열기 && typeof window[it.열기] === 'function';
+  if(열수있음 && (it.상태 === '가능' || 사용자.개발자모드)){
     closeInfoModal();
     window[it.열기]();
     return;
