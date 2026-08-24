@@ -122,6 +122,35 @@ load(async (window) => {
   ev("closeAsk(); openAsk();");
   assert('재오픈 시 AI 모드로 리셋', ev("사전모드") === false);
 
+  // 8-b) 조회 중 대기 버블(2026-08-22) — 응답이 오기 전까지 화면이 무반응이면 안 된다
+  ev("openAsk(); 질문모드_전환('dict');");
+  let 대기중버블 = null;
+  ev(`
+    window.__해제 = null;
+    window.fetch = function(){
+      return new Promise(function(res){ window.__해제 = function(){
+        res({ ok:true, json: function(){ return Promise.resolve({ 존재:true, 뜻풀이그룹:[{번호:1,뜻풀이:['대기 테스트 뜻풀이.']}] }); } });
+      }; });
+    };
+    localStorage.removeItem(사전_캐시_KEY);
+  `);
+  doc.getElementById('askInp').value = '대기시험단어';
+  ev("sendAsk()");
+  await new Promise(r => setTimeout(r, 40));
+  대기중버블 = [...doc.querySelectorAll('.ask-msg.dict')].pop();
+  assert('조회 중 대기 버블이 즉시 표시됨',
+    !!대기중버블 && 대기중버블.textContent.includes('찾는 중'),
+    대기중버블 ? 대기중버블.textContent.slice(0, 30) : '(없음)');
+  assert('대기 버블이 기존 pulse 애니메이션을 재사용함',
+    !!대기중버블 && 대기중버블.style.animation.includes('pulse'));
+  ev("window.__해제 && window.__해제();");
+  await new Promise(r => setTimeout(r, 60));
+  const 마지막버블 = [...doc.querySelectorAll('.ask-msg.dict')].pop();
+  assert('응답이 오면 대기 버블은 사라지고 결과로 대체됨',
+    마지막버블 && !마지막버블.textContent.includes('찾는 중')
+    && 마지막버블.textContent.includes('대기 테스트 뜻풀이.'),
+    마지막버블 ? 마지막버블.textContent.slice(0, 40) : '(없음)');
+
   // 9) localStorage 캐시 상한(2026-08-22) — 무기한 쌓이지 않고 오래된 것부터 잘린다
   ev(`
     window.__캐시테스트 = {};

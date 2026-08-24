@@ -119,7 +119,11 @@
       /* 플레이 화면은 세로가 남는 만큼 로그가 자라야 화면이 찬다 */
       body.playing .wrap{ padding-top:20px; }
     }
-    .screen{ display:none; flex:1; flex-direction:column; }
+    /* min-height:0 은 필수 — flex 아이템의 기본값 min-height:auto 는 내용보다 작아지길 거부해서,
+       로그가 쌓이면 .screen 이 부모(.wrap)를 뚫고 늘어나고 그만큼 입력폼·버튼이 화면 밖으로
+       밀려났다(2026-08-22 실측: 로그 40줄에서 입력폼이 뷰포트 640px 밖 1379px 위치까지 내려감).
+       아래 body.playing .wrap 의 height 상한과 짝을 이뤄야 .log 가 제 안에서 스크롤한다. */
+    .screen{ display:none; flex:1; min-height:0; flex-direction:column; }
     /* 화면 전환에 진입 연출을 준다(2026-08-15). 종전엔 display:none→flex 즉시 컷이라
        Llove(slideIn)와 인상이 갈렸다 — 같은 도메인을 오가는 두 세계인데 전환 감각이 달랐다.
        Llove 는 나가는 화면(slideOut)까지 타이밍을 맞추지만, wchain 의 화면() 은 클래스만
@@ -160,7 +164,12 @@
     /* 플레이 중에는 타이틀 블록을 한 줄로 접는다 — 게임 화면에서 로고가 자리를 먹지 않게. */
     body.playing .badge{ display:none; }
     body.playing h1{ font-size:14px; letter-spacing:3px; margin-bottom:12px; opacity:.6; }
-    body.playing .wrap{ padding-top:12px; }
+    /* 플레이 중에는 .wrap 을 화면 높이로 묶는다(2026-08-22). min-height 만 있던 종전에는
+       상한이 없어 로그가 쌓이는 만큼 .wrap 이 계속 길어졌고, 매 턴 입력창이 화면 밖으로
+       내려가 사용자가 스크롤해야 타이핑할 수 있었다. 높이를 묶으면 .log(flex:1;overflow-y:auto)
+       가 남는 공간만 차지하며 제 안에서 스크롤한다 — 화면이 큰 기기에서 로그가 넓게 늘어나는
+       2026-07-29 의도도 그대로 유지된다(실측: 1280x900 에서 로그 509px 로 늘어남). */
+    body.playing .wrap{ padding-top:12px; height:100dvh; }
 
     /* 카드 = Llove .set-sec 실측값 그대로 (card 배경 / 1px bdr / radius 14 / padding 14 16) */
     .card, .set-sec{ background:var(--card); border:1px solid var(--bdr); border-radius:14px;

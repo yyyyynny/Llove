@@ -996,7 +996,8 @@ async function main(){
     };
     await win.버튼_뜻보기();
     for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
-    확인('뜻 보기: 실패 시 찾지 못했다는 안내가 뜬다', 로그텍스트(win).includes('찾지 못했습니다'));
+    확인('뜻 보기: 네트워크 실패는 네트워크 원인으로 안내한다',
+         로그텍스트(win).includes('불러오지 못했습니다') && 로그텍스트(win).includes('네트워크'));
     확인('뜻 보기: 실패해도 AI 단어는 그대로', g.ai_last_word === 대상단어);
   }
   {
@@ -1031,6 +1032,51 @@ async function main(){
     확인('AI가 단어를 낸 뒤엔 적절성검증 버튼이 보인다', 적절성btn.style.display === '');
     확인('적절성검증 버튼은 게이트가 꺼져 있는 동안 잠금 표시(🔒)를 보여준다',
          적절성btn.textContent.includes('🔒') && 적절성btn.classList.contains('locked'));
+  }
+
+  {
+    // (b-2) 뜻 보기 — 사전에 없는 단어면 네트워크 탓으로 뭉뚱그리지 않고, 이의 있음을 안내한다
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    win.localStorage.clear();
+    win.fetch = async (url, opt) => {
+      if(typeof url === 'string' && url.startsWith('data/')){
+        return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
+      }
+      const p = JSON.parse(opt.body);
+      if(p.단어 !== undefined) return { ok: true, json: async () => ({ 존재: false, 뜻풀이그룹: [] }) };
+      return { ok: true, json: async () => ({ 후보: [] }) };
+    };
+    await win.버튼_뜻보기();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    const 로그b = 로그텍스트(win);
+    확인('뜻 보기: 사전에 없으면 그 사실을 알린다', 로그b.includes('없는 단어입니다'));
+    확인('뜻 보기: 없는 단어일 때 이의 있음을 안내한다', 로그b.includes('이의 있음'));
+    확인('뜻 보기: 없는 단어여도 시도 횟수를 소모하지 않는다', g.dispute_attempts === 0);
+  }
+  {
+    // (b-3) 뜻 보기 — 존재하나 뜻풀이가 비어 있으면 네트워크 탓으로 안내하지 않는다
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    win.localStorage.clear();
+    win.fetch = async (url, opt) => {
+      if(typeof url === 'string' && url.startsWith('data/')){
+        return { ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(WCHAIN, url), 'utf8')) };
+      }
+      const p = JSON.parse(opt.body);
+      if(p.단어 !== undefined) return { ok: true, json: async () => ({ 존재: true, 뜻풀이그룹: [] }) };
+      return { ok: true, json: async () => ({ 후보: [] }) };
+    };
+    await win.버튼_뜻보기();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    const 로그c = 로그텍스트(win);
+    확인('뜻 보기: 뜻풀이 없음을 네트워크 탓으로 돌리지 않는다',
+         로그c.includes('뜻풀이가 제공되지 않습니다') && !로그c.includes('네트워크'));
   }
 
   /* ── 23. localStorage 캐시 상한 (2026-08-22 신설) ────────────────────── */

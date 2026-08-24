@@ -717,7 +717,19 @@ async function sendAsk_사전(){
     return;
   }
 
+  // 조회 중 대기 버블(2026-08-22). 종전엔 질문을 보내면 결과가 올 때까지 화면에 아무 반응이
+  // 없었다 — 사전 조회는 캐시가 비면 수 초가 걸리고(타임아웃 8초), 그동안 사용자는 앱이 멈춘
+  // 것으로 느낀다. 새 클래스·새 색을 만들지 않고 기존 .ask-msg.dict 버블과 기존 pulse
+  // 키프레임(style.css, 음성 녹음 표시가 쓰는 것과 같은 것)만 재사용한다.
+  const 대기=document.createElement('div');
+  대기.className='ask-msg dict';
+  대기.style.animation='pulse 1.2s ease-in-out infinite';
+  대기.textContent='뜻풀이를 찾는 중…';
+  body.appendChild(대기);
+  body.scrollTop=body.scrollHeight;
+
   const 결과 = await 사전_단어조회(q);
+  대기.remove();
   const a=document.createElement('div');
   a.className='ask-msg dict';
   a.innerHTML = 사전결과_HTML(결과);
