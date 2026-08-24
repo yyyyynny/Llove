@@ -187,6 +187,33 @@ for (const { 파일, 종류, 중복키, hint필수 } of 데이터스키마) {
   if (중복.length > 0) 검사목록.push(`   ↳ 중복: ${[...new Set(중복)].slice(0, 5).join(' / ')}${중복.length > 5 ? ' 외' : ''}`);
 }
 
+// ── 문서가 주장하는 파일 개수가 실제와 맞는가 (2026-08-22 신설) ─────────────
+// CLAUDE.md는 "구조 변경 시 이 섹션을 즉시 갱신할 것"이라고 스스로 정해 뒀는데도 실제로는
+// 여러 번 어긋났다(js 23↔25개가 CLAUDE.md·KNOWLEDGE·SYSTEM 세 문서에 서로 다르게 남아 있었음).
+// 사람 눈에만 맡기지 말고, 파일을 추가·삭제하면 검사에서 바로 걸리게 한다.
+// ⚠️ 날짜가 찍힌 과거 작업 기록(작업인계_노트.md의 [세션 N] 절, wchain/시스템.md의 검증 절)은
+//    그 시점의 사실이므로 검사 대상이 아니다 — 아래 세 문서의 "현재 구조" 서술만 본다.
+{
+  const 실제_Llove = readdirSync('Llove/js').filter((f) => f.endsWith('.js')).length;
+  const 실제_wchain = readdirSync('wchain/js').filter((f) => f.endsWith('.js')).length;
+  // 표기 흔들림을 전부 잡는다: `js/ 25개` · `` `js/` 25개 `` · `js/           ← 로직 25개 파일`
+  const 개수표기 = /js\/`?[^\n]{0,20}?(\d+)\s*개/g;
+  for (const 파일 of ['CLAUDE.md', '언어_KNOWLEDGE_v5.md', '언어_SYSTEM_v5.md']) {
+    const 본문 = existsSync(파일) ? readFileSync(파일, 'utf8') : '';
+    const 어긋남 = [];
+    let m;
+    개수표기.lastIndex = 0;
+    while ((m = 개수표기.exec(본문)) !== null) {
+      if (Number(m[1]) !== 실제_Llove) 어긋남.push(m[0].replace(/\s+/g, ' ').trim());
+    }
+    확인(`${파일} 의 js/ 파일 개수 서술이 실제(${실제_Llove}개)와 일치한다`, 어긋남.length === 0);
+    if (어긋남.length) 검사목록.push(`   ↳ 실제와 다른 서술: ${[...new Set(어긋남)].join(' / ')} — 문서를 갱신하세요`);
+  }
+  const claude = existsSync('CLAUDE.md') ? readFileSync('CLAUDE.md', 'utf8') : '';
+  확인(`CLAUDE.md 의 wchain/js 파일 개수 서술이 실제(${실제_wchain}개)와 일치한다`,
+    claude.includes(`잇는 로직 ${실제_wchain}개`));
+}
+
 console.log(검사목록.join('\n'));
 if (실패 > 0) {
   console.error(`\n배포 전 점검 실패: ${실패}개 항목에서 문제가 발견되었습니다.`);
