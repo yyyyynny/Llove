@@ -122,6 +122,24 @@ load(async (window) => {
   ev("closeAsk(); openAsk();");
   assert('재오픈 시 AI 모드로 리셋', ev("사전모드") === false);
 
+  // 9) localStorage 캐시 상한(2026-08-22) — 무기한 쌓이지 않고 오래된 것부터 잘린다
+  ev(`
+    window.__캐시테스트 = {};
+    for(let i = 0; i < 510; i++) window.__캐시테스트['단어' + i] = { 뜻풀이그룹: [] };
+  `);
+  const 상한적용후 = ev("Object.keys(캐시_상한적용(window.__캐시테스트, 사전_캐시_최대개수)).length");
+  assert('상한(500) 초과분이 잘린다', 상한적용후 === 500, `개수=${상한적용후}`);
+  assert('가장 오래된 항목(단어0)이 지워짐', ev("!('단어0' in window.__캐시테스트)"));
+  assert('가장 최근 항목(단어509)은 남음', ev("'단어509' in window.__캐시테스트"));
+  // 사전_캐시_저장()이 실제로 이 상한을 거쳐 localStorage에 쓰는지도 확인
+  ev(`
+    window.__큰캐시 = {};
+    for(let i = 0; i < 510; i++) window.__큰캐시['단어' + i] = { 뜻풀이그룹: [] };
+    사전_캐시_저장(window.__큰캐시);
+  `);
+  const 저장된개수 = ev("Object.keys(JSON.parse(localStorage.getItem(사전_캐시_KEY))).length");
+  assert('사전_캐시_저장()이 저장 전 상한을 적용한다', 저장된개수 === 500, `개수=${저장된개수}`);
+
   let fail = 0;
   console.log('\n=== Phase 7 사전(뜻풀이) 기능 테스트 (게이트 활성화) ===');
   for (const r of results) { console.log(`${r.c ? '✅' : '❌'} ${r.n}${r.d ? '  ('+r.d+')' : ''}`); if (!r.c) fail++; }

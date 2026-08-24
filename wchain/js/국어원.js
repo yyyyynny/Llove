@@ -21,6 +21,20 @@ const 국어원_활성화 = true;
 // Cloudflare Workers 엔드포인트(국립국어원 API 프록시). 관리자님이 Worker 배포 후 이 값을 채울 것.
 const 국어원_WORKERS_ENDPOINT = 'https://urimalsaem-llove.hypoqwer.workers.dev/';
 
+// localStorage 캐시 상한(2026-08-22) — 이 파일의 캐시 3종(단어 존재·상세·후보) 전부 지금까지
+// 지우는 로직 없이 무기한 쌓이기만 했다. localStorage는 보통 5~10MB 한도인데, 꽉 차면
+// setItem이 조용히 실패해서(catch에서 무시) 그 시점부터 캐시가 저장 안 되는 채로 얼어붙고
+// 매번 네트워크를 다시 타게 된다 — 크래시 없이 원인 모를 성능 저하로만 보이는 유형이라
+// 저장 직전에 상한을 걸어 애초에 안 벌어지게 막는다. 캐시는 키 삽입 순서 = 가장 오래전에
+// 저장한 순서이므로(JS 객체의 문자열 키는 삽입 순서로 순회됨), 초과분은 가장 오래된 것부터
+// 지운다(단순 FIFO — 조회 시점 재정렬까지는 안 함, 그 정도로 정교할 필요는 없는 캐시들이다).
+function 캐시_상한적용(캐시, 최대개수){
+  const 키들 = Object.keys(캐시);
+  const 초과 = 키들.length - 최대개수;
+  for(let i = 0; i < 초과; i++) delete 캐시[키들[i]];
+  return 캐시;
+}
+
 // 캐시 키에 버전을 붙인다(2026-07-27). 판정 결과(특히 "없는 단어"=false)가 영구 저장되는데,
 // Worker나 판정 규칙이 바뀌어도 옛 결과가 그대로 남아 되돌릴 방법이 없었다. 규칙이 바뀔 때
 // 이 숫자를 올리면 사용자 기기의 옛 캐시가 자연히 무시된다.
@@ -29,8 +43,9 @@ function 국어원_캐시_로드(){
   try{ return JSON.parse(localStorage.getItem(국어원_캐시_KEY) || '{}'); }
   catch(e){ return {}; }   // localStorage 차단 환경 무시
 }
+const 국어원_캐시_최대개수 = 1000;   // 존재 여부(불리언)만 담아 항목이 작다 — 넉넉히
 function 국어원_캐시_저장(캐시){
-  try{ localStorage.setItem(국어원_캐시_KEY, JSON.stringify(캐시)); }
+  try{ localStorage.setItem(국어원_캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 국어원_캐시_최대개수))); }
   catch(e){ /* 용량 초과 등 무시 — 캐시는 있으면 좋고 없어도 그만 */ }
 }
 
@@ -146,8 +161,9 @@ function 국어원_상세캐시_로드(){
   try{ return JSON.parse(localStorage.getItem(국어원_상세캐시_KEY) || '{}'); }
   catch(e){ return {}; }
 }
+const 국어원_상세캐시_최대개수 = 500;   // 뜻풀이 텍스트까지 담아 존재캐시보다 항목이 크다
 function 국어원_상세캐시_저장(캐시){
-  try{ localStorage.setItem(국어원_상세캐시_KEY, JSON.stringify(캐시)); }
+  try{ localStorage.setItem(국어원_상세캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 국어원_상세캐시_최대개수))); }
   catch(e){ /* 용량 초과 등 무시 */ }
 }
 async function 국어원_단어조회_상세(word){
@@ -190,8 +206,12 @@ function 국어원_후보캐시_로드(){
   try{ return JSON.parse(localStorage.getItem(국어원_후보캐시_KEY) || '{}'); }
   catch(e){ return {}; }
 }
+// 글자+방향 키 하나당 후보 단어 배열(최대 수십 개)이 통째로 들어가 세 캐시 중 항목이 제일
+// 크다 — 상한을 더 낮게 잡는다. 어차피 한글 음절 수(약 11,172개) × 방향 2로 이론상 최댓값이
+// 있는 캐시지만, 그 최댓값까지 안 가더라도 한 세션에 여러 글자를 오래 플레이하면 커질 수 있다.
+const 국어원_후보캐시_최대개수 = 300;
 function 국어원_후보캐시_저장(캐시){
-  try{ localStorage.setItem(국어원_후보캐시_KEY, JSON.stringify(캐시)); }
+  try{ localStorage.setItem(국어원_후보캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 국어원_후보캐시_최대개수))); }
   catch(e){ /* 용량 초과 등 무시 */ }
 }
 

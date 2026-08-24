@@ -29,12 +29,25 @@ function 뜻풀이그룹_정규화(data){
 }
 
 const 사전_캐시_KEY = 'plx_사전캐시';
+// localStorage 캐시 상한(2026-08-22, wchain/js/국어원.js와 동일 원칙) — 지금까지 지우는
+// 로직 없이 무기한 쌓이기만 했다. localStorage가 꽉 차면 setItem이 조용히 실패해서(아래
+// catch에서 무시) 그 시점부터 캐시가 저장 안 되는 채로 얼어붙고 매번 네트워크를 다시 타게
+// 된다 — 크래시 없이 원인 모를 성능 저하로만 보이는 유형이라 저장 직전에 상한을 건다.
+// 초과분은 가장 오래전에 저장한 것부터 지운다(JS 객체의 문자열 키는 삽입 순서로 순회됨 —
+// 단순 FIFO, 조회 시점 재정렬까지는 안 함).
+const 사전_캐시_최대개수 = 500;
+function 캐시_상한적용(캐시, 최대개수){
+  const 키들 = Object.keys(캐시);
+  const 초과 = 키들.length - 최대개수;
+  for(let i = 0; i < 초과; i++) delete 캐시[키들[i]];
+  return 캐시;
+}
 function 사전_캐시_로드(){
   try{ return JSON.parse(localStorage.getItem(사전_캐시_KEY) || '{}'); }
   catch(e){ return {}; }
 }
 function 사전_캐시_저장(캐시){
-  try{ localStorage.setItem(사전_캐시_KEY, JSON.stringify(캐시)); }
+  try{ localStorage.setItem(사전_캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 사전_캐시_최대개수))); }
   catch(e){ /* 용량 초과 등 무시 — 캐시는 있으면 좋고 없어도 그만 */ }
 }
 

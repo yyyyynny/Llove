@@ -1033,6 +1033,34 @@ async function main(){
          적절성btn.textContent.includes('🔒') && 적절성btn.classList.contains('locked'));
   }
 
+  /* ── 23. localStorage 캐시 상한 (2026-08-22 신설) ────────────────────── */
+  console.log('\n[23] 캐시 상한(무기한 증가 방지)');
+  {
+    const { win } = 페이지열기();
+    const 큰캐시 = () => { const o = {}; for(let i = 0; i < 1010; i++) o['x' + i] = true; return o; };
+
+    win.eval(`window.__c1 = ${JSON.stringify(큰캐시())}; window.__r1 = 캐시_상한적용(window.__c1, 국어원_캐시_최대개수);`);
+    확인('국어원_캐시(존재 여부): 상한 1000으로 잘린다',
+         값(win, 'Object.keys(window.__r1).length') === 1000);
+    확인('국어원_캐시: 가장 오래된 항목(x0)이 지워짐', 값(win, "!('x0' in window.__r1)"));
+    확인('국어원_캐시: 가장 최근 항목(x1009)은 남음', 값(win, "'x1009' in window.__r1"));
+
+    win.eval(`window.__c2 = ${JSON.stringify(큰캐시())}; window.__r2 = 캐시_상한적용(window.__c2, 국어원_상세캐시_최대개수);`);
+    확인('국어원_상세캐시: 상한 500으로 잘린다', 값(win, 'Object.keys(window.__r2).length') === 500);
+
+    win.eval(`window.__c3 = ${JSON.stringify(큰캐시())}; window.__r3 = 캐시_상한적용(window.__c3, 국어원_후보캐시_최대개수);`);
+    확인('국어원_후보캐시: 상한 300으로 잘린다', 값(win, 'Object.keys(window.__r3).length') === 300);
+
+    // 실제 저장 함수가 localStorage에 쓸 때도 상한을 거치는지(캐시_상한적용 호출만 확인하고
+    // 끝내지 않는다 — 저장 함수 내부에서 안 부르면 위 단위 테스트는 통과해도 실효가 없다)
+    win.eval(`
+      window.__c4 = ${JSON.stringify(큰캐시())};
+      국어원_후보캐시_저장(window.__c4);
+    `);
+    const 저장된 = 값(win, `Object.keys(JSON.parse(localStorage.getItem(국어원_후보캐시_KEY))).length`);
+    확인('국어원_후보캐시_저장()이 저장 전 상한을 실제로 적용한다', 저장된 === 300, `개수=${저장된}`);
+  }
+
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
   process.exit(실패 ? 1 : 0);
 }
