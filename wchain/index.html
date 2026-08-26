@@ -312,7 +312,12 @@
 
     .choice-box{ background:var(--elev); border:1px solid var(--bdr); border-radius:12px; padding:12px; margin-bottom:10px; }
     .choice-box .q{ font-size:13px; margin-bottom:10px; line-height:1.6; }
-    .choice-box .btn{ background:var(--card); }
+    /* :not(.acc) 이 필수 — 이게 없으면 이 규칙이 .btn.acc 의 강조 그라디언트 배경을 덮어쓴다
+       (선택자 명시도가 같고 소스 순서가 뒤라 이김). 그러면 .btn.acc 의 어두운 글자색
+       (var(--bg))만 남아 카드 배경 위에 거의 같은 색으로 찍혀 글씨가 안 보인다
+       — 2026-08-22 실측: 배경 rgb(21,24,36) vs 글자 rgb(14,16,22), 명암비 약 1.1:1.
+       악마의 거래·시련의 계약 등 기존 선택박스 9곳의 강조 버튼이 전부 이 상태였다. */
+    .choice-box .btn:not(.acc){ background:var(--card); }
 
     .result{ text-align:center; padding:20px 0; }
     .result .emoji{ font-size:44px; margin-bottom:10px; }
@@ -461,7 +466,8 @@
     이의 있음 · 그 단어 없어!는 우리말샘 사전으로 매번 실제 판정합니다(판당 최대 5회, 공유).
     뜻 보기는 판정 없이 AI가 낸 단어의 뜻만 보여줍니다.
     🔒 적절성(버튼 라벨 '🤖 적절성')은 사전엔 있지만 이 판에서 쓰기엔 부당한 단어인지 AI가
-    판단하는 기능으로, 그록 연동 후 사용할 수 있습니다.</p>
+    판단하는 기능입니다. 적절하다고 나오면 사유를 골라 한 번 반박할 수 있고, 그때는 다른
+    회사의 AI가 다시 판정합니다. AI 연동 후 사용할 수 있습니다.</p>
     <button class="btn" style="margin-top:10px;text-align:center" onclick="버튼_설명닫기()">닫기</button>
   </div>
 </div>
@@ -505,7 +511,7 @@
 <script src="js/테마연동.js"></script>
 <script src="js/게임규칙.js"></script>
 <script src="js/국어원.js"></script>
-<script src="js/그록판정.js"></script>
+<script src="js/적절성판정.js"></script>
 <script src="js/음성.js"></script>
 <script src="js/서바이벌.js"></script>
 <script src="js/연동.js"></script>

@@ -9,6 +9,11 @@ function 새게임상태(){
     turn: 0, stage: 1, stage_turn: 0, stage_start_turn: 0,
     score: 0, best: 0, hints: 3, hearts: 2, strikes: 0,
     attack_streak: 0, yield_attempts: 0, dispute_attempts: 0, deal_offered: false,
+    // 반박한단어(2026-08-22): '적절성 검증'이 적절로 나왔을 때 사용자가 반박할 수 있는데,
+    // 같은 단어를 몇 번이고 다시 반박하면 "될 때까지 우기기"가 된다. 어떤 단어에 이미
+    // 반박했는지 여기 적어 두고 한 단어당 1회로 막는다 — 프롬프트로 부탁하는 게 아니라
+    // 코드가 강제하는 경계다(상세 근거는 단어적절성판정-worker.mjs 상단 주석).
+    반박한단어: null,
     command_typo_strikes: 0,
     // 아케이드 전용(Phase 4) — 서바이벌에서는 도달하지 않는 분기지만 필드는 원본과 동일하게 유지
     curse_time_floors: 0, curse_life_floors: 0, curse_dark_active: false, curse_dark_strikes: 0,
@@ -85,6 +90,7 @@ function reset_game(gs){
   gs.hints = gs.god_mode_active ? Infinity : 난.힌트;
   gs.hearts = gs.god_mode_active ? Infinity : 난.목숨;
   gs.strikes = 0; gs.attack_streak = 0; gs.yield_attempts = 0; gs.dispute_attempts = 0;
+  gs.반박한단어 = null;
   gs.deal_offered = false; gs.command_typo_strikes = 0;
   gs.curse_time_floors = 0; gs.curse_life_floors = 0; gs.curse_dark_active = false; gs.curse_dark_strikes = 0;
   gs.trial_rejected_floor = -1; gs.trial_attempts_this_floor = 0;

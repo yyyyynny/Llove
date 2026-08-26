@@ -26,12 +26,21 @@ function 확인(이름, 조건, 비고 = ''){
 // ── 페이지 띄우기 ────────────────────────────────────────────────────────
 // CDN 스크립트(firebase)는 jsdom이 못 받으므로 제거하고, 로컬 js/*.js는 인라인으로 주입한다
 // (load.cjs가 Llove에 쓰는 방식과 같은 접근 — 로드 순서는 index.html의 태그 순서 그대로).
-function 페이지열기({ 온라인 = '정상' } = {}){
+// 적절성게이트:true — 봉인된 게이트(적절성검증_활성화)를 켠 상태를 재현한다.
+// 게이트가 const 라 런타임에 못 바꾸므로, 관리자님이 실제로 할 일(플래그를 true로 고치고
+// 엔드포인트를 채우기)을 **소스 텍스트에서 그대로** 해서 주입한다 — 그래야 테스트가
+// 우회로가 아니라 실제 코드 경로(버튼_적절성검증의 게이트 검사 포함)를 탄다.
+function 페이지열기({ 온라인 = '정상', 적절성게이트 = false } = {}){
   let html = fs.readFileSync(path.join(WCHAIN, 'index.html'), 'utf8');
   const 순서 = [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map(m => m[1]);
   html = html.replace(/<script src="https:\/\/[^"]+"><\/script>/g, '');
   for(const src of 순서){
-    const 코드 = fs.readFileSync(path.join(WCHAIN, src), 'utf8');
+    let 코드 = fs.readFileSync(path.join(WCHAIN, src), 'utf8');
+    if(적절성게이트 && src.endsWith('적절성판정.js')){
+      코드 = 코드.replace('const 적절성검증_활성화 = false;', 'const 적절성검증_활성화 = true;')
+                 .replace("const 적절성검증_WORKERS_ENDPOINT = '';",
+                          "const 적절성검증_WORKERS_ENDPOINT = 'https://적절성.test/';");
+    }
     html = html.replace(`<script src="${src}"></script>`,
                         `<script>${코드.replace(/<\/script>/g, '<\\/script>')}</script>`);
   }
@@ -94,6 +103,38 @@ async function 단어넣기(win, 단어){
   win.단어_제출();
   for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
   await 잠깐(5);
+}
+
+// 적절성 검증·반박 스텁 — 게이트를 켜고(봉인 해제) 엔드포인트를 채운 뒤 fetch를 갈아 끼운다.
+// 게이트 상수(적절성검증_활성화)는 const라 재대입이 안 되므로, 실제 앱과 같은 경로를 태우려면
+// 그 상수를 읽는 함수(적절성_POST)를 통째로 바꿔 끼우는 편이 정확하고 간단하다.
+//   일차응답 = 1차 판정 결과 / 이차응답 = 반박(2차 교차검증) 결과
+//   제외단어 = 재출제 시 이 단어는 후보에서 뺀다(방금 취소한 단어를 AI가 또 뽑는 플레이키 방지)
+//   본문관찰 = 2차 호출에 실린 요청 본문을 넘겨받는 콜백(자유 텍스트 자름 검증용)
+function 적절성_스텁(win, 일차응답, 이차응답, 제외단어, 본문관찰){
+  win.eval(`
+    적절성_POST = async function(본문){
+      if(본문.반박사유){
+        if(window.__본문관찰) window.__본문관찰(본문);
+        return window.__이차응답 || null;
+      }
+      return window.__일차응답 || null;
+    };
+  `);
+  win.__일차응답 = 일차응답 || null;
+  win.__이차응답 = 이차응답 || null;
+  win.__본문관찰 = 본문관찰 || null;
+  // 재출제 경로(AI단어_취소_재출제 → ai_generate_word_비동기)는 우리말샘 후보 조회를 탄다.
+  const 원래fetch = win.fetch;
+  win.fetch = async (url, opt) => {
+    if(typeof url === 'string' && url.startsWith('data/')) return 원래fetch(url, opt);
+    const p = JSON.parse(opt.body);
+    if(p.단어 !== undefined) return { ok: true, json: async () => ({ 존재: true, 뜻풀이그룹: [] }) };
+    const 후보 = ['가','나','다','라','마']
+      .map(t => p.방향 === 'end' ? t + '우' + p.글자 : p.글자 + '우' + t)
+      .filter(w => w !== 제외단어);
+    return { ok: true, json: async () => ({ 후보 }) };
+  };
 }
 
 // 대사(data/대사.json)는 비동기로 적재된다 — 판을 시작하기 전에 반드시 기다린다.
@@ -1077,6 +1118,159 @@ async function main(){
     const 로그c = 로그텍스트(win);
     확인('뜻 보기: 뜻풀이 없음을 네트워크 탓으로 돌리지 않는다',
          로그c.includes('뜻풀이가 제공되지 않습니다') && !로그c.includes('네트워크'));
+  }
+
+  /* ── 24. 반박(2차 교차검증) 흐름 (2026-08-22 신설) ──────────────────── */
+  console.log('\n[24] 반박 흐름');
+  {
+    // (a) 봉인 확인이 핵심 — 게이트가 꺼져 있는 실제 상태에서는 반박 UI가 아예 안 뜨고,
+    //     네트워크도 안 타고, 예산도 안 깎여야 한다.
+    const { win, 요청기록 } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 요청수_이전 = 요청기록.length;
+    await win.버튼_적절성검증();
+    확인('봉인 중엔 반박 선택박스가 안 뜬다',
+         win.document.getElementById('선택박스').style.display === 'none');
+    확인('봉인 중엔 네트워크를 안 탄다', 요청기록.length === 요청수_이전);
+    확인('봉인 중엔 예산을 안 깎는다', g.dispute_attempts === 0);
+    확인('봉인 중엔 게임 상태가 그대로', g.game_state === 'PLAYING');
+  }
+  {
+    // (b) 게이트를 켜고 '적절' 판정 → 반박 선택박스가 뜨고, 게임이 대기 상태로 잠긴다
+    const { win } = 페이지열기({ 적절성게이트: true });
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 대상 = g.ai_last_word;
+    적절성_스텁(win, { 적절: true, 이유: '흔한 말입니다' });
+    await win.버튼_적절성검증();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('적절 판정이면 반박 선택박스가 뜬다',
+         win.document.getElementById('선택박스').style.display === '');
+    확인('반박 대기 상태로 바뀐다', g.game_state === 'REBUT_WAIT');
+    확인('대기 중엔 비동기 가드가 유지된다(다른 버튼 차단)', 값(win, '게임_비동기처리중') === true);
+    확인('대기 중엔 단어 제출이 막힌다', win.단어_제출() === false);
+    const 선택박스HTML = win.document.getElementById('선택박스').innerHTML;
+    확인('선택지 4개 + 기타 + 그만두기가 렌더된다',
+         ['희귀전문어','옛말','고유명사','방언','기타'].every(c => 선택박스HTML.includes(c))
+         && 선택박스HTML.includes('그만두기'));
+    확인('AI 단어는 아직 그대로', g.ai_last_word === 대상);
+  }
+  {
+    // (c) 반박이 인정되면(2차가 부당 판정) 단어가 취소되고 AI가 새 단어를 낸다
+    const { win } = 페이지열기({ 적절성게이트: true });
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 대상 = g.ai_last_word;
+    win.localStorage.clear();
+    win.세션_비우기();
+    적절성_스텁(win, { 적절: true }, { 적절: false, 이유: '방언이 맞습니다' }, 대상);
+    await win.버튼_적절성검증();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    await win.반박_사유선택('방언');
+    for(let i = 0; i < 80 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('반박 인정 시 그 단어가 취소된다', g.history.every(h => h.word !== 대상));
+    확인('AI가 새 단어를 낸다', g.ai_last_word !== 대상 && g.ai_last_word !== null,
+         `ai_last_word=${g.ai_last_word}`);
+    확인('반박 사유가 로그에 남는다', 로그텍스트(win).includes('방언'));
+    확인('반박은 예산을 추가로 안 깎는다(검증 1회만)', g.dispute_attempts === 1,
+         `dispute_attempts=${g.dispute_attempts}`);
+    확인('반박 후 입력폼이 돌아온다', win.document.getElementById('입력폼').style.display === '');
+  }
+  {
+    // (d) 반박이 기각되면(2차도 적절) AI 단어가 유지된다
+    const { win } = 페이지열기({ 적절성게이트: true });
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 대상 = g.ai_last_word;
+    적절성_스텁(win, { 적절: true }, { 적절: true, 이유: '표준어가 맞습니다' });
+    await win.버튼_적절성검증();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    await win.반박_사유선택('옛말');
+    for(let i = 0; i < 80 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('반박 기각 시 AI 단어가 유지된다', g.ai_last_word === 대상);
+    확인('기각 사유가 로그에 표시된다', 로그텍스트(win).includes('표준어가 맞습니다'));
+    확인('기각돼도 게임 상태는 PLAYING으로 복귀', g.game_state === 'PLAYING');
+  }
+  {
+    // (e) 같은 단어 재반박 차단 — "될 때까지 우기기"를 코드가 막는다(핵심 안전장치)
+    const { win } = 페이지열기({ 적절성게이트: true });
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 대상 = g.ai_last_word;
+    적절성_스텁(win, { 적절: true }, { 적절: true, 이유: '문제없음' });
+    await win.버튼_적절성검증();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    await win.반박_사유선택('방언');
+    for(let i = 0; i < 80 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('반박한 단어가 기록된다', g.반박한단어 === 대상);
+    // 같은 단어로 다시 검증 → 반박 제안이 안 떠야 한다
+    await win.버튼_적절성검증();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('같은 단어는 반박 선택박스를 다시 안 띄운다',
+         win.document.getElementById('선택박스').style.display === 'none');
+    확인('중복 반박 안내가 뜬다', 로그텍스트(win).includes('한 번만') || 로그텍스트(win).includes('두 번 묻지'));
+  }
+  {
+    // (f) '기타' 자유 입력 — 입력창이 뜨고, 빈 값은 막히고, 100자로 잘린다
+    const { win } = 페이지열기({ 적절성게이트: true });
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    let 보낸본문 = null;
+    적절성_스텁(win, { 적절: true }, { 적절: true }, null, (p) => { 보낸본문 = p; });
+    await win.버튼_적절성검증();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    await win.반박_사유선택('기타');
+    확인('기타를 고르면 입력창이 뜬다', !!win.document.getElementById('반박입력'));
+    win.반박_기타제출();
+    확인('빈 입력은 막히고 안내가 뜬다', 로그텍스트(win).includes('입력해 주세요'));
+    확인('빈 입력이면 아직 대기 상태', 상태(win).game_state === 'REBUT_WAIT');
+    win.document.getElementById('반박입력').value = 'ㄱ'.repeat(150);
+    await win.반박_기타제출();
+    for(let i = 0; i < 80 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    확인('자유 텍스트가 100자로 잘려 전송된다',
+         보낸본문 && 보낸본문.반박보충.length === 100, 보낸본문 ? String(보낸본문.반박보충.length) : '(없음)');
+    확인('반박사유 코드가 기타로 실린다', 보낸본문 && 보낸본문.반박사유 === '기타');
+  }
+  {
+    // (g-0) 선택박스 안 강조 버튼이 보이는가 — 2026-08-22에 발견한 기존 CSS 버그 회귀 가드.
+    //  `.choice-box .btn{background:var(--card)}` 가 `.btn.acc` 의 그라디언트 배경을 덮어써
+    //  (명시도 동률 + 소스 순서가 뒤라 이김) 어두운 글자색만 남았고, 카드 배경과 거의 같은
+    //  색이 되어 글씨가 안 보였다(실측 명암비 약 1.1:1). 악마의 거래·시련의 계약 등 기존
+    //  선택박스 9곳이 전부 이 상태였다. jsdom은 실제 렌더를 안 하므로 CSS 텍스트로 고정한다.
+    const css = fs.readFileSync(path.join(WCHAIN, 'index.html'), 'utf8');
+    확인('선택박스 배경 규칙이 강조 버튼(.acc)을 비켜 간다',
+         css.includes('.choice-box .btn:not(.acc){'));
+    확인('강조 버튼을 통째로 덮어쓰던 옛 규칙이 남아 있지 않다',
+         !/\.choice-box \.btn\{/.test(css));
+  }
+  {
+    // (g) 그만두기 — 아무 일도 안 일어나고 판으로 복귀한다
+    const { win } = 페이지열기({ 적절성게이트: true });
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const 대상 = g.ai_last_word;
+    적절성_스텁(win, { 적절: true }, { 적절: false });
+    await win.버튼_적절성검증();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    win.반박_취소();
+    확인('그만두면 AI 단어가 그대로', g.ai_last_word === 대상);
+    확인('그만두면 PLAYING으로 복귀', g.game_state === 'PLAYING');
+    확인('그만두면 비동기 가드가 풀린다', 값(win, '게임_비동기처리중') === false);
+    확인('그만두면 재반박은 가능(반박한단어 미기록)', g.반박한단어 === null);
   }
 
   /* ── 23. localStorage 캐시 상한 (2026-08-22 신설) ────────────────────── */
