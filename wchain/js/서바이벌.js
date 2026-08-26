@@ -1521,7 +1521,15 @@ function 버튼_리셋(){ 전체리셋(); }
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function 버튼_설명(){ document.getElementById('설명Bg').classList.add('show'); }
 function 버튼_설명닫기(){ document.getElementById('설명Bg').classList.remove('show'); }
-function 버튼_상태(){ 플레이_HUD갱신(); 프롬프트_갱신(); }
+function 버튼_상태(){
+  플레이_HUD갱신();
+  // ⚠️ 선택박스가 떠 있는 대기 상태(악마의 거래·시련의 계약·탑 붕괴·반박 등)에서는
+  //    프롬프트_갱신()을 부르면 안 된다 — 그 안의 선택박스_숨기기()가 선택지를 통째로
+  //    지워 버려 응답할 방법이 사라진다(2026-08-22 실측으로 확인. 반박 대기에서는
+  //    게임_비동기처리중까지 걸린 채라 아예 소프트락이 됐다).
+  //    HUD 갱신은 어느 상태에서든 무해하므로 위에서 먼저 하고, 입력폼·버튼 복원만 건너뛴다.
+  if(gs.game_state === 'PLAYING') 프롬프트_갱신();
+}
 
 function 갓모드_활성화(){
   gs.god_mode_active = true;

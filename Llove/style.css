@@ -195,7 +195,8 @@ html{scrollbar-gutter:stable}
 #onboarding{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
 #onboarding.gone{display:none}
 .ob-prog{position:absolute;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accd),var(--acc));transition:width .4s var(--ease-out);z-index:5}
-.ob-skip{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--txtm);font-size:13px;cursor:pointer;font-family:var(--fn);padding:4px 8px;z-index:6}
+/* padding 세로 4→6: 종전 높이 22px 로 터치 최소치(24px) 미달(2026-08-22 실측). 절대 위치라 주변 레이아웃 영향 없음 */
+.ob-skip{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--txtm);font-size:13px;cursor:pointer;font-family:var(--fn);padding:6px 8px;z-index:6}
 .ob-skip:hover{color:var(--txt2)}
 .ob-slides{position:relative;flex:1;overflow:hidden}
 /* 세션8: 좌우 패딩에 safe-area-inset 가산(노치·펀치홀 기기) */
@@ -851,7 +852,8 @@ html{scrollbar-gutter:stable}
 .update-bar{position:fixed;top:0;left:0;right:0;z-index:250;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;background:var(--card);border-bottom:1px solid var(--bdrg);padding:10px 16px;font-size:13px;color:var(--txt);opacity:0;transform:translateY(-100%);pointer-events:none;transition:opacity .3s,transform .3s var(--ease-out);box-shadow:0 4px 20px rgba(0,0,0,.25)}
 .update-bar.show{opacity:1;transform:translateY(0);pointer-events:all}
 .update-bar .btn-acc{padding:7px 16px;font-size:13px}
-.update-bar-x{background:transparent;border:none;color:var(--txt2);font-size:16px;cursor:pointer;padding:4px 8px;line-height:1}
+/* padding 세로 4→6: 종전 높이 22px 로 터치 최소치(24px, WCAG 2.5.8 AA) 미달이었다(2026-08-22 실측) */
+.update-bar-x{background:transparent;border:none;color:var(--txt2);font-size:16px;cursor:pointer;padding:6px 8px;line-height:1}
 .update-bar-x:hover{color:var(--txt)}
 
 /* '잇는' 포탈 — 홈 우측 상단 아이콘. 잠김=은은(txt2), 개방=액센트 발광. 기존 디자인 토큰만 사용. */

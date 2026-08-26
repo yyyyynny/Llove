@@ -155,7 +155,11 @@
     /* 헤더 — 그라디언트 텍스트·영문 부제 제거(AI 사이트 상투 장식). 담백하게. */
     .badge{ font-size:11px; letter-spacing:6px; color:var(--txt2); margin-bottom:6px; text-align:center; }
     h1{ font-size:24px; font-weight:800; margin-bottom:20px; text-align:center; color:var(--txt); }
-    .back{ margin:18px auto 0; display:inline-block; font-size:12px; color:var(--txt2); text-decoration:none; }
+    /* padding 이 필수 — 없으면 글자 높이(12px)가 곧 탭 영역이라 15~17px밖에 안 됐다
+       (2026-08-22 실측). 터치 타깃 최소 24x24(WCAG 2.5.8 AA) 미달이라 세로 여백을 준다.
+       margin 을 18→14 로 줄여 겉보기 간격은 그대로 유지한다. */
+    .back{ margin:14px auto 0; display:inline-block; font-size:12px; color:var(--txt2);
+      text-decoration:none; padding:6px 4px; }
     .back:hover{ color:var(--acc); }
     /* 파괴적 동작(게임 데이터 삭제)은 진입 화면에서 존재만 알리고 시선은 끌지 않게 */
     .back.danger{ margin-top:10px; font-size:11px; color:var(--err); opacity:.45; }

@@ -1244,6 +1244,34 @@ async function main(){
     확인('반박사유 코드가 기타로 실린다', 보낸본문 && 보낸본문.반박사유 === '기타');
   }
   {
+    // (g--1) '상태' 버튼이 선택박스를 지워 버리던 문제 — 2026-08-22 실측으로 발견한 기존 버그.
+    //  버튼_상태()가 무조건 프롬프트_갱신()을 불렀고, 그 안의 선택박스_숨기기()가 선택지를
+    //  통째로 지워 응답할 방법이 사라졌다. 악마의 거래·시련의 계약 등 기존 선택박스 9곳이
+    //  전부 이 상태였고, 반박 대기에서는 게임_비동기처리중까지 걸린 채라 소프트락이 됐다.
+    const { win } = 페이지열기({ 적절성게이트: true });
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    적절성_스텁(win, { 적절: true }, { 적절: true });
+    await win.버튼_적절성검증();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    win.버튼_상태();
+    확인('반박 대기 중 상태 버튼을 눌러도 선택박스가 남는다',
+         win.document.getElementById('선택박스').style.display === '');
+    확인('반박 대기 상태가 유지된다', 상태(win).game_state === 'REBUT_WAIT');
+    // 기존 선택박스(악마의 거래 형태)에서도 같은 보호가 걸리는지
+    win.eval(`gs.game_state='DEVIL_WAIT'; 선택박스_보이기('<button class="btn sm acc">수락</button>');`);
+    win.버튼_상태();
+    확인('기존 선택박스(거래·계약 등)도 상태 버튼에 안 지워진다',
+         win.document.getElementById('선택박스').style.display === '');
+    // 평소(PLAYING)엔 상태 버튼이 원래대로 프롬프트를 다시 그려야 한다
+    win.eval(`gs.game_state='PLAYING';`);
+    win.버튼_상태();
+    확인('평소엔 상태 버튼이 원래대로 입력폼을 복원한다',
+         win.document.getElementById('선택박스').style.display === 'none'
+         && win.document.getElementById('입력폼').style.display === '');
+  }
+  {
     // (g-0) 선택박스 안 강조 버튼이 보이는가 — 2026-08-22에 발견한 기존 CSS 버그 회귀 가드.
     //  `.choice-box .btn{background:var(--card)}` 가 `.btn.acc` 의 그라디언트 배경을 덮어써
     //  (명시도 동률 + 소스 순서가 뒤라 이김) 어두운 글자색만 남았고, 카드 배경과 거의 같은

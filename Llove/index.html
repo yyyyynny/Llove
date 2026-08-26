@@ -165,7 +165,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:9px;margin-top:11px">
       <span style="font-size:14px">🔍</span>
-      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" oninput="이미지크롭_줌(this.value)" style="flex:1">
+      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" oninput="이미지크롭_줌(this.value)" style="flex:1" aria-label="확대 배율">
     </div>
     <div class="modal-btns" style="margin-top:13px">
       <button class="btn-g" style="flex:1" onclick="이미지크롭_취소()">취소</button>
@@ -1030,7 +1030,7 @@
       <div class="set-row" style="cursor:default">
         <span class="sri">🤖</span>
         <div style="flex:1"><div class="srl">AI 문제만 출제</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
-        <div class="mtw"><label class="mt"><input type="checkbox" id="aiOnlyToggle" onchange="toggleAiOnly()"><div class="mtt"><div class="mtth"></div></div></label></div>
+        <div class="mtw"><label class="mt"><input type="checkbox" id="aiOnlyToggle" onchange="toggleAiOnly()" aria-label="AI 문제만 출제"><div class="mtt"><div class="mtth"></div></div></label></div>
       </div>
       <!-- 세션6 항목4: placeholder 「히스토리 확인」 → 실기능 「채팅 내역」으로 교체 -->
       <div class="set-row" onclick="채팅내역_열기()">
