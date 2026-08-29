@@ -11,6 +11,7 @@ main = "단어적절성판정-worker.mjs"
 compatibility_date = "2026-07-01"
 
 # 인증키는 여기 적지 않는다. 배포 후 아래 명령으로 등록:
-#   npx wrangler secret put ANTHROPIC_API_KEY   (또는 OPENAI_API_KEY / GOOGLE_API_KEY)
-#   — 어떤 키가 필요한지는 worker 파일의 제공사표·단어적절성판정-README.md 표 참조.
-#   1차·2차가 서로 다른 회사면 키도 2개 등록해야 한다.
+#   npx wrangler secret put ANTHROPIC_API_KEY   # 1차 판정 (claude-haiku-4-5)
+#   npx wrangler secret put OPENAI_API_KEY      # 2차 교차검증 (gpt-5.4-mini)
+#   — 2026-08-27 확정 조합이 두 회사라 키가 2개 필요하다. 모델을 바꾸면 worker 파일의
+#     제공사표·단어적절성판정-README.md 표를 보고 해당 제공사 키로 교체할 것.
