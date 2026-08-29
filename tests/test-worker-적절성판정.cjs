@@ -48,6 +48,17 @@ async function main() {
     assert('Anthropic: max_tokens 필수 필드가 채워진다', typeof 본문.max_tokens === 'number');
     assert('Anthropic: 응답 텍스트 경로(content[0].text)',
       a.텍스트({ content: [{ text: '답' }] }) === '답');
+    // 2026-08-30 실배포 검증에서 발견: output_config.format 없이는 시스템 프롬프트
+    // 지시만으로 JSON을 강제 못 해 Haiku가 마크다운 코드펜스 등을 섞어 응답했고,
+    // 그래서 매번 JSON.parse가 깨져 관대 폴백(적절:true,이유:'')으로 조용히 빠졌다.
+    // (OpenAI 어댑터는 response_format:json_object로 이미 강제하고 있어 문제없었다.)
+    assert('Anthropic: output_config.format으로 JSON 스키마를 강제한다',
+      본문.output_config?.format?.type === 'json_schema');
+    const 스키마 = 본문.output_config?.format?.schema;
+    assert('Anthropic JSON 스키마가 적절(boolean)·이유(string)를 요구한다',
+      스키마?.properties?.적절?.type === 'boolean' &&
+      스키마?.properties?.이유?.type === 'string' &&
+      Array.isArray(스키마?.required) && 스키마.required.includes('적절') && 스키마.required.includes('이유'));
   }
   {
     const g = 제공사표.google;

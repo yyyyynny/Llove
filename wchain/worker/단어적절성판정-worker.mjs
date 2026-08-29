@@ -79,11 +79,29 @@ const 제공사표 = {
       'anthropic-version': '2023-06-01',
     }),
     // Anthropic은 시스템 프롬프트가 messages 안이 아니라 top-level 필드다.
+    // output_config.format으로 JSON 스키마를 강제한다(2026-08-30, 실배포 후 발견 — 이게
+    // 없으면 시스템 프롬프트 지시만으론 마크다운 코드펜스 등을 섞어 응답할 수 있어
+    // JSON.parse가 깨지고, 매번 조용히 관대 폴백({적절:true,이유:''})으로 빠졌다.
+    // 베타 헤더 불필요, Haiku 4.5 포함 현행 모델 전부 지원).
     본문: (설정, 시스템, 사용자) => ({
       model: 설정.모델,
       max_tokens: 설정.최대토큰 || 256,
       system: 시스템,
       messages: [{ role: 'user', content: 사용자 }],
+      output_config: {
+        format: {
+          type: 'json_schema',
+          schema: {
+            type: 'object',
+            properties: {
+              적절: { type: 'boolean' },
+              이유: { type: 'string' },
+            },
+            required: ['적절', '이유'],
+            additionalProperties: false,
+          },
+        },
+      },
     }),
     텍스트: (data) => data?.content?.[0]?.text || '',
   },
