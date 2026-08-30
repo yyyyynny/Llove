@@ -15,10 +15,11 @@
 //
 // 클래식 스크립트, 국어원.js 뒤·서바이벌.js 앞에 로드(서바이벌.js의 버튼_적절성검증()이 씀).
 
-// ⚠️ 적절성 검증 게이트 — 최고 관리자님 승인 없이 true로 변경 금지. Worker는 배포 완료·
-//    2026-08-30 curl 실측 검증 통과(1차·2차·CORS 차단 전부 정상) 상태지만, 최종 승인 전까지
-//    false로 봉인 유지. false인 동안 적절성_검증()은 fetch 자체를 하지 않는다.
-const 적절성검증_활성화 = false;
+// ⚠️ 적절성 검증 게이트 — 다시 끌 때도 최고 관리자님 승인 필요.
+//    2026-08-30 관리자님 승인으로 개방. Worker 배포·curl 실측 검증(1차·2차·CORS 차단 전부
+//    정상) 완료 상태에서 켰다. true인 동안 적절성_검증()·적절성_반박()이 실제로 fetch한다 —
+//    호출마다 Anthropic·OpenAI 크레딧이 소모된다(판정 1회 약 $0.001 수준, 인계 노트 참조).
+const 적절성검증_활성화 = true;
 
 // wchain/worker/단어적절성판정-worker.mjs 배포 주소. 2026-08-30 배포·검증 완료.
 const 적절성검증_WORKERS_ENDPOINT = 'https://itneun-word-appropriateness.hypoqwer.workers.dev/';

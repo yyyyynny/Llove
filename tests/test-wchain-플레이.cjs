@@ -26,23 +26,27 @@ function 확인(이름, 조건, 비고 = ''){
 // ── 페이지 띄우기 ────────────────────────────────────────────────────────
 // CDN 스크립트(firebase)는 jsdom이 못 받으므로 제거하고, 로컬 js/*.js는 인라인으로 주입한다
 // (load.cjs가 Llove에 쓰는 방식과 같은 접근 — 로드 순서는 index.html의 태그 순서 그대로).
-// 적절성게이트:true — 봉인된 게이트(적절성검증_활성화)를 켠 상태를 재현한다.
-// 게이트가 const 라 런타임에 못 바꾸므로, 관리자님이 실제로 할 일(플래그를 true로 고치고
-// 엔드포인트를 채우기)을 **소스 텍스트에서 그대로** 해서 주입한다 — 그래야 테스트가
-// 우회로가 아니라 실제 코드 경로(버튼_적절성검증의 게이트 검사 포함)를 탄다.
-function 페이지열기({ 온라인 = '정상', 적절성게이트 = false } = {}){
+// 적절성게이트: true면 켠 상태로, false면 봉인(끈) 상태로 소스 텍스트를 강제 패치한다.
+// 생략(null)하면 실제 소스의 현재값을 그대로 쓴다(2026-08-30 관리자님 승인 이후 실제
+// 기본값은 true). 게이트가 const 라 런타임 재대입이 안 되므로, 어느 쪽을 테스트하든
+// **소스 텍스트에서 그대로** 값을 바꿔 주입한다 — 그래야 테스트가 우회로가 아니라 실제
+// 코드 경로(버튼_적절성검증의 게이트 검사 포함)를 탄다.
+function 페이지열기({ 온라인 = '정상', 적절성게이트 = null } = {}){
   let html = fs.readFileSync(path.join(WCHAIN, 'index.html'), 'utf8');
   const 순서 = [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map(m => m[1]);
   html = html.replace(/<script src="https:\/\/[^"]+"><\/script>/g, '');
   for(const src of 순서){
     let 코드 = fs.readFileSync(path.join(WCHAIN, src), 'utf8');
-    if(적절성게이트 && src.endsWith('적절성판정.js')){
-      // 엔드포인트 값 자체(빈 문자열이든 실배포 주소든)은 정규식으로 잡아 무엇이든 테스트
-      // 스텁 주소로 덮어쓴다 — 실제 실행은 아래 적절성_스텁()이 적절성_POST를 통째로
-      // 갈아 끼워서 대신하므로, 여기선 "빈 값이 아니다"라는 조건만 통과시키면 된다.
-      코드 = 코드.replace('const 적절성검증_활성화 = false;', 'const 적절성검증_활성화 = true;')
-                 .replace(/const 적절성검증_WORKERS_ENDPOINT = '[^']*';/,
-                          "const 적절성검증_WORKERS_ENDPOINT = 'https://적절성.test/';");
+    if(적절성게이트 !== null && src.endsWith('적절성판정.js')){
+      코드 = 코드.replace(/const 적절성검증_활성화 = (true|false);/,
+                          `const 적절성검증_활성화 = ${적절성게이트};`);
+      if(적절성게이트){
+        // 엔드포인트 값 자체(빈 문자열이든 실배포 주소든)은 정규식으로 잡아 무엇이든 테스트
+        // 스텁 주소로 덮어쓴다 — 실제 실행은 아래 적절성_스텁()이 적절성_POST를 통째로
+        // 갈아 끼워서 대신하므로, 여기선 "빈 값이 아니다"라는 조건만 통과시키면 된다.
+        코드 = 코드.replace(/const 적절성검증_WORKERS_ENDPOINT = '[^']*';/,
+                            "const 적절성검증_WORKERS_ENDPOINT = 'https://적절성.test/';");
+      }
     }
     html = html.replace(`<script src="${src}"></script>`,
                         `<script>${코드.replace(/<\/script>/g, '<\\/script>')}</script>`);
@@ -1045,15 +1049,16 @@ async function main(){
     확인('뜻 보기: 실패해도 AI 단어는 그대로', g.ai_last_word === 대상단어);
   }
   {
-    // (c) 적절성 검증 — 게이트가 꺼져 있는 실제 상태에서는 네트워크를 아예 안 타고
-    //     '준비 중' 안내만 뜨며, 시도 횟수를 소모하지 않는다.
-    const { win, 요청기록 } = 페이지열기();
+    // (c) 적절성 검증 — 게이트가 꺼진 상태(봉인)를 강제 재현한다. 2026-08-30 관리자님
+    //     승인으로 실제 기본값은 켜짐(true)이 됐지만, "꺼졌을 때 안전하게 막히는지"는
+    //     계속 지켜야 할 회귀 조건이라 여기서 명시적으로 false를 강제한다.
+    const { win, 요청기록 } = 페이지열기({ 적절성게이트: false });
     await 대사대기(win);
     판시작(win);
     await 단어넣기(win, '나무');
     const g = 상태(win);
     const 요청수_이전 = 요청기록.length;
-    확인('적절성검증_활성화 플래그가 false다(승인 전 기본값)', 값(win, '적절성검증_활성화') === false);
+    확인('적절성검증_활성화 플래그를 false로 강제했다', 값(win, '적절성검증_활성화') === false);
     await win.버튼_적절성검증();
     확인('적절성 검증: 게이트 꺼진 상태에서 네트워크를 타지 않는다', 요청기록.length === 요청수_이전);
     확인('적절성 검증: 준비 중 안내가 뜬다', 로그텍스트(win).includes('그록 연동 후 사용 가능'));
@@ -1061,8 +1066,11 @@ async function main(){
          `dispute_attempts=${g.dispute_attempts}`);
   }
   {
-    // (d) 두 버튼 모두 AI 단어가 나오기 전엔 숨겨져 있다가, 나온 뒤 노출된다
-    const { win } = 페이지열기();
+    // (d) 두 버튼 모두 AI 단어가 나오기 전엔 숨겨져 있다가, 나온 뒤 노출된다.
+    //     잠금 표시(🔒) 검증을 위해 게이트를 꺼진 상태로 강제한다(실제 기본값은
+    //     2026-08-30 관리자님 승인으로 켜짐이지만, 꺼졌을 때 잠금 아이콘이 뜨는 건
+    //     계속 지켜야 할 회귀 조건이다).
+    const { win } = 페이지열기({ 적절성게이트: false });
     await 대사대기(win);
     판시작(win);
     확인('첫 턴(AI 단어 없음)엔 뜻보기 버튼이 숨겨져 있다',
@@ -1074,7 +1082,7 @@ async function main(){
          win.document.getElementById('btn-뜻보기').style.display === '');
     const 적절성btn = win.document.getElementById('btn-적절성검증');
     확인('AI가 단어를 낸 뒤엔 적절성검증 버튼이 보인다', 적절성btn.style.display === '');
-    확인('적절성검증 버튼은 게이트가 꺼져 있는 동안 잠금 표시(🔒)를 보여준다',
+    확인('적절성검증 버튼은 게이트가 꺼진 동안 잠금 표시(🔒)를 보여준다',
          적절성btn.textContent.includes('🔒') && 적절성btn.classList.contains('locked'));
   }
 
@@ -1126,9 +1134,10 @@ async function main(){
   /* ── 24. 반박(2차 교차검증) 흐름 (2026-08-22 신설) ──────────────────── */
   console.log('\n[24] 반박 흐름');
   {
-    // (a) 봉인 확인이 핵심 — 게이트가 꺼져 있는 실제 상태에서는 반박 UI가 아예 안 뜨고,
-    //     네트워크도 안 타고, 예산도 안 깎여야 한다.
-    const { win, 요청기록 } = 페이지열기();
+    // (a) 봉인 확인이 핵심 — 게이트를 꺼진 상태로 강제 재현한다(실제 기본값은 2026-08-30
+    //     관리자님 승인으로 켜짐이지만, 꺼졌을 때 반박 UI가 안 뜨고 네트워크도 안 타고
+    //     예산도 안 깎이는 건 계속 지켜야 할 회귀 조건이다).
+    const { win, 요청기록 } = 페이지열기({ 적절성게이트: false });
     await 대사대기(win);
     판시작(win);
     await 단어넣기(win, '나무');
@@ -1149,6 +1158,11 @@ async function main(){
     await 단어넣기(win, '나무');
     const g = 상태(win);
     const 대상 = g.ai_last_word;
+    // 게이트가 켜졌을 때는 (d) 블록과 반대로 잠금 표시가 없어야 한다 — 2026-08-30 실제
+    // 승인 후 상태가 바로 이 케이스라, 지금부턴 이쪽이 실사용 경로다.
+    const 적절성btn = win.document.getElementById('btn-적절성검증');
+    확인('게이트가 켜지면 잠금 표시(🔒)가 없다',
+         !적절성btn.textContent.includes('🔒') && !적절성btn.classList.contains('locked'));
     적절성_스텁(win, { 적절: true, 이유: '흔한 말입니다' });
     await win.버튼_적절성검증();
     for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
