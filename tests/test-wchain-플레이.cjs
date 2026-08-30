@@ -37,8 +37,11 @@ function 페이지열기({ 온라인 = '정상', 적절성게이트 = false } = 
   for(const src of 순서){
     let 코드 = fs.readFileSync(path.join(WCHAIN, src), 'utf8');
     if(적절성게이트 && src.endsWith('적절성판정.js')){
+      // 엔드포인트 값 자체(빈 문자열이든 실배포 주소든)은 정규식으로 잡아 무엇이든 테스트
+      // 스텁 주소로 덮어쓴다 — 실제 실행은 아래 적절성_스텁()이 적절성_POST를 통째로
+      // 갈아 끼워서 대신하므로, 여기선 "빈 값이 아니다"라는 조건만 통과시키면 된다.
       코드 = 코드.replace('const 적절성검증_활성화 = false;', 'const 적절성검증_활성화 = true;')
-                 .replace("const 적절성검증_WORKERS_ENDPOINT = '';",
+                 .replace(/const 적절성검증_WORKERS_ENDPOINT = '[^']*';/,
                           "const 적절성검증_WORKERS_ENDPOINT = 'https://적절성.test/';");
     }
     html = html.replace(`<script src="${src}"></script>`,

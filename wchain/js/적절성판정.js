@@ -15,15 +15,13 @@
 //
 // 클래식 스크립트, 국어원.js 뒤·서바이벌.js 앞에 로드(서바이벌.js의 버튼_적절성검증()이 씀).
 
-// ⚠️ 적절성 검증 게이트 — 최고 관리자님 승인 없이 true로 변경 금지. xAI 크레딧 미구매 +
-//    wchain/worker/단어적절성판정-worker.mjs 미배포 상태라 실호출 전면 봉인. false인 동안
-//    적절성_검증()은 fetch 자체를 하지 않는다.
+// ⚠️ 적절성 검증 게이트 — 최고 관리자님 승인 없이 true로 변경 금지. Worker는 배포 완료·
+//    2026-08-30 curl 실측 검증 통과(1차·2차·CORS 차단 전부 정상) 상태지만, 최종 승인 전까지
+//    false로 봉인 유지. false인 동안 적절성_검증()은 fetch 자체를 하지 않는다.
 const 적절성검증_활성화 = false;
 
-// wchain/worker/단어적절성판정-worker.mjs 배포 주소. 아직 미배포라 비어 있다 — 관리자님이
-// Cloudflare에 배포한 뒤 이 값을 채울 것(wrangler.단어적절성판정.toml.example의 name 기준
-// 예: 'https://itneun-word-appropriateness.<계정 서브도메인>.workers.dev/').
-const 적절성검증_WORKERS_ENDPOINT = '';
+// wchain/worker/단어적절성판정-worker.mjs 배포 주소. 2026-08-30 배포·검증 완료.
+const 적절성검증_WORKERS_ENDPOINT = 'https://itneun-word-appropriateness.hypoqwer.workers.dev/';
 
 // 자유 텍스트 상한 — 프롬프트 인젝션 페이로드 크기를 줄이는 1차 방어다.
 // ⚠️ 이것만으로 인젝션을 막을 수는 없다. 진짜 방어선은 "코드가 강제하는 경계"
