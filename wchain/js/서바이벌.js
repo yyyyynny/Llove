@@ -334,15 +334,22 @@ function 설정요약_갱신(){
   통.innerHTML = 칩.map(t => `<span class="cfg-chip">${t}</span>`).join('');
 }
 
-// 온라인 조회처럼 시간이 걸리는 동안 입력을 잠그고 진행 중임을 보여준다(2026-07-26 신설).
+// 온라인 조회처럼 시간이 걸리는 동안 진행 중임을 보여준다(2026-07-26 신설).
 // 종전엔 로그 한 줄("확인하는 중...")뿐이라 멈춘 것처럼 보였다.
 // 점 세 개 점멸만 사용 — 기존 화면 톤과 맞는 절제된 표시(2026-08-15부터 애니메이션 규칙이
 // 방식 제한 대신 "통일성·불쾌감 없음" 기준으로 바뀌었지만, 이 선택 자체는 그대로 유효하다).
+//
+// ⚠️ 2026-08-30: 입력창(inp) 자체는 더 이상 disabled로 잠그지 않는다(관리자님 실기기 제보 —
+// 제출 후 모바일 키보드가 사라졌다 다시 나타나는 게 부자연스럽다). disabled는 브라우저가
+// 자동으로 포커스를 해제시켜서(암묵적 blur) 키보드가 사라지는 원인이었다. 재진입 안전성은
+// 이미 게임_비동기처리중 플래그가 모든 액션 함수 맨 앞에서 독립적으로 보장하므로(단어_제출도
+// 포함), input을 잠그는 건 필수가 아니라 "처리 중" 시각 피드백용이었을 뿐이다. 버튼(btn)만
+// 계속 잠가서 연타로 인한 중복 제출은 그대로 막는다. placeholder 전환은 disabled 여부와
+// 무관하게 계속 동작하므로 그대로 유지.
 function 입력_대기표시(켜기, 문구 = '확인 중'){
   const inp = document.getElementById('단어입력');
   const btn = document.querySelector('#입력폼 button[type=submit]');
   if(!inp || !btn) return;
-  inp.disabled = 켜기;
   btn.disabled = 켜기;
   if(켜기){
     inp.placeholder = `${문구}…`;
@@ -350,10 +357,6 @@ function 입력_대기표시(켜기, 문구 = '확인 중'){
   } else {
     inp.placeholder = '단어를 입력하세요';
     btn.textContent = '전송';
-    // 잠금이 풀리는 시점에 포커스를 돌려준다. 턴 처리 중에 불린 프롬프트_갱신()의 focus()는
-    // 입력창이 아직 disabled라 무시되므로(2026-07-26 회귀 — 매 턴 입력창을 다시 탭해야 했다),
-    // 실제로 입력이 가능해지는 여기서 한 번 더 맞춘다. 플레이 화면이 떠 있을 때만.
-    if(document.getElementById('s-플레이')?.classList.contains('active')) inp.focus();
   }
 }
 
@@ -445,7 +448,7 @@ function 프롬프트_갱신(){
   const 뜻보기btn = document.getElementById('btn-뜻보기');
   if(뜻보기btn) 뜻보기btn.style.display = gs.ai_last_word ? '' : 'none';
   // '적절성 검증'(2026-08-22 신설) — 이의있음·허세와 같은 예산(dispute_attempts)을 공유하므로
-  // 진행도 라벨도 같은 값을 보여준다. 그록 게이트가 꺼져 있는 동안은 항상 잠금 스타일만
+  // 진행도 라벨도 같은 값을 보여준다. 적절성검증 게이트가 꺼져 있는 동안은 항상 잠금 스타일만
   // 표시(버튼_적절성검증이 클릭 시 안내로 처리 — 여기서 숨기지 않는 이유는 존재를 미리
   // 알려서 다음 업데이트를 기대하게 하기 위함, Llove 실험실 티저와 같은 취지).
   const 적절성btn = document.getElementById('btn-적절성검증');
@@ -464,10 +467,11 @@ function 프롬프트_갱신(){
   선택박스_숨기기();
   const form = document.getElementById('입력폼');
   form.style.display = '';
-  // 턴 처리 중이면 입력창이 잠겨 있어 focus()가 먹지 않는다 — 잠금 해제 시점(입력_대기표시)이
-  // 대신 포커스를 맞춘다. 여기서 헛되이 부르지 않도록 가드.
+  // 2026-08-30: 입력창을 더 이상 disabled로 잠그지 않으므로(입력_대기표시() 참조) 매번
+  // 그냥 포커스를 맞춘다 — 이미 포커스돼 있으면 무해한 반복 호출일 뿐이고, 턴 처리 중에
+  // 불려도(예: 버튼_적절성검증) 오히려 키보드를 계속 띄워 두는 이번 개선 취지와 맞는다.
   const inp = document.getElementById('단어입력');
-  if(!inp.disabled) inp.focus();
+  inp.focus();
 }
 
 function 선택박스_보이기(html){
@@ -807,21 +811,29 @@ function 버튼_양보(){
 const 이의허세_봉인 = false;
 const 이의_최대횟수 = 5;
 
-// 이의있음이든(사전 존재 확인) 적절성 검증이든(그록 판단, 아래 버튼_적절성검증) '이 단어는
+// 이의있음이든(사전 존재 확인) 적절성 검증이든(심판 판단, 아래 버튼_적절성검증) '이 단어는
 // 무효' 판정이 나오면 그 뒤에 벌어지는 일은 같다 — AI 단어를 취소하고 다시 내게 하거나, AI가
 // 못 내면 사용자 승리. 두 판정 경로가 이 로직을 각자 복제하지 않도록 공용 함수로 뺐다
 // (2026-08-22). 반환값 false면 호출부는 더 진행하지 말고(게임오버·리셋 처리 완료) 즉시
 // return해야 한다.
 async function AI단어_취소_재출제(disputed, 내세대){
-  gs.history = gs.history.filter(h => h.word !== disputed);
-  if(gs.history.length){
-    const prev = gs.history[gs.history.length - 1].word;
+  // ⚠️ 2026-08-30 실기기 버그 수정: disputed를 gs.history에서 먼저 지우면 안 된다.
+  // used_words(gs)(게임상태.js)는 gs.history에서 파생되는데, disputed는 세션 후보사전
+  // (세션_수집어)엔 여전히 남아 있어서 — 여기서 먼저 지워버리면 "이미 쓴 단어" 목록에서
+  // disputed가 빠져 AI가 방금 취소된 바로 그 단어를 그대로 다시 낼 수 있었다(실측 재현).
+  // 그래서 다음 시작 글자 계산용 필터링 결과는 로컬 변수(이전항목들)로만 만들고, 실제
+  // gs.history 교체는 ai_generate_word_비동기 호출이 끝난 뒤로 미룬다 — 생성 도중에는
+  // disputed가 history에 그대로 남아 있어 자연히 재선택이 막힌다.
+  const 이전항목들 = gs.history.filter(h => h.word !== disputed);
+  if(이전항목들.length){
+    const prev = 이전항목들[이전항목들.length - 1].word;
     gs.ai_last_char = !gs.rev ? prev[prev.length - 1] : prev[0];
   } else {
     gs.ai_last_char = null;
   }
   gs.ai_last_word = null;
-  const new_ai = await ai_generate_word_비동기(gs);
+  const new_ai = await ai_generate_word_비동기(gs);   // gs.history엔 아직 disputed가 남아 있음
+  gs.history = 이전항목들;   // 이제서야 실제로 뺀다(성공·실패 여부와 무관하게)
   if(내세대 !== 게임_세대) return false;   // 대기 중 리셋·재도전이 있었다 — 더 진행하면 안 됨
   if(new_ai){
     gs.history.push({ word: new_ai, turn: gs.turn });
@@ -942,7 +954,7 @@ async function 버튼_적절성검증(){
   if(게임_비동기처리중) return;
   if(!gs.ai_last_word) return;
   if(!적절성검증_활성화){
-    로그_추가('🔒 적절성 검증은 그록 연동 후 사용 가능합니다.', 'warn');
+    로그_추가('🔒 적절성 검증은 심판 연동 후 사용 가능합니다.', 'warn');
     return;
   }
   if(gs.dispute_attempts >= 이의_최대횟수){
@@ -959,7 +971,7 @@ async function 버튼_적절성검증(){
   try{
     gs.dispute_attempts += 1;
     const disputed = gs.ai_last_word;
-    로그_추가('🤖 그록에게 판단을 묻는 중...', 'sys');
+    로그_추가('🤖 심판에게 판단을 묻는 중...', 'sys');
     플레이_HUD갱신(); 프롬프트_갱신();
 
     const 결과 = await 적절성_검증(disputed, gs.ai_last_char);
@@ -1039,21 +1051,47 @@ function 반박_제안(disputed){
 function 반박_사유선택(코드){
   if(코드 !== '기타'){ 반박_응답(코드, ''); return; }
   선택박스_보이기(`
-          <div class="q">어떤 점이 부당한지 짧게 적어 주세요(${반박보충_최대길이}자 이내).</div>
-          <input id="반박입력" maxlength="${반박보충_최대길이}" autocomplete="off"
+          <div class="q">어떤 점이 부당한지 짧게 적어 주세요.</div>
+          <textarea id="반박입력" rows="1" autocomplete="off" oninput="반박입력_갱신(this)"
                  placeholder="예: 특정 지역에서만 쓰는 말입니다"
-                 style="width:100%;padding:11px 13px;border:1px solid var(--bdr);border-radius:10px;
-                        background:var(--elev);color:var(--txt);font-family:var(--fn);font-size:14px;margin-bottom:8px">
+                 style="width:100%;box-sizing:border-box;padding:11px 13px;border:1px solid var(--bdr);
+                        border-radius:10px;background:var(--elev);color:var(--txt);font-family:var(--fn);
+                        font-size:14px;margin-bottom:4px;resize:none;min-height:38px;max-height:120px;
+                        overflow-y:auto"></textarea>
+          <div id="반박입력카운터" style="text-align:right;font-size:11px;margin-bottom:8px;color:var(--txt2)"></div>
           <button class="btn sm acc" onclick="반박_기타제출()">제출</button>
           <button class="btn sm" onclick="반박_취소()">그만두기</button>`);
   const inp = document.getElementById('반박입력');
-  if(inp) inp.focus();
+  if(inp){ inp.focus(); 반박입력_갱신(inp); }
+}
+
+// '기타' 반박 입력창 — 줄이 늘어나면 높이도 같이 늘어나고(최대 120px, Llove 질문입력_높이조절과
+// 같은 상한), 남은 글자 수 대신 실제 UTF-8 바이트 기준으로 카운터를 보여준다(반박보충_최대바이트와
+// 동일 기준). 타이핑 중 강제로 잘라내진 않는다 — 한글 조합(IME) 중에 값을 바꾸면 조합이 깨질
+// 수 있어서다(Llove AI지침_카운터갱신()과 같은 원칙: 표시만 하고, 실제 제한은 제출 시점에 건다).
+function 반박입력_갱신(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  const 카운터 = document.getElementById('반박입력카운터');
+  if(!카운터) return;
+  const 바이트수 = new TextEncoder().encode(el.value).length;
+  if(바이트수 <= 반박보충_최대바이트){
+    카운터.textContent = `${바이트수} / ${반박보충_최대바이트}바이트`;
+    카운터.style.color = ''; 카운터.style.fontWeight = '';
+  } else {
+    카운터.textContent = `${바이트수 - 반박보충_최대바이트}바이트 초과`;
+    카운터.style.color = 'var(--err)'; 카운터.style.fontWeight = '700';
+  }
 }
 
 function 반박_기타제출(){
   const inp = document.getElementById('반박입력');
   const 보충 = (inp ? inp.value : '').trim();
   if(!보충){ 로그_추가('반박 내용을 입력해 주세요.', 'warn'); return; }
+  if(new TextEncoder().encode(보충).length > 반박보충_최대바이트){
+    로그_추가(`반박 내용이 ${반박보충_최대바이트}바이트를 넘습니다. 줄여서 다시 제출해 주세요.`, 'warn');
+    return;
+  }
   반박_응답('기타', 보충);
 }
 

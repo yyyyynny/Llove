@@ -80,7 +80,7 @@ const 정규화 = w => String(w).replace(/[-^]/g, '').trim();
 // 상세 배경은 파일 상단 헤더 참조. 여기서는 진입점(fetch)에서만 쓰고, 단어존재조회()·
 // 후보목록조회() 등 순수 함수는 건드리지 않는다 — 그래서 테스트(caches 전역이 없는
 // Node/jsdom 환경, tests/test-worker-*.cjs)는 이 함수들과 무관하게 그대로 통과한다.
-const 캐시_버전 = 'v1'; // 필터·그룹화 로직을 바꾸면 이 값을 올릴 것(안 올리면 예전 로직으로
+const 캐시_버전 = 'v2'; // 2026-08-30: 동사·형용사 후보 필터 신설로 올림. 필터·그룹화 로직을 바꾸면 이 값을 올릴 것(안 올리면 예전 로직으로
                         // 만든 캐시 응답이 TTL 끝날 때까지 계속 나간다).
 const 캐시_TTL초 = 60 * 60 * 24 * 3; // 3일 — 사전 데이터는 그새 바뀔 일이 거의 없다.
 
@@ -298,10 +298,18 @@ async function 단어존재조회(env, word, 진단 = false, 뜻풀이필요 = f
 // 걸러내면 흔한 단어까지 사라진다(실측: 동무의 sense 1·2는 일반, 3번째만 cat:광업이었지만
 // 그 앞의 흔한 뜻 때문에 포함하는 게 맞다). 첫 sense가 문제라면 표제어 전체를 뺀다.
 const 후보_제외_TYPE = new Set(['북한어', '옛말', '방언']);
+// 동사·형용사 제외 (2026-08-22 실측 시점엔 "opendict가 품사 필드를 안 준다"고 잘못 알고
+// 미착수 상태였다 — 2026-08-30 실측으로 정정: sense.pos는 항상 온다. 배포된 우리말샘
+// Worker에 디버그 모드로 직접 조회해 확인: 사나워지다→동사, 먹다→동사, 달리다→동사,
+// 예쁘다→형용사, 아름답다→형용사, 사과→명사. 관리자님 실기기 제보(AI가 활용형 동사
+// "사나워지다"를 냄) 반영 — 후보 생성(AI가 낼 단어)에만 적용하고, 플레이어가 직접 내는
+// 단어의 존재 확인(단어존재조회)은 그대로 둔다(기존 type/cat 필터와 동일한 비대칭 원칙).
+const 후보_제외_POS = new Set(['동사', '형용사']);
 function 후보_부적절한가(it){
   const 첫sense = Array.isArray(it.sense) ? it.sense[0] : it.sense;
   if(!첫sense) return false;
   if(후보_제외_TYPE.has(첫sense.type)) return true;
+  if(후보_제외_POS.has(첫sense.pos)) return true;
   if(첫sense.cat) return true;
   return false;
 }

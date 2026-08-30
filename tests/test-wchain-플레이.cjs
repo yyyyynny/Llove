@@ -1061,7 +1061,7 @@ async function main(){
     확인('적절성검증_활성화 플래그를 false로 강제했다', 값(win, '적절성검증_활성화') === false);
     await win.버튼_적절성검증();
     확인('적절성 검증: 게이트 꺼진 상태에서 네트워크를 타지 않는다', 요청기록.length === 요청수_이전);
-    확인('적절성 검증: 준비 중 안내가 뜬다', 로그텍스트(win).includes('그록 연동 후 사용 가능'));
+    확인('적절성 검증: 준비 중 안내가 뜬다', 로그텍스트(win).includes('심판 연동 후 사용 가능'));
     확인('적절성 검증: 이의 시도 횟수를 소모하지 않는다', g.dispute_attempts === 0,
          `dispute_attempts=${g.dispute_attempts}`);
   }
@@ -1239,7 +1239,7 @@ async function main(){
     확인('중복 반박 안내가 뜬다', 로그텍스트(win).includes('한 번만') || 로그텍스트(win).includes('두 번 묻지'));
   }
   {
-    // (f) '기타' 자유 입력 — 입력창이 뜨고, 빈 값은 막히고, 100자로 잘린다
+    // (f) '기타' 자유 입력 — 입력창이 뜨고, 빈 값은 막히고, 500바이트로 잘린다
     const { win } = 페이지열기({ 적절성게이트: true });
     await 대사대기(win);
     판시작(win);
@@ -1253,11 +1253,24 @@ async function main(){
     win.반박_기타제출();
     확인('빈 입력은 막히고 안내가 뜬다', 로그텍스트(win).includes('입력해 주세요'));
     확인('빈 입력이면 아직 대기 상태', 상태(win).game_state === 'REBUT_WAIT');
-    win.document.getElementById('반박입력').value = 'ㄱ'.repeat(150);
+    // 500바이트 초과(완성형 한글 '가' 200개 = 600바이트, Buffer.byteLength로 확인)는
+    // 잘라서 보내지 않고 아예 막는다(2026-08-30 — Llove AI지침_저장()과 같은 "차단+경고"
+    // 원칙, 조용히 잘라 보내던 예전 방식에서 바뀜).
+    const 긴텍스트 = '가'.repeat(200);
+    확인('테스트 픽스처: 완성형 한글 200개 = 600바이트', Buffer.byteLength(긴텍스트, 'utf8') === 600);
+    win.document.getElementById('반박입력').value = 긴텍스트;
+    win.반박_기타제출();
+    확인('500바이트 초과는 제출을 막고 경고한다', 로그텍스트(win).includes('500바이트를 넘습니다'));
+    확인('막힌 뒤에도 아직 대기 상태(전송 안 됨)', 상태(win).game_state === 'REBUT_WAIT' && 보낸본문 === null);
+
+    // 한도 이내(완성형 한글 166개 = 498바이트)는 그대로 전송된다.
+    const 정상텍스트 = '가'.repeat(166);
+    확인('테스트 픽스처: 완성형 한글 166개 = 498바이트', Buffer.byteLength(정상텍스트, 'utf8') === 498);
+    win.document.getElementById('반박입력').value = 정상텍스트;
     await win.반박_기타제출();
     for(let i = 0; i < 80 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
-    확인('자유 텍스트가 100자로 잘려 전송된다',
-         보낸본문 && 보낸본문.반박보충.length === 100, 보낸본문 ? String(보낸본문.반박보충.length) : '(없음)');
+    확인('500바이트 이내 자유 텍스트는 그대로 전송된다',
+         보낸본문 && 보낸본문.반박보충 === 정상텍스트, 보낸본문 ? String(보낸본문.반박보충.length) : '(없음)');
     확인('반박사유 코드가 기타로 실린다', 보낸본문 && 보낸본문.반박사유 === '기타');
   }
   {
@@ -1344,6 +1357,40 @@ async function main(){
     `);
     const 저장된 = 값(win, `Object.keys(JSON.parse(localStorage.getItem(국어원_후보캐시_KEY))).length`);
     확인('국어원_후보캐시_저장()이 저장 전 상한을 실제로 적용한다', 저장된 === 300, `개수=${저장된}`);
+  }
+
+  /* ── 25. 취소된 단어를 AI가 그대로 재출제하지 않는다 (2026-08-30 실기기 버그 수정) ── */
+  console.log('\n[25] 취소된 단어 재출제 방지');
+  {
+    // 관리자님 제보: "취소하겠습니다" 직후 바로 그 단어로 "이어가겠습니다"가 뜸.
+    // 원인: AI단어_취소_재출제가 disputed를 gs.history에서 먼저 지운 뒤 재생성해서,
+    // used_words(gs)가 disputed를 더 이상 "이미 쓴 단어"로 안 봤다. 후보 응답에 일부러
+    // disputed 하나만 돌려줘서 재현한다 — ai_후보사전은 세션_수집어·로컬 추가사전도
+    // 같이 섞으므로 AI가 다른 대체 단어를 찾을 수도 있지만(그래서 게임오버까지는
+    // 단정하지 않는다), disputed 그 자체가 다시 선택되지는 않아야 한다. 위 [24]-(a)의
+    // 제외단어 스텁 파라미터는 이 실제 버그를 테스트 스텁 층에서만 우회하고 있었을
+    // 뿐(주석 "플레이키 방지"), 애플리케이션 코드 자체를 검증하진 않았다는 게 이번에
+    // 드러났다 — 이 테스트는 그 스텁 우회 없이 실제 경로를 태운다.
+    const { win } = 페이지열기({ 적절성게이트: true });
+    await 대사대기(win);
+    판시작(win);
+    await 단어넣기(win, '나무');
+    const g = 상태(win);
+    const disputed = g.ai_last_word;
+
+    win.eval(`적절성_POST = async function(본문){ return { 적절: false, 이유: '테스트 취소' }; };`);
+    win.fetch = async (url, opt) => {
+      const p = JSON.parse(opt.body);
+      if(p.단어 !== undefined) return { ok: true, json: async () => ({ 존재: true, 뜻풀이그룹: [] }) };
+      // disputed 하나만 후보로 돌려준다 — 고쳐졌다면 이게 "쓸 수 있는 후보 없음"과 같아야 한다.
+      return { ok: true, json: async () => ({ 후보: [disputed] }) };
+    };
+
+    await win.버튼_적절성검증();
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+
+    확인('취소된 단어를 AI가 그대로 재출제하지 않는다', g.ai_last_word !== disputed,
+         `disputed=${disputed}, ai_last_word=${g.ai_last_word}`);
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
