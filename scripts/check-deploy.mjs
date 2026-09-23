@@ -207,10 +207,33 @@ for (const { 파일, 종류, 중복키, hint필수 } of 데이터스키마) {
   확인(`${파일} 항목 ${items.length}개가 전부 필수 필드를 갖춘다`, 필드오류 === 0);
   if (필드오류 > 0) 검사목록.push(`   ↳ 필드 누락/형식 오류 ${필드오류}건`);
 
+  // reasoning_note — 2026-09-23 550건 전량 채움. Grok 게이트가 막혀 있는 한 fallback이
+  // 안 돌아가므로(js/채팅.js), 비어 있으면 이의있음 패널이 "출제 근거 미등록"만 보여준다.
+  // 이 검사가 없으면 새 항목을 추가할 때 이 필드를 또 빠뜨려도 조용히 통과해버린다.
+  const 근거없음 = items.filter((it) => typeof it.reasoning_note !== 'string' || !it.reasoning_note.trim()).length;
+  확인(`${파일} 항목 ${items.length}개가 전부 reasoning_note를 갖춘다`, 근거없음 === 0);
+  if (근거없음 > 0) 검사목록.push(`   ↳ reasoning_note 누락 ${근거없음}건`);
+
   const 키목록 = items.map((it) => it[중복키]).filter(Boolean);
   const 중복 = 키목록.filter((k, i) => 키목록.indexOf(k) !== i);
   확인(`${파일} 에 '${중복키}' 중복 항목이 없다`, 중복.length === 0);
   if (중복.length > 0) 검사목록.push(`   ↳ 중복: ${[...new Set(중복)].slice(0, 5).join(' / ')}${중복.length > 5 ? ' 외' : ''}`);
+}
+
+// 정령왕_통합_v2.json — 구어_교정·유의어_변별은 js/구어교정.js·js/유의어변별.js가
+// item.reasoning_note를 읽는다(위와 같은 이유로 검사). 오늘의_한문장은 js/슬라이드.js가
+// reasoning_note를 아예 읽지 않는 인용구 슬라이드라 대상에서 의도적으로 제외.
+{
+  const 정령왕경로 = 'Llove/data/정령왕_통합_v2.json';
+  if (existsSync(정령왕경로)) {
+    const d = JSON.parse(readFileSync(정령왕경로, 'utf8'));
+    for (const 키 of ['구어_교정', '유의어_변별']) {
+      const items = Array.isArray(d[키]) ? d[키] : [];
+      const 근거없음 = items.filter((it) => typeof it.reasoning_note !== 'string' || !it.reasoning_note.trim()).length;
+      확인(`정령왕_통합_v2.json.${키} 항목 ${items.length}개가 전부 reasoning_note를 갖춘다`, 근거없음 === 0);
+      if (근거없음 > 0) 검사목록.push(`   ↳ reasoning_note 누락 ${근거없음}건`);
+    }
+  }
 }
 
 // ── 문서가 주장하는 파일 개수가 실제와 맞는가 (2026-08-22 신설) ─────────────
