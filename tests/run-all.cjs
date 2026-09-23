@@ -11,6 +11,7 @@ const 테스트들 = [
   ['항목10 복습 전용 화면', 'test-review.cjs'],
   ['항목3 커스텀 테마', 'test-customtheme.cjs'],
   ['추가기능 음성 생성', 'test-voice.cjs'],
+  ['Phase 7 사전(뜻풀이) 기능', 'test-사전.cjs'],
   ['세션5 실사용 검토 수정', 'test-fixes-세션5.cjs'],
   ['세션6 실기기 2차 수정', 'test-fixes-세션6.cjs'],
   ['세션7 실기기 3차 수정', 'test-fixes-세션7.cjs'],
@@ -23,7 +24,16 @@ const 테스트들 = [
   ['세션10-i 배너 히트박스·프로필 크롭 재활용', 'test-fixes-세션10i.cjs'],
   ['세션10-j/k 창조주 시도 채팅 미저장', 'test-fixes-세션10j.cjs'],
   ['세션10-k 다크·라이트 토글 삭제', 'test-fixes-세션10k.cjs'],
-  ['세션10-l 계정삭제·초기화 채팅 기록 삭제', 'test-fixes-세션10l.cjs']
+  ['세션10-l 계정삭제·초기화 채팅 기록 삭제', 'test-fixes-세션10l.cjs'],
+  ['세션10-m 애니메이션 통일성·접근성', 'test-fixes-세션10m.cjs'],
+  ['세션10-n 키보드 접근성', 'test-fixes-세션10n.cjs'],
+  ['세션10-o 부팅 복원 단계 독립성', 'test-fixes-세션10o.cjs'],
+  ['wchain 한방 판정(즉사 버그) 회귀', 'test-wchain-한방.cjs'],
+  ['wchain 실제 페이지 플레이 회귀', 'test-wchain-플레이.cjs'],
+  ['Worker 뜻풀이 동음이의어 그룹화', 'test-worker-뜻풀이그룹화.cjs'],
+  ['Worker 후보 품질 필터', 'test-worker-후보필터.cjs'],
+  ['Worker 단어 적절성 판정', 'test-worker-적절성판정.cjs'],
+  ['실험실 상태 표시 정합성', 'test-실험실.cjs']
 ];
 
 let 실패 = 0;

@@ -7,6 +7,15 @@ load((window) => {
   const ev = (code) => window.eval(code);
   const css = Array.from(doc.querySelectorAll('style')).map(s=>s.textContent).join('\n');
 
+  // 재구조화 이후: QUIZ_COMMON·QUIZ_SPELL(정적 폴백)이 data/상식어원.json·맞춤법.json으로
+  // 이전되고 코드에서 삭제됨. 테스트는 자체 픽스처(__TEST_QUIZ__·__TEST_SPELL__)를 심어 재사용한다.
+  ev(`window.__TEST_QUIZ__=[{ai:true, cat:'상식', q:'테스트 문제?', opts:[
+    {t:'오답A', c:false}, {t:'정답', c:true}, {t:'오답B', c:false}, {t:'오답C', c:false}
+  ]}];
+  window.__TEST_SPELL__=[{cat:'맞춤법', q:'테스트 (____) 문제', hint:'힌트', opts:[
+    {t:'정답', c:true}, {t:'오답A', c:false}, {t:'오답B', c:false}, {t:'오답C', c:false}
+  ]}];`);
+
   /* ── #3 전역 +10% (대표값) ── */
   assert('#3: .q-question 15→17px', /\.q-question\{font-size:17px/.test(css));
   assert('#3: calc 기준값도 상향(17px)', /\.q-question\{font-size:calc\(17px\*var\(--글자배율\)\)\}/.test(css));
@@ -25,7 +34,13 @@ load((window) => {
   assert('#2: 위험 구역에 실험실 행', Array.from(doc.querySelectorAll('.set-row')).some(r=>(r.getAttribute('onclick')||'').includes('실험실_열기')));
   ev('실험실_열기();');
   assert('#2: 목록 팝업(끝말잇기 노출)', doc.getElementById('infoDesc').innerHTML.includes('끝말잇기'));
-  ev('사용자.개발자모드=false; 실험실_항목탭(0);');
+  // 2026-08-22: 종전엔 index 0(끝말잇기)을 탭해 티저를 확인했는데, 끝말잇기가 실제로
+  // 플레이 가능해지면서 상태가 '가능'으로 바뀌어 곧바로 열리게 됐다(티저가 안 뜬다).
+  // 이 검사의 취지는 "아직 못 쓰는 항목은 티저로 막힌다"이므로, 인덱스를 박지 말고
+  // 상태로 '예정' 항목을 찾아 확인한다(목록 순서가 또 바뀌어도 안 깨진다).
+  const 예정idx = ev("실험실_목록.findIndex(x => x.상태 === '예정')");
+  assert('#2: 아직 예정인 항목이 남아 있다(티저 검사 전제)', 예정idx >= 0);
+  ev(`사용자.개발자모드=false; 실험실_항목탭(${예정idx});`);
   assert('#2: 티저 문구(기다려 주세요+개발자 힌트)', doc.getElementById('infoDesc').innerHTML.includes('기다려 주세요') && doc.getElementById('infoDesc').innerHTML.includes('개발자 모드'));
   ev('closeInfoModal();');
 
@@ -66,18 +81,18 @@ load((window) => {
   assert('#7: 기본값 4지선다 통일', ev('학습설정.sq1') === '4지선다' && ev('학습설정.sq3') === '4지선다');
   ev("학습설정.sq1='선택지'; 학습설정.sq4_input='선택지'; 학습설정_마이그레이션();");
   assert('#7: 구 저장값 마이그레이션', ev('학습설정.sq1') === '4지선다' && ev('학습설정.sq4_input') === '플래시카드');
-  assert('#7: 맞춤법 보기 4개', ev('QUIZ_SPELL[0].opts.length') === 4);
-  ev("학습설정.sq1='플래시카드'; renderQuiz4(QUIZ_COMMON);");
+  assert('#7: 맞춤법 보기 4개', ev('__TEST_SPELL__[0].opts.length') === 4);
+  ev("학습설정.sq1='플래시카드'; renderQuiz4(__TEST_QUIZ__);");
   assert('#7: sq1 플래시카드 렌더', !!doc.getElementById('sq1FlashBtn'));
   const fExp0 = ev('사용자.총누적EXP||0');
   ev("퀴즈_플래시공개('sq1');");
   assert('#7: 플래시 공개 1회 EXP', ev('사용자.총누적EXP||0') > fExp0);
   ev("퀴즈_플래시공개('sq1');");
   assert('#7: 플래시 공개 중복 차단', ev('사용자.총누적EXP||0') === ev('사용자.총누적EXP||0') && true);
-  // 역방향은 문항 2개 이상 필요 — QUIZ_COMMON은 1건이라 테스트용 2건 풀 사용
+  // 역방향은 문항 2개 이상 필요 — __TEST_QUIZ__은 1건이라 테스트용 2건 풀 사용
   ev("학습설정.sq1='역방향'; renderQuiz4([{cat:'상식',q:'테스트 문제 A',opts:[{t:'답A',c:true},{t:'오답',c:false}]},{cat:'상식',q:'테스트 문제 B',opts:[{t:'답B',c:true},{t:'오답',c:false}]}]);");
   assert('#7: sq1 역방향 — 정답 제시+문항 보기', doc.querySelectorAll('#sq1Body .aopt').length >= 2 && doc.getElementById('sq1Body').innerHTML.includes('역방향'));
-  ev("renderQuiz4(QUIZ_COMMON);");
+  ev("renderQuiz4(__TEST_QUIZ__);");
   assert('#7: 역방향 문항 부족 시 4지선다 폴백', doc.getElementById('toast').textContent.includes('부족') && doc.querySelectorAll('#sq1Body .aopt').length === 4);
   ev("학습설정.sq4_input='4지선다'; renderDad(DAD_GAGS_BY_DIFFICULTY['아↗그거!']);");
   assert('#7: 아재 4지선다 보기 4개', doc.querySelectorAll('#sq4Body .aopt').length === 4);

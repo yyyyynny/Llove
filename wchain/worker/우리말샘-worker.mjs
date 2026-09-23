@@ -1,0 +1,451 @@
+// '잇는' — 우리말샘(국립국어원 오픈API) 프록시 Worker
+//
+// wchain/Worker_수정요청.md에 정리된 결함(①붙임표 오판 ②후보 부족)을 반영한 구현.
+// 2026-08-15 실배포로 검증 완료(가마솥·뽕나무 존재 확인, '사' 후보 107건·'기' 후보 89건).
+// 배포 방법은 이 폴더의 README.md 참조.
+//
+// 클라이언트(wchain/js/국어원.js, Llove/js/사전.js)와의 계약 — 기존 필드는 바꾸지 말 것
+// (바꾸면 클라이언트도 함께 고쳐야 함). 새 필드(뜻풀이그룹)는 2026-08-19에 추가:
+//   요청  POST { 단어: "가마솥" } → 응답 { 존재: true|false, 뜻풀이그룹: [] }
+//     (뜻풀이그룹은 기본적으로 빈 배열 — 계산 비용이 커서(아래 참조) 요청한 경우에만 채운다)
+//   요청  POST { 단어: "필연", 뜻풀이: true } → 응답의 뜻풀이그룹이 실제로 채워짐
+//     (동음이의어별로 묶은 배열, 그룹화 기준은 아래 뜻풀이_그룹화_비동기() 참조). 존재 여부만
+//     필요하면(대부분의 게임 턴 검증) 이 플래그를 빼서 빠른 경로를 타야 한다 — 2026-08-22
+//     참조: 이 플래그 없이 항상 그룹화를 돌리다가 흔한 단어 하나 확인에 4~6초가 걸리는
+//     성능 회귀가 있었다.
+//   요청  POST { 단어: "필연", 뜻풀이: true, 디버그: true } → 위 응답에 _원본진단(원본 item
+//     최대 5개) 추가(그룹화가 또 안 맞을 때 재배포 없이 필드명을 확인하기 위한 진단 전용,
+//     평소엔 안 씀)
+//   요청  POST { 글자: "가", 방향: "start"|"end" } → 응답 { 후보: ["가나다", ...] }
+//     2026-08-20에 후보에서 북한어·옛말·방언·전문분야·고유명사를 걸러내는 필터 추가(아래
+//     후보_부적절한가() 참조) — 필드 자체는 안 바뀌었으니 클라이언트 하위 호환.
+//   요청  POST { 글자: "가", 방향: "start", 디버그: true } → 위 응답에 _걸러진표본(필터로
+//     빠진 원본 item 최대 20개) 추가 — 필터 기준이 또 안 맞을 때 진단용, 평소엔 안 씀.
+//   실패 시 4xx/5xx만 반환하면 된다 — 클라이언트는 res.ok가 아니면 null로 강등해 로컬 안전망을 탄다.
+//
+// ── 엣지 캐시(Cache API, 2026-08-22) ────────────────────────────────────
+// 사전 데이터는 사실상 불변인데 여태 요청마다 매번 opendict까지 왕복했다(실측 2.4~3.3초).
+// 디버그:true가 아닌 요청은 caches.default(모든 플레이어가 공유하는 Cloudflare 엣지 캐시,
+// 아래 캐시_조회/캐시_저장 참조)를 거친다 — 한 사람이 "학교"를 조회하면 다음 사람은 같은
+// 답을 수십 ms 안에 받는다. 클라이언트(localStorage)는 그 기기 하나만 빨라지지만, 이건
+// 전원이 같이 빨라진다. 필터·그룹화 로직을 바꿀 때는 아래 캐시_버전을 올릴 것 — 안 올리면
+// 새 배포 후에도 예전 로직으로 만든 캐시 응답이 TTL 끝날 때까지 계속 나간다.
+//
+// (CLAUDE.md 원칙: "API 키는 Cloudflare Workers만, 프론트 노출 금지" — 이 파일에 키를 직접 적지 말 것.)
+// 인증키: Cloudflare 대시보드 Worker 설정 > Variables and Secrets 에 이미 등록된
+// URIMALSAEM_KEY(인증키)·URIMALSAEM_CERTKEY_NO(발급번호) 두 시크릿을 그대로 쓴다 — 둘 다 필수.
+
+const 국어원_API_기준주소 = 'https://opendict.korean.go.kr/api/search';
+const 국어원_API_뷰주소 = 'https://opendict.korean.go.kr/api/view';
+
+// opendict가 User-Agent 없는 요청을 걸러내는 사례가 있어 방어적으로 붙인다.
+const 공통_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Accept': 'application/json, text/plain, */*',
+  'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+};
+
+// ── CORS ────────────────────────────────────────────────────────────────
+// 이 Worker는 인증키를 대신 들고 있는 공용 프록시라, 아무 origin이나 허용하면 다른 사이트가
+// 관리자님의 API 호출량을 몰래 빌려 쓸 수 있다. 게임이 실제로 서비스되는 origin만 허용한다.
+const 허용_ORIGIN = new Set([
+  'https://yyyyynny.github.io',
+]);
+
+function cors헤더(origin){
+  const 허용됨 = 허용_ORIGIN.has(origin);
+  return {
+    'Access-Control-Allow-Origin': 허용됨 ? origin : 'null',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+  };
+}
+
+function json응답(본문, status, origin){
+  return new Response(JSON.stringify(본문), {
+    status,
+    headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors헤더(origin) },
+  });
+}
+
+// ── 붙임표(-) · 캐럿(^) 정규화 ───────────────────────────────────────────
+// 우리말샘은 합성어 표제어에 붙임표를(`가마-솥`), 띄어 쓰는 합성어에 캐럿을(`가마솥^밥`) 넣어
+// 등재한다. 게임은 사용자가 붙여 쓴 한 덩어리 문자열만 다루므로, 비교·응답 양쪽에서 둘 다 지운다.
+// (붙임표를 정규화 없이 통째로 버리면 '사'처럼 흔한 글자의 후보 대부분이 사라진다 —
+// Worker_수정요청.md ②의 원인.)
+const 정규화 = w => String(w).replace(/[-^]/g, '').trim();
+
+// ── 엣지 캐시 헬퍼 ──────────────────────────────────────────────────────
+// 상세 배경은 파일 상단 헤더 참조. 여기서는 진입점(fetch)에서만 쓰고, 단어존재조회()·
+// 후보목록조회() 등 순수 함수는 건드리지 않는다 — 그래서 테스트(caches 전역이 없는
+// Node/jsdom 환경, tests/test-worker-*.cjs)는 이 함수들과 무관하게 그대로 통과한다.
+const 캐시_버전 = 'v2'; // 2026-08-30: 동사·형용사 후보 필터 신설로 올림. 필터·그룹화 로직을 바꾸면 이 값을 올릴 것(안 올리면 예전 로직으로
+                        // 만든 캐시 응답이 TTL 끝날 때까지 계속 나간다).
+const 캐시_TTL초 = 60 * 60 * 24 * 3; // 3일 — 사전 데이터는 그새 바뀔 일이 거의 없다.
+
+// caches.default는 GET 요청만 키로 받는다(Cache API 제약). 실제 요청은 POST라 파라미터를
+// URL에 인코딩한 가짜 GET 요청을 키로 쓴다 — Cloudflare 공식 문서가 권장하는 패턴.
+function 캐시키(kind, parts){
+  const url = 'https://itneun-cache.internal/' + 캐시_버전 + '/' + kind + '/'
+    + parts.map(encodeURIComponent).join('/');
+  return new Request(url, { method: 'GET' });
+}
+
+async function 캐시_조회(kind, parts){
+  try{
+    const hit = await caches.default.match(캐시키(kind, parts));
+    if(!hit) return null;
+    return await hit.json();
+  }catch(e){ return null; } // 캐시 API 자체가 실패해도 정상 경로(오픈API 직접 호출)로 진행
+}
+
+// ctx.waitUntil로 응답을 캐시에 쓰는 동안 클라이언트를 기다리게 하지 않는다(써지든 말든
+// 이번 응답과는 무관 — 실패해도 다음 요청이 다시 오픈API를 타면 그만).
+function 캐시_저장(ctx, kind, parts, 결과){
+  try{
+    const res = new Response(JSON.stringify(결과), {
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': `public, max-age=${캐시_TTL초}` },
+    });
+    const p = caches.default.put(캐시키(kind, parts), res);
+    if(ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(p);
+  }catch(e){ /* 캐시 저장 실패는 무시 */ }
+}
+
+// word 문자열 중간에 가능한 모든 위치에 붙임표를 끼운 변형 목록(2~6글자 한글만).
+// Worker가 대신 하면 왕복이 1홉(Worker→오픈API)으로 줄어든다. 클라이언트(국어원.js)의
+// 붙임표_변형 폴백은 이중 안전망으로 남겨 둔다.
+function 붙임표_변형(word){
+  if(!/^[가-힣]{2,6}$/.test(word)) return [];
+  const 변형 = [];
+  for(let i = 1; i < word.length; i++) 변형.push(word.slice(0, i) + '-' + word.slice(i));
+  return 변형;
+}
+
+// Cloudflare Secret 입력 시 앞뒤 공백·줄바꿈이 섞여 들어가는 실수를 막는다(문자열 그대로
+// 비교하는 API라 공백 한 칸만 있어도 "등록 안 된 키"로 거부된다 — 실측으로 확인된 문제).
+const 다듬기 = v => String(v || '').trim();
+
+// ── 오픈API 호출 ───────────────────────────────────────────────────────
+// key·certkey_no 둘 다 필수. num은 최솟값 제약이 있어(실측: num=1은 "Invalid num value"로
+// 거부, num=20/100은 정상) 호출부가 항상 유효한 범위의 값을 넘긴다.
+async function 오픈API_검색(env, { q, advanced, target, method, start = 1, num = 10 }){
+  const url = new URL(국어원_API_기준주소);
+  url.searchParams.set('certkey_no', 다듬기(env.URIMALSAEM_CERTKEY_NO));
+  url.searchParams.set('key', 다듬기(env.URIMALSAEM_KEY));
+  url.searchParams.set('target_type', 'search');
+  url.searchParams.set('req_type', 'json');
+  url.searchParams.set('part', 'word');
+  url.searchParams.set('sort', 'dict');
+  if(advanced) url.searchParams.set('advanced', 'y');
+  if(target) url.searchParams.set('target', String(target));
+  if(method) url.searchParams.set('method', method);   // exact | include | start | end
+  url.searchParams.set('start', String(start));
+  url.searchParams.set('num', String(num));
+  url.searchParams.set('q', q);
+
+  const res = await fetch(url.toString(), { headers: 공통_HEADERS });
+  if(!res.ok) throw new Error('오픈API HTTP ' + res.status);
+  const 원문 = await res.text();
+  let data;
+  try{ data = JSON.parse(원문); }
+  catch(e){ throw new Error('오픈API JSON 파싱 실패'); }
+  // 이 API는 실패해도 HTTP 200을 주고 본문에 {error:{...}}를 담는 경우가 있다(관공서 API 흔한
+  // 패턴) — HTTP 상태만 보면 이 실패를 놓친다.
+  if(data && data.error) throw new Error('오픈API 에러: ' + JSON.stringify(data.error));
+  const channel = data && data.channel;
+  const items = (channel && Array.isArray(channel.item)) ? channel.item : [];
+  return { items };
+}
+
+// view API — target_code 하나를 상세조회해 group_code(다의어 번호 — 동음이의어를 구분하는
+// 진짜 고유 키, search API 응답엔 없음)를 얻는다. 아래 뜻풀이_그룹화_비동기()에서만 쓴다.
+async function 오픈API_뷰(env, target_code){
+  const url = new URL(국어원_API_뷰주소);
+  url.searchParams.set('certkey_no', 다듬기(env.URIMALSAEM_CERTKEY_NO));
+  url.searchParams.set('key', 다듬기(env.URIMALSAEM_KEY));
+  url.searchParams.set('req_type', 'json');
+  url.searchParams.set('method', 'target_code');
+  url.searchParams.set('q', String(target_code));
+
+  const res = await fetch(url.toString(), { headers: 공통_HEADERS });
+  if(!res.ok) throw new Error('오픈API(view) HTTP ' + res.status);
+  const 원문 = await res.text();
+  let data;
+  try{ data = JSON.parse(원문); }
+  catch(e){ throw new Error('오픈API(view) JSON 파싱 실패'); }
+  if(data && data.error) throw new Error('오픈API(view) 에러: ' + JSON.stringify(data.error));
+  const item = data && data.channel && data.channel.item;
+  return Array.isArray(item) ? (item[0] || null) : (item || null);   // view는 원래 단일 객체
+}
+
+// ── 뜻풀이 동음이의어 그룹화 ─────────────────────────────────────────────
+// 2026-08-19 디버그:true 진단으로 실제 opendict 응답 구조를 확인한 결과(README.md 기록),
+// item은 표제어당 1개가 아니라 **뜻(sense) 하나당 1개**로 내려오고, sup_no 필드는 아예 없으며
+// target_code는 표제어가 아니라 **sense(뜻풀이) 단위 고유값**이라 필연=必然의 명사·부사 두
+// 뜻조차 서로 다른 target_code를 갖는다 — 그룹 키로 쓸 수 없다(1차 수정에서 잘못 짚었던 부분).
+// 어원(sense.origin, 예: "必然"/"筆硯")이 있는 뜻은 그걸로 정확히 갈린다(한자어 동음이의어는
+// 이걸로 충분).
+//
+// 2026-08-19 3차(관리자님 승인) — 순우리말이라 origin이 없는 뜻(눈=眼/雪 등)은 위 방법으로
+// 구분이 안 됐는데, opendict view API(target_type=view)가 도는 group_code가 진짜 동음이의어
+// 구분 키임을 확인했다. 다만 target_code 하나당 별도 호출이 필요해 비용이 크므로:
+//   ① 어원 없는 뜻이 2개 이상 몰려 있을 때만(1개면 나눌 대상이 없어 스킵)
+//   ② 서로 다른 target_code 개수가 상한(뷰_추가조회_최대) 이내일 때만 — 넘으면 조회를 포기하고
+//      기존처럼 표제어 하나로 합쳐서 보여준다(정확도만 낮아질 뿐 죽지 않는 안전한 폴백)
+//   ③ 병렬로 — 순서대로 기다리면 뜻 개수만큼 왕복이 쌓인다
+// 조회에 실패한 target_code는 다른 것과 잘못 합치지 않고 그 자체로 고립시킨다(틀리게 합치는
+// 것보다 안전).
+//
+// 2026-08-22 실측 — "눈"(순우리말 다의어) 재배포 확인 결과, 어원 없는 뜻이 20개에 육박해
+// 상한 6을 넘어 폴백(眼/雪 미분리)됐다. ③번 병렬 덕분에 상한을 올려도 **지연 시간은 늘지
+// 않는다**(가장 느린 호출 1개 기준 — 6개를 동시에 보내나 30개를 동시에 보내나 같음). 진짜
+// 제약은 지연이 아니라 Cloudflare Worker 1회 실행당 하위 요청(subrequest) 개수 한도다.
+// 단어 하나 조회 시 붙임표 변형 시도(최대 6)까지 더하면 최악의 경우 6+상한 번 호출되는데,
+// 상한 30이면 최악 36회로 무료 플랜 한도(50)에도 여유 있게 들어간다.
+const 뷰_추가조회_최대 = 30;
+
+async function 뜻풀이_그룹화_비동기(env, items){
+  const 어원있음 = new Map();   // 'origin:필드값' → 뜻풀이[]
+  const 어원없음 = [];          // { definition, target_code, word } — 순서 보존
+
+  for(const it of items){
+    if(!it) continue;
+    const sense목록 = Array.isArray(it.sense) ? it.sense : (it.sense ? [it.sense] : []);
+    for(const s of sense목록){
+      if(!s || !s.definition) continue;
+      if(s.origin){
+        const 키 = 'origin:' + s.origin;
+        if(!어원있음.has(키)) 어원있음.set(키, []);
+        어원있음.get(키).push(String(s.definition));
+      } else {
+        어원없음.push({ definition: String(s.definition), target_code: s.target_code, word: it.word });
+      }
+    }
+  }
+
+  const 어원없음그룹 = new Map();
+  const 고유target = [...new Set(어원없음.map(x => x.target_code).filter(v => v != null))];
+
+  if(어원없음.length >= 2 && 고유target.length >= 2 && 고유target.length <= 뷰_추가조회_최대){
+    const 조회결과 = await Promise.all(고유target.map(tc => 오픈API_뷰(env, tc).catch(() => null)));
+    const target별_그룹코드 = new Map();
+    고유target.forEach((tc, i) => {
+      const view = 조회결과[i];
+      target별_그룹코드.set(tc, (view && view.group_code != null) ? String(view.group_code) : null);
+    });
+    for(const s of 어원없음){
+      const 그룹코드 = s.target_code != null ? target별_그룹코드.get(s.target_code) : null;
+      const 키 = 그룹코드 != null ? ('group:' + 그룹코드) : ('tc:' + s.target_code);
+      if(!어원없음그룹.has(키)) 어원없음그룹.set(키, []);
+      어원없음그룹.get(키).push(s.definition);
+    }
+  } else if(어원없음.length){
+    // 뜻이 1개뿐이거나 target_code가 없거나 상한을 넘음 — 안전하게 표제어 하나로 합친다.
+    어원없음그룹.set('word:' + 어원없음[0].word, 어원없음.map(s => s.definition));
+  }
+
+  // 등장 순서(= opendict가 준 순서, 대개 흔한 뜻부터) 그대로 번호만 매긴다.
+  return [...어원있음.values(), ...어원없음그룹.values()].map((뜻풀이, i) => ({ 번호: i + 1, 뜻풀이 }));
+}
+
+// ── ① 단어 존재 여부 + 뜻풀이 ──────────────────────────────────────────
+// advanced=y&target=1&method=exact — "자세히 찾기" 모드로 정확 일치만 받는다(기본 검색은
+// 부분/포함 일치라 관련 없는 단어까지 섞여 존재 판정이 느슨해질 수 있어 이쪽을 쓴다).
+// method=exact는 opendict 자체가 문자열을 정확 비교하므로, 붙여 쓴 입력("가마솥")으로는
+// 붙임표 표제어("가마-솥")를 찾지 못한다. 원본 그대로 먼저 시도하고, 못 찾으면 가능한 위치에
+// 붙임표를 끼운 변형을 **병렬로** 전부 시도한다(직렬이면 변형 수만큼 왕복이 쌓인다).
+// 진단 모드(payload.디버그===true)일 때만 원본 item을 함께 실어 보낸다 — 그룹화 로직이 또
+// 안 맞을 경우 재배포 없이 curl 한 번으로 실제 필드명을 확인하기 위함(README.md 참조).
+// 평소 요청에는 이 인자를 안 넘기므로 기본 응답 크기·계약에 영향 없다.
+//
+// ⚠️ 2026-08-22 성능 회귀 발견·수정 — 뜻풀이(payload.뜻풀이===true)를 요청한 경우에만
+// 뜻풀이_그룹화_비동기()를 돌린다. 원래 이 함수는 "존재 여부만" 필요한 매 턴 단어 검증
+// (wchain/js/국어원.js의 국어원_단어조회() → 단어_제출())도 전부 거치는 경로인데, 뜻풀이가
+// 실제로 필요한 곳은 사전 조회(Llove/js/사전.js)·이의있음 근거 제시(국어원_단어조회_상세())
+// 뿐이다. 그런데도 지금까지는 존재만 확인하면 되는 매 턴 검증조차 항상 그룹화(순우리말이면
+// view API 추가 호출까지)를 계산해서, "학교"처럼 흔한 2글자 단어 하나 확인하는 데 curl 실측
+// 4~6초가 걸렸다(원래 존재만 볼 때는 오픈API_검색 1~2회로 끝났어야 함) — 관리자님이 제보하신
+// "턴 진행이 너무 오래 걸린다"의 실제 원인이 이거였다. 뜻풀이가 필요 없으면 그룹화를 아예
+// 건너뛰어 원래 속도로 되돌린다.
+async function 단어존재조회(env, word, 진단 = false, 뜻풀이필요 = false){
+  const 시도할것 = [word, ...붙임표_변형(word)];
+  const 결과들 = await Promise.all(
+    시도할것.map(w => 오픈API_검색(env, { q: w, advanced: true, target: 1, method: 'exact', num: 20 })
+      .catch(() => ({ items: [] }))));   // 개별 실패는 "없음"으로 취급, 전체는 아래서 판단
+
+  for(const { items } of 결과들){
+    const 일치항목 = items.filter(it => 정규화(it.word) === 정규화(word));
+    if(일치항목.length){
+      const 결과 = { 존재: true, 뜻풀이그룹: 뜻풀이필요 ? await 뜻풀이_그룹화_비동기(env, 일치항목) : [] };
+      if(진단) 결과._원본진단 = 일치항목.slice(0, 5);
+      return 결과;
+    }
+  }
+  return { 존재: false, 뜻풀이그룹: [] };
+}
+
+// ── 후보 품질 필터 (2026-08-20, 관리자님 제보 기반 실측) ──────────────────
+// 제보: "난이도가 낮은데도 어려운 한자어·북한어·옛말을 쓰고, 초등학교 이름 같은 고유명사도
+// 나온다." curl로 직접 여러 단어를 조회해 확인한 실측 규칙(README.md에 원본 데이터 기록):
+//   · sense.type — "북한어"/"옛말"/"방언"은 확실히 구분되는 값으로 온다(직승기→북한어,
+//     즈믄→옛말, 초가슭→방언 등 실측 확인).
+//   · sense.cat — 비어 있지 않으면 전문 분야·고유명사일 확률이 높다. type은 "일반어"로 남아
+//     있어도 cat만 보고 걸러야 하는 경우가 실제로 있었다(초가팔리→cat:지명, 초가속→cat:책명,
+//     초가청전신→cat:정보·통신, 초가치마케팅→cat:경영 — 전부 type:일반어였다).
+// 표제어(word) 하나에 여러 sense가 있을 수 있어(동음이의어·다의어), **첫 sense**만 본다 —
+// "동무"처럼 흔한 뜻(일반, cat 없음)이 먼저 오고 특수 분야 뜻(광업)이 나중에 오는 경우까지
+// 걸러내면 흔한 단어까지 사라진다(실측: 동무의 sense 1·2는 일반, 3번째만 cat:광업이었지만
+// 그 앞의 흔한 뜻 때문에 포함하는 게 맞다). 첫 sense가 문제라면 표제어 전체를 뺀다.
+const 후보_제외_TYPE = new Set(['북한어', '옛말', '방언']);
+// 동사·형용사 제외 (2026-08-22 실측 시점엔 "opendict가 품사 필드를 안 준다"고 잘못 알고
+// 미착수 상태였다 — 2026-08-30 실측으로 정정: sense.pos는 항상 온다. 배포된 우리말샘
+// Worker에 디버그 모드로 직접 조회해 확인: 사나워지다→동사, 먹다→동사, 달리다→동사,
+// 예쁘다→형용사, 아름답다→형용사, 사과→명사. 관리자님 실기기 제보(AI가 활용형 동사
+// "사나워지다"를 냄) 반영 — 후보 생성(AI가 낼 단어)에만 적용하고, 플레이어가 직접 내는
+// 단어의 존재 확인(단어존재조회)은 그대로 둔다(기존 type/cat 필터와 동일한 비대칭 원칙).
+const 후보_제외_POS = new Set(['동사', '형용사']);
+function 후보_부적절한가(it){
+  const 첫sense = Array.isArray(it.sense) ? it.sense[0] : it.sense;
+  if(!첫sense) return false;
+  if(후보_제외_TYPE.has(첫sense.type)) return true;
+  if(후보_제외_POS.has(첫sense.pos)) return true;
+  if(첫sense.cat) return true;
+  return false;
+}
+
+// ── ② 후보 목록(글자로 시작/끝나는 단어) ───────────────────────────────
+// advanced=y&target=1&method=start|end — "이 글자로 시작/끝나는 단어" 전방/후방 일치.
+// 페이지당 개수 + 필요하면 다음 페이지까지 병렬로 받는다. 붙임표 든 표제어는 버리지 않고
+// 정규화해서 포함한다(위 "정규화" 주석).
+//
+// 2026-08-22 실측(_num실험ms 진단) — num을 줄이면 opendict 응답 자체가 확실히 빨라진다:
+//   num=10→517ms, num=30→1829ms, num=50→1623ms, num=100→3640ms(같은 글자, 같은 페이지).
+// 100→30으로 낮춘다. "초"처럼 흔한 글자도 원래 매칭이 46개뿐이라 30×3페이지(최대 90개)면
+// 다 담기고, 후보 품질 필터를 거치면 어차피 10~20개 안팎으로 줄어드니 실질 손해는 적다.
+const 후보_페이지당개수 = 30;
+const 후보_최대페이지 = 3;   // 최대 90개. 페이지 수를 늘리면 후보는 늘지만 왕복도 늘어난다.
+
+// 2026-08-22 — 후보 조회가 curl 실측 8.8초로 나와 무엇이 느린지(페이지 개수 자체 vs 페이지당
+// 요청 하나의 원래 속도) 확인이 필요했다. 진단 모드일 때 페이지별 왕복 시간을 재서 같이
+// 돌려준다 — 재배포 한 번으로 원인을 확정한 뒤 페이지 수를 조정하기 위한 임시 계측.
+async function 후보목록조회(env, 글자, 방향, 진단 = false){
+  const method = 방향 === 'end' ? 'end' : 'start';
+
+  const 페이지시작 = Date.now();
+  const 페이지들 = await Promise.all(
+    Array.from({ length: 후보_최대페이지 }, (_, i) => i)
+      .map(async i => {
+        const t0 = Date.now();
+        const 결과 = await 오픈API_검색(env, {
+          q: 글자, advanced: true, target: 1, method,
+          start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수,
+        }).catch(() => ({ items: [] }));
+        결과._ms = Date.now() - t0;
+        return 결과;
+      })
+  );
+  const 전체ms = Date.now() - 페이지시작;
+
+  // 진단 모드일 때만 — 1페이지(start=1)만 유독 느린 게 실측됐다(9.8초 vs 다른 페이지 3.4초).
+  // num(페이지당 개수)을 줄이면 그 1페이지가 빨라지는지 재배포 한 번으로 한꺼번에 확인한다
+  // (10/30/50/100 네 값을 병렬로 같이 쏴서 비교 — 정식 응답에는 영향 없는 별도 호출).
+  let num실험ms = null;
+  if(진단){
+    const 실험값들 = [10, 30, 50, 100];
+    const 실험결과 = await Promise.all(실험값들.map(async n => {
+      const t0 = Date.now();
+      await 오픈API_검색(env, { q: 글자, advanced: true, target: 1, method, start: 1, num: n }).catch(() => null);
+      return Date.now() - t0;
+    }));
+    num실험ms = Object.fromEntries(실험값들.map((n, i) => [n, 실험결과[i]]));
+  }
+
+  const 후보 = [];
+  const 본것 = new Set();
+  const 걸러진표본 = [];   // 진단 모드일 때만 채움 — 필터가 또 안 맞을 때 원인 확인용
+  for(const { items } of 페이지들){
+    for(const it of items){
+      if(typeof it.word !== 'string') continue;
+      const 정리됨 = 정규화(it.word);
+      // 접사·구(句) 등 게임에 쓸 수 없는 형태를 거른다:
+      //   · 공백이 남아 있으면(캐럿이 아니라 실제 띄어쓰기) 구(句) — 클라이언트가 phrase 설정에
+      //     따라 별도로 다루므로 여기서는 온전한 한 단어만 보낸다.
+      //   · 한 글자짜리는 게임 규칙상 의미가 없다.
+      //   · 한글이 아닌 문자(로마자 표기 등)가 섞인 표제어는 제외.
+      if(!정리됨 || 정리됨.includes(' ')) continue;
+      if(정리됨.length < 2) continue;
+      if(!/^[가-힣]+$/.test(정리됨)) continue;
+      if(방향 === 'start' && !정리됨.startsWith(글자)) continue;
+      if(방향 === 'end' && !정리됨.endsWith(글자)) continue;
+      if(본것.has(정리됨)) continue;
+      본것.add(정리됨);
+      if(후보_부적절한가(it)){
+        if(진단 && 걸러진표본.length < 20) 걸러진표본.push(it);
+        continue;
+      }
+      후보.push(정리됨);
+    }
+  }
+  return 진단
+    ? { 후보, _걸러진표본: 걸러진표본, _페이지별ms: 페이지들.map(p => p._ms), _전체ms: 전체ms, _num실험ms: num실험ms }
+    : { 후보 };
+}
+
+// ── 진입점 ───────────────────────────────────────────────────────────
+export default {
+  async fetch(request, env, ctx){
+    const origin = request.headers.get('Origin') || '';
+
+    if(request.method === 'OPTIONS'){
+      return new Response(null, { status: 204, headers: cors헤더(origin) });
+    }
+    if(!허용_ORIGIN.has(origin)){
+      // CORS 프리플라이트를 못 넣는 curl 등 서버 간 호출은 여기서 막힌다 — 의도된 동작.
+      return json응답({ error: '허용되지 않은 origin' }, 403, origin);
+    }
+    if(request.method !== 'POST'){
+      return json응답({ error: 'POST만 허용됩니다.' }, 405, origin);
+    }
+    if(!env.URIMALSAEM_KEY || !env.URIMALSAEM_CERTKEY_NO){
+      return json응답({ error: '서버 설정 오류: URIMALSAEM_KEY·URIMALSAEM_CERTKEY_NO 둘 다 필요합니다.' }, 500, origin);
+    }
+
+    let payload;
+    try{ payload = await request.json(); }
+    catch(e){ return json응답({ error: '잘못된 JSON' }, 400, origin); }
+
+    try{
+      if(typeof payload.단어 === 'string' && payload.단어.trim()){
+        const word = payload.단어.trim();
+        const 뜻풀이필요 = payload.뜻풀이 === true;
+        const 디버그 = payload.디버그 === true;
+        const 캐시부분 = [정규화(word), 뜻풀이필요 ? '뜻풀이' : '존재'];
+        if(!디버그){
+          const 캐시됨 = await 캐시_조회('단어', 캐시부분);
+          if(캐시됨) return json응답(캐시됨, 200, origin);
+        }
+        const 결과 = await 단어존재조회(env, word, 디버그, 뜻풀이필요);
+        if(!디버그) 캐시_저장(ctx, '단어', 캐시부분, 결과);
+        return json응답(결과, 200, origin);
+      }
+      if(typeof payload.글자 === 'string' && payload.글자.trim()
+         && (payload.방향 === 'start' || payload.방향 === 'end')){
+        const 글자 = payload.글자.trim();
+        const 디버그 = payload.디버그 === true;
+        const 캐시부분 = [글자, payload.방향];
+        if(!디버그){
+          const 캐시됨 = await 캐시_조회('후보', 캐시부분);
+          if(캐시됨) return json응답(캐시됨, 200, origin);
+        }
+        const 결과 = await 후보목록조회(env, 글자, payload.방향, 디버그);
+        if(!디버그) 캐시_저장(ctx, '후보', 캐시부분, 결과);
+        return json응답(결과, 200, origin);
+      }
+      return json응답({ error: '요청 형식이 올바르지 않습니다(단어 또는 글자+방향 필요).' }, 400, origin);
+    }catch(e){
+      console.error('[우리말샘 Worker] 처리 실패', e);
+      return json응답({ error: '오픈API 호출 실패' }, 502, origin);
+    }
+  },
+};

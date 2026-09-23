@@ -1,0 +1,140 @@
+// 우리말샘 Worker(wchain/worker/우리말샘-worker.mjs)의 뜻풀이 동음이의어 그룹화 회귀 테스트.
+// ─────────────────────────────────────────────────────────────────────────
+// Worker는 Cloudflare 환경 전용(export default { fetch }) 이라 jsdom·node로 그대로
+// require할 수 없다. export default 뒤(진입점)를 잘라내고 순수 함수 부분만 eval해서
+// 검증한다 — 다른 테스트가 못 건드리는 "실측 후 로직 자체가 맞는지"를 커버한다.
+//
+// 2026-08-19 3차 수정(관리자님 승인) 검증:
+//   · 한자어 동음이의어(필연=必然/筆硯) — sense.origin 기준, view API 호출 없이 그룹화.
+//   · 순우리말 동음이의어(눈=眼/雪 등) — sense.origin이 없으면 opendict view API로
+//     group_code(다의어 번호)를 물어 그룹을 나눈다. 병렬·개수 상한(30, 2026-08-22 6→30
+//     상향 — 병렬이라 지연은 안 늘고 Cloudflare subrequest 한도만 여유 안에서 확인)·
+//     조회 실패 시 고립.
+const fs = require('fs');
+const path = require('path');
+const { makeHarness } = require('./load.cjs');
+
+const { assert, finish } = makeHarness('Worker 뜻풀이 동음이의어 그룹화');
+
+const WORKER_PATH = path.join(__dirname, '..', 'wchain', 'worker', '우리말샘-worker.mjs');
+const src = fs.readFileSync(WORKER_PATH, 'utf8');
+// export default { ... } 진입점(Cloudflare 전용 fetch 핸들러) 앞까지만 잘라 순수 함수만 로드.
+const 함수부 = src.split('// ── 진입점')[0];
+// eslint 등 없이 그대로 eval — 이 스코프의 const 선언들이 이 함수 안에서만 보이므로
+// new Function으로 감싸 필요한 함수를 반환받는다(전역 오염 방지).
+const 로드됨 = new Function(`
+  ${함수부}
+  return { 뜻풀이_그룹화_비동기, 오픈API_뷰, 단어존재조회 };
+`)();
+const { 뜻풀이_그룹화_비동기, 단어존재조회 } = 로드됨;
+
+const ENV = { URIMALSAEM_KEY: 'test-key', URIMALSAEM_CERTKEY_NO: 'test-certkey' };
+
+async function main() {
+  // (1) 한자어 동음이의어 — origin으로 갈리고, view API는 호출되지 않아야 한다(비용 없음).
+  {
+    global.fetch = async () => { throw new Error('origin 케이스에서는 view가 호출되면 안 됨'); };
+    const 필연 = [
+      { word: '필연', sense: [{ definition: '사물의 관련이나 일의 결과가 반드시 그렇게 될 수밖에 없음.', origin: '必然', target_code: '549241' }] },
+      { word: '필연', sense: [{ definition: '틀림없이 꼭.', origin: '必然', target_code: '475795' }] },
+      { word: '필연', sense: [{ definition: '붓과 벼루를 아울러 이르는 말.', origin: '筆硯', target_code: '365461' }] },
+    ];
+    const 결과 = await 뜻풀이_그룹화_비동기(ENV, 필연);
+    assert('필연: 2그룹(必然/筆硯)으로 갈림', 결과.length === 2, JSON.stringify(결과));
+    assert('필연: 1그룹에 必然의 뜻 2개가 모임',
+      결과[0].뜻풀이.length === 2 && 결과[0].뜻풀이.includes('틀림없이 꼭.'));
+    assert('필연: 2그룹에 筆硯의 뜻 1개만',
+      결과[1].뜻풀이.length === 1 && 결과[1].뜻풀이[0].includes('붓과 벼루'));
+  }
+
+  // (2) 순우리말 동음이의어 — origin 없음, view API의 group_code로 분리돼야 한다.
+  {
+    const viewMap = { A: { group_code: '1' }, B: { group_code: '1' }, C: { group_code: '2' } };
+    const 조회된target = [];
+    global.fetch = async (url) => {
+      const tc = new URL(url).searchParams.get('q');
+      조회된target.push(tc);
+      return { ok: true, text: async () => JSON.stringify({ channel: { item: viewMap[tc] || null } }) };
+    };
+    const 눈 = [
+      { word: '눈', sense: [{ definition: '눈 뜻1(안구)', target_code: 'A' }] },
+      { word: '눈', sense: [{ definition: '눈 뜻2(안구 관련)', target_code: 'B' }] },
+      { word: '눈', sense: [{ definition: '눈 뜻3(날씨)', target_code: 'C' }] },
+    ];
+    const 결과 = await 뜻풀이_그룹화_비동기(ENV, 눈);
+    assert('눈: group_code 기준 2그룹으로 갈림', 결과.length === 2, JSON.stringify(결과));
+    assert('눈: 같은 group_code(A·B)는 한 그룹에 모임',
+      결과.some(g => g.뜻풀이.includes('눈 뜻1(안구)') && g.뜻풀이.includes('눈 뜻2(안구 관련)')));
+    assert('눈: 다른 group_code(C)는 별도 그룹', 결과.some(g => g.뜻풀이.length === 1 && g.뜻풀이[0].includes('날씨')));
+    assert('눈: 조회 대상 target_code 3개 모두 병렬 조회됨',
+      new Set(조회된target).size === 3, 조회된target.join(','));
+  }
+
+  // (3) 개수 상한 초과 — view를 아예 호출하지 않고 안전하게 1그룹으로 합친다.
+  //     "눈"(순우리말 다의어) 실측으로 어원 없는 뜻이 20개에 육박하는 걸 확인해 상한을
+  //     30으로 올렸다 — 그보다 많은 35개로 상한 초과 케이스를 검증한다.
+  {
+    global.fetch = async () => { throw new Error('상한 초과 시 view가 호출되면 안 됨'); };
+    const 많은뜻 = Array.from({ length: 35 }, (_, i) =>
+      ({ word: '많은말', sense: [{ definition: '뜻' + i, target_code: 'T' + i }] }));
+    const 결과 = await 뜻풀이_그룹화_비동기(ENV, 많은뜻);
+    assert('상한(30) 초과 시 view 호출 없이 1그룹으로 폴백', 결과.length === 1 && 결과[0].뜻풀이.length === 35);
+  }
+
+  // (4) view 조회 일부 실패 — 실패한 것은 다른 그룹과 잘못 합쳐지지 않고 고립된다.
+  {
+    global.fetch = async (url) => {
+      const tc = new URL(url).searchParams.get('q');
+      if (tc === 'FAIL') throw new Error('네트워크 실패(스텁)');
+      return { ok: true, text: async () => JSON.stringify({ channel: { item: { group_code: '9' } } }) };
+    };
+    const 배 = [
+      { word: '배', sense: [{ definition: '배 뜻1', target_code: 'OK1' }] },
+      { word: '배', sense: [{ definition: '배 뜻2', target_code: 'OK2' }] },
+      { word: '배', sense: [{ definition: '배 뜻3(조회실패)', target_code: 'FAIL' }] },
+    ];
+    const 결과 = await 뜻풀이_그룹화_비동기(ENV, 배);
+    assert('조회 실패한 뜻은 성공한 것들과 합쳐지지 않고 고립됨',
+      결과.length === 2 && 결과.some(g => g.뜻풀이.length === 1 && g.뜻풀이[0].includes('조회실패')),
+      JSON.stringify(결과));
+  }
+
+  // (5) 어원 없는 뜻이 1개뿐이면 나눌 대상이 없으니 view를 호출하지 않는다.
+  {
+    global.fetch = async () => { throw new Error('뜻이 1개뿐이면 view가 호출되면 안 됨'); };
+    const 단일 = [{ word: '외톨말', sense: [{ definition: '뜻 하나뿐', target_code: 'ONLY' }] }];
+    const 결과 = await 뜻풀이_그룹화_비동기(ENV, 단일);
+    assert('어원 없는 뜻 1개는 view 호출 없이 그대로 1그룹', 결과.length === 1 && 결과[0].뜻풀이.length === 1);
+  }
+
+  // (6) 성능 회귀 방지 — 뜻풀이 플래그 없이는 그룹화를 절대 안 돈다.
+  //     2026-08-22 발견: Worker가 "존재만" 물어도 항상 동음이의어 그룹화를 계산해서, "학교"·
+  //     "나무" 같은 흔한 단어 하나 확인(매 턴 단어 검증이 쓰는 경로)에 curl 실측 4~6초가
+  //     걸렸다. 뜻풀이가 실제로 필요한 곳(사전 조회·이의있음)만 플래그를 켜서 요청해야 한다.
+  {
+    global.fetch = async (url) => {
+      const q = new URL(url).searchParams.get('q');
+      if(q !== '단어테스트') return { ok: true, text: async () => JSON.stringify({ channel: { item: [] } }) };
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ channel: { item: [
+          { word: '단어테스트', sense: [{ definition: '뜻1', origin: 'origin1', target_code: 'X1' }] },
+          { word: '단어테스트', sense: [{ definition: '뜻2', origin: 'origin2', target_code: 'X2' }] },
+        ] } }),
+      };
+    };
+    const 빠른결과 = await 단어존재조회(ENV, '단어테스트', false, false);
+    assert('뜻풀이 플래그 없으면 그룹화를 계산하지 않는다(뜻풀이그룹 빈 배열)',
+      빠른결과.존재 === true && Array.isArray(빠른결과.뜻풀이그룹) && 빠른결과.뜻풀이그룹.length === 0,
+      JSON.stringify(빠른결과));
+
+    const 상세결과 = await 단어존재조회(ENV, '단어테스트', false, true);
+    assert('뜻풀이:true면 실제로 그룹화가 돈다(2그룹)',
+      상세결과.존재 === true && 상세결과.뜻풀이그룹.length === 2,
+      JSON.stringify(상세결과));
+  }
+
+  process.exit(finish() > 0 ? 1 : 0);
+}
+
+main().catch(e => { console.error(e); process.exit(1); });

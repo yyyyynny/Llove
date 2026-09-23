@@ -1,0 +1,14 @@
+rules_version = '2';
+// Firebase 콘솔(llove-djsdj → Firestore → 규칙)에 게시된 규칙을 2026-08-26 그대로 옮겨 옴.
+// 코드가 실제로 쓰는 경로는 users/{uid} 및 그 서브컬렉션(예: 토큰로그) 뿐.
+// 본인 문서만 읽기·쓰기 가능 — 콘솔에서 바꿀 때 이 파일도 함께 갱신할 것.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}

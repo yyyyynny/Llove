@@ -2,15 +2,15 @@
   "name": "llove",
   "version": "1.0.0",
   "private": true,
-  "description": "한국어 어휘력·표현력 학습 웹앱 (단일 HTML)",
+  "description": "한국어 어휘력·표현력 학습 웹앱 (정적 웹앱)",
   "scripts": {
     "check:js": "node scripts/check-inline-js.mjs",
     "check:deploy": "node scripts/check-deploy.mjs",
-    "check:html": "htmlhint --config .htmlhintrc index.html",
+    "check:html": "htmlhint --config .htmlhintrc Llove/index.html index.html wchain/index.html",
     "test": "node tests/run-all.cjs"
   },
   "devDependencies": {
     "htmlhint": "^1.1.4",
-    "jsdom": "^24.1.3"
+    "jsdom": "^30.0.1"
   }
 }

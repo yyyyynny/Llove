@@ -5,6 +5,23 @@ load((window) => {
   const doc = window.document, ev = (c) => window.eval(c);
   const css = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
+  // 재구조화 이후: sq2_출제풀()이 코드 속 하드코딩 표본 없이 DB문제[category]만 쓰도록 정리됨
+  // (해당 표본은 data/고사성어속담.json·한자우리말.json으로 이전). fetch가 항상 실패하는 이
+  // 테스트 환경(no-net-in-test)에서는 DB문제가 비므로, "DB 로드 성공" 상황을 직접 재현해
+  // sq2 4지선다·역방향·뜻서술·플래시카드가 실제 데이터로 정상 동작하는지 검증한다.
+  ev(`DB문제['고사성어·속담']=[
+    {cat:'고사성어',word:'苛斂誅求',mark:'한자어',reading:'가렴주구',meaning:'세금을 혹독하게 거두고 재물을 강제로 빼앗음.',hanja:[['苛','가혹할 가']],direct:'d1',example:'e1',mnemonic:'m1'},
+    {cat:'고사성어',word:'語不成說',mark:'한자어',reading:'어불성설',meaning:'말이 조금도 사리에 맞지 아니함.',hanja:[['語','말씀 어']],direct:'d2',example:'e2',mnemonic:'m2'},
+    {cat:'고사성어',word:'四面楚歌',mark:'한자어',reading:'사면초가',meaning:'외롭고 곤란한 지경에 빠진 형편.',hanja:[['四','넉 사']],direct:'d3',example:'e3',mnemonic:'m3'},
+    {cat:'고사성어',word:'塞翁之馬',mark:'한자어',reading:'새옹지마',meaning:'인생의 길흉화복은 예측하기 어렵다는 말.',hanja:[['塞','변방 새']],direct:'d4',example:'e4',mnemonic:'m4'}
+  ];
+  DB문제['한자·우리말']=[
+    {cat:'한자어',word:'必然',mark:'한자어',reading:'필연',meaning:'반드시 그렇게 될 수밖에 없음.',hanja:[['必','반드시 필']],direct:'d5',example:'e5',mnemonic:'m5'},
+    {cat:'한자어',word:'矛盾',mark:'한자어',reading:'모순',meaning:'앞뒤가 이치상 서로 맞지 않음.',hanja:[['矛','창 모']],direct:'d6',example:'e6',mnemonic:'m6'},
+    {cat:'한자어',word:'杞憂',mark:'한자어',reading:'기우',meaning:'쓸데없는 걱정.',hanja:[['杞','나라이름 기']],direct:'d7',example:'e7',mnemonic:'m7'},
+    {cat:'한자어',word:'白眉',mark:'한자어',reading:'백미',meaning:'가장 뛰어난 것.',hanja:[['白','흰 백']],direct:'d8',example:'e8',mnemonic:'m8'}
+  ];`);
+
   ev("학습설정.sq2='4지선다'; sq2_출제_렌더('고사성어·속담');");
   let o = doc.querySelectorAll('#sq2Body .aopt');
   assert('4지선다: 보기 4개', o.length === 4, `보기=${o.length}`);

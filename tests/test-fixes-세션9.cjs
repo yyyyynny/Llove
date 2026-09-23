@@ -7,6 +7,15 @@ load((window) => {
   const ev = (code) => window.eval(code);
   const css = Array.from(doc.querySelectorAll('style')).map(s=>s.textContent).join('\n');
 
+  // 재구조화 이후: __TEST_QUIZ__·__TEST_HISTORY__(정적 폴백)이 data/상식어원.json·세계사신화.json으로
+  // 이전되고 코드에서 삭제됨. 테스트는 자체 픽스처를 window에 심어 재사용한다.
+  ev(`window.__TEST_QUIZ__=[{ai:true, cat:'상식', q:'테스트 문제?', opts:[
+    {t:'오답A', c:false}, {t:'정답', c:true}, {t:'오답B', c:false}, {t:'오답C', c:false}
+  ]}];
+  window.__TEST_HISTORY__=[{ai:false, cat:'신화', q:'테스트 신화 문제?', opts:[
+    {t:'오답A', c:false}, {t:'정답', c:true}, {t:'오답B', c:false}, {t:'오답C', c:false}
+  ]}];`);
+
   /* ── ① 온보딩 하단 잔여물 ── */
   ev('setObSlide(0);');
   assert('슬라이드0: 이전/다음 바 표시', doc.querySelector('.ob-nav').style.display === 'flex');
@@ -42,16 +51,16 @@ load((window) => {
 
   // 신규: sq1 예문형 옵션
   assert('sq1에 예문형 버튼 추가됨', Array.from(doc.querySelectorAll('#lsetSq1 .lset-opt')).some(b=>(b.getAttribute('onclick')||'').includes("'sq1','예문형'")));
-  ev("현재학습모드='상식·어원'; 학습설정.sq1='예문형'; renderQuiz4(QUIZ_COMMON);");
+  ev("현재학습모드='상식·어원'; 학습설정.sq1='예문형'; renderQuiz4(__TEST_QUIZ__);");
   assert('상식·어원 예문형 렌더(맥락 카드)', doc.querySelectorAll('#sq1Body .syn-opt').length === 4);
-  ev("현재학습모드='세계사·신화'; renderQuiz4(QUIZ_HISTORY);");
+  ev("현재학습모드='세계사·신화'; renderQuiz4(__TEST_HISTORY__);");
   assert('세계사·신화도 예문형 렌더(별도 데이터풀)', doc.querySelectorAll('#sq1Body .syn-opt').length === 4);
   const exp1 = ev('사용자.총누적EXP||0');
   const 정답1 = doc.querySelector('#sq1Body .syn-opt[data-kind="correct"]');
   ev(`예문형_선택('sq1Body', document.querySelector('#sq1Body .syn-opt[data-kind="correct"]'));`);
   assert('sq1 예문형: 정답 시 EXP 획득', ev('사용자.총누적EXP||0') > exp1);
   assert('sq1 예문형: 이의있음 버튼 없음(일반 컨텍스트 미지정)', !doc.getElementById('sq1BodySynActions').innerHTML.includes('이의있음'));
-  ev("학습설정.sq1='4지선다'; renderQuiz4(QUIZ_COMMON);");
+  ev("학습설정.sq1='4지선다'; renderQuiz4(__TEST_QUIZ__);");
   assert('4지선다 복귀 시 정상 렌더(회귀 없음)', doc.querySelectorAll('#sq1Body .aopt').length === 4);
 
   let fail = 0;
