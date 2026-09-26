@@ -126,5 +126,6 @@ function renderFlashcard(data){
         </div>
       </div>
     </div>
+    <button class="btn-acc" style="width:100%;margin-top:12px" onclick="sq2_출제_렌더(document.getElementById('sq2Title').textContent)">다음 카드 →</button>
   `;
 }

@@ -177,5 +177,13 @@ load((window) => {
   assert('배지: sq4는 입력 방식(종전 고정 탭→공개)', 배지('sq4Mode') === '😂 직접입력', 배지('sq4Mode'));
   ev("학습설정.sq1='4지선다'; 학습설정.sq4_input='플래시카드';");
 
+  /* ── sq2 플래시카드 방식에 '다음 카드' 버튼(종전엔 판정 후 넘어갈 방법이 없었다) ── */
+  ev("학습설정.sq2='플래시카드'; goLearn('고사성어·속담','sq2',null);");
+  const 다음카드 = [...doc.querySelectorAll('#sq2Body button')].find(b => b.textContent.includes('다음 카드'));
+  assert('sq2 플래시카드: 다음 카드 버튼이 있다', !!다음카드);
+  다음카드?.click();
+  assert('sq2 플래시카드: 누르면 다음 카드(2문제째)', doc.querySelector('#sq2 .qct').textContent === '2문제째',
+    doc.querySelector('#sq2 .qct').textContent);
+
   process.exit(finish() > 0 ? 1 : 0);
 });
