@@ -222,15 +222,33 @@ let 마지막_온라인조회 = { 상태:'미시도', 개수:0 };
 // **"AI는 못 찾는데 한방은 아니다"** 라는 어긋난 상태가 만들어졌다. 두 곳의 기준을 맞춘다.
 // 부수 효과로 후보 풀이 두세 배 넓어져, Worker가 후보를 적게 주는 현 상황(Worker_수정요청.md ②)의
 // 완화책도 된다. 앞말잇기(rev)는 "그 글자로 끝나는 단어"라 변형이 없다 — 종전과 동일하게 1회 호출.
+// 이 글자로 이을 수 있는 단어를 우리말샘에 일괄 조회한다 — 끝말잇기는 두음 변형 글자까지 한꺼번에
+// (직렬로 돌면 변형 수만큼 왕복이 쌓인다, 최대 6초 × 3). 앞말잇기는 "그 글자로 끝나는 단어"라 변형 없음.
+// 반환: 결과들(글자별 목록, 실패는 null)과 기록() — 실패로 볼 기준·기록 시점(세대 확인 전후)이
+// 호출부마다 달라서, 판정은 호출부가 하고 성공분을 세션에 남길 때 기록()을 부른다.
+async function 이을단어_조회(글자, gs){
+  const 방향 = gs.rev ? 'end' : 'start';
+  const 글자들 = gs.rev ? [글자] : get_valid_start_chars(글자, gs.dueum);
+  const 결과들 = await Promise.all(글자들.map(c => 국어원_후보목록조회(c, 방향)));
+  // 성공한 글자만 "물어본 글자"로(한방 판정의 전제), 받은 단어는 세션 수집어로(안전망 ①) 남기고 합본을 돌려준다
+  const 기록 = () => {
+    const 합본 = [];
+    결과들.forEach((r, i) => {
+      if(r === null) return;
+      세션_조회글자.add(방향 + ':' + 글자들[i]);
+      for(const w of r) if(!합본.includes(w)) 합본.push(w);
+    });
+    세션_수집(합본);
+    return 합본;
+  };
+  return { 결과들, 기록 };
+}
+
 async function 온라인후보_가져오기(gs){
   마지막_온라인조회 = { 상태:'미시도', 개수:0 };
   if(!국어원_활성화 || !gs.ai_last_char) return [];
 
-  const 방향 = gs.rev ? 'end' : 'start';
-  const 조회할글자 = gs.rev ? [gs.ai_last_char]
-                           : get_valid_start_chars(gs.ai_last_char, gs.dueum);
-  const 결과들 = await Promise.all(조회할글자.map(c => 국어원_후보목록조회(c, 방향)));
-
+  const { 결과들, 기록 } = await 이을단어_조회(gs.ai_last_char, gs);
   // 전부 실패했을 때만 실패로 본다 — 하나라도 받아 왔으면 그걸로 진행하는 편이 낫다.
   if(결과들.every(r => r === null)){
     연속_조회실패 += 1;
@@ -238,15 +256,7 @@ async function 온라인후보_가져오기(gs){
     return [];
   }
   연속_조회실패 = 0;
-
-  const 목록 = [];
-  결과들.forEach((r, i) => {
-    if(r === null) return;
-    // 실제로 응답을 받은 글자만 "물어본 글자"로 기록한다(한방 판정의 전제).
-    세션_조회글자.add(방향 + ':' + 조회할글자[i]);
-    for(const w of r) if(!목록.includes(w)) 목록.push(w);
-  });
-  세션_수집(목록);                       // 받은 건 전부 세션에 쌓아 둔다(안전망 ①)
+  const 목록 = 기록();
   const 슬라이스 = 난이도_슬라이스(gs, 목록);
   마지막_온라인조회 = { 상태: 슬라이스.length ? '성공' : '없음', 개수: 슬라이스.length };
   return 슬라이스;
@@ -271,22 +281,12 @@ async function 한방_확정인가(word, gs){
   if(!국어원_활성화) return true;                                          // 2
 
   const 다음글자 = !gs.rev ? word[word.length - 1] : word[0];
-  const 방향 = gs.rev ? 'end' : 'start';
   // 끝말잇기는 두음법칙 변환형으로도 이을 수 있으므로 그 글자들까지 전부 확인한다
-  // (앞말잇기는 "그 글자로 끝나는 단어"라 변환형이 없다 — find_words의 reverse 분기와 동일).
-  const 조회할글자 = gs.rev ? [다음글자] : get_valid_start_chars(다음글자, gs.dueum);
-  // 직렬로 돌면 변형 수만큼 왕복이 쌓인다(최대 6초 × 3). 한꺼번에 물어본다.
-  const 결과들 = await Promise.all(조회할글자.map(c => 국어원_후보목록조회(c, 방향)));
+  const { 결과들, 기록 } = await 이을단어_조회(다음글자, gs);
   if(결과들.some(r => r === null)) return false;                           // 3
-
-  const 목록 = [];
-  결과들.forEach((r, i) => {
-    // 이미 값을 치른 조회다 — 세션 사전·조회글자에 반드시 반영한다. 종전에는 여기서 받은
-    // 목록을 판정에만 쓰고 버려서, 같은 글자를 AI 턴에 또 물어보고 안전망에도 안 쌓였다.
-    세션_조회글자.add(방향 + ':' + 조회할글자[i]);
-    for(const w of r) if(!목록.includes(w)) 목록.push(w);
-  });
-  세션_수집(목록);
+  // 이미 값을 치른 조회다 — 세션 사전·조회글자에 반드시 반영한다(종전엔 판정에만 쓰고 버려서
+  // 같은 글자를 AI 턴에 또 물어보고 안전망에도 안 쌓였다).
+  const 목록 = 기록();
   // 이미 쓴 단어·자기 자신을 빼고, 그 층의 길이 제약을 통과하는 후보가 하나라도 남는지 본다.
   if(find_words(다음글자, [...used, word], gs.rev, gs.dueum, 0,
                 gs.stage >= 13 ? 3 : 0, 목록).length) return false;        // 4

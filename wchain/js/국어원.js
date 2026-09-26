@@ -34,22 +34,23 @@ function 캐시_상한적용(캐시, 최대개수){
   for(let i = 0; i < 초과; i++) delete 캐시[키들[i]];
   return 캐시;
 }
+// 캐시 3종(존재·상세·후보) 공용 로드·저장 — 키와 상한만 다르다
+function 캐시_로드(키){
+  try{ return JSON.parse(localStorage.getItem(키) || '{}'); }
+  catch(e){ return {}; }   // localStorage 차단 환경 무시
+}
+function 캐시_저장(키, 캐시, 최대개수){
+  try{ localStorage.setItem(키, JSON.stringify(캐시_상한적용(캐시, 최대개수))); }
+  catch(e){ /* 용량 초과 등 무시 — 캐시는 있으면 좋고 없어도 그만 */ }
+}
 
 // 캐시 키에 버전을 붙인다(2026-07-27). 판정 결과(특히 "없는 단어"=false)가 영구 저장되는데,
 // Worker나 판정 규칙이 바뀌어도 옛 결과가 그대로 남아 되돌릴 방법이 없었다. 규칙이 바뀔 때
 // 이 숫자를 올리면 사용자 기기의 옛 캐시가 자연히 무시된다.
 const 국어원_캐시_KEY = 'plx_잇는_국어원캐시_v2';
-function 국어원_캐시_로드(){
-  try{ return JSON.parse(localStorage.getItem(국어원_캐시_KEY) || '{}'); }
-  catch(e){ return {}; }   // localStorage 차단 환경 무시
-}
 const 국어원_캐시_최대개수 = 1000;   // 존재 여부(불리언)만 담아 항목이 작다 — 넉넉히
-function 국어원_캐시_저장(캐시){
-  try{ localStorage.setItem(국어원_캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 국어원_캐시_최대개수))); }
-  catch(e){ /* 용량 초과 등 무시 — 캐시는 있으면 좋고 없어도 그만 */ }
-}
 
-// 공통 POST 헬퍼 — 타임아웃(AbortController) 포함. 게이트 off·엔드포인트 미설정 시 fetch 없이
+// 공통 POST 헬퍼 — 타임아웃(AbortSignal.timeout) 포함. 게이트 off·엔드포인트 미설정 시 fetch 없이
 // null, 실패·시간초과 시에도 null을 반환해 호출부가 "확인 불가"로 처리하게 한다.
 //
 // ⚠️ 타임아웃 값은 추정이 아니라 실측으로 정했다(2026-07-26). 관리자님이 실배포 사이트에서
@@ -67,20 +68,16 @@ const 국어원_타임아웃_후보_MS = 6000;
 async function 국어원_POST(payload, 타임아웃_MS){
   if(!국어원_활성화) return null;
   if(!국어원_WORKERS_ENDPOINT) return null;
-  const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 타임아웃_MS) : null;
   try{
     const res = await fetch(국어원_WORKERS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-      ...(controller ? { signal: controller.signal } : {})
+      signal: AbortSignal.timeout(타임아웃_MS)
     });
-    if(타임아웃ID) clearTimeout(타임아웃ID);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     return await res.json();
   }catch(e){
-    if(타임아웃ID) clearTimeout(타임아웃ID);
     console.error('[국어원] 요청 실패/시간초과 — 확인 불가(null)로 처리', e);
     return null;
   }
@@ -119,13 +116,13 @@ function 붙임표_변형(word){
 // 호출부가 "사전에 없는 단어입니다"라고 오판하고 사용자에게 실수까지 매기는 문제가 있었음
 // — 호출부(서바이벌.js)가 null을 별도로 처리해 이 오판을 없앤다).
 async function 국어원_단어조회(word){
-  const 캐시 = 국어원_캐시_로드();
+  const 캐시 = 캐시_로드(국어원_캐시_KEY);
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
 
   const data = await 국어원_POST({ 단어: word }, 국어원_타임아웃_단어_MS);
   if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
   if(data.존재){
-    캐시[word] = true; 국어원_캐시_저장(캐시);
+    캐시[word] = true; 캐시_저장(국어원_캐시_KEY, 캐시, 국어원_캐시_최대개수);
     return true;
   }
 
@@ -136,7 +133,7 @@ async function 국어원_단어조회(word){
     const 결과들 = await Promise.all(
       변형.map(v => 국어원_POST({ 단어: v }, 국어원_타임아웃_단어_MS)));
     if(결과들.some(d => d && d.존재)){
-      캐시[word] = true; 국어원_캐시_저장(캐시);
+      캐시[word] = true; 캐시_저장(국어원_캐시_KEY, 캐시, 국어원_캐시_최대개수);
       return true;
     }
     // 전부 네트워크 실패면 "없다"고 단정할 수 없다 — 확인 못 함으로 돌려보낸다.
@@ -144,7 +141,7 @@ async function 국어원_단어조회(word){
   }
 
   캐시[word] = false;
-  국어원_캐시_저장(캐시);
+  캐시_저장(국어원_캐시_KEY, 캐시, 국어원_캐시_최대개수);
   return false;
 }
 
@@ -157,17 +154,9 @@ async function 국어원_단어조회(word){
 // 수집어·보조 사전 중에서만 골라 이미 유효성이 보장됨)라 합성어 붙임표 오판 케이스가
 // 사실상 없다.
 const 국어원_상세캐시_KEY = 'plx_잇는_국어원상세캐시_v1';
-function 국어원_상세캐시_로드(){
-  try{ return JSON.parse(localStorage.getItem(국어원_상세캐시_KEY) || '{}'); }
-  catch(e){ return {}; }
-}
 const 국어원_상세캐시_최대개수 = 500;   // 뜻풀이 텍스트까지 담아 존재캐시보다 항목이 크다
-function 국어원_상세캐시_저장(캐시){
-  try{ localStorage.setItem(국어원_상세캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 국어원_상세캐시_최대개수))); }
-  catch(e){ /* 용량 초과 등 무시 */ }
-}
 async function 국어원_단어조회_상세(word){
-  const 캐시 = 국어원_상세캐시_로드();
+  const 캐시 = 캐시_로드(국어원_상세캐시_KEY);
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
   // ⚠️ 뜻풀이:true 필수 — 이게 없으면 Worker가 그룹화를 건너뛰고 뜻풀이그룹을 빈 배열로
   // 돌려준다(2026-08-22, 매 턴 단어 검증까지 이 계산을 물던 성능 회귀 수정 — 위 파일 상단
@@ -176,7 +165,7 @@ async function 국어원_단어조회_상세(word){
   if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
   const 결과 = { 존재: !!data.존재, 뜻풀이그룹: Array.isArray(data.뜻풀이그룹) ? data.뜻풀이그룹 : [] };
   캐시[word] = 결과;
-  국어원_상세캐시_저장(캐시);
+  캐시_저장(국어원_상세캐시_KEY, 캐시, 국어원_상세캐시_최대개수);
   return 결과;
 }
 
@@ -202,18 +191,10 @@ function 뜻풀이_로그줄들(결과){
 // v3(2026-08-20): Worker가 후보 목록에서 북한어·옛말·방언·전문분야·고유명사를 걸러내기
 // 시작했다 — v2 캐시엔 필터 전(이상한 단어 포함) 결과가 남아 있어 버전을 올려 무시시킨다.
 const 국어원_후보캐시_KEY = 'plx_잇는_국어원후보캐시_v3';
-function 국어원_후보캐시_로드(){
-  try{ return JSON.parse(localStorage.getItem(국어원_후보캐시_KEY) || '{}'); }
-  catch(e){ return {}; }
-}
 // 글자+방향 키 하나당 후보 단어 배열(최대 수십 개)이 통째로 들어가 세 캐시 중 항목이 제일
 // 크다 — 상한을 더 낮게 잡는다. 어차피 한글 음절 수(약 11,172개) × 방향 2로 이론상 최댓값이
 // 있는 캐시지만, 그 최댓값까지 안 가더라도 한 세션에 여러 글자를 오래 플레이하면 커질 수 있다.
 const 국어원_후보캐시_최대개수 = 300;
-function 국어원_후보캐시_저장(캐시){
-  try{ localStorage.setItem(국어원_후보캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 국어원_후보캐시_최대개수))); }
-  catch(e){ /* 용량 초과 등 무시 */ }
-}
 
 // 특정 글자로 시작(start)/끝나는(end) 실제 단어 후보 목록을 온라인으로 조회 — AI 다음 단어
 // 생성용이자, 한방 판정(정말 이을 단어가 없는지) 확인용. 접사·구·복합표기(하이픈·공백·^ 포함
@@ -227,7 +208,7 @@ function 국어원_후보캐시_저장(캐시){
 async function 국어원_후보목록조회(글자, 방향){
   if(!국어원_활성화) return null;
   const 캐시키 = `${방향}:${글자}`;
-  const 캐시 = 국어원_후보캐시_로드();
+  const 캐시 = 캐시_로드(국어원_후보캐시_KEY);
   if(Object.prototype.hasOwnProperty.call(캐시, 캐시키)) return 캐시[캐시키];
   const data = await 국어원_POST({ 글자: 글자, 방향: 방향 }, 국어원_타임아웃_후보_MS);
   if(data === null) return null;    // 실패·시간초과 — 캐시에 쓰지 않음(전이적 실패 오염 방지)
@@ -237,7 +218,7 @@ async function 국어원_후보목록조회(글자, 방향){
   // 박히면 그 글자는 그 기기에서 영원히 막다른 길이 된다 — 다음에 다시 물어보게 둔다.
   if(목록.length){
     캐시[캐시키] = 목록;
-    국어원_후보캐시_저장(캐시);
+    캐시_저장(국어원_후보캐시_KEY, 캐시, 국어원_후보캐시_최대개수);
   }
   return 목록;
 }

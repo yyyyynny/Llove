@@ -390,7 +390,9 @@
     </div>
     <div class="set-sec fu s4">
       <div class="set-lbl">사전</div>
-      <div class="set-row" id="설정-사전" style="cursor:default"></div>
+      <!-- 사전 모드(dict_mode)는 Worker가 아직 우리말샘 한 곳만 서빙해 실제 판정에 영향이 없다 —
+           동작하는 것처럼 보이면 거짓이 되므로 준비 중임을 명시한다(🔒) -->
+      <div class="set-row" id="설정-사전" style="cursor:default"><span class="sri">📚</span><div style="flex:1"><div class="srl">사전 모드</div><div class="srs">우리말샘(통합)만 사용합니다 — 표준국어대사전은 인증키가 준비되면 열립니다.</div></div><span class="sra">🔒</span></div>
     </div>
     <div class="set-warn" id="설정-경고" style="display:none"></div>
     <button class="btn acc fu s5" onclick="게임_시작()">시작</button>

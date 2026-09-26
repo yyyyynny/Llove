@@ -745,6 +745,21 @@ async function main(){
          /db 미초기화[\s\S]{0,120}온보딩_걷기\(\)/.test(fb));
   }
 
+  /* ── 포니테일 C31·C35: 층 상승 공용(층_올리기) — 20층이면 소프트락 이스터에그 ─── */
+  {
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    상태(win).stage = 5;
+    win.층_올리기(true);
+    확인('층_올리기: 한 층 오르고 게임은 계속', 상태(win).stage === 6 && 상태(win).game_state === 'PLAYING');
+    상태(win).stage = 19;
+    win.층_올리기(false);
+    const 부패 = win.document.getElementById('소프트락-텍스트').textContent;
+    확인('20층 진입 → 소프트락(결합 부호로 부패한 텍스트)',
+         상태(win).game_state === 'SOFTLOCKED' && /[̀-ͯ]/.test(부패) && 부패.includes('ERROR: MEMORY_LEAK'));
+  }
+
   /* ── 19. 실수 폐지 잔여 환산 · 후보 풀 확장 (2026-07-29 2차 점검) ─── */
   console.log('\n[19] 목숨 환산 잔여분 · 후보 풀 · 캐시');
   {
@@ -765,6 +780,16 @@ async function main(){
     상태(win).hearts = 5;
     win.시련_응답(3);                                   // 어둠의 계약 — 원본 +1
     확인('어둠의 계약 보상도 환산(+4)', 상태(win).hearts === 5 + 값(win, '목숨보상'));
+
+    // (포니테일 C29) 시련 선택박스 공용 함수 — 상세/요약 문구만 다르고 계약 버튼 4개는 같다
+    win.시련_선택박스(true);
+    const 상자 = win.document.getElementById('선택박스');
+    확인('시련 선택박스: 계약 버튼 4개 + 상세 설명(목숨 보상 수치)',
+         상자.querySelectorAll('button').length === 4 && 상자.textContent.includes(`목숨+${값(win, '목숨보상')}`));
+    win.시련_선택박스(false);
+    확인('시련 선택박스: 요약 문구로도 같은 버튼 4개',
+         상자.querySelectorAll('button').length === 4 && 상자.textContent.includes('[1] 시간의 계약  [2]'));
+    win.선택박스_숨기기();
 
     상태(win).stage = 13;
     win.탑승리_응답(true);                              // 14층 무한 등반 진입
@@ -1382,10 +1407,10 @@ async function main(){
     // 끝내지 않는다 — 저장 함수 내부에서 안 부르면 위 단위 테스트는 통과해도 실효가 없다)
     win.eval(`
       window.__c4 = ${JSON.stringify(큰캐시())};
-      국어원_후보캐시_저장(window.__c4);
+      캐시_저장(국어원_후보캐시_KEY, window.__c4, 국어원_후보캐시_최대개수);
     `);
     const 저장된 = 값(win, `Object.keys(JSON.parse(localStorage.getItem(국어원_후보캐시_KEY))).length`);
-    확인('국어원_후보캐시_저장()이 저장 전 상한을 실제로 적용한다', 저장된 === 300, `개수=${저장된}`);
+    확인('후보 캐시 저장(캐시_저장)이 저장 전 상한을 실제로 적용한다', 저장된 === 300, `개수=${저장된}`);
   }
 
   /* ── 25. 취소된 단어를 AI가 그대로 재출제하지 않는다 (2026-08-30 실기기 버그 수정) ── */
