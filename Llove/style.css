@@ -103,10 +103,9 @@ html{scrollbar-gutter:stable}
 *, *::before, *::after {
   transition: background-color .4s, border-color .4s, color .4s;
 }
-/* 호버 인터랙션 빠르게 유지 (테마 전환 색만 .4s, 나머지는 짧게) */
-.btn-acc, .btn-g, .nv-btn, .aopt, .mc, .lset-opt, .ob-nb,
-.seg-btn, .stat-chip, .btn-google, .nm-inp, .nm-prev,
-.mc-arrow, .onum, .qcard, .fc-card, .qpfill, .exp-fill {
+/* 호버 인터랙션 빠르게 유지 (테마 전환 색만 .4s, 나머지는 짧게) — 자주 만지는 요소들은 각자 규칙에서
+   transition을 직접 정의하므로(뒤에서 덮어씀) 여기엔 자기 정의가 없는 카드 둘만 남긴다 */
+.qcard, .fc-card {
   transition: background-color .4s, border-color .2s, color .2s, transform .2s;
 }
 
@@ -331,7 +330,7 @@ html{scrollbar-gutter:stable}
 .qprog-wrap{padding:14px 20px;background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0}
 
 /* v3.5: 학습 화면 상단 설정 패널 (접이식) */
-.lset-panel{background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0;transition:max-height .3s var(--ease-out),opacity .3s var(--ease-out)}
+.lset-panel{background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0}
 /* 세션7 항목9: 학습 설정 헤더 강조 — 배경 톤·강조 바·기본 글자색으로 눈에 띄게 */
 .lset-hdr{padding:10px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:14px;color:var(--txt);font-weight:700;user-select:none;background:var(--elev);border-left:3px solid var(--acc)}
 .lset-hdr:hover{color:var(--acc)}
@@ -357,8 +356,8 @@ html{scrollbar-gutter:stable}
 .qbody{padding:18px;display:flex;flex-direction:column;gap:16px}
 .qcard{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:22px;animation:fadeUp .38s var(--ease-out) both}
 .qcat{margin-bottom:11px;display:flex;gap:6px;flex-wrap:wrap}
-.q-question{font-size:17px;line-height:1.7;margin-bottom:6px}
-.q-hint{font-size:13px;color:var(--txt2);line-height:1.75}
+.q-question{font-size:calc(17px*var(--글자배율));line-height:1.7;margin-bottom:6px}
+.q-hint{font-size:calc(13px*var(--글자배율));color:var(--txt2);line-height:1.75}
 .aopts{display:flex;flex-direction:column;gap:8px}
 .aopt{background:var(--elev);border:1px solid var(--bdr);border-radius:10px;padding:12px 15px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:transform .15s,border-color .2s;animation:fadeUp .38s var(--ease-out) both}
 .aopt:nth-child(1){animation-delay:.05s}.aopt:nth-child(2){animation-delay:.10s}.aopt:nth-child(3){animation-delay:.15s}.aopt:nth-child(4){animation-delay:.20s}
@@ -379,7 +378,7 @@ html{scrollbar-gutter:stable}
    예문형(.syn-opt)이 쓰는 "배경 톤 + 글자색" 대비를 sq7에만 스코프해 추가한다. */
 #sq7Opts .aopt.correct{background:rgba(120,184,120,.18);color:var(--ok);animation:correctPop18 .45s ease both}
 #sq7Opts .aopt.wrong{background:rgba(192,112,112,.15);color:var(--err);opacity:.7}
-.otxt{font-size:14px;font-weight:500;line-height:1.5}
+.otxt{font-size:calc(14px*var(--글자배율));font-weight:500;line-height:1.5}
 .exp-gain{background:rgba(184,149,106,.08);border:1px solid rgba(184,149,106,.22);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
 .egl{font-size:13px;color:var(--txt2)}
 .egv{font-size:18px;font-weight:900;color:var(--acc)}
@@ -389,7 +388,7 @@ html{scrollbar-gutter:stable}
 .fc-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:0;overflow:hidden;animation:fadeUp .38s var(--ease-out) both}
 .fc-front{padding:48px 24px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:200px;justify-content:center}
 .fc-front-tag{margin-bottom:8px}
-.fc-word{font-size:40px;font-weight:700;color:var(--acc);letter-spacing:3px;font-family:'Nanum Myeongjo',serif}
+.fc-word{font-size:calc(40px*var(--글자배율));font-weight:700;color:var(--acc);letter-spacing:3px;font-family:'Nanum Myeongjo',serif}
 .fc-hanja-mark{font-size:15px;color:var(--txt2);margin-top:4px}
 .fc-hint{font-size:12px;color:var(--txtm);margin-top:18px}
 .fc-back{display:none;padding:20px}
@@ -397,22 +396,22 @@ html{scrollbar-gutter:stable}
 .fc-row{padding:12px 0;border-bottom:1px solid var(--bdr)}
 .fc-row:last-child{border-bottom:none}
 .fc-row-num{font-size:11px;color:var(--txtm);margin-bottom:4px;letter-spacing:1px}
-.fc-reading{font-size:20px;color:var(--acc);font-weight:700;letter-spacing:2px}
-.fc-meaning{font-size:15px;line-height:1.7}
+.fc-reading{font-size:calc(20px*var(--글자배율));color:var(--acc);font-weight:700;letter-spacing:2px}
+.fc-meaning{font-size:calc(15px*var(--글자배율));line-height:1.7}
 .fc-more-btn{background:transparent;border:1px dashed var(--bdr);color:var(--txt2);padding:11px;width:100%;border-radius:9px;cursor:pointer;font-size:13px;font-family:var(--fn);margin-top:12px;transition:border-color .2s,color .2s}
 .fc-more-btn:hover{border-color:var(--acc);color:var(--acc)}
 .fc-more-btn.opened{display:none}
 .fc-more{display:none;margin-top:12px;flex-direction:column;gap:10px}
 .fc-more.show{display:flex;animation:fadeUp .35s var(--ease-out) both}
 .fc-hanja-list{display:flex;flex-direction:column;gap:6px;background:var(--elev);padding:14px;border-radius:9px;border:1px solid var(--bdr)}
-.fc-hanja-item{font-size:20px;font-weight:700;color:var(--acc);letter-spacing:2px;font-family:'Nanum Myeongjo',serif}
+.fc-hanja-item{font-size:calc(20px*var(--글자배율));font-weight:700;color:var(--acc);letter-spacing:2px;font-family:'Nanum Myeongjo',serif}
 .fc-hanja-item small{font-size:12px;color:var(--txt2);font-weight:400;margin-left:8px;letter-spacing:0}
-.fc-direct{background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:14px;padding:12px 16px;font-size:14px;line-height:1.65;color:var(--inf);font-weight:500;position:relative}
+.fc-direct{background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:14px;padding:12px 16px;font-size:calc(14px*var(--글자배율));line-height:1.65;color:var(--inf);font-weight:500;position:relative}
 .fc-direct::before{content:'💬';position:absolute;left:-4px;top:-12px;font-size:20px;background:var(--card);padding:2px}
-.fc-example{background:var(--elev);border-left:3px solid var(--acc);padding:10px 14px;font-size:14px;line-height:1.7;color:var(--txt2);font-style:italic;border-radius:0 8px 8px 0}
+.fc-example{background:var(--elev);border-left:3px solid var(--acc);padding:10px 14px;font-size:calc(14px*var(--글자배율));line-height:1.7;color:var(--txt2);font-style:italic;border-radius:0 8px 8px 0}
 .fc-example::before{content:'❝ ';color:var(--acc);font-weight:700;font-style:normal}
 .fc-example::after{content:' ❞';color:var(--acc);font-weight:700;font-style:normal}
-.fc-mnemonic{background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.3);border-radius:9px;padding:10px 14px;font-size:13px;line-height:1.65;color:var(--accl)}
+.fc-mnemonic{background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.3);border-radius:9px;padding:10px 14px;font-size:calc(13px*var(--글자배율));line-height:1.65;color:var(--accl)}
 .fc-judge{display:flex;gap:6px;margin-top:14px}
 .fc-jbtn{flex:1;padding:11px;border-radius:9px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:13px;cursor:pointer;font-weight:700;transition:border-color .15s,color .15s,transform .15s}
 .fc-jbtn.j-know{color:var(--ok);border-color:rgba(120,184,120,.3)}
@@ -423,16 +422,16 @@ html{scrollbar-gutter:stable}
 
 /* ━━━ v3.7 B안: 유의어 변별 출제 UI (KNOWLEDGE 3-2섹션, 3단계 색 분기) ━━━ */
 .syn-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;animation:fadeUp .38s var(--ease-out) both}
-.syn-q{font-size:15px;line-height:1.85;text-align:center;padding:10px 4px 14px;color:var(--txt);font-style:italic}
+.syn-q{font-size:calc(15px*var(--글자배율));line-height:1.85;text-align:center;padding:10px 4px 14px;color:var(--txt);font-style:italic}
 .syn-q .syn-blank{display:inline-block;min-width:60px;padding:2px 10px;border-bottom:2px solid var(--acc);color:var(--acc);font-style:normal;font-weight:700}
 .syn-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-.syn-opt{padding:13px 10px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;font-weight:700;color:var(--txt);text-align:center;transition:background .15s,border-color .15s,color .15s,opacity .15s,transform .15s;position:relative}
-.syn-opt:hover{border-color:var(--acc)}
-.syn-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop18 .45s ease both}
+.syn-opt{padding:13px 10px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:calc(14px*var(--글자배율));font-weight:700;color:var(--txt);text-align:center;transition:background .15s,border-color .15s,color .15s,opacity .15s,transform .15s;position:relative}
+.syn-opt:hover,.rc-opt:hover{border-color:var(--acc)}
+.syn-opt.correct,.rc-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop18 .45s ease both}
 .syn-opt.acceptable{background:rgba(224,144,96,.18);border-color:var(--warn);color:var(--warn)}
-.syn-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7;animation:shakeLR .38s ease both}
-.syn-opt.dim{opacity:.45;pointer-events:none}
-.syn-result{margin-top:14px;padding:13px 14px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);font-size:13px;line-height:1.7;display:none}
+.syn-opt.wrong,.rc-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7;animation:shakeLR .38s ease both}
+.syn-opt.dim,.rc-opt.dim{opacity:.45;pointer-events:none}
+.syn-result{margin-top:14px;padding:13px 14px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);font-size:calc(13px*var(--글자배율));line-height:1.7;display:none}
 .syn-result.show{display:block;animation:fadeUp .3s var(--ease-out) both}
 .syn-result-title{font-weight:700;margin-bottom:6px;font-size:13px}
 .syn-result-title.ok{color:var(--ok)}
@@ -461,23 +460,20 @@ html{scrollbar-gutter:stable}
 .rc-q{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:10px}
 .rc-opts{display:flex;flex-direction:column;gap:8px}
 .rc-opt{padding:12px 14px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;color:var(--txt);text-align:left;line-height:1.5;transition:background .15s,border-color .15s,color .15s,opacity .15s,transform .15s}
-.rc-opt:hover{border-color:var(--acc)}
-.rc-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop18 .45s ease both}
-.rc-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7;animation:shakeLR .38s ease both}
-.rc-opt.dim{opacity:.45;pointer-events:none}
+/* .rc-opt 상태(hover·정답·오답·흐림)는 .syn-opt와 같은 규칙을 공유한다(위 .syn-opt 상태 규칙 참조) */
 /* 예문형 근사 정답 → 지문 독해 유도 넛지 (세션10-c 항목1) */
 .syn-nudge{margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(120,184,120,.08);border:1px dashed var(--ok);font-size:12px;color:var(--txt2);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .syn-nudge button{padding:6px 10px;font-size:12px}
 
 /* ━━━ 아재개그 ━━━ */
 .dad-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;animation:fadeUp .38s var(--ease-out) both}
-.dad-q{font-size:20px;line-height:1.7;font-weight:500;text-align:center;padding:24px 12px}
+.dad-q{font-size:calc(20px*var(--글자배율));line-height:1.7;font-weight:500;text-align:center;padding:24px 12px}
 .dad-reveal-btn{display:block;width:100%;padding:14px;background:var(--elev);border:1px dashed var(--bdr);border-radius:11px;color:var(--txt2);font-family:var(--fn);font-size:14px;cursor:pointer;transition:border-color .2s,color .2s}
 .dad-reveal-btn:hover{border-color:var(--acc);color:var(--acc)}
 .dad-answer{display:none;padding:16px;background:var(--elev);border-radius:11px;border:1px solid var(--accd);margin-top:12px}
 .dad-answer.show{display:block;animation:fadeUp .4s var(--ease-out) both}
-.dad-a-text{font-size:22px;font-weight:700;color:var(--acc);text-align:center;margin-bottom:12px;font-family:'Nanum Myeongjo',serif}
-.dad-a-explain{font-size:13px;color:var(--txt2);line-height:1.6;padding-top:12px;border-top:1px solid var(--bdr)}
+.dad-a-text{font-size:calc(22px*var(--글자배율));font-weight:700;color:var(--acc);text-align:center;margin-bottom:12px;font-family:'Nanum Myeongjo',serif}
+.dad-a-explain{font-size:calc(13px*var(--글자배율));color:var(--txt2);line-height:1.6;padding-top:12px;border-top:1px solid var(--bdr)}
 .dad-a-explain::before{content:'💡 ';margin-right:4px}
 
 /* ━━━ 구어 교정 ━━━ */
@@ -488,7 +484,7 @@ html{scrollbar-gutter:stable}
 .spk-mode-tabs{display:flex;gap:6px;margin-bottom:12px}
 .spk-mode-btn{flex:1;padding:10px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;color:var(--txt2);font-family:var(--fn);font-size:13px;cursor:pointer;transition:background .15s,border-color .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:6px}
 .spk-mode-btn.on{border-color:var(--acc);color:var(--acc);background:rgba(184,149,106,.05)}
-.spk-textarea{width:100%;min-height:90px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-family:var(--fn);font-size:14px;outline:none;resize:vertical;line-height:1.6}
+.spk-textarea{width:100%;min-height:90px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-family:var(--fn);font-size:calc(14px*var(--글자배율));outline:none;resize:vertical;line-height:1.6}
 .spk-textarea:focus{border-color:var(--acc)}
 /* 항목8: 음성 입력 UI */
 .spk-voice{display:flex;flex-direction:column;align-items:stretch;gap:10px}
@@ -520,7 +516,7 @@ html{scrollbar-gutter:stable}
 .rv-cap-val:hover{text-decoration:underline}
 .rv-item{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:11px;animation:fadeUp .35s var(--ease-out) both;transition:opacity .3s}
 .rv-idx{width:26px;height:26px;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--txtm);flex-shrink:0}
-.rv-word{font-size:15px;font-weight:700;margin-bottom:2px}
+.rv-word{font-size:calc(15px*var(--글자배율));font-weight:700;margin-bottom:2px}
 .rv-desc{font-size:12px;color:var(--txt2);line-height:1.5}
 .rv-meta{display:flex;align-items:center;gap:7px;margin-top:5px}
 .rv-dots{display:flex;gap:3px}
@@ -561,9 +557,7 @@ html{scrollbar-gutter:stable}
 
 /* 업적 상세 모달 */
 .ach-detail-bg{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
-.ach-detail-bg.show{opacity:1;pointer-events:all}
 .ach-detail{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:26px 22px;max-width:340px;width:100%;transform:scale(.85);transition:transform .38s var(--ease-out);max-height:85vh;overflow-y:auto}
-.ach-detail-bg.show .ach-detail{transform:scale(1)}
 .ach-d-icon{font-size:53px;text-align:center;margin-bottom:10px}
 .ach-d-name{font-size:20px;font-weight:900;color:var(--acc);text-align:center;margin-bottom:6px}
 .ach-d-cat{font-size:12px;color:var(--txt2);text-align:center;margin-bottom:14px}
@@ -736,7 +730,6 @@ html{scrollbar-gutter:stable}
 
 /* 항목6: 문제 영역 가림 최소화 — 배경 딤을 옅게(리퀴드 글래스에서 뒤가 비치도록) */
 .ask-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .3s}
-.ask-bg.show{opacity:1;pointer-events:all}
 /* 항목6: 하단 시트를 반투명 리퀴드 글래스로 전환 (backdrop-filter 블러 + 반투명 배경).
    color-mix 미지원 브라우저는 첫 줄(var(--card))로 폴백된다. */
 .ask-panel{position:fixed;bottom:0;left:0;right:0;z-index:301;
@@ -760,7 +753,7 @@ html{scrollbar-gutter:stable}
 .ask-input:focus{border-color:var(--acc)}
 .ask-send{padding:11px 18px;background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn)}
 /* 세션7: 전역 user-select:none의 예외 — AI 답변·설명은 복사할 수 있어야 함 */
-.ask-msg{padding:12px 14px;border-radius:9px;font-size:14px;line-height:1.7;user-select:text;-webkit-user-select:text}
+.ask-msg{padding:12px 14px;border-radius:9px;font-size:calc(14px*var(--글자배율));line-height:1.7;user-select:text;-webkit-user-select:text}
 /* 세션5 버그3: 보조색(--txt2)이 어두운 테마에서 배경에 묻힘 — 본문은 기본 글자색 사용 */
 .ask-msg.user{background:var(--elev);color:var(--txt);text-align:right;margin-left:32px;border:1px solid var(--bdr)}
 .ask-msg.ai{background:rgba(120,180,255,.06);border:1px solid rgba(120,180,255,.2);margin-right:32px}
@@ -774,9 +767,7 @@ html{scrollbar-gutter:stable}
 .ask-objection-btn:hover{background:rgba(192,112,112,.1)}
 
 .obj-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
-.obj-bg.show{opacity:1;pointer-events:all}
 .obj-modal{background:var(--card);border:1px solid var(--err);border-radius:16px;padding:22px;max-width:320px;width:100%;transform:scale(.85);transition:transform .35s var(--ease-out)}
-.obj-bg.show .obj-modal{transform:scale(1)}
 .obj-icon{font-size:40px;text-align:center;margin-bottom:8px}
 .obj-title{font-size:18px;font-weight:900;color:var(--err);text-align:center;margin-bottom:6px}
 .obj-desc{font-size:13px;color:var(--txt2);text-align:center;line-height:1.6;margin-bottom:14px}
@@ -786,9 +777,7 @@ html{scrollbar-gutter:stable}
 
 /* ━━━ 업적 / 레벨업 팝업 ━━━ */
 .ov-bg{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.68);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
-.ov-bg.show{opacity:1;pointer-events:all}
 .ach-popup{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:28px 22px;text-align:center;max-width:295px;width:100%;box-shadow:0 0 36px rgba(184,149,106,.18);transform:scale(.85);transition:transform .38s var(--ease-out)}
-.ov-bg.show .ach-popup{transform:scale(1)}
 .pp-icon{font-size:55px;margin-bottom:10px}
 .pp-title{font-size:19px;font-weight:900;color:var(--acc);margin-bottom:5px}
 .pp-stage{font-size:14px;color:var(--accl);margin-bottom:5px;font-weight:700}
@@ -797,7 +786,6 @@ html{scrollbar-gutter:stable}
 .pp-exp{font-size:26px;font-weight:900;color:var(--accl);margin-bottom:18px}
 
 .lvup-popup{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:28px 22px;text-align:center;max-width:295px;width:100%;box-shadow:0 0 36px rgba(184,149,106,.18);transform:scale(.85);transition:transform .4s var(--ease-out)}
-.ov-bg.show .lvup-popup{transform:scale(1)}
 .lvup-burst{font-size:70px;animation:bounce 1s ease-in-out infinite}
 .lvup-txt{font-family:'Nanum Myeongjo',serif;font-size:30px;font-weight:700;color:var(--accl);letter-spacing:2px;text-shadow:0 0 28px rgba(184,149,106,.7)}
 .lvup-new{font-size:15px;color:var(--txt2);margin-top:6px}
@@ -807,7 +795,8 @@ html{scrollbar-gutter:stable}
 
 /* 일반 모달 */
 .modal-bg{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
-.modal-bg.show{opacity:1;pointer-events:all}
+/* 오버레이 공통 표시 — 업적 상세·질문 패널 배경·이의 모달·업적/레벨업 팝업·일반 모달 */
+.ach-detail-bg.show,.ask-bg.show,.obj-bg.show,.ov-bg.show,.modal-bg.show{opacity:1;pointer-events:all}
 /* 세션10-e 항목2: PC 등 큰 뷰포트에서 340px 고정폭이 여백만 남기던 문제 — 뷰포트 비례(clamp)로 반응형화.
    폰(46vw가 320 미만)에서는 하한 320px로 기존과 거의 동일, 데스크톱은 최대 520px까지 확장 */
 .modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px;max-width:clamp(320px, 46vw, 520px);width:100%;transform:scale(.85);transition:transform .35s var(--ease-out);max-height:80vh;overflow-y:auto}
@@ -821,7 +810,8 @@ html{scrollbar-gutter:stable}
 /* 프로필 크롭: 정사각 뷰포트 + 원형 마스크 오버레이(실제 저장 이미지는 정사각, 원형은 시각 안내용) */
 .crop-vp.round{aspect-ratio:1/1;max-width:280px;margin:0 auto}
 .crop-vp.round::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,.6);pointer-events:none}
-.modal-bg.show .modal-bx{transform:scale(1)}
+/* 오버레이가 열리면 안쪽 박스가 .85 → 1로 커진다(공통) */
+.ach-detail-bg.show .ach-detail,.obj-bg.show .obj-modal,.ov-bg.show .ach-popup,.ov-bg.show .lvup-popup,.modal-bg.show .modal-bx{transform:scale(1)}
 /* 추가기능: 음성 생성(콜롬비나 TTS) 테스트 벤치 — 회전 금지(점 불투명도 펄스)·세로 전개만 */
 .vc-lbl{display:block;font-size:12px;color:var(--txt2);font-weight:700;margin-top:8px}
 .vc-ta{width:100%;min-height:62px;resize:vertical;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;padding:9px 11px;color:var(--txt);font-family:var(--fn);font-size:14px;line-height:1.6;box-sizing:border-box;margin:4px 0}
@@ -909,12 +899,12 @@ body.devnav .demo-offset{margin-top:80px}
 /* ━━━ 빌드1 β8: 구어 교정 예문 출제 카드 (정령왕 JSON 27건) ━━━ */
 .spk-prompt{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:12px 14px;margin-bottom:10px}
 .spk-prompt-lbl{font-size:11px;color:var(--acc);font-weight:700;margin-bottom:6px}
-.spk-prompt-text{font-size:15px;color:var(--txt);line-height:1.6}
+.spk-prompt-text{font-size:calc(15px*var(--글자배율));color:var(--txt);line-height:1.6}
 .spk-prompt-diff{font-size:10px;color:var(--txtm);margin-top:6px}
 
 /* ━━━ 빌드1 β3: 이의있음! reasoning_note 패널 (KNOWLEDGE 33) ━━━ */
 /* 세션5 버그3: 사고전개·출제근거는 중요 콘텐츠 — 보조색 대신 기본 글자색으로 가독성 확보 */
-.obj-note{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;margin:10px 0;font-size:13px;color:var(--txt);line-height:1.7;text-align:left}
+.obj-note{background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;margin:10px 0;font-size:calc(13px*var(--글자배율));color:var(--txt);line-height:1.7;text-align:left}
 .obj-note-lbl{color:var(--acc);font-weight:700;font-size:11px;margin-bottom:4px}
 
 /* ━━━ 빌드1 α4: Lv.70 「주신의 경지」 메시지 (현황 탭 상단) ━━━ */
@@ -927,29 +917,9 @@ body.devnav .demo-offset{margin-top:80px}
 /* ━━━ 세션5 버그1: 「글자 크기」 — 읽기 텍스트 전용 배율(--글자배율).
    화면 전체를 키우는 「화면 크기」(zoom)와 분리. 앱 틀(네비·버튼·아이콘)은 그대로 두고
    학습 콘텐츠(문제·선택지·카드·뜻풀이·채팅·예문)의 글자만 커진다.
-   ※ 원본 규칙보다 뒤에 선언되어 같은 특이도에서 이 블록이 우선 적용된다. ━━━ */
+   해당 규칙들이 각자 font-size:calc(원본px*var(--글자배율))로 이 변수를 직접 쓴다
+   (.q-question·.otxt·.fc-*·.dad-*·.syn-*·.ask-msg·.rv-word 등 21곳). ━━━ */
 :root{--글자배율:1}
-.q-question{font-size:calc(17px*var(--글자배율))}
-.q-hint{font-size:calc(13px*var(--글자배율))}
-.otxt{font-size:calc(14px*var(--글자배율))}
-.fc-word{font-size:calc(40px*var(--글자배율))}
-.fc-reading{font-size:calc(20px*var(--글자배율))}
-.fc-meaning{font-size:calc(15px*var(--글자배율))}
-.fc-hanja-item{font-size:calc(20px*var(--글자배율))}
-.fc-direct{font-size:calc(14px*var(--글자배율))}
-.fc-example{font-size:calc(14px*var(--글자배율))}
-.fc-mnemonic{font-size:calc(13px*var(--글자배율))}
-.dad-q{font-size:calc(20px*var(--글자배율))}
-.dad-a-text{font-size:calc(22px*var(--글자배율))}
-.dad-a-explain{font-size:calc(13px*var(--글자배율))}
-.syn-q{font-size:calc(15px*var(--글자배율))}
-.syn-opt{font-size:calc(14px*var(--글자배율))}
-.syn-result{font-size:calc(13px*var(--글자배율))}
-.spk-prompt-text{font-size:calc(15px*var(--글자배율))}
-.spk-textarea{font-size:calc(14px*var(--글자배율))}
-.ask-msg{font-size:calc(14px*var(--글자배율))}
-.obj-note{font-size:calc(13px*var(--글자배율))}
-.rv-word{font-size:calc(15px*var(--글자배율))}
 
 /* ━━━ 세션7 항목10: 글자 크기 「전체 적용」 — html[data-글자범위="전체"]일 때
    학습 콘텐츠 외 주요 UI 텍스트에도 배율 적용 (기준값 = +10% 반영된 새 기본) ━━━ */
@@ -971,19 +941,10 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
    색·테두리 변화는 밖에 남겨 둔다(터치에서도 눌린 느낌이 나는 편이 낫다).
    ── */
 @media (hover: hover) and (pointer: fine) {
-  .btn-acc:hover{transform:translateY(-2px)}
-  .ob-start-btn:hover{transform:translateY(-2px)}
-  .btn-google:hover{transform:translateY(-1px)}
-  .stat-chip:hover{transform:translateY(-2px)}
-  .mc:hover{transform:translateX(3px)}
-  .mc:hover .mc-arrow{transform:translateX(3px)}
-  .aopt:hover{transform:translateX(3px)}
-  .fc-jbtn:hover{transform:translateY(-1px)}
-  .syn-opt:hover{transform:translateY(-1px)}
-  .rc-opt:hover{transform:translateY(-1px)}
+  .btn-acc:hover, .ob-start-btn:hover, .stat-chip:hover, .ach-item:hover, .tc:hover{transform:translateY(-2px)}
+  .btn-google:hover, .fc-jbtn:hover, .syn-opt:hover, .rc-opt:hover{transform:translateY(-1px)}
+  .mc:hover, .mc:hover .mc-arrow, .aopt:hover{transform:translateX(3px)}
   .act-btn:hover{transform:scale(1.08)}
-  .ach-item:hover{transform:translateY(-2px)}
   .ach-item:hover .ach-icon{transform:scale(1.1)}
   .ct-sw-opt:hover{transform:scale(1.12)}
-  .tc:hover{transform:translateY(-2px)}
 }

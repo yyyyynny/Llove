@@ -12,9 +12,9 @@ const WCHAIN_HTML = fs.readFileSync(path.join(ROOT, 'wchain', 'index.html'), 'ut
 
 /* (a) .syn-opt·.rc-opt 정답/오답 반응이 .aopt와 같은 결로 움직이는지 */
 assert('Llove style.css: .syn-opt.correct가 정답 플래시를 쓴다',
-  /\.syn-opt\.correct\{[^}]*animation:correctPop18/.test(LLOVE_CSS));
+  /\.syn-opt\.correct[,{][^}]*animation:correctPop18/.test(LLOVE_CSS));
 assert('Llove style.css: .syn-opt.wrong이 shakeLR을 쓴다',
-  /\.syn-opt\.wrong\{[^}]*animation:shakeLR/.test(LLOVE_CSS));
+  /\.syn-opt\.wrong[,{][^}]*animation:shakeLR/.test(LLOVE_CSS));
 assert('Llove style.css: .rc-opt.correct가 정답 플래시를 쓴다',
   /\.rc-opt\.correct\{[^}]*animation:correctPop18/.test(LLOVE_CSS));
 assert('Llove style.css: .rc-opt.wrong이 shakeLR을 쓴다',
@@ -37,14 +37,14 @@ assert('correctPop은 .08로 끝난다(.aopt는 자체 배경이 없어 이게 �
 assert('correctPop18은 .18로 끝난다(자체 배경 .18을 가진 요소용)',
   정답끝값('correctPop18') === 'rgba(120,184,120,.18)', 정답끝값('correctPop18'));
 for (const sel of ['\\.syn-opt\\.correct', '\\.rc-opt\\.correct', '#sq7Opts \\.aopt\\.correct']) {
-  const 규칙 = LLOVE_CSS.match(new RegExp(sel + '\\{([^}]*)\\}'));
+  const 규칙 = LLOVE_CSS.match(new RegExp(sel + '(?:,[^{]*)?\\{([^}]*)\\}'));   // 셀렉터 목록으로 묶여 있어도 본문을 찾는다
   const 본문 = 규칙 ? 규칙[1] : '';
   assert(`${sel.replace(/\\/g, '')}: 배경 .18과 애니메이션 끝값이 어긋나지 않는다`,
     본문.includes('rgba(120,184,120,.18)') && 본문.includes('correctPop18'),
     본문.slice(0, 90));
 }
 assert('자체 배경 .18을 가진 선택자에 .08로 끝나는 correctPop이 걸려 있지 않다',
-  !/(\.syn-opt|\.rc-opt|#sq7Opts \.aopt)\.correct\{[^}]*animation:correctPop\s/.test(LLOVE_CSS));
+  !/(\.syn-opt|\.rc-opt|#sq7Opts \.aopt)\.correct[,{][^}]*animation:correctPop\s/.test(LLOVE_CSS));
 
 /* (b) prefers-reduced-motion 전역 폴백 — Llove·wchain 양쪽 다(별도 스타일시트라 각자 필요) */
 assert('Llove style.css에 prefers-reduced-motion 폴백이 있다',
@@ -81,8 +81,8 @@ for (const [이름, css] of [['Llove/style.css', LLOVE_CSS], ['wchain/index.html
   assert(`${이름}: transition:all 이 남아 있지 않다`, 잔여.length === 0, 잔여.join(' / '));
 }
 // 의도된 레이아웃 전환은 명시적으로 남아 있어야(아코디언·온보딩 점)
-assert('아코디언(.lset-panel)의 max-height 전환은 명시로 유지',
-  /\.lset-panel\{[^}]*transition:max-height/.test(LLOVE_CSS));
+assert('아코디언(.lset-body — 실제로 펼쳐지는 요소)의 max-height 전환은 명시로 유지',
+  /\.lset-body\{[^}]*transition:max-height/.test(LLOVE_CSS));
 assert('온보딩 점(.ob-dot)의 알약 확장(width)은 명시로 유지',
   /\.ob-dot\{[^}]*transition:width/.test(LLOVE_CSS));
 

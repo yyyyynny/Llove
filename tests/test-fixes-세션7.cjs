@@ -17,8 +17,7 @@ load((window) => {
   ]}];`);
 
   /* ── #3 전역 +10% (대표값) ── */
-  assert('#3: .q-question 15→17px', /\.q-question\{font-size:17px/.test(css));
-  assert('#3: calc 기준값도 상향(17px)', /\.q-question\{font-size:calc\(17px\*var\(--글자배율\)\)\}/.test(css));
+  assert('#3: .q-question 15→17px(글자배율 calc 기준값)', /\.q-question\{font-size:calc\(17px\*var\(--글자배율\)\)/.test(css));
   assert('#3: 제외 목록 유지(.nv-btn 10px)', /\.nv-btn\{[^}]*font-size:10px/.test(css));
 
   /* ── #1 봉인 → 창조주 업적 완전 리셋 ── */
