@@ -82,7 +82,7 @@
   --txtm:color-mix(in srgb, var(--c-txt,#e8e8f0) 38%, var(--c-bg,#0e0e14) 62%);
   --ok:#60d890;--err:#d86070;--inf:#60b8e8;--warn:#e09060;
   --exp:linear-gradient(90deg,var(--c-acc,#8080ff),color-mix(in srgb, var(--c-acc,#8080ff) 62%, #ffffff 38%));
-  --fn:var(--c-fn,'Noto Sans KR',sans-serif);
+  --fn:'Noto Sans KR',sans-serif;   /* 글꼴은 테마가 아니라 설정 '글꼴'(applyFont)이 정한다 */
   --mono:'JetBrains Mono',monospace;
 }
 
