@@ -145,5 +145,15 @@ load((window) => {
       학습설정.sq2='4지선다'; goLearn('고사성어·속담','sq2',null);`);
   assert('Q11: 폴백(4지선다→플래시카드)도 한 문제로 센다', 진행('sq2')[0] === '1문제째', 진행('sq2')[0]);
 
+  /* ── Q3: 설정 '앱 안내 다시 보기'로 온보딩 재진입 ── */
+  const 안내행 = [...doc.querySelectorAll('#sse .set-row')].find(r => r.textContent.includes('앱 안내 다시 보기'));
+  assert('Q3: 설정에 앱 안내 다시 보기 행이 있다', !!안내행);
+  ev("finishOb(); setObSlide(2);");
+  안내행?.click();
+  assert('Q3: 누르면 온보딩이 첫 장부터 다시 열린다',
+    !doc.getElementById('onboarding').classList.contains('gone') && ev('obIdx') === 0);
+  ev('finishOb();');
+  assert('Q3: 건너뛰기·시작하기로 다시 닫힌다', doc.getElementById('onboarding').classList.contains('gone'));
+
   process.exit(finish() > 0 ? 1 : 0);
 });
