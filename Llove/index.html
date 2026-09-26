@@ -366,8 +366,7 @@
 <!-- ━━━ ① 로그인 ━━━
      v3.7 항목1: 구글 로그인 강제화 확정 (KNOWLEDGE 28섹션)
      - 비로그인·익명 로그인 옵션 폐기
-     - 진입 경로는 단일 「Google 계정으로 시작하기」 버튼만 유효
-     - 실제 Firebase Auth 연결은 Claude Code 단계 -->
+     - 진입 경로는 단일 「Google 계정으로 시작하기」 버튼만 유효 (Firebase Auth — js/firebase.js) -->
 <div id="sl" class="screen active demo-offset">
   <div class="lg-bg"><div class="lg-aura"></div></div>
   <div class="lg-content">
@@ -927,7 +926,7 @@
   </div>
 </div>
 
-<!-- ⑦-1 성장 상세 화면 (sg) — Claude Code 단계에서 완전 구현 예정 -->
+<!-- ⑦-1 성장 상세 화면 (sg) — 렌더는 js/성장상세.js -->
 <div id="sg" class="screen demo-offset has-bnav">
   <div class="top-bar">
     <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('ss',null)">← 나가기</button>
@@ -1157,7 +1156,7 @@
   </div>
 </div>
 
-<!-- 재구조화: 단일 인라인 스크립트(약 6,100줄)를 js/ 폴더 23개 파일로 분할.
+<!-- 재구조화: 단일 인라인 스크립트를 js/ 폴더 파일들로 분할(현재 목록은 아래 태그 그대로).
      클래식 스크립트 순차 로드로 전역 스코프를 공유하므로 아래 순서를 절대 바꾸지 말 것.
      (초기 실행은 js/초기실행.js — 반드시 마지막) -->
 <script src="js/상태.js"></script>

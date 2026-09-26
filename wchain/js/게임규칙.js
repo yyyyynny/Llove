@@ -1,5 +1,5 @@
 // '잇는' 게임 규칙 — 파이썬 원본 validate_word·ai_generate_word·user_defeat·check_title 이식
-// (Phase 3: 서바이벌 모드 한정 경로만 실제로 타짐. 아케이드 분기는 원본과 동일하게 구조만 보존).
+// (서바이벌·아케이드 두 모드 모두 실제로 탄다.)
 // 로그 출력은 원본의 print()를 그대로 옮긴 것 — 전역 로그_추가(text)는 서바이벌.js(UI 레이어)가 정의.
 // 클래식 스크립트, 사전.js·엔진.js·게임상태.js 뒤에 로드.
 
@@ -53,8 +53,8 @@ function validate_word(word, gs){
 
 // AI 상대 단어 생성 — 랜덤 선택 자체는 파이썬 random과 1:1 재현 불가(다른 PRNG)라 대조 대상이
 // 아니며, 후보 풀 구성 로직(필터·공격 모드 확률표)만 원본과 동일하게 이식.
-// 추가후보(2번째 인자): 국어원 API가 온라인으로 찾아준 후보 단어들(있으면). 로컬 사전과 합쳐서
-// 같은 필터·선택 로직을 그대로 태운다 — attack_mode/safe_filter 등 기존 검증된 로직은 전혀
+// 추가후보(2번째 인자): 국어원 API가 온라인으로 찾아준 후보 단어들(있으면). 세션 수집어·보조 사전과
+// 합쳐서(ai_후보사전) 같은 필터·선택 로직을 그대로 태운다 — attack_mode/safe_filter 등 기존 검증된 로직은 전혀
 // 손대지 않고 "입력 풀만 넓히는" 방식이라 회귀 위험이 적다.
 // AI가 이번 턴에 실제로 고를 수 있는 단어 풀. 후보 선택과 **한방 판정**이 같은 사전을 봐야
 // 정합적이므로(2026-07-27), 종전에 ai_generate_word 안에만 있던 계산을 밖으로 꺼내 공유한다.
@@ -66,7 +66,7 @@ function ai_후보사전(gs, 추가후보 = []){
 }
 
 // AI가 한방 단어를 내면 안 되는 국면인지. 아케이드는 validate_word가 사용자의 한방 단어를 항상
-// 거부하므로(45행), AI에게만 허용하면 일방적으로 불리해진다 — hanbang 설정과 무관하게 항상 금지.
+// 거부하므로(validate_word 참조), AI에게만 허용하면 일방적으로 불리해진다 — hanbang 설정과 무관하게 항상 금지.
 // (2026-07-27 hanbang 기본값을 true로 올리면서 드러난 문제 — 종전엔 기본값이 false라 가려져 있었다.)
 function ai_한방금지인가(gs){ return !gs.hanbang || gs.game_mode === 'ARCADE'; }
 
@@ -397,21 +397,12 @@ function arcade_floor_up(gs, ai_defeated){
   gs.ai_last_char = null; gs.ai_last_word = null;
 }
 
-/* ⚠️ 봉인 (2026-07-29) — 아케이드 '층 재시작'
-   원본에서 이 함수는 "실수 4회로 목숨 1개를 잃으면 그 대가로 층을 처음부터 다시"라는 뜻이었다.
-   실수(strikes)를 폐지하고 목숨 하나로 통일하면서 그 대가 관계 자체가 사라져 호출부가 없어졌다
-   (이제 두 모드 모두 목숨이 0이 될 때까지 그 자리에서 계속 이어간다 — user_defeat 참조).
-   되살릴 근거를 남겨 두려고 지우지 않고 주석으로 보존한다(이의/허세 봉인과 같은 관례).
-
-function arcade_restart_floor(gs){
-  gs.stage_turn = 0; gs.curse_dark_strikes = 0;
-  gs.ai_last_char = null; gs.ai_last_word = null;
-}
-*/
+// 원본의 arcade_restart_floor(실수 4회 → 층 재시작)는 실수 폐지(2026-07-29)로 호출부가 사라져 삭제했다 —
+// 이제 두 모드 모두 목숨이 0이 될 때까지 그 자리에서 이어간다(user_defeat 참조).
 
 if (typeof module !== 'undefined') module.exports = {
   validate_word, ai_generate_word, check_title, user_defeat,
-  붕괴확률, arcade_floor_up,   // arcade_restart_floor는 봉인(위 주석)
+  붕괴확률, arcade_floor_up,
   온라인후보_가져오기, 세션_수집, 세션_비우기, 우리말샘_불통인가, 난이도_슬라이스,
   한방_판정가능인가,
   get 세션_수집어(){ return 세션_수집어; }, ai_후보사전, ai_한방금지인가, 한방_확정인가, 탐욕_선택,

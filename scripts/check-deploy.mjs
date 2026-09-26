@@ -72,7 +72,8 @@ const 진입점있음 = existsSync('Llove/index.html');
       for (const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']) {
         const p = `wchain/js/${f}`;
         if (!existsSync(p)) continue;
-        const src = readFileSync(p, 'utf8');
+        // 주석 속 옛 코드의 참조는 세지 않는다(죽은 키가 "참조됨"으로 가려지지 않게)
+        const src = readFileSync(p, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
         for (const m of src.matchAll(/대사\(gs,\s*'([^']+)'(\s*\+)?/g)) {
           if (!m[2]) 참조.add(m[1]);   // 조립 키(접두사 + 변수)는 정적 검사 대상에서 제외
         }

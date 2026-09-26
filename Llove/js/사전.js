@@ -8,14 +8,14 @@
    원문을 그대로 노출하므로 우리말샘·표준국어대사전의 CC BY-SA 2.0 KR 저작자 표시 의무가
    명확히 적용된다(js/채팅.js의 사전 모드 응답마다 출처 문구를 함께 렌더링).
 
-   ⚠️ 국어원 게이트 — 최고 관리자님 승인 없이 true로 변경 금지. Cloudflare Worker 배포 + 인증키
-      등록 전까지 실호출 전면 봉인. false인 동안 사전_단어조회()는 fetch 자체를 하지 않는다.
+   ⚠️ 국어원 게이트 — 최고 관리자님 승인 없이 true로 변경 금지. Worker 배포·인증키 등록 후 개방됨.
+      false로 되돌리면 사전_단어조회()는 fetch 자체를 하지 않는다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const 국어원_활성화 = true;
 
 // Cloudflare Workers 엔드포인트(국립국어원 API 프록시). wchain/js/국어원.js와 같은 Worker를
 // 재사용할 수 있도록 설계(Worker 응답에 존재 여부·뜻풀이를 함께 담아 반환하면 wchain은 존재
-// 여부만, Llove는 뜻풀이까지 사용). 관리자님이 Worker 배포 후 이 값을 채울 것.
+// 여부만, Llove는 뜻풀이까지 사용).
 const 국어원_WORKERS_ENDPOINT = 'https://urimalsaem-llove.hypoqwer.workers.dev/';
 
 // Worker 응답을 뜻풀이그룹(동음이의어별 배열) 형태로 정규화한다. 2026-08-19 계약 확장 —

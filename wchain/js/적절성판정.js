@@ -59,8 +59,7 @@ async function 적절성_POST(본문){
     console.error('[적절성검증] Workers 엔드포인트 미설정 — 호출 불가');
     return null;
   }
-  // 국어원 조회와 동일한 이유(사전.js 참조)로 넉넉히 잡는다 — Grok 응답은 사전 조회보다도
-  // 느릴 수 있다.
+  // 국어원 조회와 동일한 이유로 넉넉히 잡는다 — AI 판정 응답은 사전 조회보다도 느릴 수 있다.
   const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
   const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 8000) : null;
   try{

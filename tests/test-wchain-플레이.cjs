@@ -443,7 +443,8 @@ async function main(){
     // 코드가 참조하는 키가 전부 JSON에 있는지 (오타·누락 방지)
     const 고정키 = new Set(), 조립접두 = new Set(무작위접두);
     for(const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']){
-      const src = fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8');
+      // 주석 속 옛 코드의 참조는 세지 않는다(죽은 키가 "참조됨"으로 가려지지 않게)
+      const src = fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
       for(const m of src.matchAll(/대사\(gs,\s*'([^']+)'(\s*\+)?/g)){
         if(m[2]) 조립접두.add(m[1]); else 고정키.add(m[1]);
       }
@@ -910,9 +911,7 @@ async function main(){
          설명.map(x => x[2]).join(' | '));
 
     // (5) 층 재시작 폐지로 호출부가 사라진 함수가 남아 있지 않다
-    확인('arcade_restart_floor가 봉인됐다', typeof win.arcade_restart_floor === 'undefined');
-    const 규칙 = fs.readFileSync(path.join(WCHAIN, 'js/게임규칙.js'), 'utf8');
-    확인('봉인 근거가 주석으로 남아 있다', 규칙.includes('봉인 (2026-07-29) — 아케이드'));
+    확인('arcade_restart_floor가 남아 있지 않다', typeof win.arcade_restart_floor === 'undefined');
   }
 
   /* ── 21. '이의 있음'·'그 단어 없어!' 재설계 (2026-08-19, 봉인 해제) ─── */
