@@ -1,5 +1,6 @@
-// '잇는' 한글 엔진 — 파이썬 원본(K-WordChain v2.2)의 결정론 로직 1:1 이식.
-// 함수명은 원본(snake_case)과 동일하게 유지 — 파이썬↔JS 자동 대조 검증의 기준.
+// '잇는' 한글 엔진 — 파이썬 원본(K-WordChain v2.2)의 결정론 로직 이식.
+// 함수명은 원본(snake_case) 그대로. 2026-09-27(Q6) 원본 1:1 구조를 풀고 중복·죽은 분기를 정리했다
+// (전 음절 × 두음 모드 3종 · 사전 탐색 무작위 표본으로 정리 전후 결과 동일 확인).
 // 클래식 스크립트(전역 공유, Llove와 동일 원칙). 사전.js 뒤에 로드할 것.
 // 검증: 2026-07-20 원본에서 추출한 벡터(두음 1,176·탐색 400·한방 500 등)와 전수 대조해 일치 확인
 //   (당시 세션에서 1회 실행, 러너는 미커밋). 다시 대조하려면 tests/test-wchain-한방.cjs처럼
@@ -21,10 +22,9 @@ function _decompose(char){
   return [Math.floor(offset / 588), Math.floor((offset % 588) / 28), offset % 28];
 }
 
-// 초/중/종성 인덱스 → 음절 재합성. 범위 밖이면 null.
+// 초/중/종성 인덱스 → 음절 재합성(호출부는 항상 유효 인덱스만 넘긴다).
 function _recompose(ini, mid, fin){
-  const code = 0xAC00 + ini * 588 + mid * 28 + fin;
-  return (0xAC00 <= code && code <= 0xD7A3) ? String.fromCodePoint(code) : null;
+  return String.fromCodePoint(0xAC00 + ini * 588 + mid * 28 + fin);
 }
 
 // char의 두음법칙 허용 변환형 목록 (mode: 'OFF' | 'Flexible' | 'Strict')
@@ -33,59 +33,44 @@ function get_dueum_variants(char, mode){
   const [ini, mid, fin] = _decompose(char);
   if(ini === -1) return [];
 
-  const initial = _INITIALS[ini];
-  const variants = [];
-
-  if(initial === 'ㄹ'){
-    // ⚠️ 원본 결함 수정: 파이썬 원본은 ㄴ 자리에 인덱스 1(_INITIALS[1]='ㄲ')을 써서
-    //    ㄹ→ㄲ('로'→'꼬')으로 변환되는 오프바이원 버그가 있었다. 두음법칙 의도(ㄹ→ㄴ,
-    //    '로'→'노')대로 ㄴ=인덱스 2로 교정 — 대조 벡터도 교정판 기준으로 재생성해 검증.
-    if(mode === 'Flexible'){
-      const new_ini = _VOWEL_I_GROUP.has(mid) ? 11 : 2;   // ㅣ계 모음이면 ㅇ, 아니면 ㄴ
-      const v = _recompose(new_ini, mid, fin);
-      if(v) variants.push(v);
-    } else {
-      if(!_VOWEL_I_GROUP.has(mid)){                        // Strict: ㄹ→ㄴ만 (ㅣ계 제외)
-        const v = _recompose(2, mid, fin);
-        if(v) variants.push(v);
-      }
-    }
-  } else if(initial === 'ㄴ' && mode === 'Flexible'){
-    if(_VOWEL_I_GROUP.has(mid)){                           // ㄴ→ㅇ (ㅣ계 모음 한정)
-      const v = _recompose(11, mid, fin);
-      if(v) variants.push(v);
-    }
+  const ㅣ계 = _VOWEL_I_GROUP.has(mid);
+  // 초성 인덱스: ㄴ=2 ㄹ=5 ㅇ=11. 변환형은 최대 1개(초성이 바뀌므로 원래 글자와 같을 수 없다).
+  // ⚠️ 원본 결함 수정: 파이썬 원본은 ㄹ→ㄴ 자리에 인덱스 1('ㄲ')을 써서 '로'→'꼬'가 되는
+  //    오프바이원 버그가 있었다. 두음법칙 의도(ㄹ→ㄴ, '로'→'노')대로 2로 교정.
+  if(ini === 5){
+    if(mode === 'Flexible') return [_recompose(ㅣ계 ? 11 : 2, mid, fin)];  // ㅣ계면 ㅇ, 아니면 ㄴ
+    return ㅣ계 ? [] : [_recompose(2, mid, fin)];                          // Strict: ㄹ→ㄴ만
   }
-  return variants;
+  if(ini === 2 && mode === 'Flexible' && ㅣ계) return [_recompose(11, mid, fin)];  // ㄴ→ㅇ
+  return [];
 }
 
 // actual_char이 expected_char의 두음법칙 허용 범위인지
 function dueum_check(expected_char, actual_char, dueum_mode){
-  if(actual_char === expected_char) return true;
-  if(dueum_mode === 'OFF') return false;
-  return get_dueum_variants(expected_char, dueum_mode).includes(actual_char);
+  return get_valid_start_chars(expected_char, dueum_mode).includes(actual_char);
 }
 
 // char 기준 시작 가능한 모든 글자 목록 (자기 자신 + 두음 변환형)
 function get_valid_start_chars(char, dueum_mode){
-  const valid = [char];
-  if(dueum_mode === 'OFF') return valid;
-  for(const v of get_dueum_variants(char, dueum_mode)){
-    if(!valid.includes(v)) valid.push(v);
-  }
-  return valid;
+  return [char, ...get_dueum_variants(char, dueum_mode)];
+}
+
+// 다음 사람이 이어야 할 글자 — 끝말잇기면 끝 글자, 앞말잇기(rev)면 첫 글자
+function 이을글자(word, rev){
+  return rev ? word[0] : word[word.length - 1];
+}
+
+// 13층부터 걸리는 3글자 족쇄 — 그 층의 최소 단어 길이(0 = 제한 없음)
+function 족쇄_최소길이(stage){
+  return stage >= 13 ? 3 : 0;
 }
 
 // 단어의 초성 추출 (비한글 문자는 그대로 통과 — 원본 동일)
 function extract_chosung(word){
   let result = '';
   for(const ch of word){
-    const code = ch.codePointAt(0);
-    if(0xAC00 <= code && code <= 0xD7A3){
-      result += _INITIALS[Math.floor((code - 0xAC00) / 588)];
-    } else {
-      result += ch;
-    }
+    const ini = _decompose(ch)[0];
+    result += ini === -1 ? ch : _INITIALS[ini];
   }
   return result;
 }
@@ -105,22 +90,14 @@ function find_words(start_char, used, reverse = false, dueum_mode = 'OFF',
   const current_dict = (dictionary_source !== null && dictionary_source !== undefined)
     ? dictionary_source : 추가사전;
   const used_set = new Set(used);   // 원본은 리스트 in 검사 — 의미 동일, 성능만 개선
+  // 정방향은 첫 글자가 start_char(+두음 변환형), 앞말잇기는 끝 글자가 start_char(두음 없음)
+  const 맞는글자 = !reverse ? get_valid_start_chars(start_char, dueum_mode) : [start_char];
 
-  if(!reverse){
-    const valid_starts = get_valid_start_chars(start_char, dueum_mode);
-    for(const w of current_dict){
-      if(used_set.has(w)) continue;
-      if(length_filter > 0 && w.length !== length_filter) continue;
-      if(min_length > 0 && w.length < min_length) continue;
-      if(valid_starts.includes(w[0])) result.push(w);
-    }
-  } else {
-    for(const w of current_dict){
-      if(used_set.has(w)) continue;
-      if(length_filter > 0 && w.length !== length_filter) continue;
-      if(min_length > 0 && w.length < min_length) continue;
-      if(w[w.length - 1] === start_char) result.push(w);
-    }
+  for(const w of current_dict){
+    if(used_set.has(w)) continue;
+    if(length_filter > 0 && w.length !== length_filter) continue;
+    if(min_length > 0 && w.length < min_length) continue;
+    if(맞는글자.includes(!reverse ? w[0] : w[w.length - 1])) result.push(w);
   }
   return result;
 }
@@ -137,8 +114,6 @@ function find_words(start_char, used, reverse = false, dueum_mode = 'OFF',
 // tests/fixtures/원본사전.cjs의 고정 벡터를 dictionary_source로 주입해 계속 수행한다.
 function is_hanbang(word, used, reverse = false, dueum_mode = 'OFF', stage = 0,
                     dictionary_source = null){
-  const next_char = !reverse ? word[word.length - 1] : word[0];
-  const min_len = stage >= 13 ? 3 : 0;
-  return find_words(next_char, [...used, word], reverse, dueum_mode, 0, min_len,
-                    dictionary_source).length === 0;
+  return find_words(이을글자(word, reverse), [...used, word], reverse, dueum_mode, 0,
+                    족쇄_최소길이(stage), dictionary_source).length === 0;
 }

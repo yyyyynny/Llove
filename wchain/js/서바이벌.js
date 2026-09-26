@@ -399,7 +399,7 @@ async function 막다른길_확인(내세대, 기준글자){
     if(결과들.some(r => r === null)) return;              // 확인을 못 했으면 말하지 않는다
     const 합본 = 기록();
     const 이을수있음 = find_words(기준글자, used_words(gs), gs.rev, gs.dueum, 0,
-                                 gs.stage >= 13 ? 3 : 0, 합본);
+                                 족쇄_최소길이(gs.stage), 합본);
     if(!이을수있음.length){
       로그_추가(`⚠️ 『${기준글자}』(으)로 ${gs.rev ? '끝나는' : '시작하는'} 단어를 우리말샘에서 `
               + '찾지 못했습니다. 아는 단어가 있으면 그대로 입력해 보세요 — 우리말샘에 있으면 인정됩니다.',
@@ -595,7 +595,7 @@ async function 단어_처리(raw, valid, reason){
   // AI가 고른 것과 **같은 사전**으로 판정해야 하기 때문(2026-07-27). 종전에는 AI는 온라인 풀에서
   // 고르고 검사는 로컬 280단어로 해서, 정상적인 온라인 단어가 한방으로 오판돼 판이 갑자기
   // "사용자 승리"로 끝나는 일이 있었다.
-  gs.ai_last_char = !gs.rev ? raw[raw.length - 1] : raw[0];
+  gs.ai_last_char = 이을글자(raw, gs.rev);
   // 관리자 패널에서 다음 상대 단어를 지정해 뒀으면 그것을 먼저 쓴다(1회 소비).
   // 잇기 규칙에 맞지 않으면 예약을 버리고 평소대로 진행한다 — 판이 깨지지 않게.
   let 추가후보 = [], ai_판정사전 = null, ai_word = null;
@@ -662,7 +662,7 @@ async function 단어_처리(raw, valid, reason){
   }
 
   gs.history.push({ word: ai_word, turn: gs.turn });
-  gs.ai_last_char = !gs.rev ? ai_word[ai_word.length - 1] : ai_word[0];
+  gs.ai_last_char = 이을글자(ai_word, gs.rev);
   gs.ai_last_word = ai_word;
   로그_추가(react_ai_word(gs, ai_word));
   플레이_HUD갱신(); 프롬프트_갱신();
@@ -771,7 +771,7 @@ async function AI단어_취소_재출제(disputed, 내세대){
   const 이전항목들 = gs.history.filter(h => h.word !== disputed);
   if(이전항목들.length){
     const prev = 이전항목들[이전항목들.length - 1].word;
-    gs.ai_last_char = !gs.rev ? prev[prev.length - 1] : prev[0];
+    gs.ai_last_char = 이을글자(prev, gs.rev);
   } else {
     gs.ai_last_char = null;
   }
@@ -781,7 +781,7 @@ async function AI단어_취소_재출제(disputed, 내세대){
   if(내세대 !== 게임_세대) return false;   // 대기 중 리셋·재도전이 있었다 — 더 진행하면 안 됨
   if(new_ai){
     gs.history.push({ word: new_ai, turn: gs.turn });
-    gs.ai_last_char = !gs.rev ? new_ai[new_ai.length - 1] : new_ai[0];
+    gs.ai_last_char = 이을글자(new_ai, gs.rev);
     gs.ai_last_word = new_ai;
     로그_추가(react_ai_word(gs, new_ai));
     return true;
@@ -1068,7 +1068,7 @@ async function 반박_응답(사유코드, 보충){
 // 공간이 어긋나므로(힌트 불가가 잘못 뜸), 같은 풀을 공유하도록 추가후보를 함께 넘긴다.
 function 힌트_후보(gs, 추가후보 = []){
   const dark_filter = (gs.game_mode === 'ARCADE' && gs.curse_dark_active) ? 2 : 0;
-  const min_len = (gs.game_mode === 'ARCADE' && gs.stage >= 13) ? 3 : 0;
+  const min_len = gs.game_mode === 'ARCADE' ? 족쇄_최소길이(gs.stage) : 0;
   const 사전 = ai_후보사전(gs, 추가후보);   // AI 턴과 같은 풀(우리말샘 + 세션 + 보조 사전)
   const 후보 = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, dark_filter, min_len, 사전);
 

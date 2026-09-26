@@ -77,7 +77,7 @@ function ai_generate_word(gs, 추가후보 = []){
 
   const current_dict = ai_후보사전(gs, 추가후보);
 
-  const min_len = gs.stage >= 13 ? 3 : 0;
+  const min_len = 족쇄_최소길이(gs.stage);
 
   // ⚠️ 2026-07-27: 판정 사전을 current_dict로 넘긴다. 종전에는 후보 풀에 온라인 희귀어를 넣어
   // 놓고 한방 판정만 로컬 DICTIONARY(280개)로 해서, 온라인 후보가 거의 전부 "한방"으로 탈락했다
@@ -100,7 +100,7 @@ function ai_generate_word(gs, 추가후보 = []){
   if(attack_mode){
     const attack_cands = [];
     for(const w of find_words(search_char, used, gs.rev, ai_dueum, 0, min_len, current_dict)){
-      const last = !gs.rev ? w[w.length - 1] : w[0];
+      const last = 이을글자(w, gs.rev);
       if(['ㄴ','ㄹ','ㅁ','ㅇ'].includes(extract_chosung(last))) attack_cands.push(w);
     }
     if(attack_cands.length){
@@ -129,7 +129,7 @@ function 탐욕_선택(gs, 후보들, used, 사전){
   const 탐욕도 = 난이도설정(gs).탐욕도;
   if(!탐욕도 || 후보들.length < 2) return 후보들[Math.floor(Math.random() * 후보들.length)];
 
-  const min_len = gs.stage >= 13 ? 3 : 0;
+  const min_len = 족쇄_최소길이(gs.stage);
   // 후보 수 계산은 후보마다 사전을 훑으므로, 후보가 아주 많으면 비용이 커진다.
   // 무작위로 40개만 표본으로 뽑아 그 안에서 고른다(체감 차이는 유지되고 비용은 상한이 걸린다).
   const 표본 = 후보들.length > 40
@@ -141,7 +141,7 @@ function 탐욕_선택(gs, 후보들, used, 사전){
   // "모름"으로 보고 정렬에서 뺀다. 판이 진행되며 조회한 글자가 늘수록 난이도가 또렷해진다
   // (추가 네트워크 호출 0건).
   const 점수 = 표본.map(w => {
-    const 남는수 = find_words(!gs.rev ? w[w.length - 1] : w[0], [...used, w],
+    const 남는수 = find_words(이을글자(w, gs.rev), [...used, w],
                              gs.rev, gs.dueum, 0, min_len, 사전).length;
     if(남는수 === 0 && !한방_판정가능인가(w, gs)) return null;   // 모름
     return { 단어: w, 남는수 };
@@ -189,7 +189,7 @@ function 세션_수집(단어들){
 // → **물어본 적 있는 글자에 대해서만 한방을 판정한다.**
 let 세션_조회글자 = new Set();
 function 한방_판정가능인가(word, gs){
-  const 다음 = !gs.rev ? word[word.length - 1] : word[0];
+  const 다음 = 이을글자(word, gs.rev);
   return 세션_조회글자.has((gs.rev ? 'end:' : 'start:') + 다음);
 }
 
@@ -280,7 +280,7 @@ async function 한방_확정인가(word, gs){
   if(!is_hanbang(word, used, gs.rev, gs.dueum, gs.stage)) return false;   // 1
   if(!국어원_활성화) return true;                                          // 2
 
-  const 다음글자 = !gs.rev ? word[word.length - 1] : word[0];
+  const 다음글자 = 이을글자(word, gs.rev);
   // 끝말잇기는 두음법칙 변환형으로도 이을 수 있으므로 그 글자들까지 전부 확인한다
   const { 결과들, 기록 } = await 이을단어_조회(다음글자, gs);
   if(결과들.some(r => r === null)) return false;                           // 3
@@ -289,7 +289,7 @@ async function 한방_확정인가(word, gs){
   const 목록 = 기록();
   // 이미 쓴 단어·자기 자신을 빼고, 그 층의 길이 제약을 통과하는 후보가 하나라도 남는지 본다.
   if(find_words(다음글자, [...used, word], gs.rev, gs.dueum, 0,
-                gs.stage >= 13 ? 3 : 0, 목록).length) return false;        // 4
+                족쇄_최소길이(gs.stage), 목록).length) return false;        // 4
   return true;                                                             // 5
 }
 
