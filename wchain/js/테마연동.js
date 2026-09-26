@@ -84,7 +84,3 @@ function 테마연동_설명(){
                 paper:'페이퍼', forest:'포레스트', custom:'커스텀' }[l] || l;
   return `Llove의 현재 테마(${표시})를 따릅니다`;
 }
-
-if (typeof module !== 'undefined') module.exports = {
-  테마연동_켜짐, 테마_적용, 테마연동_설정, 테마연동_설명, 테마연동_KEY
-};

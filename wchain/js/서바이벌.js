@@ -1574,5 +1574,3 @@ function 관리자_강제(무엇){
     소프트락_진입();
   }
 }
-
-if (typeof module !== 'undefined') module.exports = { gs, get_status };

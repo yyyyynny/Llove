@@ -66,7 +66,3 @@ function 대사_무작위(gs, 접두, 값){
   }
   return 대사(gs, 후보[Math.floor(Math.random() * 후보.length)], 값);
 }
-
-if (typeof module !== 'undefined') module.exports = {
-  대사_로드, 대사, 대사_무작위, get 대사표(){ return 대사표; }
-};

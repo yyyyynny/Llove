@@ -222,5 +222,3 @@ async function 국어원_후보목록조회(글자, 방향){
   }
   return 목록;
 }
-
-if (typeof module !== 'undefined') module.exports = { 국어원_단어조회, 국어원_단어조회_상세, 국어원_후보목록조회, 국어원_캐시_KEY };

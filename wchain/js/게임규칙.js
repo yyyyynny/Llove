@@ -399,12 +399,3 @@ function arcade_floor_up(gs, ai_defeated){
 
 // 원본의 arcade_restart_floor(실수 4회 → 층 재시작)는 실수 폐지(2026-07-29)로 호출부가 사라져 삭제했다 —
 // 이제 두 모드 모두 목숨이 0이 될 때까지 그 자리에서 이어간다(user_defeat 참조).
-
-if (typeof module !== 'undefined') module.exports = {
-  validate_word, ai_generate_word, check_title, user_defeat,
-  붕괴확률, arcade_floor_up,
-  온라인후보_가져오기, 세션_수집, 세션_비우기, 우리말샘_불통인가, 난이도_슬라이스,
-  한방_판정가능인가,
-  get 세션_수집어(){ return 세션_수집어; }, ai_후보사전, ai_한방금지인가, 한방_확정인가, 탐욕_선택,
-  get 마지막_온라인조회(){ return 마지막_온라인조회; }
-};

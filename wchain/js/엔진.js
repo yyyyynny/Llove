@@ -1,7 +1,9 @@
 // '잇는' 한글 엔진 — 파이썬 원본(K-WordChain v2.2)의 결정론 로직 1:1 이식.
 // 함수명은 원본(snake_case)과 동일하게 유지 — 파이썬↔JS 자동 대조 검증의 기준.
 // 클래식 스크립트(전역 공유, Llove와 동일 원칙). 사전.js 뒤에 로드할 것.
-// 검증: scripts/…대조 러너가 원본에서 추출한 벡터(두음 1,176·탐색 400·한방 500 등)와 전수 비교.
+// 검증: 2026-07-20 원본에서 추출한 벡터(두음 1,176·탐색 400·한방 500 등)와 전수 대조해 일치 확인
+//   (당시 세션에서 1회 실행, 러너는 미커밋). 다시 대조하려면 tests/test-wchain-한방.cjs처럼
+//   vm으로 이 파일을 불러와 함수를 꺼내 쓰면 된다(node용 module.exports는 2026-09-26 삭제).
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    두음법칙 및 한글 처리 (원본 275~357줄)
@@ -140,10 +142,3 @@ function is_hanbang(word, used, reverse = false, dueum_mode = 'OFF', stage = 0,
   return find_words(next_char, [...used, word], reverse, dueum_mode, 0, min_len,
                     dictionary_source).length === 0;
 }
-
-// jsdom/node 대조 테스트용 내보내기 (브라우저에선 무시)
-if (typeof module !== 'undefined') module.exports = {
-  _INITIALS, _VOWEL_I_GROUP, _decompose, _recompose,
-  get_dueum_variants, dueum_check, get_valid_start_chars, extract_chosung,
-  find_words, is_hanbang
-};

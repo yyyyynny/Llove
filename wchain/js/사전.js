@@ -32,8 +32,3 @@ async function 사전_로드(){
     추가사전 = [];
   }
 }
-
-// jsdom/node 대조 테스트용 내보내기 (브라우저에선 무시)
-if (typeof module !== 'undefined') module.exports = {
-  사전_로드, get 추가사전(){ return 추가사전; }
-};

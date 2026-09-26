@@ -139,8 +139,3 @@ function react_ai_word(gs, word){
   // 위치형 {0}=단어, 이름형 {칭호} 둘 다 쓰이므로 두 키를 함께 넘긴다.
   return 대사_무작위(gs, 'react_ai_word', { 0: word, 칭호: title(gs) });
 }
-
-if (typeof module !== 'undefined') module.exports = {
-  난이도표, 난이도설정, 실수환산, 아케이드_목숨, 목숨보상, 새게임상태, get_max_turns, get_stage_target, used_words, reset_game, full_reset,
-  is_arrogant, say, title, react_correct, react_ai_word
-};
