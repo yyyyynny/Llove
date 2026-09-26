@@ -82,7 +82,7 @@ load((window) => {
   ev("학습설정.sq1='선택지'; 학습설정.sq4_input='선택지'; 학습설정_마이그레이션();");
   assert('#7: 구 저장값 마이그레이션', ev('학습설정.sq1') === '4지선다' && ev('학습설정.sq4_input') === '플래시카드');
   assert('#7: 맞춤법 보기 4개', ev('__TEST_SPELL__[0].opts.length') === 4);
-  ev("학습설정.sq1='플래시카드'; renderQuiz4(__TEST_QUIZ__);");
+  ev("학습설정.sq1='플래시카드'; renderQuiz('sq1', __TEST_QUIZ__);");
   assert('#7: sq1 플래시카드 렌더', !!doc.getElementById('sq1FlashBtn'));
   const fExp0 = ev('사용자.총누적EXP||0');
   ev("퀴즈_플래시공개('sq1');");
@@ -90,9 +90,9 @@ load((window) => {
   ev("퀴즈_플래시공개('sq1');");
   assert('#7: 플래시 공개 중복 차단', ev('사용자.총누적EXP||0') === ev('사용자.총누적EXP||0') && true);
   // 역방향은 문항 2개 이상 필요 — __TEST_QUIZ__은 1건이라 테스트용 2건 풀 사용
-  ev("학습설정.sq1='역방향'; renderQuiz4([{cat:'상식',q:'테스트 문제 A',opts:[{t:'답A',c:true},{t:'오답',c:false}]},{cat:'상식',q:'테스트 문제 B',opts:[{t:'답B',c:true},{t:'오답',c:false}]}]);");
+  ev("학습설정.sq1='역방향'; renderQuiz('sq1', [{cat:'상식',q:'테스트 문제 A',opts:[{t:'답A',c:true},{t:'오답',c:false}]},{cat:'상식',q:'테스트 문제 B',opts:[{t:'답B',c:true},{t:'오답',c:false}]}]);");
   assert('#7: sq1 역방향 — 정답 제시+문항 보기', doc.querySelectorAll('#sq1Body .aopt').length >= 2 && doc.getElementById('sq1Body').innerHTML.includes('역방향'));
-  ev("renderQuiz4(__TEST_QUIZ__);");
+  ev("renderQuiz('sq1', __TEST_QUIZ__);");
   assert('#7: 역방향 문항 부족 시 4지선다 폴백', doc.getElementById('toast').textContent.includes('부족') && doc.querySelectorAll('#sq1Body .aopt').length === 4);
   ev("학습설정.sq4_input='4지선다'; renderDad(DAD_GAGS_BY_DIFFICULTY['아↗그거!']);");
   assert('#7: 아재 4지선다 보기 4개', doc.querySelectorAll('#sq4Body .aopt').length === 4);

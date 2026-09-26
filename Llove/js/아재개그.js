@@ -85,12 +85,6 @@ function renderDad(data){
 /* 아재개그 다음 문제 — 같은 난이도 풀에서 랜덤 재출제 */
 function 아재_다음문제(){
   if(현재아재풀) renderDad(현재아재풀);
-  setTimeout(initDad,30);
-}
-function initDad(){
-  document.getElementById('dadAns')?.classList.remove('show');
-  const btn=document.getElementById('dadBtn');
-  if(btn) btn.style.display='block';
 }
 function revealDad(){
   // 세션5: 문제당 1회만 — 중복 호출 시 EXP 반복 획득 차단
@@ -118,13 +112,8 @@ function 아재_선다선택(el, 정답){
 }
 /* 세션5 버그7: 아재개그 직접입력 제출 — 느슨 비교 후 정답 공개(EXP는 revealDad 1회 잠금 공유) */
 function 아재_직접제출(){
-  const inp=document.getElementById('dadDirectInp');
-  if(!inp || inp.dataset.제출완료) return;
-  const 입력=(inp.value||'').trim();
-  if(!입력){ showToastMsg('답을 입력해 주세요'); return; }
-  inp.dataset.제출완료='1'; inp.disabled=true;
-  const btn=document.getElementById('dadDirectBtn'); if(btn) btn.disabled=true;
-  활성입력_blur();
+  const 입력 = 직접입력_꺼내기('dadDirectInp', 'dadDirectBtn');
+  if(입력 === null) return;
   // 세션7 항목6: 허용 정답 배열 지원 — 데이터에 허용:[...]이 있으면 그 목록으로 판정
   const 후보 = (현재아재문제 && Array.isArray(현재아재문제.허용) && 현재아재문제.허용.length)
     ? 현재아재문제.허용 : [현재아재문제?.a];

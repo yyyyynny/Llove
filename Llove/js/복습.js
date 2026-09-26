@@ -65,7 +65,7 @@ function setLsetMode(screenId, mode, btn){
   // 분기 처리 — 설정 변경 즉시 현재 문제를 새 방식으로 다시 출제
   if(screenId==='sq1'){
     // 상식·어원, 세계사·신화 — 선택지/직접입력 즉시 반영
-    if(현재퀴즈풀 && 현재퀴즈화면==='sq1') renderQuiz4(현재퀴즈풀);
+    if(현재퀴즈풀 && 현재퀴즈화면==='sq1') renderQuiz('sq1', 현재퀴즈풀);
     showToastMsg(`상식·세계사 출제 방식: ${mode}`);
   } else if(screenId==='sq2'){
     // 고사성어·속담 / 한자·우리말 (5방식: 4지선다 기본값)
@@ -74,18 +74,17 @@ function setLsetMode(screenId, mode, btn){
     showToastMsg(`출제 방식: ${mode}`);
   } else if(screenId==='sq3'){
     // 맞춤법 — 선택지/직접입력 즉시 반영
-    if(현재퀴즈풀 && 현재퀴즈화면==='sq3') renderQuiz3(현재퀴즈풀);
+    if(현재퀴즈풀 && 현재퀴즈화면==='sq3') renderQuiz('sq3', 현재퀴즈풀);
     showToastMsg(`맞춤법 출제 방식: ${mode}`);
   } else if(screenId==='sq4'){
     // 아재개그 난이도 즉시 갱신
     // 실브라우저 E2E로 발견한 누락: 하드코딩 풀만 렌더해 설정 변경 순간 JSON DB 문항이
     // 풀에서 빠지던 버그 — 화면전환.js와 동일하게 큐레이션+DB 병합 풀로 통일
     renderDad(아재풀_구성(mode));
-    setTimeout(initDad,30);
     showToastMsg(`난이도: ${mode}`);
   } else if(screenId==='sq4_input'){
     // 아재개그 입력 방식 (4지선다 / 직접입력 / 플래시카드) — 즉시 반영
-    if(현재아재풀){ renderDad(현재아재풀); setTimeout(initDad,30); }
+    if(현재아재풀) renderDad(현재아재풀);
     showToastMsg(`입력 방식: ${mode}`);
   } else if(screenId==='srp' || screenId==='srp_순서'){
     // 세션7 항목5: 복습 방식·순서 — 진행 중이면 현재 카드부터 즉시 반영
@@ -348,13 +347,9 @@ function 복습_선다선택(el, 정답){
 }
 /* 세션7 항목5: 복습 직접입력 제출 — 단어 느슨 비교 후 판정 위임 */
 function 복습_직접제출(){
-  const inp = document.getElementById('rvDirectInp');
-  if(!inp || inp.dataset.제출완료 || !복습진행) return;
-  const 입력 = (inp.value||'').trim();
-  if(!입력){ showToastMsg('답을 입력해 주세요'); return; }
-  inp.dataset.제출완료='1'; inp.disabled = true;
-  const btn=document.getElementById('rvDirectBtn'); if(btn) btn.disabled = true;
-  활성입력_blur();
+  if(!복습진행) return;
+  const 입력 = 직접입력_꺼내기('rvDirectInp', 'rvDirectBtn');
+  if(입력 === null) return;
   const 항목 = 복습진행.목록[복습진행.idx];
   const 맞음 = 직접입력_규격(입력) !== '' && 직접입력_규격(입력) === 직접입력_규격(항목.단어);
   showToastMsg(맞음 ? '✓ 정답!' : `✗ 정답: ${항목.단어}`);

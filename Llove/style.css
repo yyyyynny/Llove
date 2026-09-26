@@ -472,7 +472,7 @@ html{scrollbar-gutter:stable}
 /* ━━━ 아재개그 ━━━ */
 .dad-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;animation:fadeUp .38s var(--ease-out) both}
 .dad-q{font-size:20px;line-height:1.7;font-weight:500;text-align:center;padding:24px 12px}
-.dad-reveal-btn{width:100%;padding:14px;background:var(--elev);border:1px dashed var(--bdr);border-radius:11px;color:var(--txt2);font-family:var(--fn);font-size:14px;cursor:pointer;transition:border-color .2s,color .2s}
+.dad-reveal-btn{display:block;width:100%;padding:14px;background:var(--elev);border:1px dashed var(--bdr);border-radius:11px;color:var(--txt2);font-family:var(--fn);font-size:14px;cursor:pointer;transition:border-color .2s,color .2s}
 .dad-reveal-btn:hover{border-color:var(--acc);color:var(--acc)}
 .dad-answer{display:none;padding:16px;background:var(--elev);border-radius:11px;border:1px solid var(--accd);margin-top:12px}
 .dad-answer.show{display:block;animation:fadeUp .4s var(--ease-out) both}

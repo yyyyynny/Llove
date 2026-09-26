@@ -5,22 +5,16 @@
    플래시카드
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 /* 재구조화 이후 정리: FC_GOSAEONGEO·FC_HANJA(각 1건 정적 폴백)와 FC_고사성어_임시보기·
-   FC_한자_임시보기(각 5건, sq2_출제풀에서 DB 상태와 무관하게 항상 병합되던 하드코딩 표본)는
+   FC_한자_임시보기(각 5건, 옛 sq2 출제풀에서 DB 상태와 무관하게 항상 병합되던 하드코딩 표본)는
    전부 data/고사성어속담.json·한자우리말.json으로 이전 완료(각 파일 82~86번째 항목).
    renderFlashcard()는 빈 배열을 안전하게 처리해야 한다(fetch 실패·초기 로드 지연 시 대비). */
 
-/* sq2 4지선다·역방향 출제용 풀 — DB 풀(출제_분기 결과) 그대로 사용 */
-function sq2_출제풀(category){
-  const 실풀 = 출제_분기(category);
-  return Array.isArray(실풀) ? 실풀 : [];
-}
-
-
-/* sq2 '4지선다' — 뜻을 제시하고 단어 4개 중 정답을 고른다. 정답 처리는 기존 selAns 재사용. */
-function sq2_사지선다_렌더(category){
+/* sq2 '4지선다'·'역방향' — 4지선다는 뜻을 제시하고 단어 4개 중, 역방향은 단어를 제시하고 뜻 4개 중
+   정답을 고른다(문제/보기 방향만 반대). 정답 처리는 기존 selAns 재사용. */
+function sq2_선다렌더(category, 역방향){
   const body = document.getElementById('sq2Body');
   if(!body) return;
-  const 풀 = sq2_출제풀(category);
+  const 풀 = 출제_분기(category);
   if(풀.length < 4){
     // 보기 표본 부족 시 안전 폴백 — 플래시카드로 출제 (기능 누락 방지)
     showToastMsg('보기 표본이 부족해 플래시카드로 출제합니다');
@@ -31,49 +25,22 @@ function sq2_사지선다_렌더(category){
   const 오답 = 셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
   const 보기 = 셔플([정답, ...오답]);
   현재문제_reasoning_note = 정답.reasoning_note || '';
-  // selAns의 복습 대기열 연동을 위해 현재퀴즈문제를 4지선다 형식으로 구성 (정답보기=단어, 문제=뜻)
-  현재퀴즈문제 = { q: 정답.meaning, cat: 정답.cat, opts: 보기.map(c=>({t:c.word, c: c.word===정답.word})) };
-  let optsHtml = '';
-  보기.forEach((c,i)=>{
-    // selAns 오답 강조 로직이 onclick 문자열의 'true'를 찾으므로 boolean(true/false)으로 전달 (기존 4지선다와 동일 규약)
-    optsHtml += `<div class="aopt" onclick="selAns(this,${c.word===정답.word ? 'true' : 'false'})"><div class="onum">${i+1}</div><div class="otxt">${c.word} <small style="color:var(--txt2)">${c.reading}</small></div></div>`;
-  });
+  // selAns의 복습 대기열 연동을 위해 현재퀴즈문제를 선다형 형식으로 구성.
+  // 역방향은 '뜻'이 보기이므로 복습 연동상 정답보기=뜻으로 기록됨(단어/뜻 방향만 반대) — 의도된 동작
+  현재퀴즈문제 = 역방향
+    ? { q: `${정답.word} (${정답.reading})`, cat: 정답.cat, opts: 보기.map(c=>({t:c.meaning, c: c.word===정답.word})) }
+    : { q: 정답.meaning, cat: 정답.cat, opts: 보기.map(c=>({t:c.word, c: c.word===정답.word})) };
+  // selAns 오답 강조 로직이 onclick 문자열의 'true'를 찾으므로 boolean(true/false)으로 전달 (기존 4지선다와 동일 규약)
+  const optsHtml = 보기.map((c,i)=>`<div class="aopt" onclick="selAns(this,${c.word===정답.word ? 'true' : 'false'})"><div class="onum">${i+1}</div>`
+    + (역방향 ? `<div class="otxt" style="line-height:1.5">${c.meaning}</div>` : `<div class="otxt">${c.word} <small style="color:var(--txt2)">${c.reading}</small></div>`)
+    + `</div>`).join('');
+  const 문제 = 역방향
+    ? `${정답.word} <small style="color:var(--txt2);font-weight:400">${정답.reading}</small><div style="font-weight:400;font-size:13px;color:var(--txt2);margin-top:6px">이 말의 뜻으로 옳은 것은?</div>`
+    : `다음 뜻에 해당하는 말은?<div style="font-weight:400;font-size:14px;color:var(--txt2);margin-top:6px;line-height:1.6">${정답.meaning}</div>`;
   body.innerHTML = `
     <div class="qcard">
-      <div class="qcat"><span class="tag ta">${정답.cat}</span></div>
-      <div class="q-question">다음 뜻에 해당하는 말은?<div style="font-weight:400;font-size:14px;color:var(--txt2);margin-top:6px;line-height:1.6">${정답.meaning}</div></div>
-    </div>
-    <div class="aopts">${optsHtml}</div>
-    <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
-    <button class="btn-acc" style="width:100%" onclick="sq2_출제_렌더(document.getElementById('sq2Title').textContent)">다음 문제 →</button>
-  `;
-}
-
-/* sq2 '역방향' — 단어를 제시하고 뜻 4개 중 정답을 고른다. (4지선다의 문제/보기 방향만 반대) */
-function sq2_역방향_렌더(category){
-  const body = document.getElementById('sq2Body');
-  if(!body) return;
-  const 풀 = sq2_출제풀(category);
-  if(풀.length < 4){
-    showToastMsg('보기 표본이 부족해 플래시카드로 출제합니다');
-    renderFlashcard(풀);
-    return;
-  }
-  const 정답 = 풀[Math.floor(Math.random()*풀.length)];
-  const 오답 = 셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
-  const 보기 = 셔플([정답, ...오답]);
-  현재문제_reasoning_note = 정답.reasoning_note || '';
-  // 역방향은 '뜻'이 보기이므로, 복습 연동상 정답보기=뜻으로 기록됨(단어/뜻 방향만 반대) — 의도된 동작
-  현재퀴즈문제 = { q: `${정답.word} (${정답.reading})`, cat: 정답.cat, opts: 보기.map(c=>({t:c.meaning, c: c.word===정답.word})) };
-  let optsHtml = '';
-  보기.forEach((c,i)=>{
-    // 역방향도 동일하게 boolean 전달 (selAns의 'true' 문자열 탐지 규약)
-    optsHtml += `<div class="aopt" onclick="selAns(this,${c.word===정답.word ? 'true' : 'false'})"><div class="onum">${i+1}</div><div class="otxt" style="line-height:1.5">${c.meaning}</div></div>`;
-  });
-  body.innerHTML = `
-    <div class="qcard">
-      <div class="qcat"><span class="tag ta">${정답.cat} · 역방향</span></div>
-      <div class="q-question">${정답.word} <small style="color:var(--txt2);font-weight:400">${정답.reading}</small><div style="font-weight:400;font-size:13px;color:var(--txt2);margin-top:6px">이 말의 뜻으로 옳은 것은?</div></div>
+      <div class="qcat"><span class="tag ta">${정답.cat}${역방향 ? ' · 역방향' : ''}</span></div>
+      <div class="q-question">${문제}</div>
     </div>
     <div class="aopts">${optsHtml}</div>
     <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
@@ -86,7 +53,7 @@ function sq2_역방향_렌더(category){
 function sq2_뜻서술_렌더(category){
   const body = document.getElementById('sq2Body');
   if(!body) return;
-  const 풀 = sq2_출제풀(category);
+  const 풀 = 출제_분기(category);
   if(!풀.length){ renderFlashcard(풀); return; }
   const 문항 = 풀[Math.floor(Math.random()*풀.length)];
   현재문제_reasoning_note = 문항.reasoning_note || '';

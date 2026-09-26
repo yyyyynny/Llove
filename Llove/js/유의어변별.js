@@ -105,18 +105,9 @@ function 예문형_선택(bodyId, btn){
   document.getElementById(bodyId+'SynActions').style.display = 'flex';
 
   // 빌드1: 실제 EXP·마스터리 반영 — 정답 +20, 근사 정답은 EXP 없음 (KNOWLEDGE 3-2)
-  if(선택kind === 'correct'){
-    EXP획득(20, '예문형 정답');
-    연속정답처리(true);
-    복습대기열_정답처리(item.correct.w);
-  } else {
-    연속정답처리(false);
-    // 오답·근사 → 정답 단어를 복습 대기열에 (예문 맥락 포함)
-    복습대기열_추가(item.correct.w, `${item.correct.def} — 예문: ${item.예문}`, '예문형');
-  }
-  if(현재학습모드필드) 마스터리증가(현재학습모드필드);
-  마스터리증가('총누적어휘수');
-  세션결과_기록(선택kind === 'correct');
+  // 오답·근사 → 정답 단어를 복습 대기열에 (예문 맥락 포함)
+  if(선택kind === 'correct') EXP획득(20, '예문형 정답');
+  채점_기록(선택kind === 'correct', item.correct.w, `${item.correct.def} — 예문: ${item.예문}`, '예문형');
 }
 function 예문형_다음(bodyId){
   const state = 예문형_상태[bodyId];
@@ -417,13 +408,6 @@ function 문장배열_판정(){
   세션결과_기록(전체정답);
 }
 
-function initFlashcard(){
-  document.getElementById('fcBack')?.classList.remove('show');
-  document.getElementById('fcMore')?.classList.remove('show');
-  document.getElementById('fcMoreBtn')?.classList.remove('opened');
-  // 세션5: 이전 카드의 판정 1회 잠금 해제 — 미해제 시 다음 카드에서 판정 버튼이 먹통이 됨
-  document.querySelector('#sq2Body .fc-judge')?.removeAttribute('data-판정완료');
-}
 /* 플래시카드 앞면 → 뒷면 공개 (① 읽기, ② 뜻) */
 function flipCard(){
   document.getElementById('fcBack').classList.add('show');

@@ -185,13 +185,6 @@ function afterNav(id){
     // v3.5: 복습 화면 진입 시 동적 렌더링
     renderReview();
   }
-  // 학습 모드 진입 시 항상 초기화
-  if(id==='sq2'){
-    setTimeout(initFlashcard,50);
-  }
-  if(id==='sq4'){
-    setTimeout(initDad,50);
-  }
 }
 
 /* 학습 모드 진입 — 카테고리별 화면/렌더 분기 */
@@ -212,62 +205,40 @@ function goLearn(category, screenId, btn){
   if(!현재학습모드필드) console.warn('[마스터리] 모드 매핑 없음 — 학습 수가 집계되지 않습니다:', category);
   퀴즈세션 = {수:0, 오답:0};  // 퍼펙트 세션 카운터 — 모드 진입마다 초기화
   토큰표시_갱신();
-  // 4지선다 화면(sq1) — 상식·어원 / 세계사·신화 분기 (β9: 출제_분기 경유)
+  // 화면 머리(제목·배지·설정 동기화)만 여기서 정하고, 실제 출제는 「넘어가기」와 같은 함수를 쓴다
   if(screenId==='sq1'){
     document.getElementById('sq1Title').textContent=category;
     document.getElementById('sq1Mode').textContent = (category==='상식·어원' ? '🌍' : '🏛️') + ' 4지선다';
-    renderQuiz4(출제_분기(category));
   }
-  // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말
-  // 버그2·9 수정: 4지선다 하드코딩 제거 → 저장된 학습설정.sq2 방식대로 출제 (진입·재진입 공통)
-  if(screenId==='sq2'){
-    document.getElementById('sq2Title').textContent=category;
-    sq2_출제_렌더(category);
-  }
-  if(screenId==='sq3'){
-    renderQuiz3(출제_분기('맞춤법'));
-  }
-  if(screenId==='sq4'){
-    // v3.6: 초기 진입 시 학습설정.sq4 값 기반으로 데이터 선택 + 패널 버튼 상태 동기화
-    const 현재난이도 = 학습설정.sq4 || '아↗그거!';
-    renderDad(아재풀_구성(현재난이도));
-    동기화_학습설정_버튼('sq4', 현재난이도);
-  }
-  // 버그 수정(2026-06-14): 구어 교정(sq5) 진입 분기 누락 — 화면만 전환되고 예문이 출제되지 않던 문제.
-  //   기존엔 페이지 최초 로드/「다음 예문」 버튼으로만 출제돼, 모드 진입 시 빈 화면처럼 보였다.
-  if(screenId==='sq5'){
-    switchSpkMode('text');     // 진입 시 텍스트 입력 탭을 기본으로 초기화
-    구어교정_예문표시();        // 정령왕 JSON 구어_교정 풀에서 예문 즉시 출제
-  }
-  // 세션10-c: 지문 독해(sq6) — 방식 옵션 없음, 요지/추론/세부 문장형 보기 전용 엔진
+  // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말 (저장된 학습설정.sq2 방식대로 출제)
+  if(screenId==='sq2') document.getElementById('sq2Title').textContent=category;
+  // v3.6: 아재개그 진입 시 학습설정.sq4 값으로 패널 버튼 상태 동기화
+  if(screenId==='sq4') 동기화_학습설정_버튼('sq4', 학습설정.sq4 || '아↗그거!');
+  // 구어 교정(sq5): 진입 시 텍스트 입력 탭을 기본으로 (2026-06-14 진입 분기 누락 수정의 연장)
+  if(screenId==='sq5') switchSpkMode('text');
+  // 세션10-c: 지문 독해(sq6)·세션10-m: 문장 배열(sq7) — 방식 옵션 없는 문해력 2탄
   if(screenId==='sq6'){
     document.getElementById('sq6Title').textContent=category;
     document.getElementById('sq6Mode').textContent='📖 지문 독해';
-    독해_렌더();
   }
-  // 세션10-m: 문장 배열(sq7) — 문해력 2탄(D안), 방식 옵션 없음
   if(screenId==='sq7'){
     document.getElementById('sq7Title').textContent=category;
     document.getElementById('sq7Mode').textContent='🧩 문장 배열';
-    문장배열_렌더();
   }
+  현재모드_다음출제(screenId, category);
 }
 
-// 세션10-e 항목3: 랜덤 「넘어가기」 — 화면 전환·타이틀·세션 리셋 없이 같은 모드에서 문제만 다시 뽑는다.
-// goLearn의 출제 분기와 동일 로직이라 중복이지만, 모드 진입 부작용(채팅 마감·popstate 기록 등)을 피하려고
-// 별도 함수로 둔다. goLearn의 sq1~sq6 분기가 바뀌면 이쪽도 함께 맞춰야 한다.
-function 현재모드_다음출제(){
-  const 카테고리 = 현재학습모드, 화면 = curScreen;
+// 학습 화면별 출제 — goLearn(진입)과 랜덤 「넘어가기」(세션10-e 항목3: 화면 전환·타이틀·세션 리셋 없이
+// 같은 모드에서 문제만 다시 뽑기)가 함께 쓰는 단일 경로. 새 학습 화면은 여기에만 분기를 추가하면 된다.
+function 현재모드_다음출제(화면 = curScreen, 카테고리 = 현재학습모드){
   if(화면==='sq1'){
-    renderQuiz4(출제_분기(카테고리));
+    renderQuiz('sq1', 출제_분기(카테고리));
   } else if(화면==='sq2'){
     sq2_출제_렌더(카테고리);
   } else if(화면==='sq3'){
-    renderQuiz3(출제_분기('맞춤법'));
+    renderQuiz('sq3', 출제_분기('맞춤법'));
   } else if(화면==='sq4'){
-    const 현재난이도 = 학습설정.sq4 || '아↗그거!';
-    renderDad(아재풀_구성(현재난이도));
-    setTimeout(initDad,30);
+    renderDad(아재풀_구성(학습설정.sq4 || '아↗그거!'));
   } else if(화면==='sq5'){
     구어교정_예문표시();
   } else if(화면==='sq6'){
@@ -297,10 +268,8 @@ function sq2_출제_렌더(category){
   //   이제 선택한 방식대로 실제 출제 화면을 분기한다.
   if(방식 === '예문형'){
     유의어변별_렌더();
-  } else if(방식 === '4지선다'){
-    sq2_사지선다_렌더(category);
-  } else if(방식 === '역방향'){
-    sq2_역방향_렌더(category);
+  } else if(방식 === '4지선다' || 방식 === '역방향'){
+    sq2_선다렌더(category, 방식 === '역방향');
   } else if(방식 === '뜻 직접 서술'){
     sq2_뜻서술_렌더(category);
   } else {

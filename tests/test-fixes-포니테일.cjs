@@ -40,5 +40,45 @@ load((window) => {
   const 켜진 = [...doc.querySelectorAll('#fontList .fo.on')].map(e => e.dataset.key);
   assert('B11: 새로 고른 글꼴 하나만 선택 표시', 켜진.length === 1 && 켜진[0] === 'nanum_gothic', 켜진.join(','));
 
+  /* ── 배치 C-1: 통합된 학습 렌더 경로 회귀 ──
+     renderQuiz4·renderQuiz3 → renderQuiz(screenId), goLearn의 출제 → 현재모드_다음출제 공유,
+     직접입력 잠금 → 직접입력_꺼내기, 채점 후처리 → 채점_기록. 두 화면의 차이가 그대로인지 본다. */
+  ev(`DB문제['상식·어원']=[{cat:'상식',q:'상식 문제',ai:true,opts:[{t:'가',c:true},{t:'나',c:false},{t:'다',c:false},{t:'라',c:false}]}];
+      DB문제['맞춤법']=[{cat:'맞춤법',q:'맞춤법 문제',hint:'띄어쓰기 주의',opts:[{t:'되요',c:false},{t:'돼요',c:true},{t:'됬어요',c:false}]}];
+      학습설정.sq1='4지선다'; 학습설정.sq3='3지선다';`);
+  ev("goLearn('상식·어원','sq1',null);");
+  const sq1 = doc.getElementById('sq1Body');
+  assert('C1: sq1 진입 시 보기 4개', sq1.querySelectorAll('.aopt').length === 4);
+  assert('C1: sq1은 파란 태그 + AI 출제 표시, 힌트 줄 없음',
+    !!sq1.querySelector('.tag.tb') && !!sq1.querySelector('.tag-ai') && !sq1.querySelector('.q-hint'));
+  assert('C4: sq1 배지가 카테고리 아이콘으로', doc.getElementById('sq1Mode').textContent === '🌍 4지선다');
+
+  ev("goLearn('맞춤법','sq3',null);");
+  const sq3 = doc.getElementById('sq3Body');
+  assert('C1: sq3 진입 시 보기 3개', sq3.querySelectorAll('.aopt').length === 3);
+  assert('C1: sq3는 초록 태그 + 힌트 줄, AI 표시 없음',
+    !!sq3.querySelector('.tag.tg') && sq3.querySelector('.q-hint')?.textContent === '띄어쓰기 주의' && !sq3.querySelector('.tag-ai'));
+
+  // 직접입력 — 제출 1회 잠금 + 채점 후처리(누적 어휘 +1)
+  ev("학습설정.sq3='직접입력'; renderQuiz('sq3', DB문제['맞춤법']);");
+  const 누적전 = ev('사용자.총누적어휘수 || 0');
+  doc.getElementById('sq3DirectInp').value = '돼요';
+  ev("직접입력_제출('sq3');");
+  assert('C17: 직접입력 제출 후 입력칸 잠금', doc.getElementById('sq3DirectInp').disabled === true);
+  assert('C7: 정답 판정 결과 표시', (doc.getElementById('sq3DirectResult').textContent || '').includes('정답입니다'));
+  assert('C7: 채점 후처리로 누적 어휘 +1', ev('사용자.총누적어휘수 || 0') === 누적전 + 1, `${누적전} → ${ev('사용자.총누적어휘수')}`);
+  ev("직접입력_제출('sq3');");
+  assert('C17: 두 번 제출해도 한 번만 집계', ev('사용자.총누적어휘수 || 0') === 누적전 + 1);
+
+  // 「넘어가기」는 goLearn과 같은 출제 경로를 탄다
+  ev("학습설정.sq3='3지선다'; 랜덤_넘어가기();");
+  assert('C4: 넘어가기로 같은 화면에 새 문제', doc.getElementById('sq3Body').querySelectorAll('.aopt').length === 3);
+
+  // 아재개그 — initDad 삭제 후에도 '정답 보기' 버튼은 CSS로 block
+  ev("학습설정.sq4_input='플래시카드'; goLearn('아재개그','sq4',null);");
+  const 버튼 = doc.getElementById('dadBtn');
+  assert('C5: 아재개그 정답 보기 버튼이 그려진다', !!버튼);
+  assert('C5: 버튼 표시 방식은 CSS(block)가 담당', window.getComputedStyle(버튼).display === 'block');
+
   process.exit(finish() > 0 ? 1 : 0);
 });
