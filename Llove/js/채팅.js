@@ -47,13 +47,7 @@ let 창조주단계 = 0;
  * - 빈 줄 제거
  */
 function 키정규화(s){
-  return s
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0)
-    .join('\n');
+  return s.split(/\r\n?|\n/).map(line => line.trim()).filter(Boolean).join('\n');
 }
 
 /* 창조주 시나리오 시작 */
@@ -183,23 +177,28 @@ function 창조주달성(){
   showToastMsg('👑 +2000 EXP · 칭호: 폐하');
 }
 
+/* 시나리오 상태 해제(종료·중도 포기 공용) — 진행 플래그를 내려 토큰 차감을 재개한다 */
+function 창조주_상태해제(){
+  창조주진행중 = false;
+  창조주달성진행중 = false;
+  창조주단계 = 0;
+}
+/* 시나리오 동안 숨겼던 입력창을 되살리고 중도 포기 버튼을 숨긴다(종료·중도 포기 공용) */
+function 창조주_입력복구(){
+  const 입력영역 = document.getElementById('askInputArea');
+  if(입력영역) 입력영역.style.display = '';
+  const 포기버튼 = document.getElementById('askCls창조주');
+  if(포기버튼) 포기버튼.style.display = 'none';
+}
+
 /* 시나리오 종료 시 입력창 복구 + 안내 + 모든 화면 재렌더 */
 function 창조주종료(){
-  창조주진행중 = false;
-  창조주달성진행중 = false;  // 달성 완료 → 토큰 차감 재개 (KNOWLEDGE 32)
-  창조주단계 = 0;
+  창조주_상태해제();  // 달성 완료 → 토큰 차감 재개 (KNOWLEDGE 32)
   // 빌드1: 창조주 달성 사항 Firestore 반영 + 개발자 네비 노출 + [창조주] 업적(+2000) 검사
   사용자데이터_저장({창조주달성:true, 개발자모드:true});
   갱신_개발자네비_표시();
   업적_검사();
-
-  // 입력창 복구
-  const 입력영역 = document.getElementById('askInputArea');
-  if(입력영역) 입력영역.style.display = '';
-
-  // 중도 포기 버튼 숨김
-  const 포기버튼 = document.getElementById('askCls창조주');
-  if(포기버튼) 포기버튼.style.display = 'none';
+  창조주_입력복구();
 
   // v3.6: 모든 관련 화면 강제 재렌더 (창조주 달성 반영)
   // 현재 표시 중인 화면이 업적/현황/설정이면 즉시 갱신
@@ -283,17 +282,20 @@ function 채팅기록_추가메시지(역할, 내용){
   }
 }
 
+// 세션 하나를 기록에 보관 — 가장 오래된 것부터 지워 30개만 유지. 게스트(비로그인)는 배열 전체를 localStorage에
+function 채팅기록_보관(세션){
+  채팅기록.push(세션);
+  채팅기록_세션저장(세션);
+  while(채팅기록.length > 채팅기록_최대세션){
+    const 제거 = 채팅기록.shift();
+    if(제거 && 제거.문서ID) 채팅기록_문서삭제(제거.문서ID);
+  }
+  if(!현재UID) 채팅기록_게스트저장();   // 위 세션저장의 게스트 저장은 초과분 정리 전이라 여기서 한 번 더
+}
+
 // 진행 중 세션을 기록으로 보관하고 채팅창을 초기화
 function 채팅세션_마감(사유){
-  if(현재채팅세션 && 현재채팅세션.메시지.length){
-    채팅기록.push(현재채팅세션);
-    채팅기록_세션저장(현재채팅세션);
-    while(채팅기록.length > 채팅기록_최대세션){
-      const 제거 = 채팅기록.shift();               // 가장 오래된 세션 삭제 (30개 보존)
-      if(제거 && 제거.문서ID) 채팅기록_문서삭제(제거.문서ID);
-    }
-    if(!현재UID) 채팅기록_게스트저장();             // 게스트는 배열 전체를 localStorage에
-  }
+  if(현재채팅세션 && 현재채팅세션.메시지.length) 채팅기록_보관(현재채팅세션);
   현재채팅세션 = null;
   try{ localStorage.removeItem('plx_진행중대화'); }catch(e){ /* 무시 */ }  // 세션10-d: 깔끔히 닫혔으니 백업 제거
   채팅창_초기화();
@@ -318,15 +320,7 @@ function 진행중세션_복원(){
   try{ 백업 = JSON.parse(localStorage.getItem('plx_진행중대화') || 'null'); }catch(e){ 백업 = null; }
   if(백업 && Array.isArray(백업.메시지) && 백업.메시지.length){
     const 중복 = 채팅기록.some(s => s.시작시각 === 백업.시작시각);  // 재복원 중복 방지
-    if(!중복){
-      채팅기록.push(백업);
-      채팅기록_세션저장(백업);
-      while(채팅기록.length > 채팅기록_최대세션){
-        const 제거 = 채팅기록.shift();
-        if(제거 && 제거.문서ID) 채팅기록_문서삭제(제거.문서ID);
-      }
-      if(!현재UID) 채팅기록_게스트저장();
-    }
+    if(!중복) 채팅기록_보관(백업);
   }
   try{ localStorage.removeItem('plx_진행중대화'); }catch(e){ /* 무시 */ }
 }
@@ -533,19 +527,9 @@ function closeAsk(){
 
   // 시나리오 진행 중 강제 종료 = 중도 포기
   if(창조주진행중){
-    창조주진행중 = false;
-    창조주달성진행중 = false;  // 중도 포기 → 토큰 차감 재개
-    창조주단계 = 0;
-
-    // UI 복구 (ID 기반)
-    const 입력영역 = document.getElementById('askInputArea');
-    if(입력영역) 입력영역.style.display = '';
-    const 포기버튼 = document.getElementById('askCls창조주');
-    if(포기버튼) 포기버튼.style.display = 'none';
-
-    // askBody 초기화
-    const body = document.getElementById('askBody');
-    if(body) body.innerHTML = '<div class="ask-msg ai">안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요. Grok이 답변드립니다.</div>';
+    창조주_상태해제();  // 중도 포기 → 토큰 차감 재개
+    창조주_입력복구();
+    채팅창_초기화();
 
     showToastMsg('중도 포기 — 처음부터 다시 시도해야 합니다.');
   }
@@ -594,15 +578,8 @@ function sendAsk(){
     }
     inp.value='';
     inp.style.height='auto';  // 버그4: 전송 후 입력창 높이 초기화
-    const body=document.getElementById('askBody');
-
-    // 사용자가 입력한 키 문장을 메시지로 표시
-    const u=document.createElement('div');
-    u.className='ask-msg user';
-    u.style.whiteSpace='pre-line';
-    u.textContent=q;
-    body.appendChild(u);
-    body.scrollTop=body.scrollHeight;
+    // 사용자가 입력한 키 문장을 메시지로 표시(줄바꿈 유지)
+    채팅_말풍선('user', q).style.whiteSpace='pre-line';
 
     // 시나리오 진입
     setTimeout(창조주시작, 800);
@@ -611,13 +588,9 @@ function sendAsk(){
 
   // 일반 질문 처리 — β1 연결 지점 (Grok 게이트)
   const body=document.getElementById('askBody');
-  const u=document.createElement('div');
-  u.className='ask-msg user';
-  u.textContent=q;
-  body.appendChild(u);
+  채팅_말풍선('user', q);
   inp.value='';
   inp.style.height='auto';  // 버그4: 전송 후 입력창 높이 초기화
-  body.scrollTop=body.scrollHeight;
   // 세션10-j/k: 【】(창조주 키 문장 전용 특수기호, 앱 내 다른 곳엔 쓰이지 않음)가 포함된 메시지는
   // 정확한 키와 완전히 일치하지 않아도(오타·부분 복사·재시도 등) 사실상 창조주 시도이므로, 화면엔
   // 그대로 보여주되 정식 채팅 내역엔 저장하지 않는다. 창조주 달성 여부와 무관하게 항상 적용 —
@@ -700,13 +673,9 @@ async function sendAsk_사전(){
   const q=inp.value.trim();
   if(!q) return;
   const body=document.getElementById('askBody');
-  const u=document.createElement('div');
-  u.className='ask-msg user';
-  u.textContent=q;
-  body.appendChild(u);
+  채팅_말풍선('user', q);
   inp.value='';
   inp.style.height='auto';
-  body.scrollTop=body.scrollHeight;
 
   if(!국어원_활성화){
     const a=document.createElement('div');
@@ -721,20 +690,23 @@ async function sendAsk_사전(){
   // 없었다 — 사전 조회는 캐시가 비면 수 초가 걸리고(타임아웃 8초), 그동안 사용자는 앱이 멈춘
   // 것으로 느낀다. 새 클래스·새 색을 만들지 않고 기존 .ask-msg.dict 버블과 기존 pulse
   // 키프레임(style.css, 음성 녹음 표시가 쓰는 것과 같은 것)만 재사용한다.
-  const 대기=document.createElement('div');
-  대기.className='ask-msg dict';
+  const 대기 = 채팅_말풍선('dict', '뜻풀이를 찾는 중…');
   대기.style.animation='pulse 1.2s ease-in-out infinite';
-  대기.textContent='뜻풀이를 찾는 중…';
-  body.appendChild(대기);
-  body.scrollTop=body.scrollHeight;
 
   const 결과 = await 사전_단어조회(q);
   대기.remove();
-  const a=document.createElement('div');
-  a.className='ask-msg dict';
-  a.innerHTML = 사전결과_HTML(결과);
-  body.appendChild(a);
-  body.scrollTop=body.scrollHeight;
+  채팅_말풍선('dict', 사전결과_HTML(결과), true);
+}
+
+// 채팅 말풍선 하나를 붙이고 맨 아래로 스크롤 — html이면 innerHTML(앱이 만든 안내·조회 결과), 아니면 textContent
+function 채팅_말풍선(종류, 내용, html){
+  const body = document.getElementById('askBody');
+  const el = document.createElement('div');
+  el.className = 'ask-msg ' + 종류;
+  if(html) el.innerHTML = 내용; else el.textContent = 내용;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+  return el;
 }
 
 // 조회 결과 → 표시용 HTML 문자열. 게이트/네트워크와 분리된 순수 렌더링 함수라 단위 테스트가 쉽다.
@@ -743,19 +715,16 @@ async function sendAsk_사전(){
 // 구분 없이 모든 뜻을 1·2·3…으로 섞어 보여줬다. 그룹이 하나뿐이면 기존과 동일하게 번호
 // 목록만, 둘 이상이면 ①/②로 나눠 보여준다(js/사전.js의 뜻풀이그룹_정규화()가 구 계약
 // { 뜻풀이:[...] } 도 1그룹으로 감싸주므로 여기서는 결과.뜻풀이그룹만 보면 된다).
-const 사전_동그라미 = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨'];
 function 사전결과_HTML(결과){
   const 그룹 = 뜻풀이그룹_정규화(결과);
   if(!그룹.length) return '사전에서 찾을 수 없는 단어입니다.';
   const 출처 = '<div style="font-size:11px;color:var(--txtm);margin-top:8px">출처: 국립국어원 우리말샘·표준국어대사전 (CC BY-SA 2.0 KR)</div>';
-  if(그룹.length === 1){
-    const 목록 = 그룹[0].뜻풀이.map((뜻,i)=>`${i+1}. ${뜻}`).join('<br>');
-    return `${목록}${출처}`;
-  }
+  const 번호목록 = 뜻들 => 뜻들.map((뜻,i)=>`${i+1}. ${뜻}`).join('<br>');
+  if(그룹.length === 1) return 번호목록(그룹[0].뜻풀이) + 출처;
   const 블록들 = 그룹.map((g,gi)=>{
-    const 표식 = 사전_동그라미[gi] || `(${gi+1})`;
-    const 목록 = g.뜻풀이.map((뜻,i)=>`${i+1}. ${뜻}`).join('<br>');
-    return `<div${gi?' style="margin-top:8px"':''}><b>${표식}</b> ${목록}</div>`;
+    // ①~⑳은 U+2460부터 연속 — 그 너머는 (21) 같은 괄호 번호
+    const 표식 = gi < 20 ? String.fromCodePoint(0x2460 + gi) : `(${gi+1})`;
+    return `<div${gi?' style="margin-top:8px"':''}><b>${표식}</b> ${번호목록(g.뜻풀이)}</div>`;
   }).join('');
   return `${블록들}${출처}`;
 }

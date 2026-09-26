@@ -109,18 +109,24 @@ function setTheme(name, 조용히){
    - 저장 키: 화면=plx_화면배율/Firestore 화면배율 · 글자=plx_글자배율/Firestore 글자배율
      (기존 plx_글자배율 사용자는 그 %가 글자 배율로 이어짐 — 기본 100이라 체감 차이 없음) */
 const 화면크기단계 = [70,80,90,100,110,125,150];  // 세션10-g: 최소 70%(항목3)·최대 150%(항목2, 175·200 제거)
+const 글자크기단계 = 화면크기단계;                  // 같은 단계(세션10-g 항목3: 최소 70%)
 function setFontScale(pct, 조용히){
   pct = 화면크기단계.includes(pct) ? pct : 100;
   // 앱 전체 배율 적용 (zoom: Chrome·Edge·Safari·Firefox 126+)
   document.documentElement.style.zoom = (pct/100).toString();
-  const txt = document.getElementById('fontScaleTxt');
-  if(txt) txt.textContent = pct + '% — 화면 전체를 확대/축소';
-  document.querySelectorAll('#fontScaleOpts .fs-opt').forEach(b=>b.classList.toggle('on', b.textContent.trim() === pct + '%'));
-  try{ localStorage.setItem('plx_화면배율', String(pct)); }catch(e){ /* localStorage 차단 환경 무시 */ }
+  배율_표시저장(pct, 조용히, 'fontScale', '화면 전체를 확대/축소', '화면배율', '화면 크기');
+}
+// 화면·글자 크기 공용 꼬리 — 설명 문구(#{접두}Txt)·칩(#{접두}Opts .fs-opt) 표시, plx_{필드} 로컬 캐시,
+// (조용히가 아니면) 사용자·Firestore {필드} 저장 + 토스트
+function 배율_표시저장(pct, 조용히, 접두, 설명, 필드, 이름){
+  const txt = document.getElementById(접두+'Txt');
+  if(txt) txt.textContent = pct + '% — ' + 설명;
+  document.querySelectorAll('#'+접두+'Opts .fs-opt').forEach(b=>b.classList.toggle('on', b.textContent.trim() === pct + '%'));
+  try{ localStorage.setItem('plx_'+필드, String(pct)); }catch(e){ /* localStorage 차단 환경 무시 */ }
   if(조용히) return;
-  사용자.화면배율 = pct;
-  사용자데이터_저장({화면배율: pct});  // Firestore 동기화
-  showToastMsg('화면 크기: ' + pct + '%');
+  사용자[필드] = pct;
+  사용자데이터_저장({[필드]: pct});  // Firestore 동기화
+  showToastMsg(이름 + ': ' + pct + '%');
 }
 
 /* 세션7 항목10: 글자 크기 적용 범위 — '학습'(기본: 학습 콘텐츠만) / '전체'(주요 UI 텍스트 포함) */
@@ -136,19 +142,11 @@ function set글자범위(범위, 조용히){
   showToastMsg('글자 크기 적용 범위: ' + (범위==='전체' ? '앱 전체' : '학습 콘텐츠만'));
 }
 
-const 글자크기단계 = [70,80,90,100,110,125,150];  // 세션10-g 항목3: 최소 70%
 function set글자크기(pct, 조용히){
   pct = 글자크기단계.includes(pct) ? pct : 100;
   // 읽기 텍스트 전용 배율 — CSS calc(원본px * --글자배율) 블록이 소비
   document.documentElement.style.setProperty('--글자배율', String(pct/100));
-  const txt = document.getElementById('textScaleTxt');
-  if(txt) txt.textContent = pct + '% — 문제·카드·채팅 글자만 확대';
-  document.querySelectorAll('#textScaleOpts .fs-opt').forEach(b=>b.classList.toggle('on', b.textContent.trim() === pct + '%'));
-  try{ localStorage.setItem('plx_글자배율', String(pct)); }catch(e){ /* localStorage 차단 환경 무시 */ }
-  if(조용히) return;
-  사용자.글자배율 = pct;
-  사용자데이터_저장({글자배율: pct});  // Firestore 동기화
-  showToastMsg('글자 크기: ' + pct + '%');
+  배율_표시저장(pct, 조용히, 'textScale', '문제·카드·채팅 글자만 확대', '글자배율', '글자 크기');
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -227,8 +225,9 @@ function 커스텀_채널선택(ch, btn){
 function 커스텀_색선택(hex){
   커스텀색[커스텀선택채널] = hex;
   커스텀_미리보기갱신();
-  커스텀_팔레트강조();
 }
+// 저장·프리셋 객체에서 4색만 복사(이름 등 다른 필드는 떼어 냄)
+const 커스텀_4색 = ({bg, card, acc, txt}) => ({bg, card, acc, txt});
 function 커스텀_미리보기갱신(){
   const card = document.getElementById('ctPrevCard');
   if(card){
@@ -244,6 +243,7 @@ function 커스텀_미리보기갱신(){
   const sw = {bg:'ctSwBg', card:'ctSwCard', acc:'ctSwAcc', txt:'ctSwTxt'};
   Object.keys(sw).forEach(k=>{ const el=document.getElementById(sw[k]); if(el) el.style.background = 커스텀색[k]; });
   커스텀_대비갱신();
+  커스텀_팔레트강조();  // 색이 바뀌면 팔레트의 현재 색 표시도 함께
 }
 function 커스텀_대비갱신(){
   const el = document.getElementById('ctContrast');
@@ -254,9 +254,8 @@ function 커스텀_대비갱신(){
 }
 function 커스텀_랜덤(){
   const p = 커스텀랜덤프리셋[Math.floor(Math.random()*커스텀랜덤프리셋.length)];
-  커스텀색 = {bg:p.bg, card:p.card, acc:p.acc, txt:p.txt};
+  커스텀색 = 커스텀_4색(p);
   커스텀_미리보기갱신();
-  커스텀_팔레트강조();
 }
 function 커스텀_색적용DOM(){
   // 선택한 4색을 루트 변수로 반영 (custom 테마 CSS가 나머지 톤을 파생)
@@ -318,11 +317,10 @@ function 커스텀_슬롯_현재저장(i){
 function 커스텀_슬롯로드(i){
   const s = 커스텀슬롯[i];
   if(!s) return;
-  커스텀색 = {bg:s.bg, card:s.card, acc:s.acc, txt:s.txt};
+  커스텀색 = 커스텀_4색(s);
   커스텀이름 = s.이름 || '';
   const nm = document.getElementById('ctName'); if(nm) nm.value = 커스텀이름;
   커스텀_미리보기갱신();
-  커스텀_팔레트강조();
   showToastMsg(`슬롯 ${i+1} 불러옴 — 「적용」을 누르면 반영됩니다`);
 }
 function 커스텀_슬롯비우기(i){
@@ -338,7 +336,7 @@ function 커스텀_복원(객체){
   try{
     const 색 = 객체 || JSON.parse(localStorage.getItem('plx_커스텀') || 'null');
     if(색 && 색.bg){
-      커스텀색 = {bg:색.bg, card:색.card, acc:색.acc, txt:색.txt};
+      커스텀색 = 커스텀_4색(색);
       커스텀이름 = 색.이름 || '';
       커스텀_색적용DOM();  // 테마가 custom이면 즉시 반영되도록 변수 세팅
     }
@@ -426,26 +424,11 @@ function toggleAiOnly(){
 
 /* 히스토리 필터 */
 function openHistoryFilter(){
-  document.getElementById('selTitle').textContent='📋 최근 출제 제외';
-  document.getElementById('selDesc').textContent='중복 문제를 막을지 설정합니다. 모드별로 독립 관리됩니다.';
-  const list=document.getElementById('selList');
-  const opts=[
-    {v:'off', label:'사용 안함'},
-    {v:'30', label:'최근 30개'},
-    {v:'50', label:'최근 50개'},
-    {v:'80', label:'최근 80개'},
-    {v:'100', label:'최근 100개'},
-    {v:'120', label:'최근 120개'}
-  ];
-  list.innerHTML='';
-  opts.forEach(o=>{
-    const div=document.createElement('div');
-    div.className='select-opt'+(o.v===histFilter?' on':'');
-    div.onclick=()=>applyHistoryFilter(o.v, o.label);
-    div.innerHTML=`<span>${o.label}</span><span class="select-opt-ck">✓</span>`;
-    list.appendChild(div);
-  });
-  document.getElementById('selBg').classList.add('show');
+  선택모달_열기('📋 최근 출제 제외', '중복 문제를 막을지 설정합니다. 모드별로 독립 관리됩니다.',
+    ['off','30','50','80','100','120'].map(v=>{
+      const 라벨 = v==='off' ? '사용 안함' : `최근 ${v}개`;
+      return {라벨, 켜짐: v===histFilter, 클릭: ()=>applyHistoryFilter(v, 라벨)};
+    }));
 }
 function applyHistoryFilter(v, label){
   histFilter=v;
@@ -454,6 +437,22 @@ function applyHistoryFilter(v, label){
   사용자데이터_저장({히스토리필터: v});  // 빌드1: Firestore 설정 동기화
   showToastMsg('최근 출제 제외: '+label);
   setTimeout(closeSelect,250);
+}
+/* 선택 모달(#selBg) 공용 — 옵션: {라벨, 켜짐, 클릭, 비활성}(비활성이면 흐리게·금지 커서, 클릭은 그대로 호출) */
+function 선택모달_열기(제목, 설명, 옵션들){
+  document.getElementById('selTitle').textContent=제목;
+  document.getElementById('selDesc').textContent=설명;
+  const list=document.getElementById('selList');
+  list.innerHTML='';
+  옵션들.forEach(o=>{
+    const div=document.createElement('div');
+    div.className='select-opt'+(o.켜짐?' on':'');
+    if(o.비활성){ div.style.opacity='0.4'; div.style.cursor='not-allowed'; }
+    div.onclick=o.클릭;
+    div.innerHTML=`<span>${o.라벨}</span><span class="select-opt-ck">✓</span>`;
+    list.appendChild(div);
+  });
+  document.getElementById('selBg').classList.add('show');
 }
 function closeSelect(){
   document.getElementById('selBg').classList.remove('show');

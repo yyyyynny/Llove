@@ -68,16 +68,13 @@ async function 사전_단어조회(word){
   // view API 추가 호출까지 포함)는 실측상 수 초가 걸릴 수 있다(wchain 쪽 국어원.js가 같은
   // 이유로 8초를 쓰는 것과 동일 근거 — 실측 기록 그쪽 참조). 2초로는 응답이 오기도 전에
   // 매번 "찾을 수 없음"으로 강등됐을 가능성이 크다.
-  const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 8000) : null;
   try{
     const res = await fetch(국어원_WORKERS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 단어: word, 뜻풀이: true }),
-      ...(controller ? { signal: controller.signal } : {})
+      signal: AbortSignal.timeout(8000)
     });
-    if(타임아웃ID) clearTimeout(타임아웃ID);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const 그룹 = 뜻풀이그룹_정규화(data);
@@ -86,7 +83,6 @@ async function 사전_단어조회(word){
     사전_캐시_저장(캐시);
     return 결과;
   }catch(e){
-    if(타임아웃ID) clearTimeout(타임아웃ID);
     console.error('[사전] 조회 실패/시간초과', e);
     return null;
   }

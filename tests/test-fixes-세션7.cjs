@@ -135,7 +135,7 @@ load((window) => {
   assert('#12: 그라디언트 배너 적용·저장', ev('사용자.배너이미지') === 'grad:1' && (doc.getElementById('statusBanner').style.background||'').includes('linear-gradient'));
   ev("배너_적용선택('assets/배너/테스트.jpg');");
   assert('#12: 이미지 배너 <img> 렌더', !!doc.querySelector('#statusBanner img'));
-  ev("사용자.개발자모드=false; curLv=1; 배너_업로드시도();");
+  ev("사용자.개발자모드=false; curLv=1; 이미지_업로드시도('배너');");
   assert('#12: 미달자 업로드 경고', doc.getElementById('infoDesc').innerHTML.includes('권한 부족'));
   ev("closeInfoModal(); 배너_적용선택('');");
 

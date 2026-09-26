@@ -5,24 +5,18 @@
    구어 교정
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function switchSpkMode(mode){
-  if(mode==='text'){
-    document.getElementById('spkMText').classList.add('on');
-    document.getElementById('spkMVoice').classList.remove('on');
-    document.getElementById('spkTextArea').style.display='block';
-    document.getElementById('spkVoiceArea').style.display='none';
-    음성인식_중지();  // 텍스트 탭으로 전환 시 진행 중 인식 정리
-  } else {
-    document.getElementById('spkMVoice').classList.add('on');
-    document.getElementById('spkMText').classList.remove('on');
-    document.getElementById('spkTextArea').style.display='none';
-    document.getElementById('spkVoiceArea').style.display='block';
-    // 항목8: 미지원 브라우저 안내 (Firefox 등 SpeechRecognition 미구현 환경)
-    if(!음성인식_지원()){
-      const st=document.getElementById('spkVoiceStatus');
-      const btn=document.getElementById('spkMicBtn');
-      if(st) st.textContent='이 브라우저는 음성 인식을 지원하지 않습니다. Chrome·Edge·Safari에서 사용하거나 텍스트 입력을 이용해 주세요.';
-      if(btn) btn.disabled=true;
-    }
+  const 텍스트 = mode === 'text';
+  document.getElementById('spkMText').classList.toggle('on', 텍스트);
+  document.getElementById('spkMVoice').classList.toggle('on', !텍스트);
+  document.getElementById('spkTextArea').style.display = 텍스트 ? 'block' : 'none';
+  document.getElementById('spkVoiceArea').style.display = 텍스트 ? 'none' : 'block';
+  if(텍스트){ 음성인식_중지(); return; }  // 텍스트 탭으로 전환 시 진행 중 인식 정리
+  // 항목8: 미지원 브라우저 안내 (Firefox 등 SpeechRecognition 미구현 환경)
+  if(!음성인식_지원()){
+    const st=document.getElementById('spkVoiceStatus');
+    const btn=document.getElementById('spkMicBtn');
+    if(st) st.textContent='이 브라우저는 음성 인식을 지원하지 않습니다. Chrome·Edge·Safari에서 사용하거나 텍스트 입력을 이용해 주세요.';
+    if(btn) btn.disabled=true;
   }
 }
 

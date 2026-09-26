@@ -80,5 +80,55 @@ load((window) => {
   assert('C5: 아재개그 정답 보기 버튼이 그려진다', !!버튼);
   assert('C5: 버튼 표시 방식은 CSS(block)가 담당', window.getComputedStyle(버튼).display === 'block');
 
+  /* ── 배치 C-2: Llove UI 중복 통합 회귀 ── */
+  // C3 복습 탭 공통 틀 — 빈 안내 / 항목 카드 / 탭별 메타·액션·꼬리 버튼
+  ev(`복습데이터.대기열=[{id:'q1',단어:'가렴주구',뜻:'뜻1',모드:'고사성어·속담',모드클래스:'tp',연속정답수:0,즐겨찾기:true}];
+      복습데이터.즐겨찾기=[]; 복습데이터.휴지통=[{id:'b1',단어:'어불성설',뜻:'뜻2',모드:'고사성어·속담',모드클래스:'tp',잔여일:7}];
+      renderReview();`);
+  const 대기열 = doc.getElementById('rvQueue'), 즐찾 = doc.getElementById('rvFav'), 휴지통 = doc.getElementById('rvBin');
+  assert('C3: 대기열 카드 + 즐겨찾기 표시 + 복습 시작 버튼',
+    대기열.querySelectorAll('.rv-item').length === 1 && 대기열.querySelector('.act-btn.fav.on') && /복습시작\(\)/.test(대기열.innerHTML));
+  assert('C3: 빈 즐겨찾기는 안내 문구만', 즐찾.querySelectorAll('.rv-item').length === 0 && 즐찾.textContent.includes('즐겨찾기가 비어있습니다'));
+  assert('C3: 휴지통 카드에 잔여일·복구 버튼·비우기 버튼',
+    휴지통.textContent.includes('7일 후 삭제') && /휴지통_복구\('b1'\)/.test(휴지통.innerHTML) && /휴지통_전체비우기/.test(휴지통.innerHTML));
+
+  // C14 휴지통 이동 공용 — 대기열 → 휴지통(잔여일 20)
+  ev("대기열_휴지통이동('q1');");
+  assert('C14: 수동 삭제가 휴지통으로 옮긴다(잔여일 20)',
+    ev('복습데이터.대기열.length') === 0 && ev("복습데이터.휴지통.some(x=>x.단어==='가렴주구' && x.잔여일===20)"));
+
+  // C6 선택 모달 공용 — 현재 항목 수보다 작은 상한은 흐리게(비활성)
+  ev('사용자.복습대기열수=45; 사용자.복습대기열상한=50; openCapacity();');
+  const 옵션 = [...doc.querySelectorAll('#selList .select-opt')];
+  assert('C6: 상한 옵션 5개, 현재값 50에 선택 표시', 옵션.length === 5 && 옵션[2].classList.contains('on'));
+  assert('C6: 45개보다 작은 30·40은 흐리게, 50은 정상', 옵션[0].style.opacity === '0.4' && 옵션[1].style.opacity === '0.4' && 옵션[2].style.opacity === '');
+  ev('closeSelect(); openHistoryFilter();');
+  assert('C6: 최근 출제 제외 옵션 문구', [...doc.querySelectorAll('#selList .select-opt')].map(e=>e.textContent.replace('✓','').trim()).join(',')
+    === '사용 안함,최근 30개,최근 50개,최근 80개,최근 100개,최근 120개');
+  ev('closeSelect();');
+
+  // C10 채팅 기록 보관 공용 — 30개 초과 시 가장 오래된 것부터 정리
+  ev(`현재UID=null; 채팅기록=[]; for(let i=0;i<31;i++) 채팅기록_보관({카테고리:'일반', 시작시각:i, 메시지:[{역할:'나',내용:'q'+i}]});`);
+  assert('C10: 기록은 30개만 유지(가장 오래된 것 삭제)', ev('채팅기록.length') === 30 && ev('채팅기록[0].시작시각') === 1);
+  assert('C10: 게스트는 정리된 30개를 로컬에 저장', JSON.parse(window.localStorage.getItem('plx_채팅기록')).length === 30);
+
+  // C10 창조주 중도 포기 — 상태 해제 + 입력창 복구 + 채팅창 초기화
+  ev(`창조주진행중=true; 창조주단계=3; document.getElementById('askInputArea').style.display='none';
+      document.getElementById('askBody').innerHTML='<div>시나리오</div>'; closeAsk();`);
+  assert('C10: 중도 포기 시 시나리오 상태 해제', ev('창조주진행중') === false && ev('창조주단계') === 0);
+  assert('C10: 입력창 복구 + 인사말로 초기화', doc.getElementById('askInputArea').style.display === '' && doc.querySelector('#askBody .ask-msg.ai'));
+
+  // C20 사전 결과 — 동음이의어 그룹 번호는 ①② (U+2460~)
+  const 사전 = ev(`사전결과_HTML({뜻풀이그룹:[{뜻풀이:['뜻 가']},{뜻풀이:['뜻 나','뜻 다']}]})`);
+  assert('C20: 그룹 번호 ①②, 그룹 안은 1. 2.', 사전.includes('<b>①</b> 1. 뜻 가') && 사전.includes('<b>②</b> 1. 뜻 나<br>2. 뜻 다'));
+  assert('C20: 키 정규화 — CRLF·CR·빈 줄·양끝 공백 정리', ev(`키정규화(' 가 \\r\\n\\r나\\n\\n 다')`) === '가\n나\n다');
+
+  // C18 구어 교정 탭 전환
+  ev("switchSpkMode('voice');");
+  assert('C18: 음성 탭 — 버튼·영역 전환', doc.getElementById('spkMVoice').classList.contains('on') && !doc.getElementById('spkMText').classList.contains('on')
+    && doc.getElementById('spkVoiceArea').style.display === 'block' && doc.getElementById('spkTextArea').style.display === 'none');
+  ev("switchSpkMode('text');");
+  assert('C18: 텍스트 탭으로 복귀', doc.getElementById('spkMText').classList.contains('on') && doc.getElementById('spkTextArea').style.display === 'block');
+
   process.exit(finish() > 0 ? 1 : 0);
 });

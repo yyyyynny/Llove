@@ -21,9 +21,15 @@ load((window) => {
     /\.prof-banner\{[^}]*cursor:pointer/.test(Array.from(doc.querySelectorAll('style')).map(s=>s.textContent).join('\n')));
 
   /* ── 항목2: 프로필 사진도 배너와 같은 드래그·줌 크롭 모달 재활용 ── */
-  assert('#2: 프로필_파일처리가 크롭 모달을 여는 이미지크롭_열기 호출(구 강제중앙크롭 폐지)',
-    /이미지크롭_열기\(rd\.result,\s*'프로필'\)/.test(ev('프로필_파일처리.toString()')));
-  assert('#2: 배너_파일처리도 동일한 공용 함수 사용', /이미지크롭_열기\(rd\.result,\s*'배너'\)/.test(ev('배너_파일처리.toString()')));
+  assert('#2: 파일처리가 크롭 모달을 여는 이미지크롭_열기 호출(구 강제중앙크롭 폐지)',
+    /이미지크롭_열기\(rd\.result,\s*대상\)/.test(ev('이미지_파일처리.toString()')));
+  ev('프로필선택_열기();');
+  assert('#2: 프로필 업로드 입력이 공용 파일처리에 프로필 대상으로 연결',
+    (doc.getElementById('프로필파일입력')?.getAttribute('onchange')||'').includes("이미지_파일처리(this,'프로필')"));
+  ev('closeInfoModal(); 배너선택_열기();');
+  assert('#2: 배너 업로드 입력도 같은 공용 함수에 배너 대상으로 연결',
+    (doc.getElementById('배너파일입력')?.getAttribute('onchange')||'').includes("이미지_파일처리(this,'배너')"));
+  ev('closeInfoModal();');
 
   // 프로필 대상으로 크롭 열기 → 원형 마스크 뷰포트 + 제목 전환
   ev("이미지크롭_열기('data:image/png;base64,AAAA', '프로필');");

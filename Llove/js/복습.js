@@ -124,135 +124,50 @@ function renderReview(){
   사용자.즐겨찾기수 = 복습데이터.즐겨찾기.length;
   사용자.휴지통수 = 복습데이터.휴지통.length;
 
-  // 대기열 렌더
-  renderQueueTab();
-  renderFavTab();
-  renderBinTab();
-}
-
-/* 대기열 탭 렌더 */
-function renderQueueTab(){
-  const wrap = document.getElementById('rvQueue');
-  const 대기열 = 복습데이터.대기열;
-  const 상한 = 사용자.복습대기열상한;
-
-  // 용량 표시 줄
-  let html = `
+  // 탭 3개(대기열/즐겨찾기/휴지통) — 틀은 같고 머리글·메타 줄·액션 버튼·꼬리 버튼만 다르다
+  const 대기열 = 복습데이터.대기열, 상한 = 사용자.복습대기열상한;
+  복습탭_렌더('rvQueue', `
     <div class="rv-cap">
       <span class="rv-cap-lbl">용량</span>
       <div class="cap-bar"><div class="cap-fill" style="width:${Math.min(100,(대기열.length/상한)*100)}%"></div></div>
       <span class="rv-cap-val" onclick="openCapacity()">${대기열.length} / ${상한} ⚙</span>
-    </div>
-  `;
-
-  // 비어있을 때
-  if(대기열.length===0){
-    html += `<div style="text-align:center;padding:48px 20px;color:var(--txtm);font-size:13px">📥 대기열이 비어있습니다</div>`;
-    wrap.innerHTML = html;
-    return;
-  }
-
-  // 항목들
-  대기열.forEach((item,idx)=>{
-    // 세션7 항목5: 졸업 기준 1회 — 점 1개로 축소
-    const dots = [0].map(i=>`<div class="rv-dot${i<item.연속정답수?' f':''}"></div>`).join('');
-    html += `
-      <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
-        <div class="rv-idx">${idx}</div>
-        <div style="flex:1">
-          <div class="rv-word">${item.단어}</div>
-          <div class="rv-desc">${item.뜻}</div>
-          <div class="rv-meta">
-            <span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span>
-            <div class="rv-dots">${dots}</div>
-            <span style="font-size:10px;color:var(--txtm)">${item.연속정답수}/1</span>
-          </div>
-        </div>
-        <div class="rv-acts">
-          <div class="act-btn fav${item.즐겨찾기?' on':''}" onclick="대기열_즐겨찾기토글('${item.id}')" title="즐겨찾기">${item.즐겨찾기?'★':'☆'}</div>
-          <div class="act-btn d" onclick="대기열_휴지통이동('${item.id}')" title="삭제">🗑</div>
-        </div>
-      </div>
-    `;
-  });
-
-  // 복습 시작 — 대기열 순차 복습 플레이 (완료 시 토큰 +30, 일 3회 — KNOWLEDGE 32)
-  html += `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="복습시작()">🔁 복습 시작</button>`;
-
-  wrap.innerHTML = html;
+    </div>`, 대기열, '📥 대기열이 비어있습니다',
+    // 세션7 항목5: 졸업 기준 1회 — 점 1개
+    item => `<div class="rv-dots"><div class="rv-dot${0<item.연속정답수?' f':''}"></div></div>
+             <span style="font-size:10px;color:var(--txtm)">${item.연속정답수}/1</span>`,
+    item => `<div class="act-btn fav${item.즐겨찾기?' on':''}" onclick="대기열_즐겨찾기토글('${item.id}')" title="즐겨찾기">${item.즐겨찾기?'★':'☆'}</div>
+             <div class="act-btn d" onclick="대기열_휴지통이동('${item.id}')" title="삭제">🗑</div>`,
+    // 복습 시작 — 대기열 순차 복습 플레이 (완료 시 토큰 +30, 일 3회 — KNOWLEDGE 32)
+    `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="복습시작()">🔁 복습 시작</button>`);
+  복습탭_렌더('rvFav', `<div class="bin-info">⭐ 즐겨찾기는 무한 보관 가능하며 다른 시스템(대기열·휴지통)의 영향을 받지 않습니다.</div>`,
+    복습데이터.즐겨찾기, '⭐ 즐겨찾기가 비어있습니다',
+    () => '',
+    item => `<div class="act-btn" onclick="즐겨찾기_다시풀기('${item.id}')" title="다시 풀기">↻</div>
+             <div class="act-btn" onclick="즐겨찾기_유사문제('${item.id}')" title="유사 문제">✨</div>
+             <div class="act-btn d" onclick="즐겨찾기_해제('${item.id}')" title="해제">★</div>`);
+  복습탭_렌더('rvBin', `<div class="bin-info">🕒 휴지통의 항목은 <b>20일 후 자동 삭제</b>됩니다. 그 전에 복구하거나 영구삭제할 수 있습니다.</div>`,
+    복습데이터.휴지통, '🗑️ 휴지통이 비어있습니다',
+    item => `<span style="font-size:10px;color:var(--txtm)">${item.잔여일}일 후 삭제</span>`,
+    item => `<div class="act-btn" onclick="휴지통_복구('${item.id}')" title="복구">↩</div>
+             <div class="act-btn d" onclick="휴지통_영구삭제('${item.id}')" title="영구삭제">✕</div>`,
+    `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="휴지통_전체비우기()">🗑️ 휴지통 비우기</button>`);
 }
 
-/* 즐겨찾기 탭 렌더 */
-function renderFavTab(){
-  const wrap = document.getElementById('rvFav');
-  const 즐겨찾기 = 복습데이터.즐겨찾기;
-
-  let html = `<div class="bin-info">⭐ 즐겨찾기는 무한 보관 가능하며 다른 시스템(대기열·휴지통)의 영향을 받지 않습니다.</div>`;
-
-  if(즐겨찾기.length===0){
-    html += `<div style="text-align:center;padding:48px 20px;color:var(--txtm);font-size:13px">⭐ 즐겨찾기가 비어있습니다</div>`;
-    wrap.innerHTML = html;
-    return;
-  }
-
-  즐겨찾기.forEach((item,idx)=>{
-    html += `
+/* 복습 탭 공통 틀 — 머리글 + (비었으면 안내 | 항목 카드들 + 꼬리 버튼) */
+function 복습탭_렌더(wrapId, 머리글, 목록, 빈안내, 메타, 액션, 꼬리 = ''){
+  const 본문 = !목록.length
+    ? `<div style="text-align:center;padding:48px 20px;color:var(--txtm);font-size:13px">${빈안내}</div>`
+    : 목록.map((item,idx)=>`
       <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
         <div class="rv-idx">${idx}</div>
         <div style="flex:1">
           <div class="rv-word">${item.단어}</div>
           <div class="rv-desc">${item.뜻}</div>
-          <div class="rv-meta"><span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span></div>
+          <div class="rv-meta"><span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span>${메타(item)}</div>
         </div>
-        <div class="rv-acts">
-          <div class="act-btn" onclick="즐겨찾기_다시풀기('${item.id}')" title="다시 풀기">↻</div>
-          <div class="act-btn" onclick="즐겨찾기_유사문제('${item.id}')" title="유사 문제">✨</div>
-          <div class="act-btn d" onclick="즐겨찾기_해제('${item.id}')" title="해제">★</div>
-        </div>
-      </div>
-    `;
-  });
-
-  wrap.innerHTML = html;
-}
-
-/* 휴지통 탭 렌더 */
-function renderBinTab(){
-  const wrap = document.getElementById('rvBin');
-  const 휴지통 = 복습데이터.휴지통;
-
-  let html = `<div class="bin-info">🕒 휴지통의 항목은 <b>20일 후 자동 삭제</b>됩니다. 그 전에 복구하거나 영구삭제할 수 있습니다.</div>`;
-
-  if(휴지통.length===0){
-    html += `<div style="text-align:center;padding:48px 20px;color:var(--txtm);font-size:13px">🗑️ 휴지통이 비어있습니다</div>`;
-    wrap.innerHTML = html;
-    return;
-  }
-
-  휴지통.forEach((item,idx)=>{
-    html += `
-      <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
-        <div class="rv-idx">${idx}</div>
-        <div style="flex:1">
-          <div class="rv-word">${item.단어}</div>
-          <div class="rv-desc">${item.뜻}</div>
-          <div class="rv-meta">
-            <span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span>
-            <span style="font-size:10px;color:var(--txtm)">${item.잔여일}일 후 삭제</span>
-          </div>
-        </div>
-        <div class="rv-acts">
-          <div class="act-btn" onclick="휴지통_복구('${item.id}')" title="복구">↩</div>
-          <div class="act-btn d" onclick="휴지통_영구삭제('${item.id}')" title="영구삭제">✕</div>
-        </div>
-      </div>
-    `;
-  });
-
-  // 휴지통 비우기 버튼
-  html += `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="휴지통_전체비우기()">🗑️ 휴지통 비우기</button>`;
-
-  wrap.innerHTML = html;
+        <div class="rv-acts">${액션(item)}</div>
+      </div>`).join('') + 꼬리;
+  document.getElementById(wrapId).innerHTML = 머리글 + 본문;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -451,25 +366,7 @@ function 대기열_즐겨찾기토글(id){
 function 대기열_휴지통이동(id){
   const idx = 복습데이터.대기열.findIndex(x=>x.id===id);
   if(idx<0) return;
-  const item = 복습데이터.대기열[idx];
-
-  // 휴지통으로 이동 (잔여일 20일로 시작)
-  const 휴항목 = {
-    id: 보관함_임시ID(),
-    단어: item.단어,
-    뜻: item.뜻,
-    모드: item.모드,
-    모드클래스: item.모드클래스,
-    잔여일: 20
-  };
-  복습데이터.휴지통.push(휴항목);
-  보관함_문서추가('휴지통', 휴항목, {단어:item.단어, 뜻:item.뜻, 모드:item.모드,
-    이동일시: (fbDb ? firebase.firestore.FieldValue.serverTimestamp() : null)});
-
-  // 대기열에서 제거 (Firestore 문서 포함)
-  복습데이터.대기열.splice(idx,1);
-  보관함_문서삭제('복습대기열', item.id);
-
+  대기열항목_휴지통으로(idx);
   showToastMsg('🗑️ 휴지통으로 이동');
   renderReview();
 }
@@ -570,34 +467,18 @@ function 휴지통_전체비우기(){
 
 /* 복습 대기열 상한 설정 — 30/40/50/60/70 */
 function openCapacity(){
-  document.getElementById('selTitle').textContent='⚙️ 복습 대기열 상한';
-  document.getElementById('selDesc').textContent='상한 초과 시 가장 오래된 항목이 휴지통으로 자동 이동됩니다. 현재 항목 수보다 작은 값으로는 변경 불가.';
-
-  const list=document.getElementById('selList');
-  const opts=[30,40,50,60,70];
-  list.innerHTML='';
-
-  opts.forEach(v=>{
-    const div=document.createElement('div');
-    div.className='select-opt'+(v===사용자.복습대기열상한?' on':'');
-
-    // 현재 항목 수보다 작은 값으로 변경 시도 시 차단
-    const 차단여부 = v < 사용자.복습대기열수;
-
-    if(차단여부){
-      div.style.opacity='0.4';
-      div.style.cursor='not-allowed';
-      div.onclick=()=>showInfoModal('🚫','변경 불가',
-        `현재 대기열 항목 수(${사용자.복습대기열수}개)가 새 상한(${v}개)보다 많습니다.<br><br>먼저 항목을 줄여주세요.`);
-    } else {
-      div.onclick=()=>applyCapacity(v);
-    }
-
-    div.innerHTML=`<span>${v}개${v===50?' (기본값)':''}${차단여부?' 🚫':''}</span><span class="select-opt-ck">✓</span>`;
-    list.appendChild(div);
-  });
-
-  document.getElementById('selBg').classList.add('show');
+  // 현재 항목 수보다 작은 값으로 변경 시도 시 차단(흐리게 + 안내)
+  선택모달_열기('⚙️ 복습 대기열 상한',
+    '상한 초과 시 가장 오래된 항목이 휴지통으로 자동 이동됩니다. 현재 항목 수보다 작은 값으로는 변경 불가.',
+    [30,40,50,60,70].map(v=>{
+      const 차단 = v < 사용자.복습대기열수;
+      return {
+        라벨: `${v}개${v===50?' (기본값)':''}${차단?' 🚫':''}`, 켜짐: v===사용자.복습대기열상한, 비활성: 차단,
+        클릭: 차단
+          ? ()=>showInfoModal('🚫','변경 불가', `현재 대기열 항목 수(${사용자.복습대기열수}개)가 새 상한(${v}개)보다 많습니다.<br><br>먼저 항목을 줄여주세요.`)
+          : ()=>applyCapacity(v)
+      };
+    }));
 }
 
 /* 상한 실제 적용 */
