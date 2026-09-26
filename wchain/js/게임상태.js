@@ -5,8 +5,9 @@
 function 새게임상태(){
   return {
     game_state: 'INIT', game_mode: null, persona: null,
-    turn: 0, stage: 1, stage_turn: 0, stage_start_turn: 0,
-    score: 0, best: 0, hints: 3, hearts: 2, strikes: 0,
+    // strikes·last_log·stage_start_turn은 쓰기만 하고 읽는 곳이 없어 2026-09-27 삭제(Q5)
+    turn: 0, stage: 1, stage_turn: 0,
+    score: 0, best: 0, hints: 3, hearts: 2,
     attack_streak: 0, yield_attempts: 0, dispute_attempts: 0, deal_offered: false,
     // 반박한단어(2026-08-22): '적절성 검증'이 적절로 나왔을 때 사용자가 반박할 수 있는데,
     // 같은 단어를 몇 번이고 다시 반박하면 "될 때까지 우기기"가 된다. 어떤 단어에 이미
@@ -18,7 +19,6 @@ function 새게임상태(){
     curse_time_floors: 0, curse_life_floors: 0, curse_dark_active: false, curse_dark_strikes: 0,
     trial_rejected_floor: -1, trial_attempts_this_floor: 0, trial_tower_entries: 0,
     user_title: null, history: [], ai_last_word: null, ai_last_char: null,
-    last_log: 'System ready.',
     god_mode_active: false, erosion_level: 0,
     // hanbang 기본값: 2026-07-27 관리자님 지시로 false → true. 종전 기본값(끄기)은 곧 "한방
     // 단어를 내면 제재"라는 뜻인데, 한방 판정이 로컬 280단어 기준이라 정상 단어의 24~44%가
@@ -82,13 +82,13 @@ function reset_game(gs){
   // 생기면서 "아케이드 7층에서 나갔다가 서바이벌 시작" 같은 경로가 열려 실제 결함이 된다
   // (stage>=13이면 3글자 족쇄가 서바이벌에도 걸린다).
   gs.stage = 1;
-  gs.turn = 0; gs.stage_turn = 0; gs.stage_start_turn = 0; gs.score = 0;
+  gs.turn = 0; gs.stage_turn = 0; gs.score = 0;
   // 목숨·힌트를 난이도표에서 읽는다(2026-07-29). 아케이드는 층 진행이 난이도 역할을 하므로
   // 원본대로 목숨(아케이드_목숨)·힌트 3 고정(아래 ARCADE 분기에서 다시 덮어쓴다).
   const 난 = 난이도설정(gs);
   gs.hints = gs.god_mode_active ? Infinity : 난.힌트;
   gs.hearts = gs.god_mode_active ? Infinity : 난.목숨;
-  gs.strikes = 0; gs.attack_streak = 0; gs.yield_attempts = 0; gs.dispute_attempts = 0;
+  gs.attack_streak = 0; gs.yield_attempts = 0; gs.dispute_attempts = 0;
   gs.반박한단어 = null;
   gs.deal_offered = false; gs.command_typo_strikes = 0;
   gs.curse_time_floors = 0; gs.curse_life_floors = 0; gs.curse_dark_active = false; gs.curse_dark_strikes = 0;

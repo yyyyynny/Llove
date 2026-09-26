@@ -1306,7 +1306,7 @@ function 탈출_응답(도망){
 
 function 탑승리_응답(계속){
   if(계속){
-    gs.stage = 14; gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
+    gs.stage = 14; gs.stage_turn = 0;
     // 원본은 2였는데, 실수 폐지 뒤로 그건 "두 번 틀리면 끝"이라는 뜻이 됐다(종전 실효 8회).
     // 아케이드 시작값(아케이드_목숨=8)과 같은 기준으로 맞춘다 — 14층부터는 무한 등반이라
     // 시작보다 각박할 이유가 없다.
@@ -1502,7 +1502,7 @@ function 관리자_턴이동(){
   if(gs.game_mode === 'ARCADE'){
     gs.stage = v;
     // 층을 건너뛰면 그 층의 진행도·시작 턴도 함께 맞춰야 목표 달성 판정이 어긋나지 않는다
-    gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
+    gs.stage_turn = 0;
     gs.curse_dark_active = false; gs.curse_dark_strikes = 0;
     gs.trial_rejected_floor = -1; gs.trial_attempts_this_floor = 0;
     gs.ai_last_char = null; gs.ai_last_word = null;

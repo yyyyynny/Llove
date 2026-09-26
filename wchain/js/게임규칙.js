@@ -367,7 +367,7 @@ function 붕괴확률(attempts){
 // 층 클리어 → 다음 층 진입. ai_defeated=true면 AI가 단어를 못 찾아 클리어된 경우.
 function arcade_floor_up(gs, ai_defeated){
   const cleared = gs.stage;
-  gs.stage += 1; gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
+  gs.stage += 1; gs.stage_turn = 0;
 
   if(gs.stage === 9) gs.erosion_level = 1;
   if(gs.stage === 20){ gs.game_state = 'SOFTLOCKED'; return; }

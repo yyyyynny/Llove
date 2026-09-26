@@ -163,7 +163,7 @@ async function main(){
     // 2026-07-29 실수 폐지 — 틀리면 곧바로 목숨 -1(격동 기본 7 → 6)
     확인('목숨이 1개 깎인다', 상태(win).hearts === 6, `hearts=${상태(win).hearts}`);
     확인('목숨 감소 안내가 화면에 나옴', 로그텍스트(win).includes('[목숨 -1]'));
-    확인('실수(strikes) 개념이 더는 쓰이지 않는다', 상태(win).strikes === 0);
+    확인('실수(strikes) 개념이 더는 쓰이지 않는다', !('strikes' in 상태(win)));
     // 2026-08-15 신설 — 목숨이 줄면 HUD가 흔들려서 알린다(종전엔 다른 갱신과 똑같이 조용했음)
     확인('목숨 감소 시 HUD가 흔들린다(.hit)',
          win.document.getElementById('hud-목숨').classList.contains('hit'));
@@ -176,7 +176,7 @@ async function main(){
     판시작(win, { hanbang: false });
     await 단어넣기(win, '사랑');   // 로컬 기준으론 한방 오판 대상
 
-    확인('실수가 매겨지지 않음', 상태(win).strikes === 0, `strikes=${상태(win).strikes}`);
+    확인('실수가 매겨지지 않음', !('strikes' in 상태(win)));
     확인('턴이 진행됨', 상태(win).turn === 1, `turn=${상태(win).turn}`);
     확인('게임오버 아님', !win.document.getElementById('s-오버').classList.contains('active'));
   }
