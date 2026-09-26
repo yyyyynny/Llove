@@ -33,23 +33,15 @@ const 적절성검증_WORKERS_ENDPOINT = 'https://itneun-word-appropriateness.hy
 // 약 166자까지 허용돼 오히려 더 넉넉해진다.
 const 반박보충_최대바이트 = 500;
 
-// UTF-8 바이트 기준으로 안전하게 자른다 — 멀티바이트 문자(한글 등) 중간을 끊으면 깨진
-// 문자가 남으므로, 코드포인트(글자) 단위로 순회하며 누적 바이트가 상한을 넘기기 직전까지만
-// 담는다. 서로게이트 페어(이모지 등)도 for...of가 코드포인트 단위로 순회해 주므로 안전하다.
+// UTF-8 바이트 기준으로 자른다 — encodeInto는 글자(코드포인트) 중간에서 멈추지 않으므로
+// 한글·이모지가 깨지지 않고, read가 담긴 UTF-16 길이를 그대로 알려 준다.
 function 바이트로_자르기(str, 최대바이트){
-  const enc = new TextEncoder();
-  let 바이트합 = 0, 문자수 = 0;
-  for(const ch of str){
-    const 글자바이트 = enc.encode(ch).length;
-    if(바이트합 + 글자바이트 > 최대바이트) break;
-    바이트합 += 글자바이트;
-    문자수 += ch.length;   // ch.length: 이 코드포인트의 UTF-16 code unit 수(보통 1, 서로게이트면 2)
-  }
-  return str.slice(0, 문자수);
+  const { read } = new TextEncoder().encodeInto(str, new Uint8Array(최대바이트));
+  return str.slice(0, read);
 }
 
 // 공통 POST — 게이트 off·엔드포인트 미설정·오프라인·호출 실패는 전부 null을 반환해
-// 호출부(서바이벌.js)가 "검증 불가" 안내로 강등되게 한다(국어원.js와 같은 관례).
+// 호출부(서바이벌.js)가 "검증 불가" 안내로 강등되게 한다(fetch 본체는 국어원.js 워커_POST 공용).
 async function 적절성_POST(본문){
   if(!적절성검증_활성화){
     console.warn('[적절성검증] 게이트 봉인(적절성검증_활성화=false) — 호출 차단');
@@ -59,25 +51,9 @@ async function 적절성_POST(본문){
     console.error('[적절성검증] Workers 엔드포인트 미설정 — 호출 불가');
     return null;
   }
-  // 국어원 조회와 동일한 이유로 넉넉히 잡는다 — AI 판정 응답은 사전 조회보다도 느릴 수 있다.
-  const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 8000) : null;
-  try{
-    const res = await fetch(적절성검증_WORKERS_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(본문),
-      ...(controller ? { signal: controller.signal } : {})
-    });
-    if(타임아웃ID) clearTimeout(타임아웃ID);
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();   // { 적절: true|false, 이유: "..." }
-    return { 적절: data.적절 !== false, 이유: String(data.이유 || '') };
-  }catch(e){
-    if(타임아웃ID) clearTimeout(타임아웃ID);
-    console.error('[적절성검증] 호출 실패', e);
-    return null;
-  }
+  // 국어원 단어 조회와 같은 8초 — AI 판정 응답은 사전 조회보다도 느릴 수 있다.
+  const data = await 워커_POST(적절성검증_WORKERS_ENDPOINT, 본문, 8000, '적절성검증');   // { 적절, 이유 }
+  return data && { 적절: data.적절 !== false, 이유: String(data.이유 || '') };
 }
 
 // 1차 판정 — AI가 낸 단어가 이 판에서 쓰기에 온당한지 묻는다.

@@ -65,22 +65,25 @@ const 국어원_캐시_최대개수 = 1000;   // 존재 여부(불리언)만 담
 // 오판하지 않게 하는 안전망은 그대로 유지한다.
 const 국어원_타임아웃_단어_MS = 8000;
 const 국어원_타임아웃_후보_MS = 6000;
-async function 국어원_POST(payload, 타임아웃_MS){
-  if(!국어원_활성화) return null;
-  if(!국어원_WORKERS_ENDPOINT) return null;
+// Worker 공용 POST — 실패·시간초과·HTTP 오류는 전부 null("확인 불가"). 적절성판정.js도 쓴다.
+async function 워커_POST(주소, 본문, 타임아웃_MS, 이름){
   try{
-    const res = await fetch(국어원_WORKERS_ENDPOINT, {
+    const res = await fetch(주소, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(본문),
       signal: AbortSignal.timeout(타임아웃_MS)
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     return await res.json();
   }catch(e){
-    console.error('[국어원] 요청 실패/시간초과 — 확인 불가(null)로 처리', e);
+    console.error(`[${이름}] 요청 실패/시간초과 — 확인 불가(null)로 처리`, e);
     return null;
   }
+}
+async function 국어원_POST(payload, 타임아웃_MS){
+  if(!국어원_활성화 || !국어원_WORKERS_ENDPOINT) return null;
+  return 워커_POST(국어원_WORKERS_ENDPOINT, payload, 타임아웃_MS, '국어원');
 }
 
 // 단어의 사전 등재 여부 온라인 조회. 반환값은 3가지: true(등재 확인)/false(미등재 확인)/
