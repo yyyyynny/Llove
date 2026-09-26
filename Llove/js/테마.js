@@ -24,9 +24,7 @@ function closeInfoModal(){
 
 /* 버그6: 2중 확인 모달 — 정보 모달 컴포넌트 재사용, [취소]+[확인] 2버튼 */
 function showConfirmModal(icon, title, desc, confirmLabel, onConfirm){
-  document.getElementById('infoIcon').textContent=icon;
-  document.getElementById('infoTitle').textContent=title;
-  document.getElementById('infoDesc').innerHTML=desc;
+  showInfoModal(icon, title, desc);  // 아이콘·제목·설명·너비 초기화·표시까지 공용 처리
   const btnArea=document.getElementById('infoBtns');
   if(btnArea){
     btnArea.innerHTML='';
@@ -39,7 +37,6 @@ function showConfirmModal(icon, title, desc, confirmLabel, onConfirm){
     ok.onclick=()=>{ closeInfoModal(); setTimeout(()=>{ if(onConfirm) onConfirm(); }, 240); };
     btnArea.appendChild(cancel); btnArea.appendChild(ok);
   }
-  document.getElementById('infoBg').classList.add('show');
 }
 
 /* 버그6: 계정 삭제 — 2중 확인 절차 (KNOWLEDGE 18섹션) */
@@ -375,6 +372,7 @@ function openFontSelect(){
   FONTS.forEach(f=>{
     const div=document.createElement('div');
     div.className='fo'+(f.key===curFont?' on':'');
+    div.dataset.key=f.key;
     div.onclick=()=>applyFont(f.key);
     // 버그B 수정: 기존의 취약한 style 조립 로직 제거. css는 순수 font-family 스택이므로 그대로 적용하고,
     //   단일 굵기로 배포된 폰트(weight 지정)는 미리보기에 굵기를 함께 적용한다.
@@ -406,8 +404,8 @@ function applyFont(key, 조용히){
   curFont=key;
   document.body.style.fontFamily=f.css;
   document.getElementById('fontTxt').textContent=f.name;
-  // on 클래스 갱신
-  document.querySelectorAll('.fo').forEach(el=>el.classList.remove('on'));
+  // on 클래스 갱신 — 새로 고른 글꼴에만 선택 표시
+  document.querySelectorAll('.fo').forEach(el=>el.classList.toggle('on', el.dataset.key===key));
   // 빌드1: plx_ 로컬 캐시 — 로그인 전·새로고침 대비 (CLAUDE.md localStorage 규칙)
   try{ localStorage.setItem('plx_폰트', key); }catch(e){ /* localStorage 차단 환경 무시 */ }
   if(조용히) return;  // 초기 로드·Firestore 복원 시: 토스트·저장 생략

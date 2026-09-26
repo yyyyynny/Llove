@@ -17,13 +17,6 @@ const 테마연동_KEY = 'plx_잇는_테마연동';
 const LLOVE_테마_KEY = 'plx_테마';
 const LLOVE_커스텀_KEY = 'plx_커스텀';
 
-// 각 테마의 배경색 — 모바일 주소창 색(<meta name="theme-color">)을 맞추는 데 쓴다.
-// index.html의 테마 블록 --bg 값과 같아야 한다.
-const 테마_배경색 = {
-  잇는: '#0e1016', antique: '#111009', navy: '#080d18',
-  midnight: '#08060f', paper: '#ede8df', forest: '#060c08',
-};
-
 function 테마연동_켜짐(){
   try{ return localStorage.getItem(테마연동_KEY) === '1'; }
   catch(e){ return false; }   // localStorage 차단 환경 — 기본(잇는 테마)
@@ -67,8 +60,11 @@ function 테마_적용(){
   if(이름 === '잇는') document.body.removeAttribute('data-theme');
   else document.body.setAttribute('data-theme', 이름);
 
+  // 모바일 주소창 색(<meta name="theme-color">)은 방금 적용된 테마의 실제 --bg를 그대로 쓴다
+  // (테마별 색을 따로 적어 두면 index.html 테마 블록과 어긋나고, 커스텀 색은 적을 수도 없다).
   const meta = document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content', 테마_배경색[이름] || 테마_배경색.잇는);
+  if(meta) meta.setAttribute('content',
+    getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#0e1016');
   return 이름;
 }
 

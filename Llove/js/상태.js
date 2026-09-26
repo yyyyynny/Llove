@@ -212,7 +212,7 @@ function 복습대기열_추가(단어, 뜻, 모드){
     const 휴항목 = {id:보관함_임시ID(), 단어:옮김.단어, 뜻:옮김.뜻, 모드:옮김.모드, 모드클래스:옮김.모드클래스, 잔여일:20};
     복습데이터.휴지통.push(휴항목);
     보관함_문서추가('휴지통', 휴항목, {단어:옮김.단어, 뜻:옮김.뜻, 모드:옮김.모드,
-      이동일시: firebase?.firestore ? firebase.firestore.FieldValue.serverTimestamp() : null});
+      이동일시: fbDb ? firebase.firestore.FieldValue.serverTimestamp() : null});
     showToastMsg('📥 대기열 초과 — 가장 오래된 항목이 휴지통으로 이동');
   }
   const 항목 = {id:보관함_임시ID(), 단어, 뜻, 모드, 모드클래스:모드클래스계산(모드), 연속정답수:0, 즐겨찾기:false, 추가시각:Date.now()};
@@ -350,8 +350,8 @@ const 기본이름풀=[
 //   - weight: 단일 굵기로 배포된 폰트(평창평화체 Light=300)의 미리보기 굵기 지정용 (버그B 연동).
 const FONTS=[
   // ━━━ CDN 4종 ━━━
-  {key:'nanum_gothic',   name:'나눔고딕',          css:"'NanumGothic',sans-serif",             sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
-  {key:'nanum_myeongjo', name:'나눔명조',          css:"'NanumMyeongjo',serif",                sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
+  {key:'nanum_gothic',   name:'나눔고딕',          css:"'Nanum Gothic',sans-serif",            sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
+  {key:'nanum_myeongjo', name:'나눔명조',          css:"'Nanum Myeongjo',serif",               sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
   {key:'nanum_square',   name:'나눔스퀘어 Neo',    css:"'NanumSquareNeoVariable',sans-serif",  sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
   // 모나 family명 실측 확정 (세션 2 — CDN 검증 완료): mona.css에는 'Mona'·'Mona-Sans'가 존재하지 않음.
   // 실제 제공 family는 Mona10/Mona12/'Mona12 Text KR' 등이며, 한글은 'Mona12 Text KR'가 담당.

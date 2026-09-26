@@ -23,10 +23,7 @@ function 예문형_렌더(bodyId, item, 다음fn, 이의컨텍스트){
     ...item.acceptable.map(a=>({w:a.w, kind:'acceptable'})),
     ...item.wrong.map(w=>({w:w.w, kind:'wrong'}))
   ].slice(0,4);
-  for(let k=보기풀.length-1; k>0; k--){
-    const j = Math.floor(Math.random()*(k+1));
-    [보기풀[k], 보기풀[j]] = [보기풀[j], 보기풀[k]];
-  }
+  셔플(보기풀);
 
   // 예문 빈칸 표시 — 공백 개수 변형에 견디도록 정규식 사용
   const 예문html = item.예문.replace(/\[\s*\]/, '<span class="syn-blank">?</span>');
@@ -233,8 +230,7 @@ function 독해_렌더(){
   if(!body) return;
   const 항목 = 지문독해풀[Math.floor(Math.random()*지문독해풀.length)];
   독해_상태.item = 항목;
-  const 순서 = 항목.보기.map((_,i)=>i);
-  for(let k=순서.length-1;k>0;k--){ const j=Math.floor(Math.random()*(k+1)); [순서[k],순서[j]]=[순서[j],순서[k]]; }
+  const 순서 = 셔플(항목.보기.map((_,i)=>i));
   body.innerHTML = `
     <div class="syn-card">
       <div class="rc-tag">${항목.유형}</div>
@@ -330,7 +326,7 @@ function 문장배열_렌더(){
   const 항목 = 문장배열풀[Math.floor(Math.random()*문장배열풀.length)];
   let 순서 = 항목.문장들.map((_,i)=>i);
   do{ // 셔플이 우연히 정답 순서와 같으면 재셔플(4문장 기준이라 드물지 않아 방지)
-    for(let k=순서.length-1;k>0;k--){ const j=Math.floor(Math.random()*(k+1)); [순서[k],순서[j]]=[순서[j],순서[k]]; }
+    셔플(순서);
   }while(순서.every((v,i)=>v===i));
   문장배열_상태 = {item:항목, 표시순서:순서, 탭순서:[]};
   body.innerHTML = `

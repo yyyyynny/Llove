@@ -30,6 +30,16 @@ function 출제방식_결정(){
   return Math.random() < 0.4 ? 'db' : 'ai';
 }
 
+/* 배열 제자리 셔플 (Fisher–Yates) — 보기·출제 순서 무작위화 공용.
+   ⚠️ sort(()=>Math.random()-0.5)는 쓰지 말 것: 정렬 알고리즘 탓에 분포가 편향된다. */
+function 셔플(arr){
+  for(let k=arr.length-1; k>0; k--){
+    const j = Math.floor(Math.random()*(k+1));
+    [arr[k], arr[j]] = [arr[j], arr[k]];
+  }
+  return arr;
+}
+
 // β9: 출제 풀 선택 — AI 선택 시 Grok 미연동 단계에서는 DB로 폴백
 // (Grok 활성화 후: 토큰 15 차감 → grok호출('문제생성') → reasoning_note 동시 생성이 이 자리에 연결됨)
 function 출제_분기(category){
@@ -273,8 +283,8 @@ function 퀴즈_플래시공개(screenId){
 function 퀴즈_역방향렌더(screenId, q, data){
   const body = document.getElementById(screenId+'Body');
   const 정답보기 = q.opts.find(o=>o.c)?.t || '';
-  const 타문항 = data.filter(x=>x!==q).map(x=>x.q).sort(()=>Math.random()-0.5).slice(0,3);
-  const 보기들 = [...타문항.map(t=>({t, c:false})), {t:q.q, c:true}].sort(()=>Math.random()-0.5);
+  const 타문항 = 셔플(data.filter(x=>x!==q).map(x=>x.q)).slice(0,3);
+  const 보기들 = 셔플([...타문항.map(t=>({t, c:false})), {t:q.q, c:true}]);
   let optsHtml='';
   보기들.forEach((o,i)=>{
     optsHtml += `<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`;

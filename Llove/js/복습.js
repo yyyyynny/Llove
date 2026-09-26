@@ -90,7 +90,7 @@ function setLsetMode(screenId, mode, btn){
   } else if(screenId==='srp' || screenId==='srp_순서'){
     // 세션7 항목5: 복습 방식·순서 — 진행 중이면 현재 카드부터 즉시 반영
     if(screenId==='srp_순서' && mode==='섞기' && 복습진행){
-      const 남은 = 복습진행.목록.slice(복습진행.idx).sort(()=>Math.random()-0.5);
+      const 남은 = 셔플(복습진행.목록.slice(복습진행.idx));
       복습진행.목록 = [...복습진행.목록.slice(0, 복습진행.idx), ...남은];
     }
     if(복습진행) 복습_카드렌더();
@@ -270,7 +270,7 @@ function 복습시작(){
   }
   복습진행 = { 목록: [...복습데이터.대기열], idx: 0 };
   // 세션7 항목5: 순서 「섞기」 설정 시 셔플
-  if(학습설정.srp_순서 === '섞기') 복습진행.목록.sort(()=>Math.random()-0.5);
+  if(학습설정.srp_순서 === '섞기') 셔플(복습진행.목록);
   // 항목10: 좁은 복습칸 인라인이 아니라 전용 화면(srp)으로 이동해 카드에 집중
   goNav('srp', null);
   복습_카드렌더();
@@ -294,8 +294,8 @@ function 복습_카드렌더(){
   if(학습설정.srp === '4지선다'){
     const 후보 = 복습데이터.대기열.filter(x=>x.단어!==항목.단어 && x.뜻).map(x=>x.뜻);
     if(후보.length >= 1){
-      const 오답 = 후보.sort(()=>Math.random()-0.5).slice(0,3);
-      const 보기들 = [...오답.map(t=>({t, 정:false})), {t:항목.뜻, 정:true}].sort(()=>Math.random()-0.5);
+      const 오답 = 셔플(후보).slice(0,3);
+      const 보기들 = 셔플([...오답.map(t=>({t, 정:false})), {t:항목.뜻, 정:true}]);
       wrap.innerHTML = 머리 + `
         <div class="qcard" style="margin-top:4px">
           <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>

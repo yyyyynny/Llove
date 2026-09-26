@@ -15,14 +15,6 @@ function sq2_출제풀(category){
   return Array.isArray(실풀) ? 실풀 : [];
 }
 
-/* 배열 제자리 셔플 (Fisher–Yates) — sq2 4지선다·역방향 보기 순서 무작위화 */
-function sq2_셔플(arr){
-  for(let k=arr.length-1; k>0; k--){
-    const j = Math.floor(Math.random()*(k+1));
-    [arr[k], arr[j]] = [arr[j], arr[k]];
-  }
-  return arr;
-}
 
 /* sq2 '4지선다' — 뜻을 제시하고 단어 4개 중 정답을 고른다. 정답 처리는 기존 selAns 재사용. */
 function sq2_사지선다_렌더(category){
@@ -36,8 +28,8 @@ function sq2_사지선다_렌더(category){
     return;
   }
   const 정답 = 풀[Math.floor(Math.random()*풀.length)];
-  const 오답 = sq2_셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
-  const 보기 = sq2_셔플([정답, ...오답]);
+  const 오답 = 셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
+  const 보기 = 셔플([정답, ...오답]);
   현재문제_reasoning_note = 정답.reasoning_note || '';
   // selAns의 복습 대기열 연동을 위해 현재퀴즈문제를 4지선다 형식으로 구성 (정답보기=단어, 문제=뜻)
   현재퀴즈문제 = { q: 정답.meaning, cat: 정답.cat, opts: 보기.map(c=>({t:c.word, c: c.word===정답.word})) };
@@ -68,8 +60,8 @@ function sq2_역방향_렌더(category){
     return;
   }
   const 정답 = 풀[Math.floor(Math.random()*풀.length)];
-  const 오답 = sq2_셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
-  const 보기 = sq2_셔플([정답, ...오답]);
+  const 오답 = 셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
+  const 보기 = 셔플([정답, ...오답]);
   현재문제_reasoning_note = 정답.reasoning_note || '';
   // 역방향은 '뜻'이 보기이므로, 복습 연동상 정답보기=뜻으로 기록됨(단어/뜻 방향만 반대) — 의도된 동작
   현재퀴즈문제 = { q: `${정답.word} (${정답.reading})`, cat: 정답.cat, opts: 보기.map(c=>({t:c.meaning, c: c.word===정답.word})) };

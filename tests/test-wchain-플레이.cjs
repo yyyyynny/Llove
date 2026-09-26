@@ -866,6 +866,37 @@ async function main(){
     확인('힌트 소진 상태에서는 후보를 조회하지 않는다', 이후 === 이전, `${이전} → ${이후}`);
     확인('대신 악마의 거래가 열린다', 상태(win).game_state === 'DEVIL_WAIT',
          상태(win).game_state);
+
+    // 거래 수락 → 일반 힌트 경로로 즉시 힌트 1회(+3 -1)
+    win.악마거래_응답(true);
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    await 잠깐(5);
+    확인('거래 수락 즉시 힌트 1개가 쓰인다(0 +3 -1 = 2)', 상태(win).hints === 2, `hints=${상태(win).hints}`);
+    확인('거래 힌트도 초성을 알려 준다', 로그텍스트(win).includes('초성'));
+  }
+  {
+    // (3-1) 힌트 조회 도중 판이 리셋되면 새 판의 힌트를 깎지 않는다(세대 확인)
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win, { diff: '격동' });
+    await 단어넣기(win, '사슴');
+    const 옛글자 = 상태(win).ai_last_char;
+    // AI 턴에서 이미 받아 둔 글자면 캐시로 즉시 끝나 경합이 안 생긴다 — 후보 캐시를 비워 반드시 조회하게 한다
+    win.localStorage.removeItem(값(win, '국어원_후보캐시_KEY'));
+    const 원래fetch = win.fetch, 대기열 = [];
+    win.fetch = (url, opt) => new Promise(res => 대기열.push(() => res(원래fetch(url, opt))));
+    win.버튼_힌트();                                   // 후보 조회가 대기 상태로 멈춘다
+    await 잠깐(5);
+    win.전체리셋();
+    win.fetch = 원래fetch;
+    판시작(win, { diff: '격동' });
+    상태(win).ai_last_char = 옛글자;   // 새 판도 같은 글자에서 진행 중 — 옛 조회 결과가 "쓸 만해" 보이는 최악의 경우
+    const 새판힌트 = 상태(win).hints;
+    대기열.forEach(풀기 => 풀기());                      // 이제서야 옛 판의 조회가 끝난다
+    await 잠깐(30);
+    확인('조회가 실제로 대기 상태였다(경합 재현)', 대기열.length > 0, `대기 ${대기열.length}건`);
+    확인('조회 중 리셋되면 새 판의 힌트를 건드리지 않는다', 상태(win).hints === 새판힌트,
+         `${새판힌트} → ${상태(win).hints}`);
   }
   {
     // (4) 난이도 설명의 숫자가 난이도표와 어긋나지 않는다(종전엔 손으로 적어 둬 실제로 어긋났다)

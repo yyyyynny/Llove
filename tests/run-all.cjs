@@ -28,6 +28,7 @@ const 테스트들 = [
   ['세션10-m 애니메이션 통일성·접근성', 'test-fixes-세션10m.cjs'],
   ['세션10-n 키보드 접근성', 'test-fixes-세션10n.cjs'],
   ['세션10-o 부팅 복원 단계 독립성', 'test-fixes-세션10o.cjs'],
+  ['포니테일 감사 발견 버그', 'test-fixes-포니테일.cjs'],
   ['wchain 한방 판정(즉사 버그) 회귀', 'test-wchain-한방.cjs'],
   ['wchain 실제 페이지 플레이 회귀', 'test-wchain-플레이.cjs'],
   ['Worker 뜻풀이 동음이의어 그룹화', 'test-worker-뜻풀이그룹화.cjs'],

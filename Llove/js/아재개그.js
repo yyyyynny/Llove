@@ -32,10 +32,9 @@ function renderDad(data){
   // 세션7 항목7: 「4지선다」 실구현 — 오답은 다른 개그 정답+임시 표본에서 구성
   if(학습설정.sq4_input === '4지선다'){
     const 정답텍스트 = g.a;
-    const 오답들 = 아재_오답표본
-      .filter(t => 직접입력_규격(t) !== 직접입력_규격(정답텍스트))
-      .sort(()=>Math.random()-0.5).slice(0,3);
-    const 보기들 = [...오답들.map(t=>({t, 정:false})), {t:정답텍스트, 정:true}].sort(()=>Math.random()-0.5);
+    const 오답들 = 셔플(아재_오답표본
+      .filter(t => 직접입력_규격(t) !== 직접입력_규격(정답텍스트))).slice(0,3);
+    const 보기들 = 셔플([...오답들.map(t=>({t, 정:false})), {t:정답텍스트, 정:true}]);
     body.innerHTML=`
       <div class="dad-card">
         <div class="qcat" style="margin-bottom:8px"><span class="tag tp">아재개그</span></div>
