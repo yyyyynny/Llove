@@ -140,6 +140,16 @@ Worker 전체 코드입니다. 이 폴더는 참고·배포용이며, `wchain/js
 | ④ 난이도 낮은데도 북한어·옛말·방언·전문용어·고유명사가 섞여 나옴 | `type`/`cat` 필드로 후보 단계에서 걸러냄(4차 수정, 위 표 참조) |
 | ⑤ AI가 활용형 동사·형용사를 냄(예: 사나워지다) | `pos` 필드로 후보 단계에서 걸러냄(2026-08-30 수정, 위 "동사·형용사 제외" 참조) |
 
+**✅ 2026-09-26 정리(임시 계측 _num실험ms 삭제·요청 코드 통합) 재배포 완료** — 국어원으로 나가는 요청은
+옛/새 동일(9건 대조), 실배포 응답 정상 확인.
+
+### Cloudflare의 Worker 3개 — 헷갈리지 않게
+| 이름 | 용도 | 코드 | 상태 |
+|---|---|---|---|
+| `urimalsaem-llove` | 우리말샘 사전 조회(이 폴더의 우리말샘-worker.mjs) | Llove 사전.js · wchain 국어원.js | 실사용 |
+| `itneun-word-appropriateness` | 끝말잇기 '적절성' AI 판정(단어적절성판정-worker.mjs) | wchain 적절성판정.js | 실사용(08-30 개방) |
+| `xai-api-llove` | Grok 호출 | Llove grok.js | 봉인(GROK_활성화=false) — 지우지 말 것 |
+
 ## 배포 방법 (Cloudflare 대시보드)
 
 1. Cloudflare 대시보드 → Workers & Pages → 기존 `urimalsaem-llove` Worker 선택.
