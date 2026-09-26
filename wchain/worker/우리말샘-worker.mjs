@@ -127,32 +127,34 @@ function 붙임표_변형(word){
 const 다듬기 = v => String(v || '').trim();
 
 // ── 오픈API 호출 ───────────────────────────────────────────────────────
-// key·certkey_no 둘 다 필수. num은 최솟값 제약이 있어(실측: num=1은 "Invalid num value"로
-// 거부, num=20/100은 정상) 호출부가 항상 유효한 범위의 값을 넘긴다.
-async function 오픈API_검색(env, { q, advanced, target, method, start = 1, num = 10 }){
-  const url = new URL(국어원_API_기준주소);
+// 공통 요청 — 인증키 두 개(key·certkey_no 둘 다 필수)를 붙여 호출하고 JSON으로 풀어 돌려준다.
+// 이 API는 실패해도 HTTP 200을 주고 본문에 {error:{...}}를 담는 경우가 있다(관공서 API 흔한
+// 패턴) — HTTP 상태만 보면 이 실패를 놓친다.
+async function 오픈API_요청(env, 주소, 파라미터, 이름){
+  const url = new URL(주소);
   url.searchParams.set('certkey_no', 다듬기(env.URIMALSAEM_CERTKEY_NO));
   url.searchParams.set('key', 다듬기(env.URIMALSAEM_KEY));
-  url.searchParams.set('target_type', 'search');
   url.searchParams.set('req_type', 'json');
-  url.searchParams.set('part', 'word');
-  url.searchParams.set('sort', 'dict');
-  if(advanced) url.searchParams.set('advanced', 'y');
-  if(target) url.searchParams.set('target', String(target));
-  if(method) url.searchParams.set('method', method);   // exact | include | start | end
-  url.searchParams.set('start', String(start));
-  url.searchParams.set('num', String(num));
-  url.searchParams.set('q', q);
+  for(const [k, v] of Object.entries(파라미터)) url.searchParams.set(k, String(v));
 
   const res = await fetch(url.toString(), { headers: 공통_HEADERS });
-  if(!res.ok) throw new Error('오픈API HTTP ' + res.status);
+  if(!res.ok) throw new Error(`${이름} HTTP ${res.status}`);
   const 원문 = await res.text();
   let data;
   try{ data = JSON.parse(원문); }
-  catch(e){ throw new Error('오픈API JSON 파싱 실패'); }
-  // 이 API는 실패해도 HTTP 200을 주고 본문에 {error:{...}}를 담는 경우가 있다(관공서 API 흔한
-  // 패턴) — HTTP 상태만 보면 이 실패를 놓친다.
-  if(data && data.error) throw new Error('오픈API 에러: ' + JSON.stringify(data.error));
+  catch(e){ throw new Error(`${이름} JSON 파싱 실패`); }
+  if(data && data.error) throw new Error(`${이름} 에러: ${JSON.stringify(data.error)}`);
+  return data;
+}
+
+// 고급 검색(advanced=y, target=1=표제어) — method는 exact | start | end.
+// num은 최솟값 제약이 있어(실측: num=1은 "Invalid num value"로 거부, num=20/100은 정상)
+// 호출부가 항상 유효한 범위의 값을 넘긴다.
+async function 오픈API_검색(env, { q, method, start = 1, num }){
+  const data = await 오픈API_요청(env, 국어원_API_기준주소, {
+    target_type: 'search', part: 'word', sort: 'dict',
+    advanced: 'y', target: 1, method, start, num, q,
+  }, '오픈API');
   const channel = data && data.channel;
   const items = (channel && Array.isArray(channel.item)) ? channel.item : [];
   return { items };
@@ -161,20 +163,7 @@ async function 오픈API_검색(env, { q, advanced, target, method, start = 1, n
 // view API — target_code 하나를 상세조회해 group_code(다의어 번호 — 동음이의어를 구분하는
 // 진짜 고유 키, search API 응답엔 없음)를 얻는다. 아래 뜻풀이_그룹화_비동기()에서만 쓴다.
 async function 오픈API_뷰(env, target_code){
-  const url = new URL(국어원_API_뷰주소);
-  url.searchParams.set('certkey_no', 다듬기(env.URIMALSAEM_CERTKEY_NO));
-  url.searchParams.set('key', 다듬기(env.URIMALSAEM_KEY));
-  url.searchParams.set('req_type', 'json');
-  url.searchParams.set('method', 'target_code');
-  url.searchParams.set('q', String(target_code));
-
-  const res = await fetch(url.toString(), { headers: 공통_HEADERS });
-  if(!res.ok) throw new Error('오픈API(view) HTTP ' + res.status);
-  const 원문 = await res.text();
-  let data;
-  try{ data = JSON.parse(원문); }
-  catch(e){ throw new Error('오픈API(view) JSON 파싱 실패'); }
-  if(data && data.error) throw new Error('오픈API(view) 에러: ' + JSON.stringify(data.error));
+  const data = await 오픈API_요청(env, 국어원_API_뷰주소, { method: 'target_code', q: target_code }, '오픈API(view)');
   const item = data && data.channel && data.channel.item;
   return Array.isArray(item) ? (item[0] || null) : (item || null);   // view는 원래 단일 객체
 }
@@ -271,7 +260,7 @@ async function 뜻풀이_그룹화_비동기(env, items){
 async function 단어존재조회(env, word, 진단 = false, 뜻풀이필요 = false){
   const 시도할것 = [word, ...붙임표_변형(word)];
   const 결과들 = await Promise.all(
-    시도할것.map(w => 오픈API_검색(env, { q: w, advanced: true, target: 1, method: 'exact', num: 20 })
+    시도할것.map(w => 오픈API_검색(env, { q: w, method: 'exact', num: 20 })
       .catch(() => ({ items: [] }))));   // 개별 실패는 "없음"으로 취급, 전체는 아래서 판단
 
   for(const { items } of 결과들){
@@ -319,7 +308,7 @@ function 후보_부적절한가(it){
 // 페이지당 개수 + 필요하면 다음 페이지까지 병렬로 받는다. 붙임표 든 표제어는 버리지 않고
 // 정규화해서 포함한다(위 "정규화" 주석).
 //
-// 2026-08-22 실측(_num실험ms 진단) — num을 줄이면 opendict 응답 자체가 확실히 빨라진다:
+// 2026-08-22 실측(num 비교 진단, 결론 반영 후 계측 삭제) — num을 줄이면 opendict 응답 자체가 확실히 빨라진다:
 //   num=10→517ms, num=30→1829ms, num=50→1623ms, num=100→3640ms(같은 글자, 같은 페이지).
 // 100→30으로 낮춘다. "초"처럼 흔한 글자도 원래 매칭이 46개뿐이라 30×3페이지(최대 90개)면
 // 다 담기고, 후보 품질 필터를 거치면 어차피 10~20개 안팎으로 줄어드니 실질 손해는 적다.
@@ -338,7 +327,7 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
       .map(async i => {
         const t0 = Date.now();
         const 결과 = await 오픈API_검색(env, {
-          q: 글자, advanced: true, target: 1, method,
+          q: 글자, method,
           start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수,
         }).catch(() => ({ items: [] }));
         결과._ms = Date.now() - t0;
@@ -346,20 +335,6 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
       })
   );
   const 전체ms = Date.now() - 페이지시작;
-
-  // 진단 모드일 때만 — 1페이지(start=1)만 유독 느린 게 실측됐다(9.8초 vs 다른 페이지 3.4초).
-  // num(페이지당 개수)을 줄이면 그 1페이지가 빨라지는지 재배포 한 번으로 한꺼번에 확인한다
-  // (10/30/50/100 네 값을 병렬로 같이 쏴서 비교 — 정식 응답에는 영향 없는 별도 호출).
-  let num실험ms = null;
-  if(진단){
-    const 실험값들 = [10, 30, 50, 100];
-    const 실험결과 = await Promise.all(실험값들.map(async n => {
-      const t0 = Date.now();
-      await 오픈API_검색(env, { q: 글자, advanced: true, target: 1, method, start: 1, num: n }).catch(() => null);
-      return Date.now() - t0;
-    }));
-    num실험ms = Object.fromEntries(실험값들.map((n, i) => [n, 실험결과[i]]));
-  }
 
   const 후보 = [];
   const 본것 = new Set();
@@ -388,7 +363,7 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
     }
   }
   return 진단
-    ? { 후보, _걸러진표본: 걸러진표본, _페이지별ms: 페이지들.map(p => p._ms), _전체ms: 전체ms, _num실험ms: num실험ms }
+    ? { 후보, _걸러진표본: 걸러진표본, _페이지별ms: 페이지들.map(p => p._ms), _전체ms: 전체ms }
     : { 후보 };
 }
 

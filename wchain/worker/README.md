@@ -218,8 +218,8 @@ time curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
 #    ✅ 2026-08-22 실측: [9798, 3444, 3417] / 전체 9798 — 병렬 자체는 정상(합이 아니라
 #    최댓값과 일치). 그런데 1페이지(start=1)만 유독 3배 느리다. 코드가 항상 1페이지부터
 #    받으므로 페이지 수를 3→1로 줄여도 남는 게 하필 그 느린 페이지라 별 효과가 없을 것으로
-#    보인다 — 그래서 _num실험ms(아래)로 다른 가설(num을 줄이면 1페이지 자체가 빨라지는지)을
-#    추가로 확인한다.
+#    보인다 — 그래서 _num실험ms로 다른 가설(num을 줄이면 1페이지 자체가 빨라지는지)을
+#    확인했고(결론: num 100→30, 위 ⑤), 그 임시 계측은 2026-09-26에 삭제했다.
 curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
   -d '{"글자":"교","방향":"start","디버그":true}' | python3 -c "
@@ -228,7 +228,6 @@ d = json.load(sys.stdin)
 print('후보 개수:', len(d.get('후보', [])))
 print('페이지별 ms:', d.get('_페이지별ms'))
 print('전체 ms:', d.get('_전체ms'))
-print('num별 1페이지 ms(10/30/50/100):', d.get('_num실험ms'))
 "
 ```
 
