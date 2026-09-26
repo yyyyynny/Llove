@@ -304,16 +304,16 @@ async function main(){
     확인('진행바가 HUD 밖에 있음', !d.querySelector('.hud .bar-track') && !!d.querySelector('.bar-track'));
     확인('상태 배지가 턴 칸 안에 있음', !!d.querySelector('.hud .hud-item #hud-상태'));
 
-    // 이의·허세 진행도 라벨(2026-08-19, 봉인 해제) — 아직 안 썼으면 (0/5)에 잠금 없음
+    // 이의 진행도 라벨(2026-08-19, 봉인 해제) — 아직 안 썼으면 (0/5)에 잠금 없음
     확인('이의 버튼에 진행도(0/5) 표시', d.getElementById('btn-이의').textContent.includes('(0/5)'));
-    확인('허세 버튼도 같은 진행도(0/5) 표시', d.getElementById('btn-허세').textContent.includes('(0/5)'));
+    확인('허세·상태 버튼은 없다(Q9, 2026-09-27)', !d.getElementById('btn-허세')
+         && !d.body.innerHTML.includes('버튼_상태') && typeof win.버튼_허세 === 'undefined');
     확인('소진 전에는 locked 클래스가 없음', !d.getElementById('btn-이의').classList.contains('locked'));
     // 5회 다 쓰면(가상으로 상태만 채움) 라벨이 (5/5)로 바뀌고 잠금 스타일이 붙는다
     상태(win).dispute_attempts = 5;
     win.eval('프롬프트_갱신()');
     확인('소진 후 (5/5) 표시', d.getElementById('btn-이의').textContent.includes('(5/5)'));
-    확인('소진 후 locked 클래스', d.getElementById('btn-이의').classList.contains('locked')
-         && d.getElementById('btn-허세').classList.contains('locked'));
+    확인('소진 후 locked 클래스', d.getElementById('btn-이의').classList.contains('locked'));
 
     // 앞말잇기는 안내 문구가 뒤집힌다
     const { win: w2 } = 페이지열기();
@@ -1035,11 +1035,6 @@ async function main(){
     확인('소진 안내 로그가 남는다',
          로그텍스트(win).includes('다 써버렸다') || 로그텍스트(win).includes('모두 사용'));
   }
-  {
-    // (e) '그 단어 없어!'는 '이의 있음'과 동일한 실조회를 탄다(더 이상 no-op이 아니다)
-    const { win } = 페이지열기();
-    확인('버튼_허세가 버튼_이의와 동일한 함수(더 이상 no-op이 아님)', 값(win, '버튼_허세 === 버튼_이의'));
-  }
 
   /* ── 22. '뜻 보기' · '적절성 검증' 버튼 배선 (2026-08-22 신설) ─────────── */
   console.log('\n[22] 뜻 보기 · 적절성 검증 버튼 배선');
@@ -1316,34 +1311,6 @@ async function main(){
     확인('500바이트 이내 자유 텍스트는 그대로 전송된다',
          보낸본문 && 보낸본문.반박보충 === 정상텍스트, 보낸본문 ? String(보낸본문.반박보충.length) : '(없음)');
     확인('반박사유 코드가 기타로 실린다', 보낸본문 && 보낸본문.반박사유 === '기타');
-  }
-  {
-    // (g--1) '상태' 버튼이 선택박스를 지워 버리던 문제 — 2026-08-22 실측으로 발견한 기존 버그.
-    //  버튼_상태()가 무조건 프롬프트_갱신()을 불렀고, 그 안의 선택박스_숨기기()가 선택지를
-    //  통째로 지워 응답할 방법이 사라졌다. 악마의 거래·시련의 계약 등 기존 선택박스 9곳이
-    //  전부 이 상태였고, 반박 대기에서는 게임_비동기처리중까지 걸린 채라 소프트락이 됐다.
-    const { win } = 페이지열기({ 적절성게이트: true });
-    await 대사대기(win);
-    판시작(win);
-    await 단어넣기(win, '나무');
-    적절성_스텁(win, { 적절: true }, { 적절: true });
-    await win.버튼_적절성검증();
-    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
-    win.버튼_상태();
-    확인('반박 대기 중 상태 버튼을 눌러도 선택박스가 남는다',
-         win.document.getElementById('선택박스').style.display === '');
-    확인('반박 대기 상태가 유지된다', 상태(win).game_state === 'REBUT_WAIT');
-    // 기존 선택박스(악마의 거래 형태)에서도 같은 보호가 걸리는지
-    win.eval(`gs.game_state='DEVIL_WAIT'; 선택박스_보이기('<button class="btn sm acc">수락</button>');`);
-    win.버튼_상태();
-    확인('기존 선택박스(거래·계약 등)도 상태 버튼에 안 지워진다',
-         win.document.getElementById('선택박스').style.display === '');
-    // 평소(PLAYING)엔 상태 버튼이 원래대로 프롬프트를 다시 그려야 한다
-    win.eval(`gs.game_state='PLAYING';`);
-    win.버튼_상태();
-    확인('평소엔 상태 버튼이 원래대로 입력폼을 복원한다',
-         win.document.getElementById('선택박스').style.display === 'none'
-         && win.document.getElementById('입력폼').style.display === '');
   }
   {
     // (g-0) 선택박스 안 강조 버튼이 보이는가 — 2026-08-22에 발견한 기존 CSS 버그 회귀 가드.
