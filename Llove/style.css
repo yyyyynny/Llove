@@ -232,7 +232,7 @@ html{scrollbar-gutter:stable}
 /* 세션8: 좌우 여백이 기기마다 다르게 벌어지던 문제 — 고정 padding/max-width 대신
    clamp()/min()으로 화면 폭에 비례하게(태블릿·폴더블에서 잉여 여백 방지).
    safe-area-inset: 노치·펀치홀 기기에서 여백이 깎이지 않도록 가산. */
-#sl{justify-content:center;align-items:center;padding:40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-right)) 40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-left));position:relative;overflow-y:auto}
+#sl{justify-content:center;align-items:center;padding:40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-right)) 40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-left))}  /* position:relative 삭제(2026-09-27) — .screen의 fixed 전체화면을 덮어써 세로 가운데 정렬이 안 되던 원인 */
 .lg-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:min(400px, 100% - 40px)}
 .lg-icon-wrap{width:76px;height:76px;background:linear-gradient(135deg,#1e2535,#2a3550);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:44px}
 .lg-title{font-family:'Nanum Myeongjo',serif;font-size:26px;color:var(--acc);letter-spacing:3px}
