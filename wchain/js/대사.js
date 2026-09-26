@@ -18,21 +18,17 @@
 // 클래식 스크립트. 게임상태.js(is_arrogant) 뒤, 게임규칙.js·서바이벌.js보다 먼저 로드.
 
 let 대사표 = {};
-let 대사_적재됨 = false;
 
-// data/대사.json 적재. index.html의 부트스트랩이 await로 기다린다.
+// data/대사.json 적재. index.html 부트스트랩이 기다리지 않고 뒤에서 받아 둔다(첫 화면엔 대사가 없음).
 // 실패해도 게임이 멈추지는 않게 하되, 조용히 넘어가면 화면이 텅 비므로 반드시 표면화한다.
 async function 대사_로드(){
   try{
     const res = await fetch('data/대사.json');
     if(!res.ok) throw new Error('HTTP ' + res.status);
     대사표 = await res.json();
-    대사_적재됨 = true;
   }catch(e){
     console.error('[대사] data/대사.json 적재 실패 — 대사가 키 이름으로 표시됩니다.', e);
-    대사_적재됨 = false;
   }
-  return 대사_적재됨;
 }
 
 // 키로 페르소나에 맞는 문구를 꺼내 자리표시자를 채운다.

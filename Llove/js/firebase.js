@@ -19,7 +19,7 @@ const firebaseConfig = {
   measurementId: "G-7W3G1T7ZY2"
 };
 
-let fbApp = null, fbAuth = null, fbDb = null;
+let fbAuth = null, fbDb = null;
 let 현재UID = null;
 
 function Firebase초기화(){
@@ -28,11 +28,7 @@ function Firebase초기화(){
       console.error('[Firebase] SDK가 로드되지 않았습니다.');
       return;
     }
-    if(!firebaseConfig.apiKey){
-      console.error('[Firebase] config 미설정 — 구글 로그인/동기화 비활성. firebaseConfig 값을 입력하세요.');
-      return;
-    }
-    fbApp  = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     fbAuth = firebase.auth();
     fbDb   = firebase.firestore();
     // 로그인 상태 변화 감지 (재방문 시 자동 로그인 포함)

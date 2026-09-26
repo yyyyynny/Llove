@@ -92,14 +92,9 @@ function ai_generate_word(gs, 추가후보 = []){
   }
 
   let attack_mode = false;
+  // 공격(한방 노림)은 서바이벌 전용 — 아케이드는 이 조건에서 이미 빠진다(원본의 층별 확률 사다리는 도달 불가라 삭제)
   if(gs.hanbang && gs.game_mode !== 'ARCADE' && gs.attack_streak === 0){
-    let chance;
-    if(gs.game_mode === 'SURVIVAL') chance = 난이도설정(gs).공격확률;
-    else if(gs.stage <= 4) chance = 10;
-    else if(gs.stage <= 8) chance = 30;
-    else if(gs.stage <= 12) chance = 50;
-    else chance = 70;
-    if(Math.floor(Math.random() * 100) < chance) attack_mode = true;
+    if(Math.floor(Math.random() * 100) < 난이도설정(gs).공격확률) attack_mode = true;
   }
 
   if(attack_mode){
@@ -193,10 +188,9 @@ function 세션_수집(단어들){
 // 한방으로 오판돼 매 턴 사용자가 이겨 버린다(실측으로 확인).
 // → **물어본 적 있는 글자에 대해서만 한방을 판정한다.**
 let 세션_조회글자 = new Set();
-function 조회한_글자인가(글자, rev){ return 세션_조회글자.has((rev ? 'end:' : 'start:') + 글자); }
 function 한방_판정가능인가(word, gs){
   const 다음 = !gs.rev ? word[word.length - 1] : word[0];
-  return 조회한_글자인가(다음, gs.rev);
+  return 세션_조회글자.has((gs.rev ? 'end:' : 'start:') + 다음);
 }
 
 // 안전망 ② — 연속 실패가 쌓이면 조용히 이상하게 돌지 말고 호출부가 명시적으로 알리게 한다.
@@ -299,14 +293,6 @@ async function 한방_확정인가(word, gs){
   return true;                                                             // 5
 }
 
-// 온라인 후보까지 포함해 AI 단어를 고르는 비동기 래퍼(2026-07-24 신설, 관리자님 지시).
-// 게이트 off·API 실패(네트워크 오류 등)면 빈 배열로 강등돼 기존 ai_generate_word(gs)와 동일하게
-// 로컬 사전만으로 동작한다(하이브리드: 실패 시 로컬 폴백). 어떤 풀을 쓸지는 위 난이도 규칙이 결정.
-async function ai_generate_word_비동기(gs){
-  const 추가후보 = await 온라인후보_가져오기(gs);
-  return ai_generate_word(gs, 추가후보);
-}
-
 // 칭호 체크 — 서바이벌 턴 마일스톤(95/100/200/30배수) + 아케이드(Phase 4) 자리 보존
 function check_title(gs){
   if(gs.god_mode_active){ gs.user_title = '최고 관리자님'; return; }
@@ -392,7 +378,7 @@ function arcade_floor_up(gs, ai_defeated){
   gs.trial_rejected_floor = -1; gs.trial_attempts_this_floor = 0;
 
   if(cleared % 2 === 0){
-    if(gs.hints !== Infinity) gs.hints += 1;
+    gs.hints += 1;
     로그_추가(`💡 [${cleared}층 보상] 힌트 +1 획득. 남은 힌트: ${표시무한(gs.hints)}`, 'ok');
   }
 
@@ -424,10 +410,10 @@ function arcade_restart_floor(gs){
 */
 
 if (typeof module !== 'undefined') module.exports = {
-  validate_word, ai_generate_word, ai_generate_word_비동기, check_title, user_defeat,
+  validate_word, ai_generate_word, check_title, user_defeat,
   붕괴확률, arcade_floor_up,   // arcade_restart_floor는 봉인(위 주석)
   온라인후보_가져오기, 세션_수집, 세션_비우기, 우리말샘_불통인가, 난이도_슬라이스,
-  조회한_글자인가, 한방_판정가능인가,
+  한방_판정가능인가,
   get 세션_수집어(){ return 세션_수집어; }, ai_후보사전, ai_한방금지인가, 한방_확정인가, 탐욕_선택,
   get 마지막_온라인조회(){ return 마지막_온라인조회; }
 };

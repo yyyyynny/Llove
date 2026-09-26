@@ -11,7 +11,7 @@
 
 /* sq2 4지선다·역방향 출제용 풀 — DB 풀(출제_분기 결과) 그대로 사용 */
 function sq2_출제풀(category){
-  const 실풀 = 출제_분기(category, []);
+  const 실풀 = 출제_분기(category);
   return Array.isArray(실풀) ? 실풀 : [];
 }
 
@@ -38,7 +38,6 @@ function sq2_사지선다_렌더(category){
   const 정답 = 풀[Math.floor(Math.random()*풀.length)];
   const 오답 = sq2_셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
   const 보기 = sq2_셔플([정답, ...오답]);
-  현재플래시카드 = 정답;  // 복습/연동 참고용
   현재문제_reasoning_note = 정답.reasoning_note || '';
   // selAns의 복습 대기열 연동을 위해 현재퀴즈문제를 4지선다 형식으로 구성 (정답보기=단어, 문제=뜻)
   현재퀴즈문제 = { q: 정답.meaning, cat: 정답.cat, opts: 보기.map(c=>({t:c.word, c: c.word===정답.word})) };
@@ -71,7 +70,6 @@ function sq2_역방향_렌더(category){
   const 정답 = 풀[Math.floor(Math.random()*풀.length)];
   const 오답 = sq2_셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
   const 보기 = sq2_셔플([정답, ...오답]);
-  현재플래시카드 = 정답;
   현재문제_reasoning_note = 정답.reasoning_note || '';
   // 역방향은 '뜻'이 보기이므로, 복습 연동상 정답보기=뜻으로 기록됨(단어/뜻 방향만 반대) — 의도된 동작
   현재퀴즈문제 = { q: `${정답.word} (${정답.reading})`, cat: 정답.cat, opts: 보기.map(c=>({t:c.meaning, c: c.word===정답.word})) };
@@ -93,15 +91,12 @@ function sq2_역방향_렌더(category){
 
 /* sq2 '뜻 직접 서술' — 단어를 제시하고 사용자가 뜻을 직접 입력한 뒤, 모범 뜻을 공개해 자가 점검.
    설계 의도대로 AI 채점은 없다(Grok 봉인). 자유 입력 → 공개 → 다음 문제. */
-let sq2_서술현재 = null;
 function sq2_뜻서술_렌더(category){
   const body = document.getElementById('sq2Body');
   if(!body) return;
   const 풀 = sq2_출제풀(category);
   if(!풀.length){ renderFlashcard(풀); return; }
   const 문항 = 풀[Math.floor(Math.random()*풀.length)];
-  sq2_서술현재 = 문항;
-  현재플래시카드 = 문항;
   현재문제_reasoning_note = 문항.reasoning_note || '';
   body.innerHTML = `
     <div class="qcard">

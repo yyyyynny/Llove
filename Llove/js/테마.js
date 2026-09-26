@@ -27,7 +27,6 @@ function showConfirmModal(icon, title, desc, confirmLabel, onConfirm){
   document.getElementById('infoIcon').textContent=icon;
   document.getElementById('infoTitle').textContent=title;
   document.getElementById('infoDesc').innerHTML=desc;
-  const body=document.getElementById('infoBody'); if(body) body.innerHTML='';
   const btnArea=document.getElementById('infoBtns');
   if(btnArea){
     btnArea.innerHTML='';
@@ -95,7 +94,6 @@ function showToastMsg(msg){
 // 세션10-k: 다크/라이트 토글 삭제로 마지막다크·마지막라이트 기억 로직 불필요해져 제거 —
 // 테마 선택은 이제 아래 「테마 선택」 그리드 단일 경로로만 이뤄짐(정신모델 단순화, 최고 관리자님 확정)
 function setTheme(name, 조용히){
-  curTheme=name;
   document.body.setAttribute('data-theme',name);
   document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
   document.getElementById('th-'+name)?.classList.add('on');

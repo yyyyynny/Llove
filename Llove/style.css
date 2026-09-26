@@ -203,8 +203,8 @@ html{scrollbar-gutter:stable}
 .ob-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px calc(28px + env(safe-area-inset-right)) 20px calc(28px + env(safe-area-inset-left));opacity:0;transform:translateX(32px);transition:opacity .42s var(--ease-out),transform .42s var(--ease-out);pointer-events:none;overflow-y:auto}
 .ob-slide.active{opacity:1;transform:translateX(0);pointer-events:all}
 .ob-slide.exit{opacity:0;transform:translateX(-32px)}
-.ob-bg{position:absolute;inset:0;pointer-events:none}
-.ob-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
+.ob-bg,.lg-bg{position:absolute;inset:0;pointer-events:none}
+.ob-aura,.lg-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
 /* 세션9: 아이콘 크기 체계 통일 — 히어로(44px)/목록(26px)/소형(20px) 3단계로 수렴 */
 .ob-icon{font-size:44px;margin-bottom:18px;animation:fadeUp .5s var(--ease-out) both}
 .ob-title{font-family:'Nanum Myeongjo',serif;font-size:25px;font-weight:800;color:var(--acc);text-align:center;margin-bottom:8px;line-height:1.38;letter-spacing:.4px}
@@ -234,8 +234,6 @@ html{scrollbar-gutter:stable}
    clamp()/min()으로 화면 폭에 비례하게(태블릿·폴더블에서 잉여 여백 방지).
    safe-area-inset: 노치·펀치홀 기기에서 여백이 깎이지 않도록 가산. */
 #sl{justify-content:center;align-items:center;padding:40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-right)) 40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-left));position:relative;overflow-y:auto}
-.lg-bg{position:absolute;inset:0;pointer-events:none}
-.lg-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(184,149,106,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
 .lg-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:min(400px, 100% - 40px)}
 .lg-icon-wrap{width:76px;height:76px;background:linear-gradient(135deg,#1e2535,#2a3550);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:44px}
 .lg-title{font-family:'Nanum Myeongjo',serif;font-size:26px;color:var(--acc);letter-spacing:3px}
@@ -328,7 +326,6 @@ html{scrollbar-gutter:stable}
 .mc.mc-g5:hover{border-color:var(--err)}
 /* 세션10-d 항목7: 색맹 대비 그룹 라벨 — 각 그룹 색(--gl)을 텍스트로도 노출(색+두께+글자 3중 신호) */
 .mc-glabel{font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--gl,var(--txt2));margin:14px 0 6px 2px;text-transform:none;opacity:.92}
-.mc-glabel:first-of-type{margin-top:4px}
 
 /* ━━━ 학습 - 4지선다 / 3지선다 ━━━ */
 .qprog-wrap{padding:14px 20px;background:var(--card);border-bottom:1px solid var(--bdr);flex-shrink:0}
@@ -360,7 +357,6 @@ html{scrollbar-gutter:stable}
 .qbody{padding:18px;display:flex;flex-direction:column;gap:16px}
 .qcard{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:22px;animation:fadeUp .38s var(--ease-out) both}
 .qcat{margin-bottom:11px;display:flex;gap:6px;flex-wrap:wrap}
-.q-word{font-size:25px;font-weight:700;color:var(--acc);letter-spacing:2px;margin-bottom:9px}
 .q-question{font-size:17px;line-height:1.7;margin-bottom:6px}
 .q-hint{font-size:13px;color:var(--txt2);line-height:1.75}
 .aopts{display:flex;flex-direction:column;gap:8px}
@@ -494,10 +490,6 @@ html{scrollbar-gutter:stable}
 .spk-mode-btn.on{border-color:var(--acc);color:var(--acc);background:rgba(184,149,106,.05)}
 .spk-textarea{width:100%;min-height:90px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:12px;color:var(--txt);font-family:var(--fn);font-size:14px;outline:none;resize:vertical;line-height:1.6}
 .spk-textarea:focus{border-color:var(--acc)}
-.spk-not-impl{background:var(--elev);border:1px dashed var(--warn);border-radius:9px;padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
-.spk-not-impl-icon{font-size:37px;opacity:.5}
-.spk-not-impl-text{font-size:13px;color:var(--warn);font-weight:700}
-.spk-not-impl-desc{font-size:12px;color:var(--txt2);line-height:1.6}
 /* 항목8: 음성 입력 UI */
 .spk-voice{display:flex;flex-direction:column;align-items:stretch;gap:10px}
 .spk-mic-btn{display:flex;align-items:center;justify-content:center;gap:9px;padding:14px;border-radius:11px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt);font-family:var(--fn);font-size:15px;font-weight:700;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
@@ -690,7 +682,6 @@ html{scrollbar-gutter:stable}
 
 /* 토글 */
 .mtw{display:flex;align-items:center;gap:8px}
-.ml{font-size:11px;color:var(--txt2);transition:color .2s}
 .mt{position:relative;display:inline-block;width:38px;height:22px}
 .mt input{opacity:0;width:0;height:0}
 .mtt{position:absolute;cursor:pointer;inset:0;background:var(--elev);border:1px solid var(--bdr);transition:.3s;border-radius:22px}
@@ -742,9 +733,6 @@ html{scrollbar-gutter:stable}
 .select-opt-ck{font-size:14px;color:var(--acc);opacity:0}
 .select-opt.on .select-opt-ck{opacity:1}
 
-/* ━━━ 질문하기 FAB ━━━ */
-/* FAB 스타일 v3.4부터 미사용 — 학습 화면 하단 AI 챗 바로 통합 */
-.ask-fab{display:none}
 
 /* 항목6: 문제 영역 가림 최소화 — 배경 딤을 옅게(리퀴드 글래스에서 뒤가 비치도록) */
 .ask-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .3s}
@@ -891,7 +879,6 @@ body.devnav #demo-nav{display:flex}
 .demb:hover,.demb.on{border-color:rgba(255,255,255,.32);color:#fff}
 .demb.sp{border-color:rgba(184,149,106,.38);color:rgba(184,149,106,.75)}
 .demb.sp:hover{border-color:var(--acc);color:var(--acc)}
-.demo-offset{margin-top:0}
 body.devnav .demo-offset{margin-top:80px}
 
 /* ━━━ 빌드1 α8: 주҉신҉ 소칭호 무지개 글리치 (결합 문자 + 그라디언트 순환) ━━━ */

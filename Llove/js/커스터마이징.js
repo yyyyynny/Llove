@@ -107,9 +107,6 @@ function 프로필_파일처리(inp){
   inp.value = '';
 }
 
-// α9 호환: 기존 진입점은 프로필 선택으로 위임 (개방 정책 반영)
-function 고급커스터마이징_탭(){ 프로필선택_열기(); }
-
 /* ━━━ 세션7 항목12: 현황 배너 — 그라디언트 프리셋(전원) + 이미지 프리셋(전원) + 업로드(Lv.16) ━━━ */
 const 배너_그라프리셋 = [
   'linear-gradient(135deg,var(--accd),var(--acc))',
@@ -271,7 +268,7 @@ function 이미지크롭_취소(){ document.getElementById('cropBg')?.classList.
 function 이미지크롭_적용(){
   const st = 이미지크롭_상태, img = document.getElementById('이미지크롭이미지');
   if(!img || !st.Wv){ 이미지크롭_취소(); return; }
-  const out = 이미지크롭_출력[st.대상] || 이미지크롭_출력.배너;
+  const out = 이미지크롭_출력[st.대상];
   const c = document.createElement('canvas'); c.width = out.w; c.height = out.h;
   const ctx = c.getContext('2d');
   if(!ctx){ 이미지크롭_취소(); return; }  // jsdom/캔버스 미지원 안전

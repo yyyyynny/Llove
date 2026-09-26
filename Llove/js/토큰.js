@@ -166,7 +166,7 @@ function 토큰표시_갱신(){
   });
   document.querySelectorAll('.ask-chat-now').forEach(el=> el.textContent = 포맷(잔량));
   const aq = document.getElementById('askQuotaNow'); if(aq) aq.textContent = 포맷(잔량);
-  const st = document.getElementById('tokenSetTxt'); if(st) st.textContent = 잠금 ? 라벨 : `${포맷(잔량)} / 1,500`;
+  const st = document.getElementById('tokenSetTxt'); if(st) st.textContent = 라벨;
 }
 
 // 토큰 바 탭 → 최근 5개 차감 내역 드롭다운 (KNOWLEDGE 35)

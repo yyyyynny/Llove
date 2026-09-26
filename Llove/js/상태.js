@@ -231,15 +231,9 @@ function 복습대기열_추가(단어, 뜻, 모드){
 function 복습대기열_정답처리(단어){
   const idx = 복습데이터.대기열.findIndex(x=>x.단어===단어);
   if(idx < 0) return;
-  const 항목 = 복습데이터.대기열[idx];
-  항목.연속정답수++;
-  if(항목.연속정답수 >= 1){
-    복습데이터.대기열.splice(idx,1);
-    보관함_문서삭제('복습대기열', 항목.id);
-    showToastMsg(`🎓 「${항목.단어}」 복습 졸업!`);
-  } else {
-    보관함_문서수정('복습대기열', 항목.id, {연속정답수:항목.연속정답수});
-  }
+  const [항목] = 복습데이터.대기열.splice(idx,1);
+  보관함_문서삭제('복습대기열', 항목.id);
+  showToastMsg(`🎓 「${항목.단어}」 복습 졸업!`);
   if(curScreen==='sr') renderReview();
 }
 
@@ -249,7 +243,6 @@ function 복습대기열_정답처리(단어){
 let curScreen='sl';
 let userName=사용자.이름;
 let curExp=사용자.현재EXP, curLv=사용자.레벨;
-let curTheme='antique';
 // 버그D 수정: 'gowun'은 FONTS 배열에 없는 유령 키였음 → 기본 글꼴(나눔스퀘어 Neo) 실제 키로 교정 (KNOWLEDGE 8·19)
 let curFont='nanum_square';
 

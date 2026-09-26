@@ -281,7 +281,7 @@ function buildStars(stage, single){
 
   // 풀돌 업적 — 별 7개
   // 미획득 처리: -1 또는 잘못된 값
-  if(stage===-1 || stage==='lck' || typeof stage!=='number' || stage<0){
+  if(typeof stage!=='number' || stage<0){
     return '<span class="ach-star-empty">✧✧✧✧✧✧✧</span>';
   }
   let html='';
@@ -346,12 +346,7 @@ function stageLabel(stage){
 
 /* 업적 상세 */
 function openAchDetail(key){
-  let target=null;
-  ACH_DATA.forEach(sec=>{
-    sec.items.forEach(a=>{
-      if(a.key===key) target=a;
-    });
-  });
+  const target = ACH_DATA.flatMap(s=>s.items).find(a=>a.key===key);
   if(!target) return;
 
   document.getElementById('adIcon').textContent=target.icon;

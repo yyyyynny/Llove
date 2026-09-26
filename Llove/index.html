@@ -49,7 +49,7 @@
      현재 슬라이드: 0)환영 1)학습 모드 2)숭고함 3)지금, 시작하시겠습니까? -->
 <div id="onboarding">
   <div class="ob-prog" id="obProg" style="width:25%"></div>
-  <button class="ob-skip" onclick="skipOb()">건너뛰기</button>
+  <button class="ob-skip" onclick="finishOb()">건너뛰기</button>
   <div class="ob-slides" id="obSlides">
     <!-- 0 환영 -->
     <div class="ob-slide active" data-i="0">
@@ -148,7 +148,6 @@
     <div class="modal-icon" id="infoIcon">ℹ️</div>
     <div class="modal-title" id="infoTitle">안내</div>
     <div class="modal-desc" id="infoDesc">설명</div>
-    <div id="infoBody"></div>
     <div class="modal-btns" id="infoBtns">
       <button class="btn-acc" style="flex:1" onclick="closeInfoModal()">확인</button>
     </div>
@@ -1110,9 +1109,6 @@
     </div>
   </div>
 </div>
-
-<!-- 질문하기 FAB -->
-<!-- 질문하기 FAB 제거됨 (v3.4) — 학습 화면 하단 AI 챗 바로 통합 -->
 
 <!-- 바텀 네비 -->
 <nav id="g-bnav" class="hidden">

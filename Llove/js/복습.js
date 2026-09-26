@@ -95,8 +95,6 @@ function setLsetMode(screenId, mode, btn){
     }
     if(복습진행) 복습_카드렌더();
     showToastMsg(`복습 ${screenId==='srp'?'방식':'순서'}: ${mode}`);
-  } else {
-    showToastMsg(`설정 변경: ${mode}`);
   }
 }
 
@@ -575,11 +573,6 @@ function 휴지통_전체비우기(){
   renderReview();
 }
 
-/* (구) toggleFav — 호환성 유지용. 실제로는 위 새 함수들이 사용됨 */
-function toggleFav(el){
-  el.classList.toggle('on');
-  el.textContent = el.classList.contains('on') ? '★' : '☆';
-}
 /* 복습 대기열 상한 설정 — 30/40/50/60/70 */
 function openCapacity(){
   document.getElementById('selTitle').textContent='⚙️ 복습 대기열 상한';

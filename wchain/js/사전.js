@@ -19,7 +19,6 @@
 // ⚠️ let인 이유: 로드 후 교체된다. 참조하는 쪽은 항상 이 변수를 읽어야 최신값을 본다
 //    (구조 분해로 복사해 두면 빈 배열이 박제된다).
 let 추가사전 = [];
-let 사전_적재됨 = false;
 
 async function 사전_로드(){
   try{
@@ -27,17 +26,14 @@ async function 사전_로드(){
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     추가사전 = Array.isArray(data && data.추가단어) ? data.추가단어.filter(w => typeof w === 'string') : [];
-    사전_적재됨 = true;
   }catch(e){
     // 보조 사전은 없어도 게임이 돌아간다(기준은 우리말샘) — 경고만 남기고 빈 채로 진행.
     console.warn('[사전] data/사전.json 적재 실패 — 보조 사전 없이 진행합니다.', e);
     추가사전 = [];
-    사전_적재됨 = false;
   }
-  return 추가사전;
 }
 
 // jsdom/node 대조 테스트용 내보내기 (브라우저에선 무시)
 if (typeof module !== 'undefined') module.exports = {
-  사전_로드, get 추가사전(){ return 추가사전; }, get 사전_적재됨(){ return 사전_적재됨; }
+  사전_로드, get 추가사전(){ return 추가사전; }
 };

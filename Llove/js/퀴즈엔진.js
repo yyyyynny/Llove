@@ -32,16 +32,15 @@ function 출제방식_결정(){
 
 // β9: 출제 풀 선택 — AI 선택 시 Grok 미연동 단계에서는 DB로 폴백
 // (Grok 활성화 후: 토큰 15 차감 → grok호출('문제생성') → reasoning_note 동시 생성이 이 자리에 연결됨)
-function 출제_분기(category, 정적폴백){
+function 출제_분기(category){
   const 방식 = 출제방식_결정();
   if(방식 === 'ai' && !GROK_활성화 && !AI대체안내함){
     showToastMsg('🤖 AI 출제 준비 중 — DB 문제로 대체합니다');
     AI대체안내함 = true;
   }
-  // DB 풀: data/ JSON에 내용이 있으면 그것을, 비어 있으면 내장 폴백 사용
+  // DB 풀: data/ JSON 문항 (미적재·로드 실패면 빈 배열 — 렌더 함수들이 빈 배열을 안전하게 처리)
   // (실DB가 채워진 뒤에는 「DB 소진 → 팝업 → AI 강제 전환」 흐름이 의미를 가짐 — KNOWLEDGE 4)
-  const json풀 = DB문제[category];
-  return (json풀 && json풀.length) ? json풀 : 정적폴백;
+  return DB문제[category] || [];
 }
 
 // 「다음 문제」 — 같은 풀에서 랜덤 재출제 (sq1/sq3 공용)
@@ -53,7 +52,7 @@ function 다음문제(){
 
 /* 재구조화 이후 정리: QUIZ_COMMON·QUIZ_HISTORY·QUIZ_SPELL(각 1건, data/ DB 빈 파일 시절의
    정적 폴백)은 data/상식어원.json·세계사신화.json·맞춤법.json에 이전 완료(각 81번째 항목).
-   출제_분기()의 정적폴백 인자를 []로 낮췄으므로, 아래 렌더 함수들은 빈 배열을 안전하게
+   출제_분기()는 데이터가 없으면 빈 배열을 돌려주므로, 아래 렌더 함수들은 빈 배열을 안전하게
    처리해야 한다(fetch 실패·초기 로드 지연 시 대비). */
 
 /* 4지선다 렌더 — 상식·어원, 세계사·신화 공용 */

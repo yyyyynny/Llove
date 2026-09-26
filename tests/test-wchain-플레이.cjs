@@ -131,7 +131,7 @@ function 적절성_스텁(win, 일차응답, 이차응답, 제외단어, 본문�
   win.__일차응답 = 일차응답 || null;
   win.__이차응답 = 이차응답 || null;
   win.__본문관찰 = 본문관찰 || null;
-  // 재출제 경로(AI단어_취소_재출제 → ai_generate_word_비동기)는 우리말샘 후보 조회를 탄다.
+  // 재출제 경로(AI단어_취소_재출제 → 온라인후보_가져오기)는 우리말샘 후보 조회를 탄다.
   const 원래fetch = win.fetch;
   win.fetch = async (url, opt) => {
     if(typeof url === 'string' && url.startsWith('data/')) return 원래fetch(url, opt);
@@ -403,7 +403,7 @@ async function main(){
     const { win } = 페이지열기();
     win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
     상태(win).stage = 7;                       // 아케이드 7층까지 올라간 상태를 흉내
-    win.버튼_리셋();                           // 전체 리셋 → 페르소나
+    win.전체리셋();                             // 전체 리셋 → 페르소나
     win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL'); win.게임_시작();
     확인('서바이벌로 넘어오면 층이 1로 초기화', 상태(win).stage === 1, `stage=${상태(win).stage}`);
 
@@ -614,9 +614,6 @@ async function main(){
     // 10번 — 삭제가 로컬 흔적까지 지우고, 온보딩을 건너뛴 홈으로 보낸다
     const 연동 = fs.readFileSync(path.join(WCHAIN, 'js/연동.js'), 'utf8');
     확인('삭제가 잇는 로컬 캐시도 지운다', 연동.includes('잇는_로컬삭제'));
-    확인('캐시 키 3종을 지운다',
-         연동.includes('plx_잇는_국어원캐시_v2') && 연동.includes('plx_잇는_국어원후보캐시_v2')
-         && 연동.includes('plx_잇는_테마연동'));
     // 버전 접미사를 올릴 때마다 목록을 늘리는 대신 접두사로 쓸어 담는다 — 구버전 키가 남지 않게
     확인('plx_잇는_ 접두사 키를 전부 쓸어 담는다',
          연동.includes('잇는_로컬접두') && 연동.includes('startsWith(잇는_로컬접두)'));
@@ -630,11 +627,13 @@ async function main(){
     const { win } = 페이지열기();
     win.localStorage.setItem('plx_잇는_국어원캐시_v2', '{"가":true}');
     win.localStorage.setItem('plx_잇는_국어원후보캐시', '{"start:가":[]}');
+    win.localStorage.setItem('plx_잇는_테마연동', 'navy');
     win.localStorage.setItem('plx_테마', 'navy');          // Llove 것 — 건드리면 안 된다
     win.잇는_로컬삭제();
     확인('삭제 후 잇는 캐시가 비워진다',
          !win.localStorage.getItem('plx_잇는_국어원캐시_v2')
-         && !win.localStorage.getItem('plx_잇는_국어원후보캐시'));
+         && !win.localStorage.getItem('plx_잇는_국어원후보캐시')
+         && !win.localStorage.getItem('plx_잇는_테마연동'));
     확인('Llove의 localStorage는 건드리지 않는다',
          win.localStorage.getItem('plx_테마') === 'navy');
 

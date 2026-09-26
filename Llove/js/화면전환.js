@@ -81,14 +81,14 @@ function goNav(id, btn){
   //        "뒤로가기를 수십 번 눌러야 나가지는" 문제 방지
   if(!뒤로가기_이동중){
     try{
-      const 네비간이동 = SHOW_NAV.includes(id) && SHOW_NAV.includes(이전화면ID);
+      const 네비간이동 = Object.hasOwn(NAV_MAP, id) && Object.hasOwn(NAV_MAP, 이전화면ID);
       if(네비간이동) history.replaceState({화면:id}, '', '');
       else history.pushState({화면:id}, '', '');
     }catch(e){ /* file:// 등 미지원 환경 무시 */ }
   }
 
   const bnav=document.getElementById('g-bnav');
-  if(SHOW_NAV.includes(id)){
+  if(Object.hasOwn(NAV_MAP, id)){
     bnav.classList.remove('hidden');
     document.querySelectorAll('.nv-btn').forEach(b=>b.classList.remove('on'));
     const activeId=NAV_MAP[id];
@@ -163,10 +163,7 @@ function afterNav(id){
     // β10: 성장 상세 화면 렌더
     렌더_성장상세();
   }
-  // 학습 화면 진입 시 토큰 바 갱신 (β5) — 세션10-p: sq6·sq7(지문 독해·문장 배열) 누락 발견, 추가
-  if(['sq1','sq2','sq3','sq4','sq5','sq6','sq7'].includes(id)){
-    토큰표시_갱신();
-  }
+  // (학습 화면 토큰 바 갱신은 goLearn이 진입마다 수행 — 학습 화면은 항상 goLearn을 거친다)
   if(id==='sse'){
     // 설정: 사용자 객체 기반
     const 등급 = 등급정보(curLv);
@@ -218,13 +215,8 @@ function goLearn(category, screenId, btn){
   // 4지선다 화면(sq1) — 상식·어원 / 세계사·신화 분기 (β9: 출제_분기 경유)
   if(screenId==='sq1'){
     document.getElementById('sq1Title').textContent=category;
-    if(category==='상식·어원'){
-      document.getElementById('sq1Mode').textContent='🌍 4지선다';
-      renderQuiz4(출제_분기(category, []));
-    } else {
-      document.getElementById('sq1Mode').textContent='🏛️ 4지선다';
-      renderQuiz4(출제_분기(category, []));
-    }
+    document.getElementById('sq1Mode').textContent = (category==='상식·어원' ? '🌍' : '🏛️') + ' 4지선다';
+    renderQuiz4(출제_분기(category));
   }
   // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말
   // 버그2·9 수정: 4지선다 하드코딩 제거 → 저장된 학습설정.sq2 방식대로 출제 (진입·재진입 공통)
@@ -233,7 +225,7 @@ function goLearn(category, screenId, btn){
     sq2_출제_렌더(category);
   }
   if(screenId==='sq3'){
-    renderQuiz3(출제_분기('맞춤법', []));
+    renderQuiz3(출제_분기('맞춤법'));
   }
   if(screenId==='sq4'){
     // v3.6: 초기 진입 시 학습설정.sq4 값 기반으로 데이터 선택 + 패널 버튼 상태 동기화
@@ -267,11 +259,11 @@ function goLearn(category, screenId, btn){
 function 현재모드_다음출제(){
   const 카테고리 = 현재학습모드, 화면 = curScreen;
   if(화면==='sq1'){
-    renderQuiz4(출제_분기(카테고리, []));
+    renderQuiz4(출제_분기(카테고리));
   } else if(화면==='sq2'){
     sq2_출제_렌더(카테고리);
   } else if(화면==='sq3'){
-    renderQuiz3(출제_분기('맞춤법', []));
+    renderQuiz3(출제_분기('맞춤법'));
   } else if(화면==='sq4'){
     const 현재난이도 = 학습설정.sq4 || '아↗그거!';
     renderDad(아재풀_구성(현재난이도));
@@ -313,7 +305,7 @@ function sq2_출제_렌더(category){
     sq2_뜻서술_렌더(category);
   } else {
     // 플래시카드(명시 선택) — data/ JSON이 채워지면 출제_분기가 그 풀을 자동 사용
-    renderFlashcard(출제_분기(category, []));
+    renderFlashcard(출제_분기(category));
   }
 }
 

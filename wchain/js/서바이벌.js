@@ -101,6 +101,11 @@ function 난이도설명(이름, 성향){
   const d = 난이도표[이름];
   return `${d.턴}턴 · 목숨${d.목숨} 힌트${d.힌트} — ${성향}`;
 }
+// 악마의 거래가 올려 줄 다음 난이도 — 난이도표의 키 순서(안온→격동→초월→심연)를 따르고 심연에서 멈춘다.
+function 다음난이도(diff){
+  const 순서 = Object.keys(난이도표);
+  return 순서[Math.min(순서.indexOf(diff) + 1, 순서.length - 1)];
+}
 
 const 설정_항목 = [
   // `모드` = 이 항목이 의미를 갖는 게임 모드. 없으면 두 모드 모두에 표시.
@@ -225,7 +230,7 @@ function 게임_시작(){
   reset_game(gs);
   세션_비우기();   // 이전 판에서 모은 단어·실패 카운터를 새 판으로 들고 가지 않는다
   _이전힌트 = null; _이전목숨 = null;   // 새 판 시작값을 "감소"로 오탐하지 않게 추적값도 초기화
-  if(gs.rev && gs.dueum !== 'OFF'){ gs.dueum = 'OFF'; }   // 원본: 앞말잇기는 두음법칙 자동 OFF
+  if(gs.rev) gs.dueum = 'OFF';   // 원본: 앞말잇기는 두음법칙 자동 OFF
   gs.game_state = 'PLAYING';
   로그_비우기();
 
@@ -253,7 +258,6 @@ function 게임_시작(){
    HUD (원본 show_survival_hud) + 프롬프트(원본 prompt_next)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function get_status(current, total){
-  if(total === 0) return '🟢';
   const pct = current / total;
   return pct <= 0.33 ? '🟢' : (pct <= 0.66 ? '🟡' : '🔴');
 }
@@ -262,7 +266,7 @@ function 플레이_HUD갱신(){
   const 턴라벨 = document.getElementById('hud-턴라벨');
   if(gs.game_mode === 'ARCADE'){
     const target = get_stage_target(gs);
-    const pct = target ? Math.min(100, Math.round(gs.stage_turn / target * 100)) : 0;
+    const pct = Math.min(100, Math.round(gs.stage_turn / target * 100));
     턴라벨.textContent = '🗼 층 ' + gs.stage;
     document.getElementById('hud-턴').textContent = `${gs.stage_turn} / ${target}`;
     document.getElementById('hud-바').style.width = pct + '%';
@@ -273,7 +277,7 @@ function 플레이_HUD갱신(){
     const max_t = gs.infinite ? 0 : get_max_turns(gs);
     턴라벨.textContent = '⏳ 턴';
     document.getElementById('hud-턴').textContent = gs.infinite ? `${gs.turn} / ∞` : `${gs.turn} / ${max_t}`;
-    document.getElementById('hud-바').style.width = ((!gs.infinite && max_t) ? Math.min(100, Math.round(gs.turn / max_t * 100)) : 0) + '%';
+    document.getElementById('hud-바').style.width = (!gs.infinite ? Math.min(100, Math.round(gs.turn / max_t * 100)) : 0) + '%';
     const st = document.getElementById('hud-상태');
     const status = gs.infinite ? '🟢' : get_status(gs.turn, max_t);
     st.textContent = status; st.className = 'status-' + status;
@@ -282,8 +286,8 @@ function 플레이_HUD갱신(){
   // 조용히 숫자만 바뀌어서 목숨을 잃어도 체감이 안 됐다. 텍스트를 덮어쓰기 전에 비교한다.
   const 힌트요소 = document.getElementById('hud-힌트');
   const 목숨요소 = document.getElementById('hud-목숨');
-  if(_이전힌트 !== null && typeof gs.hints === 'number' && gs.hints < _이전힌트) 흔들기(힌트요소);
-  if(_이전목숨 !== null && typeof gs.hearts === 'number' && gs.hearts < _이전목숨) 흔들기(목숨요소);
+  if(_이전힌트 !== null && gs.hints < _이전힌트) 흔들기(힌트요소);
+  if(_이전목숨 !== null && gs.hearts < _이전목숨) 흔들기(목숨요소);
   _이전힌트 = gs.hints; _이전목숨 = gs.hearts;
 
   힌트요소.textContent = 표시무한(gs.hints) + '개';
@@ -291,8 +295,6 @@ function 플레이_HUD갱신(){
   목숨요소.textContent = `${표시무한(gs.hearts)}개`;
   // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
   document.getElementById('ai-단어').textContent = gs.ai_last_word || '─';
-  const 라벨 = document.getElementById('ai-라벨');
-  if(라벨) 라벨.textContent = '상대의 단어';
   // 첫 턴엔 상대 단어가 없으므로 카드를 안내문 한 줄로 접는다(CSS .ai-word.empty)
   document.querySelector('.ai-word')?.classList.toggle('empty', !gs.ai_last_word);
   설정요약_갱신();
@@ -346,7 +348,7 @@ function 설정요약_갱신(){
 // 포함), input을 잠그는 건 필수가 아니라 "처리 중" 시각 피드백용이었을 뿐이다. 버튼(btn)만
 // 계속 잠가서 연타로 인한 중복 제출은 그대로 막는다. placeholder 전환은 disabled 여부와
 // 무관하게 계속 동작하므로 그대로 유지.
-function 입력_대기표시(켜기, 문구 = '확인 중'){
+function 입력_대기표시(켜기, 문구){
   const inp = document.getElementById('단어입력');
   const btn = document.querySelector('#입력폼 button[type=submit]');
   if(!inp || !btn) return;
@@ -808,7 +810,6 @@ function 버튼_양보(){
    확인 자체가 실패한 시도는 소모하지 않음). 원본에 있던 "심연 난이도는 무조건 기각" 특례는
    두지 않는다 — 실제로 확인해서 판정한다는 이번 재설계 취지와 맞지 않기 때문이다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const 이의허세_봉인 = false;
 const 이의_최대횟수 = 5;
 
 // 이의있음이든(사전 존재 확인) 적절성 검증이든(심판 판단, 아래 버튼_적절성검증) '이 단어는
@@ -822,7 +823,7 @@ async function AI단어_취소_재출제(disputed, 내세대){
   // (세션_수집어)엔 여전히 남아 있어서 — 여기서 먼저 지워버리면 "이미 쓴 단어" 목록에서
   // disputed가 빠져 AI가 방금 취소된 바로 그 단어를 그대로 다시 낼 수 있었다(실측 재현).
   // 그래서 다음 시작 글자 계산용 필터링 결과는 로컬 변수(이전항목들)로만 만들고, 실제
-  // gs.history 교체는 ai_generate_word_비동기 호출이 끝난 뒤로 미룬다 — 생성 도중에는
+  // gs.history 교체는 AI 재출제(온라인 후보 조회 포함)가 끝난 뒤로 미룬다 — 생성 도중에는
   // disputed가 history에 그대로 남아 있어 자연히 재선택이 막힌다.
   const 이전항목들 = gs.history.filter(h => h.word !== disputed);
   if(이전항목들.length){
@@ -832,7 +833,7 @@ async function AI단어_취소_재출제(disputed, 내세대){
     gs.ai_last_char = null;
   }
   gs.ai_last_word = null;
-  const new_ai = await ai_generate_word_비동기(gs);   // gs.history엔 아직 disputed가 남아 있음
+  const new_ai = ai_generate_word(gs, await 온라인후보_가져오기(gs));   // gs.history엔 아직 disputed가 남아 있음
   gs.history = 이전항목들;   // 이제서야 실제로 뺀다(성공·실패 여부와 무관하게)
   if(내세대 !== 게임_세대) return false;   // 대기 중 리셋·재도전이 있었다 — 더 진행하면 안 됨
   if(new_ai){
@@ -1267,7 +1268,7 @@ async function 힌트_본체(){
   // 종전에는 먼저 조회했는데, 힌트가 0이면 그 결과를 아예 쓰지 않고 악마의 거래·시련의 탑으로
   // 빠진다 — 최대 6초짜리 왕복을 매번 버리고 있었다. 게다가 그 조회가 마지막_온라인조회를
   // 덮어써서 다음 AI 턴의 로그가 엉뚱한 값으로 보고됐다.
-  if(gs.hints !== Infinity && gs.hints <= 0){
+  if(gs.hints <= 0){
     if(gs.game_mode === 'ARCADE'){
       gs.trial_tower_entries += 1;
       if(gs.trial_tower_entries === 2){
@@ -1306,8 +1307,7 @@ async function 힌트_본체(){
       if(gs.diff === '심연'){ 로그_추가(대사(gs, '힌트_본체_4'), 'sys'); return; }
       gs.deal_offered = true;
       gs.game_state = 'DEVIL_WAIT';
-      const diff_next = { 안온:'격동', 격동:'초월', 초월:'심연' }[gs.diff] ?? gs.diff;
-      로그_추가(대사(gs, '힌트_본체_3', [gs.diff, diff_next]), 'sys');
+      로그_추가(대사(gs, '힌트_본체_3', [gs.diff, 다음난이도(gs.diff)]), 'sys');
       선택박스_보이기(`
         <button class="btn sm acc" onclick="악마거래_응답(true)">수락</button>
         <button class="btn sm" onclick="악마거래_응답(false)">거절</button>`);
@@ -1332,7 +1332,7 @@ async function 힌트_본체(){
     return;
   }
 
-  if(gs.hints !== Infinity) gs.hints -= 1;
+  gs.hints -= 1;
   const hint_word = cands[Math.floor(Math.random() * cands.length)];
   로그_추가(대사(gs, '힌트_본체_1', [표시무한(gs.hints)]));
   로그_추가(`   🔤 초성 : ${extract_chosung(hint_word)}`);
@@ -1345,10 +1345,9 @@ async function 힌트_본체(){
 
 function 악마거래_응답(수락){
   if(수락){
-    const order = ['안온','격동','초월','심연'];
-    const idx = order.indexOf(gs.diff); const old = gs.diff;
-    gs.diff = order[Math.min(idx + 1, 3)];
-    if(gs.hints !== Infinity) gs.hints += 3;
+    const old = gs.diff;
+    gs.diff = 다음난이도(gs.diff);
+    gs.hints += 3;
     gs.game_state = 'PLAYING';
     로그_추가(대사(gs, '악마거래_응답_2', [old, gs.diff]), 'ok');
     // 원본: 계약 즉시 힌트 1회를 바로 제공 (힌트_후보로 통일 — 어둠의 계약·13층 족쇄 필터 반영).
@@ -1360,7 +1359,7 @@ function 악마거래_응답(수락){
       try{
         const cands = 힌트_후보(gs, await 온라인후보_가져오기(gs));
         if(cands.length){
-          if(gs.hints !== Infinity) gs.hints -= 1;
+          gs.hints -= 1;
           const hint_word = cands[Math.floor(Math.random() * cands.length)];
           로그_추가(`   🔤 초성 : ${extract_chosung(hint_word)}`);
           플레이_HUD갱신();
@@ -1379,7 +1378,7 @@ function 악마거래_응답(수락){
 function 딜_응답(수락){
   if(수락){
     gs.infinite = true;
-    if(gs.hints !== Infinity) gs.hints += 1;
+    gs.hints += 1;
     gs.game_state = 'PLAYING';
     로그_추가(`✅ [무한 모드 진입] 끝은 없다. 한계를 시험하라, ${title(gs)}.`, 'ok');
   } else {
@@ -1417,7 +1416,7 @@ function 시련_응답(선택){
     // 실수 4회를 품고 있었으므로 +1 그대로 두면 계약의 가치가 4분의 1로 쪼그라든다.
     // 난이도표를 4배로 올린 것과 같은 기준으로 여기도 함께 환산한다(목숨보상 = 4).
     gs.hearts += 목숨보상;
-    if(gs.hints !== Infinity) gs.hints += 1;
+    gs.hints += 1;
     gs.curse_life_floors = 2;
     gs.game_state = 'PLAYING';
     const h = 표시무한(gs.hearts);
@@ -1425,7 +1424,7 @@ function 시련_응답(선택){
     플레이_HUD갱신(); 프롬프트_갱신();
   } else if(선택 === 3){
     gs.hearts += 목숨보상;   // 위 생명의 계약과 같은 환산
-    if(gs.hints !== Infinity) gs.hints += 3;
+    gs.hints += 3;
     gs.curse_dark_active = true;
     gs.game_state = 'PLAYING';
     const h = 표시무한(gs.hearts);
@@ -1443,7 +1442,7 @@ function 붕괴_응답(입장){
   if(입장){
     const prob = 붕괴확률(gs.trial_attempts_this_floor);
     const roll = 1 + Math.floor(Math.random() * 100);
-    if(prob >= 100 || roll <= prob){
+    if(roll <= prob){   // roll은 1~100 — prob가 100 이상이면 항상 참
       로그_추가('▓▒░ 탑이 무너진다. 대지가 갈라진다. ░▒▓', 'err');
       로그_추가(대사(gs, '붕괴_응답_3', [title(gs)]), 'err');
       로그_추가(`💀 [탑 붕괴 엔딩] ${gs.stage}층에서 소멸.`, 'err');
@@ -1552,7 +1551,6 @@ function 전체리셋(){
   로그_비우기();
   화면('페르소나');
 }
-function 버튼_리셋(){ 전체리셋(); }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    설명서 · 상태 다시 표시 · GOD MODE 백도어
