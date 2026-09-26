@@ -169,6 +169,22 @@ async function main(){
          win.document.getElementById('hud-목숨').classList.contains('hit'));
   }
 
+  /* ── 1-b. 아케이드: AI가 한방 단어를 내면 층 클리어 — "단어가 없다"와 모순되지 않게 ── */
+  console.log('\n[1-b] 아케이드 AI 한방 → 층 클리어 대사');
+  {
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    win.eval(`is_hanbang = () => true; 한방_판정가능인가 = () => true; ai_한방금지인가 = () => true;`);
+    const 전층 = 상태(win).stage;
+    await 단어넣기(win, '나무');
+    const 로그 = 로그텍스트(win);
+    확인('AI 한방으로 층이 올라감', 상태(win).stage === 전층 + 1, `stage=${상태(win).stage}`);
+    확인('한방 단어였다는 대사가 나옴', 로그.includes('한방 단어였어요'));
+    확인('"단어가 없네요"(기권 대사)는 나오지 않음', !로그.includes('단어가 없네요'));
+    확인('일반 층 클리어 대사가 나옴', 로그.includes(`[${전층}층 클리어!]`));
+  }
+
   /* ── 2. 정상 단어는 한방으로 막히지 않는다 ──────────────────────────── */
   console.log('\n[2] 정상 단어 통과 (제보 재현)');
   {
