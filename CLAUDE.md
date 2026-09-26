@@ -238,3 +238,9 @@ border-radius·padding·transition 속도도 기존 패턴을 따를 것. 다크
 - KNOWLEDGE v5.0: `언어_KNOWLEDGE_v5.md`
 - SYSTEM v5.0: `언어_SYSTEM_v5.md`
 - 세션 인계: `작업인계_노트.md` (다음 세션은 이 파일부터 읽을 것)
+- 디자인·애니메이션 스킬: `.agents/skills/<이름>/SKILL.md` (29개). 관리자님이 자연어로 요청하면
+  맞는 스킬을 **알아서 골라 직접 읽고** 따른다(설치·슬래시 명령 불필요). `.claude/skills/`는 이 폴더를
+  가리키는 심볼릭 링크라 Windows(core.symlinks=false)에선 경로 텍스트 파일로 풀려 있으니 무시.
+  주로 쓸 것: animate · apple-design · review-animations · improve-animations ·
+  find-animation-opportunities · redesign-existing-projects · frontend-design · web-design-guidelines
+- 디자인 개편 착수 시: 모달·접이식·클릭 div를 dialog/details/button으로(Q13, 인계 노트 12번)
