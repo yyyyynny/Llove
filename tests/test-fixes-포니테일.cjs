@@ -130,5 +130,20 @@ load((window) => {
   ev("switchSpkMode('text');");
   assert('C18: 텍스트 탭으로 복귀', doc.getElementById('spkMText').classList.contains('on') && doc.getElementById('spkTextArea').style.display === 'block');
 
+  /* ── Q11: 학습 화면 진행 표시 — 이번 학습에서 몇 번째 문제인지, 바는 5문제마다 한 바퀴 ── */
+  const 진행 = id => [doc.querySelector('#'+id+' .qct').textContent, doc.querySelector('#'+id+' .qpfill').style.width];
+  ev("학습설정.sq3='3지선다'; goLearn('상식·어원','sq1',null); goLearn('맞춤법','sq3',null);");
+  assert('Q11: 모드 진입 시 1문제째 · 20%', 진행('sq3').join(' ') === '1문제째 20%', 진행('sq3').join(' '));
+  for(let i=0;i<4;i++) ev('다음문제();');
+  assert('Q11: 다섯 번째 문제에서 바가 가득(100%)', 진행('sq3').join(' ') === '5문제째 100%', 진행('sq3').join(' '));
+  ev('다음문제();');
+  assert('Q11: 여섯 번째부터 바는 다시 20%, 번호는 계속', 진행('sq3').join(' ') === '6문제째 20%', 진행('sq3').join(' '));
+  ev("goLearn('상식·어원','sq1',null); goLearn('맞춤법','sq3',null);");
+  assert('Q11: 모드에 다시 들어오면 1문제째부터', 진행('sq3')[0] === '1문제째');
+  // 보기 표본이 부족해 플래시카드로 넘어가도 한 번만 센다
+  ev(`DB문제['고사성어·속담']=[{cat:'고사성어',word:'가',mark:'',reading:'가',meaning:'뜻',hanja:[['家','집 가']],direct:'',example:'',mnemonic:''}];
+      학습설정.sq2='4지선다'; goLearn('고사성어·속담','sq2',null);`);
+  assert('Q11: 폴백(4지선다→플래시카드)도 한 문제로 센다', 진행('sq2')[0] === '1문제째', 진행('sq2')[0]);
+
   process.exit(finish() > 0 ? 1 : 0);
 });

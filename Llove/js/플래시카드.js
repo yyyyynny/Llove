@@ -21,6 +21,7 @@ function sq2_선다렌더(category, 역방향){
     renderFlashcard(풀);
     return;
   }
+  학습진행_다음('sq2');
   const 정답 = 풀[Math.floor(Math.random()*풀.length)];
   const 오답 = 셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
   const 보기 = 셔플([정답, ...오답]);
@@ -55,6 +56,7 @@ function sq2_뜻서술_렌더(category){
   if(!body) return;
   const 풀 = 출제_분기(category);
   if(!풀.length){ renderFlashcard(풀); return; }
+  학습진행_다음('sq2');
   const 문항 = 풀[Math.floor(Math.random()*풀.length)];
   현재문제_reasoning_note = 문항.reasoning_note || '';
   body.innerHTML = `
@@ -90,6 +92,7 @@ function sq2_뜻서술_공개(){
 }
 function renderFlashcard(data){
   if(!data || !data.length){ showToastMsg('문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
+  학습진행_다음('sq2');
   const body=document.getElementById('sq2Body');
   const c=data[Math.floor(Math.random()*data.length)];
   현재플래시카드 = c;  // 복습 대기열 연동용

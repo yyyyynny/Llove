@@ -117,6 +117,7 @@ function 예문형_다음(bodyId){
 function 유의어변별_렌더(){
   // β8: 정령왕 JSON 18건 풀에서 랜덤 출제 (로드 실패 시 폴백 2건) — '다음'도 같은 함수로 재출제
   const 항목 = 유의어출제풀[Math.floor(Math.random() * 유의어출제풀.length)];
+  학습진행_다음('sq2');
   예문형_렌더('sq2Body', 항목, 유의어변별_렌더, 'synonym');
 }
 
@@ -218,6 +219,7 @@ function 독해_렌더(){
   if(!지문독해풀.length) return;
   const body = document.getElementById('sq6Body');
   if(!body) return;
+  학습진행_다음('sq6');
   const 항목 = 지문독해풀[Math.floor(Math.random()*지문독해풀.length)];
   독해_상태.item = 항목;
   const 순서 = 셔플(항목.보기.map((_,i)=>i));
@@ -313,6 +315,7 @@ function 문장배열_렌더(){
   if(!문장배열풀.length) return;
   const body = document.getElementById('sq7Body');
   if(!body) return;
+  학습진행_다음('sq7');
   const 항목 = 문장배열풀[Math.floor(Math.random()*문장배열풀.length)];
   let 순서 = 항목.문장들.map((_,i)=>i);
   do{ // 셔플이 우연히 정답 순서와 같으면 재셔플(4문장 기준이라 드물지 않아 방지)

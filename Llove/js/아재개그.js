@@ -22,6 +22,7 @@ function 아재풀_구성(난이도){
   return DB풀.length ? [...기본풀, ...DB풀] : 기본풀;
 }
 function renderDad(data){
+  학습진행_다음('sq4');
   const body=document.getElementById('sq4Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재아재풀=data;

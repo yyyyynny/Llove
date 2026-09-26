@@ -40,6 +40,19 @@ function 셔플(arr){
   return arr;
 }
 
+/* 학습 화면 상단 진행 표시(Q11 — 2026-09-26 관리자님 결정: "이번 학습에서 푼 문제 수").
+   모드에 들어온 뒤 몇 번째 문제인지를 "n문제째"로 세고, 바는 5문제마다 한 바퀴 돈다.
+   goLearn이 진입마다 0으로 되돌리고, 각 화면의 출제 함수가 새 문제를 그릴 때마다 부른다
+   (폴백으로 다른 출제 함수에 넘기는 경우는 넘겨받은 쪽에서만 세도록 폴백 분기 뒤에서 부른다). */
+let 학습진행수 = 0;
+function 학습진행_다음(screenId){
+  학습진행수++;
+  const 화면 = document.getElementById(screenId);
+  const 글 = 화면?.querySelector('.qct'), 바 = 화면?.querySelector('.qpfill');
+  if(글) 글.textContent = 학습진행수 + '문제째';
+  if(바) 바.style.width = (((학습진행수 - 1) % 5) + 1) * 20 + '%';
+}
+
 // β9: 출제 풀 선택 — AI 선택 시 Grok 미연동 단계에서는 DB로 폴백
 // (Grok 활성화 후: 토큰 15 차감 → grok호출('문제생성') → reasoning_note 동시 생성이 이 자리에 연결됨)
 function 출제_분기(category){
@@ -67,6 +80,7 @@ function 다음문제(){
    두 화면은 태그 색·AI 출제 표시·힌트 줄·예문형 지원만 다르다. */
 function renderQuiz(screenId, data){
   if(!data || !data.length){ showToastMsg('문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
+  학습진행_다음(screenId);
   const sq1 = screenId === 'sq1', 방식 = 학습설정[screenId];
   const body=document.getElementById(screenId+'Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
