@@ -417,12 +417,11 @@ function 복사_폴백(text){
   ta.style.left = '-9999px';
   document.body.appendChild(ta);
   ta.select();
-  try {
-    document.execCommand('copy');
-    showToastMsg('📋 클립보드에 복사됨');
-  } catch(e) {
-    showToastMsg('복사 실패 — 직접 선택해 주세요');
-  }
+  // execCommand는 실패해도 대개 예외 없이 false만 돌려준다 — 반환값으로 판정(2026-09-27 Q14:
+  // 종전엔 false여도 "복사됨"을 띄워, 실제로는 복사가 안 됐는데 성공으로 안내했다)
+  let 성공 = false;
+  try { 성공 = document.execCommand('copy'); } catch(e) {}
+  showToastMsg(성공 ? '📋 클립보드에 복사됨' : '복사 실패 — 직접 선택해 주세요');
   document.body.removeChild(ta);
 }
 function closeAchDetail(){

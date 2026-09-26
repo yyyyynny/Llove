@@ -155,5 +155,15 @@ load((window) => {
   ev('finishOb();');
   assert('Q3: 건너뛰기·시작하기로 다시 닫힌다', doc.getElementById('onboarding').classList.contains('gone'));
 
+  /* ── Q14: 복사 폴백이 실패하면 성공이라 안내하지 않는다 ── */
+  const 원exec = doc.execCommand;
+  doc.execCommand = () => false;
+  ev("복사_폴백('가');");
+  assert('Q14: execCommand 실패(false) → 실패 안내', doc.getElementById('toast').textContent.includes('복사 실패'));
+  doc.execCommand = () => true;
+  ev("복사_폴백('가');");
+  assert('Q14: execCommand 성공 → 복사됨 안내', doc.getElementById('toast').textContent.includes('복사됨'));
+  doc.execCommand = 원exec;
+
   process.exit(finish() > 0 ? 1 : 0);
 });
