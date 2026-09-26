@@ -165,5 +165,17 @@ load((window) => {
   assert('Q14: execCommand 성공 → 복사됨 안내', doc.getElementById('toast').textContent.includes('복사됨'));
   doc.execCommand = 원exec;
 
+  /* ── 학습 화면 배지가 실제 출제 방식을 따른다(종전 sq1·sq3·sq4 고정 문구) ── */
+  const 배지 = id => doc.getElementById(id).textContent;
+  ev("학습설정.sq1='직접입력'; goLearn('상식·어원','sq1',null);");
+  assert('배지: sq1 진입 시 설정 방식 표시', 배지('sq1Mode') === '🌍 직접입력', 배지('sq1Mode'));
+  ev("setLsetMode('sq1','역방향',doc_btn=document.querySelector(\"#lsetSq1 .lset-opt\"));");
+  assert('배지: sq1 설정을 바꾸면 즉시 반영', 배지('sq1Mode') === '🌍 역방향', 배지('sq1Mode'));
+  ev("학습설정.sq3='4지선다'; goLearn('맞춤법','sq3',null);");
+  assert('배지: sq3는 설정 방식(종전 고정 3지선다)', 배지('sq3Mode') === '✏️ 4지선다', 배지('sq3Mode'));
+  ev("학습설정.sq4_input='직접입력'; goLearn('아재개그·넌센스','sq4',null);");
+  assert('배지: sq4는 입력 방식(종전 고정 탭→공개)', 배지('sq4Mode') === '😂 직접입력', 배지('sq4Mode'));
+  ev("학습설정.sq1='4지선다'; 학습설정.sq4_input='플래시카드';");
+
   process.exit(finish() > 0 ? 1 : 0);
 });

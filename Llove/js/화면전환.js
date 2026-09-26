@@ -209,7 +209,7 @@ function goLearn(category, screenId, btn){
   // 화면 머리(제목·배지·설정 동기화)만 여기서 정하고, 실제 출제는 「넘어가기」와 같은 함수를 쓴다
   if(screenId==='sq1'){
     document.getElementById('sq1Title').textContent=category;
-    document.getElementById('sq1Mode').textContent = (category==='상식·어원' ? '🌍' : '🏛️') + ' 4지선다';
+    document.getElementById('sq1Mode').textContent = (category==='상식·어원' ? '🌍' : '🏛️') + ' ' + 학습설정.sq1;
   }
   // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말 (저장된 학습설정.sq2 방식대로 출제)
   if(screenId==='sq2') document.getElementById('sq2Title').textContent=category;

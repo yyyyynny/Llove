@@ -23,6 +23,7 @@ function 아재풀_구성(난이도){
 }
 function renderDad(data){
   학습진행_다음('sq4');
+  배지_방식표시('sq4Mode', 학습설정.sq4_input);
   const body=document.getElementById('sq4Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재아재풀=data;

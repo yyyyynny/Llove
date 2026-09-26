@@ -45,6 +45,12 @@ function 셔플(arr){
    goLearn이 진입마다 0으로 되돌리고, 각 화면의 출제 함수가 새 문제를 그릴 때마다 부른다
    (폴백으로 다른 출제 함수에 넘기는 경우는 넘겨받은 쪽에서만 세도록 폴백 분기 뒤에서 부른다). */
 let 학습진행수 = 0;
+// 화면 상단 배지("🌍 4지선다")의 방식 부분을 현재 학습설정으로 — 아이콘은 진입 때 정한 것 유지
+// (2026-09-27: 종전엔 sq1·sq3·sq4 배지가 설정과 무관하게 고정 문구였다)
+function 배지_방식표시(배지id, 방식){
+  const 배지 = document.getElementById(배지id);
+  if(배지 && 방식) 배지.textContent = 배지.textContent.split(' ')[0] + ' ' + 방식;
+}
 function 학습진행_다음(screenId){
   학습진행수++;
   const 화면 = document.getElementById(screenId);
@@ -82,6 +88,7 @@ function renderQuiz(screenId, data){
   if(!data || !data.length){ showToastMsg('문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
   학습진행_다음(screenId);
   const sq1 = screenId === 'sq1', 방식 = 학습설정[screenId];
+  배지_방식표시(screenId + 'Mode', 방식);
   const body=document.getElementById(screenId+'Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재퀴즈풀=data; 현재퀴즈화면=screenId;
