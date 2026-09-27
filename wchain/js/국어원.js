@@ -117,7 +117,15 @@ async function 국어원_단어조회(word){
 // null(게이트 off·미설정·오프라인·실패·시간초과 — "확인 자체를 못 함", 위 함수와 동일 관례).
 const 국어원_상세캐시_KEY = 'plx_잇는_국어원상세캐시_v1';
 const 국어원_상세캐시_최대개수 = 500;   // 뜻풀이 텍스트까지 담아 존재캐시보다 항목이 크다
-async function 국어원_단어조회_상세(word){
+// 말풍선과 카드가 같은 단어의 뜻을 동시에 물으므로 진행 중인 요청은 하나로 합친다
+const 상세조회_진행중 = new Map();
+function 국어원_단어조회_상세(word){
+  if(상세조회_진행중.has(word)) return 상세조회_진행중.get(word);
+  const 요청 = 상세조회_본체(word).finally(() => 상세조회_진행중.delete(word));
+  상세조회_진행중.set(word, 요청);
+  return 요청;
+}
+async function 상세조회_본체(word){
   const 캐시 = 캐시_로드(국어원_상세캐시_KEY);
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
   // ⚠️ 뜻풀이:true 필수 — 이게 없으면 Worker가 그룹화를 건너뛰고 뜻풀이그룹을 빈 배열로

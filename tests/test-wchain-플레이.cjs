@@ -220,7 +220,12 @@ async function main(){
     win.국어원_단어조회_상세 = async w => ({ 존재: true, 뜻풀이그룹: [{ 뜻풀이: ['뜻:' + w] }] });
     await 단어넣기(win, '나무');
     await 잠깐(20);
-    확인('뜻 자동 표시: 내 단어 뜻이 로그에 한 줄', 로그텍스트(win).includes('나무 — 뜻:나무'), 로그텍스트(win));
+    const 내말 = win.document.querySelector('#로그 .line.bubble.me');
+    확인('단어 사슬: 내 단어가 오른쪽 말풍선, 뜻은 안쪽에', 내말 && 내말.querySelector('.bw').textContent === '나무'
+         && 내말.querySelector('.bmean').textContent === '뜻:나무', 내말?.textContent);
+    const ai말 = win.document.querySelector('#로그 .line.bubble.ai');
+    확인('단어 사슬: 상대 단어는 왼쪽 말풍선, 이어진 첫 글자 강조', ai말 && ai말.querySelector('.bw b')?.textContent === g.ai_last_word[0]
+         && ai말.querySelector('.bmean').textContent === '뜻:' + g.ai_last_word, ai말?.innerHTML);
     확인('뜻 자동 표시: 상대 단어 뜻이 카드에', win.document.getElementById('ai-뜻').textContent === `뜻:${g.ai_last_word}`,
          win.document.getElementById('ai-뜻').textContent);
     확인('정답이면 점수가 오른다', g.score > 0, String(g.score));
@@ -237,6 +242,7 @@ async function main(){
     const 이을 = g.ai_last_char;
     await 단어넣기(win, 이을 + '뷁뷁');
     확인('사전에 없는 단어는 목숨 그대로', g.hearts === 목숨, `${목숨} → ${g.hearts}`);
+    확인('받아들여지지 않은 단어 말풍선은 흐리게(bad)', [...win.document.querySelectorAll('#로그 .line.bubble.me')].pop().classList.contains('bad'));
     확인('사전에 없는 단어는 콤보를 끊는다', g.combo === 0);
     확인('다시 입력하라는 안내', 로그텍스트(win).includes('다시 입력해 보세요'));
     확인('점수는 그대로', g.score === 점수);

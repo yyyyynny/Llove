@@ -306,6 +306,18 @@
       border:1px solid var(--bdr); border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:13px; line-height:1.7; }
     .log .line{ margin-bottom:4px; }
     .log .line.me{ color:var(--acc); font-weight:700; }
+    /* 단어 사슬 말풍선(2026-09-27): 내 단어 오른쪽·상대 단어 왼쪽, 이어진 글자 강조, 뜻은 안쪽 작은 글씨 */
+    .log .line.bubble{ width:fit-content; max-width:80%; margin:7px 0; padding:7px 12px 8px; border-radius:14px;
+      background:var(--card); border:1px solid var(--bdr); color:var(--txt); font-weight:700; }
+    .log .line.bubble.me{ margin-left:auto; background:color-mix(in srgb, var(--acc) 14%, var(--card));
+      border-color:var(--bdrg); border-bottom-right-radius:4px; text-align:right; }
+    .log .line.bubble.ai{ border-bottom-left-radius:4px; }
+    .bubble .bw{ font-size:16px; letter-spacing:.5px; }
+    .bubble .bw b{ color:var(--acc); }
+    .bubble .bmean{ display:block; margin-top:3px; font-size:11.5px; font-weight:400; color:var(--txt2); line-height:1.45; text-align:left; }
+    .bubble .bmean:empty{ display:none; }
+    .log .line.bubble.bad{ opacity:.55; }
+    .log .line.bubble.bad .bw{ text-decoration:line-through; }
     .log .line.sys{ color:var(--txt2); font-size:12px; }
     .log .line.err{ color:var(--err); }
     .log .line.ok{ color:var(--ok); }

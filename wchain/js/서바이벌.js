@@ -119,6 +119,18 @@ function 로그_추가(text, cls){
   return line;
 }
 
+// 단어 말풍선(2026-09-27 단어 사슬) — 내 단어는 오른쪽, 상대 단어는 왼쪽. 앞 단어와 이어지는 글자
+// (끝말잇기는 첫 글자, 앞말잇기는 끝 글자)를 강조하고, 뜻은 말풍선 안 .bmean에 도착하면 채운다.
+// 로그 줄(.line)이라 스크롤·진입 애니메이션은 다른 줄과 같다.
+function 단어_말풍선(word, 누구, 이음있음){
+  const 줄 = 로그_추가('', 누구 + ' bubble');
+  const 글자 = [...word], 이음 = gs.rev ? 글자.length - 1 : 0;
+  const 조각 = 글자.map((c, i) => i === 이음 && 이음있음 ? `<b>${HTML막기(c)}</b>` : HTML막기(c)).join('');
+  줄.innerHTML = `<span class="bw">${조각}</span><span class="bmean"></span>`;
+  return 줄;
+}
+let 마지막_내말풍선 = null;
+
 // 뜻 자동 표시(2026-09-27 관리자님 결정 — 끄투처럼 단어마다 뜻 한 줄). 자리를 먼저 두고 뜻은 도착하면
 // 채운다(턴 진행을 기다리게 하지 않음). 조회 실패·뜻 없음이면 자리를 조용히 치운다.
 // 아직유효: 도착 시점에도 그 자리에 뜻을 써도 되는지(AI 카드는 이미 다음 단어로 바뀌었을 수 있다).
@@ -126,7 +138,7 @@ async function 뜻_붙이기(word, 자리, 아직유효 = () => true){
   const 결과 = await 국어원_단어조회_상세(word).catch(() => null);
   const 첫뜻 = 결과?.존재 && 결과.뜻풀이그룹[0]?.뜻풀이?.[0];
   if(!아직유효()) return;
-  if(!첫뜻){ if(자리.classList.contains('line')) 자리.remove(); return; }
+  if(!첫뜻){ if(자리.classList.contains('line') || 자리.classList.contains('bmean')) 자리.remove(); return; }
   const 뜻 = 첫뜻.length > 80 ? 첫뜻.slice(0, 80) + '…' : 첫뜻;
   자리.textContent = 자리.classList.contains('line') ? `${word} — ${뜻}` : 뜻;   // 카드엔 단어가 이미 크게 있다
 }
@@ -613,7 +625,7 @@ function 단어_제출(){
   // 비동기_가드 안에서 처리한다(끝나면 반드시 가드 해제).
   타이머.제출비율 = 턴_제한초(gs) !== null && 타이머.총 ? Math.max(0, 타이머.남은 / 타이머.총) : 0.75;
   비동기_가드('처리 중', async 내세대 => {
-    로그_추가('▶ ' + raw, 'me');
+    마지막_내말풍선 = 단어_말풍선(raw, 'me', gs.ai_last_char !== null);
     let [valid, reason] = validate_word(raw, gs);
 
     // 보조 사전에 없어서만 실패했고 국어원 게이트가 켜져 있으면 온라인 조회로 재확인.
@@ -675,6 +687,7 @@ async function 단어_처리(raw, valid, reason){
     // 노션 11번(한방 단어 즉시 패배)은 2026-07-27 철회 — "한 수 잘못 두면 경고 없이 판이 끝나는"
     // 규칙이 게임을 못 하게 만들어, 부적합 단어는 다른 오답처럼 목숨 1개 차감으로 처리한다
     // (경위: wchain/시스템.md 노션 11번 항목, 철회 전 구현은 git 이력).
+    마지막_내말풍선?.classList.add('bad');   // 받아들여지지 않은 단어는 흐리게·취소선
     로그_추가(대사(gs, '단어_처리_8', [reason]), 'err');
     // 사전에 없는 단어(대개 오타)는 목숨을 깎지 않고 다시 입력하게 한다(2026-09-27 관리자님 결정 —
     // 끄투 방식. 타이머를 켠 판에서는 흘러간 시간이 곧 벌칙이다). 규칙 위반(한방·중복·글자)은 그대로 차감.
@@ -695,7 +708,8 @@ async function 단어_처리(raw, valid, reason){
   // 화면에 아무 반응이 없었다(2026-07-27 복원). AI 단어 반응(react_ai_word)만 살아 있었다.
   로그_추가(react_correct(gs), 'ok');
 
-  뜻_붙이기(raw, 로그_추가('', 'mean'));
+  const 내뜻 = 마지막_내말풍선?.querySelector('.bmean');
+  if(내뜻) 뜻_붙이기(raw, 내뜻);
   // 점수·콤보(2026-09-27) — history에 넣기 전에 계산한다(이어진 단어 수 = 지금까지의 사슬 길이)
   gs.combo += 1;
   gs.max_combo = Math.max(gs.max_combo, gs.combo);
@@ -805,7 +819,9 @@ async function 단어_처리(raw, valid, reason){
   gs.ai_last_char = 이을글자(ai_word, gs.rev);
   gs.ai_last_word = ai_word;
   로그_추가(react_ai_word(gs, ai_word));
+  const ai말풍선 = 단어_말풍선(ai_word, 'ai', true);
   플레이_HUD갱신(); 프롬프트_갱신();
+  뜻_붙이기(ai_word, ai말풍선.querySelector('.bmean'));
   const 뜻칸 = document.getElementById('ai-뜻');
   if(뜻칸) 뜻_붙이기(ai_word, 뜻칸, () => gs.ai_last_word === ai_word);
 
