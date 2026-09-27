@@ -282,6 +282,8 @@
     /* 첫 턴엔 상대 단어가 없다 — 카드를 안내 한 줄로 접는다 */
     .ai-word.empty .aw-lbl, .ai-word.empty #ai-단어, .ai-word.empty .aw-mean{ display:none; }
     /* 뜻 자동 표시(2026-09-27): 상대 단어 카드엔 첫 뜻 두 줄까지(눌러서 전체), 로그엔 단어마다 한 줄 */
+    .type-in{ display:inline-block; animation:typeIn .22s var(--ease-out) both; }
+    @keyframes typeIn{ from{ opacity:0; transform:translateY(5px); } to{ opacity:1; transform:none; } }
     .aw-mean{ font-size:12px; font-weight:400; color:var(--txt2); margin:4px auto 0; max-width:30em; line-height:1.5;
       display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; cursor:pointer; }
     .aw-mean:empty{ display:none; }

@@ -398,8 +398,12 @@ function 플레이_HUD갱신(){
   목숨요소.textContent = `${표시무한(gs.hearts)}개`;
   // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
   const 단어칸 = document.getElementById('ai-단어'), 뜻칸 = document.getElementById('ai-뜻');
-  if(단어칸.textContent !== (gs.ai_last_word || '─') && 뜻칸) 뜻칸.textContent = '';   // 단어가 바뀌면 옛 뜻을 지운다
-  단어칸.textContent = gs.ai_last_word || '─';
+  const 새단어 = gs.ai_last_word || '─';
+  if(단어칸.textContent !== 새단어){
+    if(뜻칸) 뜻칸.textContent = '';   // 단어가 바뀌면 옛 뜻을 지운다
+    // 상대가 단어를 낼 때 글자가 하나씩 나타난다(끄투 참고, 2026-09-27) — 매 턴 일어나는 순간이라 글자당 60ms로 짧게
+    단어칸.innerHTML = [...새단어].map((c, i) => `<span class="type-in" style="animation-delay:${i * 60}ms">${HTML막기(c)}</span>`).join('');
+  }
   // 첫 턴엔 상대 단어가 없으므로 카드를 안내문 한 줄로 접는다(CSS .ai-word.empty)
   document.querySelector('.ai-word')?.classList.toggle('empty', !gs.ai_last_word);
   설정요약_갱신();
