@@ -308,9 +308,11 @@ async function 온라인후보_가져오기(gs){
 //                                          사용자에게 불이익을 주지 않는다(국어원 실패 공정성).
 //   4. 온라인 후보에 이을 단어가 있음    → 한방 아님
 //   5. 온라인으로도 0개임을 확인         → 한방 확정
+// 2026-09-28 실사전 아케이드 점검: Worker 후보는 글자당 몇 개뿐이고 '면'은 0개라 『화면』이 한방으로
+// 확정돼 목숨을 잃었다. 1·4단계에 AI와 같은 후보 풀(빈도 목록의 흔한 말 포함)을 쓴다.
 async function 한방_확정인가(word, gs){
   const used = used_words(gs);
-  if(!is_hanbang(word, used, gs.rev, gs.dueum, gs.stage)) return false;   // 1
+  if(!is_hanbang(word, used, gs.rev, gs.dueum, gs.stage, ai_후보사전(gs))) return false;   // 1
   if(!국어원_활성화) return true;                                          // 2
 
   const 다음글자 = 이을글자(word, gs.rev);
@@ -322,7 +324,7 @@ async function 한방_확정인가(word, gs){
   const 목록 = 기록();
   // 이미 쓴 단어·자기 자신을 빼고, 그 층의 길이 제약을 통과하는 후보가 하나라도 남는지 본다.
   if(find_words(다음글자, [...used, word], gs.rev, gs.dueum, 0,
-                족쇄_최소길이(gs.stage), 목록).length) return false;        // 4
+                족쇄_최소길이(gs.stage), ai_후보사전(gs, 목록)).length) return false;   // 4
   return true;                                                             // 5
 }
 
