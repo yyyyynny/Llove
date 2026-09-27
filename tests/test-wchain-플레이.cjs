@@ -217,7 +217,12 @@ async function main(){
     await 대사대기(win);
     판시작(win);
     const g = 상태(win);
+    win.국어원_단어조회_상세 = async w => ({ 존재: true, 뜻풀이그룹: [{ 뜻풀이: ['뜻:' + w] }] });
     await 단어넣기(win, '나무');
+    await 잠깐(20);
+    확인('뜻 자동 표시: 내 단어 뜻이 로그에 한 줄', 로그텍스트(win).includes('나무 — 뜻:나무'), 로그텍스트(win));
+    확인('뜻 자동 표시: 상대 단어 뜻이 카드에', win.document.getElementById('ai-뜻').textContent === `뜻:${g.ai_last_word}`,
+         win.document.getElementById('ai-뜻').textContent);
     확인('정답이면 점수가 오른다', g.score > 0, String(g.score));
     확인('HUD에 점수 표시', win.document.getElementById('hud-점수').textContent === g.score.toLocaleString());
     const 긴단어 = win.턴_점수('가나다라마', g), 짧은단어 = win.턴_점수('가나', g);
@@ -1185,13 +1190,12 @@ async function main(){
     const { win } = 페이지열기({ 적절성게이트: false });
     await 대사대기(win);
     판시작(win);
-    확인('첫 턴(AI 단어 없음)엔 뜻보기 버튼이 숨겨져 있다',
-         win.document.getElementById('btn-뜻보기').style.display === 'none');
+    확인('뜻 보기 버튼은 없어지고 상대 단어 카드의 뜻 칸이 대신한다(2026-09-27)',
+         !win.document.getElementById('btn-뜻보기') && !!win.document.getElementById('ai-뜻'));
     확인('첫 턴(AI 단어 없음)엔 적절성검증 버튼이 숨겨져 있다',
          win.document.getElementById('btn-적절성검증').style.display === 'none');
     await 단어넣기(win, '나무');
-    확인('AI가 단어를 낸 뒤엔 뜻보기 버튼이 보인다',
-         win.document.getElementById('btn-뜻보기').style.display === '');
+    확인('카드의 뜻 칸을 누르면 뜻 전체 보기', win.document.getElementById('ai-뜻').getAttribute('onclick') === '버튼_뜻보기()');
     const 적절성btn = win.document.getElementById('btn-적절성검증');
     확인('AI가 단어를 낸 뒤엔 적절성검증 버튼이 보인다', 적절성btn.style.display === '');
     확인('적절성검증 버튼은 게이트가 꺼진 동안 잠금 표시(🔒)를 보여준다',

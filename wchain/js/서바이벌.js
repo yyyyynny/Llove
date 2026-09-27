@@ -63,6 +63,19 @@ function 로그_추가(text, cls){
   line.textContent = text;
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
+  return line;
+}
+
+// 뜻 자동 표시(2026-09-27 관리자님 결정 — 끄투처럼 단어마다 뜻 한 줄). 자리를 먼저 두고 뜻은 도착하면
+// 채운다(턴 진행을 기다리게 하지 않음). 조회 실패·뜻 없음이면 자리를 조용히 치운다.
+// 아직유효: 도착 시점에도 그 자리에 뜻을 써도 되는지(AI 카드는 이미 다음 단어로 바뀌었을 수 있다).
+async function 뜻_붙이기(word, 자리, 아직유효 = () => true){
+  const 결과 = await 국어원_단어조회_상세(word).catch(() => null);
+  const 첫뜻 = 결과?.존재 && 결과.뜻풀이그룹[0]?.뜻풀이?.[0];
+  if(!아직유효()) return;
+  if(!첫뜻){ if(자리.classList.contains('line')) 자리.remove(); return; }
+  const 뜻 = 첫뜻.length > 80 ? 첫뜻.slice(0, 80) + '…' : 첫뜻;
+  자리.textContent = 자리.classList.contains('line') ? `${word} — ${뜻}` : 뜻;   // 카드엔 단어가 이미 크게 있다
 }
 function 로그_비우기(){ const l = document.getElementById('로그'); if(l) l.innerHTML = ''; }
 
@@ -316,7 +329,9 @@ function 플레이_HUD갱신(){
   // 실수(strikes) 폐지(2026-07-29)로 이 칸은 목숨 하나만 보여준다 — 종전 "목숨 · 실수" 2단 표기 삭제.
   목숨요소.textContent = `${표시무한(gs.hearts)}개`;
   // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
-  document.getElementById('ai-단어').textContent = gs.ai_last_word || '─';
+  const 단어칸 = document.getElementById('ai-단어'), 뜻칸 = document.getElementById('ai-뜻');
+  if(단어칸.textContent !== (gs.ai_last_word || '─') && 뜻칸) 뜻칸.textContent = '';   // 단어가 바뀌면 옛 뜻을 지운다
+  단어칸.textContent = gs.ai_last_word || '─';
   // 첫 턴엔 상대 단어가 없으므로 카드를 안내문 한 줄로 접는다(CSS .ai-word.empty)
   document.querySelector('.ai-word')?.classList.toggle('empty', !gs.ai_last_word);
   설정요약_갱신();
@@ -455,10 +470,6 @@ function 프롬프트_갱신(){
   이의btn.style.display = gs.ai_last_word ? '' : 'none';
   이의btn.textContent = `이의 있음 (${gs.dispute_attempts}/${이의_최대횟수})`;
   이의btn.classList.toggle('locked', gs.dispute_attempts >= 이의_최대횟수);   // 활성 버튼과 같은 비중으로 보이지 않게
-  // '뜻 보기'(2026-08-22 신설) — 판정·소모가 없으니 진행도 라벨도 잠금도 없다. AI가 단어를
-  // 낸 뒤에만 노출(볼 뜻이 없으면 의미 없는 버튼).
-  const 뜻보기btn = document.getElementById('btn-뜻보기');
-  if(뜻보기btn) 뜻보기btn.style.display = gs.ai_last_word ? '' : 'none';
   // '적절성 검증'(2026-08-22 신설) — 이의있음과 같은 예산(dispute_attempts)을 공유하므로
   // 진행도 라벨도 같은 값을 보여준다. 적절성검증 게이트가 꺼져 있는 동안은 항상 잠금 스타일만
   // 표시(버튼_적절성검증이 클릭 시 안내로 처리 — 여기서 숨기지 않는 이유는 존재를 미리
@@ -623,6 +634,7 @@ async function 단어_처리(raw, valid, reason){
   // 화면에 아무 반응이 없었다(2026-07-27 복원). AI 단어 반응(react_ai_word)만 살아 있었다.
   로그_추가(react_correct(gs), 'ok');
 
+  뜻_붙이기(raw, 로그_추가('', 'mean'));
   // 점수·콤보(2026-09-27) — history에 넣기 전에 계산한다(이어진 단어 수 = 지금까지의 사슬 길이)
   gs.combo += 1;
   gs.max_combo = Math.max(gs.max_combo, gs.combo);
@@ -732,6 +744,8 @@ async function 단어_처리(raw, valid, reason){
   gs.ai_last_word = ai_word;
   로그_추가(react_ai_word(gs, ai_word));
   플레이_HUD갱신(); 프롬프트_갱신();
+  const 뜻칸 = document.getElementById('ai-뜻');
+  if(뜻칸) 뜻_붙이기(ai_word, 뜻칸, () => gs.ai_last_word === ai_word);
 
   // ⚠️ 2026-07-29: 50턴 딜·목표 달성 제안을 **AI 턴 뒤로** 옮겼다.
   // 종전에는 사용자 단어를 받자마자(AI 턴 전에) 제안하고 return해서, 상대가 그 턴을 통째로
