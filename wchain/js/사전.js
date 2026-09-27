@@ -31,4 +31,24 @@ async function 사전_로드(){
     console.warn('[사전] data/사전.json 적재 실패 — 보조 사전 없이 진행합니다.', e);
     추가사전 = [];
   }
+  빈도_로드();
 }
+
+// 단어 흔함 단계(2026-09-27 관리자님 결정) — 국립국어원 「현대 국어 사용 빈도 조사」(2002)의 명사 빈도를
+// 3단계로 줄인 data/빈도.json(1=빈도 30 이상, 2=8~29, 3=2~7). 목록에 없는 말은 4(희귀어)로 본다.
+// AI가 희귀어만 내던 문제를 난이도별로 흔한 말을 고르게 해서 푼다(게임규칙.js 흔함_거르기).
+// 적재 전·실패 시엔 빈 표 — 모든 단어가 4가 되고 흔함_거르기가 아무것도 거르지 않아 종전과 같다.
+let 단어_흔함 = new Map();
+async function 빈도_로드(){
+  try{
+    const res = await fetch('data/빈도.json');
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const 표 = new Map();
+    (data.단계 || []).forEach((줄, i) => { for(const w of String(줄).split(' ')) if(w) 표.set(w, i + 1); });
+    단어_흔함 = 표;
+  }catch(e){
+    console.warn('[사전] data/빈도.json 적재 실패 — 흔함 구분 없이 진행합니다.', e);
+  }
+}
+const 흔함단계 = w => 단어_흔함.get(w) ?? 4;

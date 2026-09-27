@@ -1299,7 +1299,10 @@ async function 힌트_본체(내세대){
 
   gs.hints -= 1;
   콤보_끊기();   // 힌트를 쓴 턴은 연속 정답으로 치지 않는다
-  const hint_word = cands[Math.floor(Math.random() * cands.length)];
+  // 힌트는 난이도와 무관하게 가장 흔한 말부터(초성만 보고도 떠올릴 수 있어야 힌트다)
+  const 흔한것 = Math.min(...cands.map(흔함단계));
+  const 고를것 = cands.filter(w => 흔함단계(w) === 흔한것);
+  const hint_word = 고를것[Math.floor(Math.random() * 고를것.length)];
   로그_추가(대사(gs, '힌트_본체_1', [표시무한(gs.hints)]));
   로그_추가(`   🔤 초성 : ${extract_chosung(hint_word)}`);
   // 원본 deliver_hint(game.py:1071-1072)의 어둠의 계약 안내 — 이식 때 누락됐던 것 복원
