@@ -131,6 +131,17 @@ function 단어_말풍선(word, 누구, 이음있음){
 }
 let 마지막_내말풍선 = null;
 
+// 상대가 낸 단어를 화면에 올린다 — 페르소나 반응 + 왼쪽 말풍선 + 뜻(말풍선·카드). 일반 턴과 이의 인정
+// 뒤 재출제가 함께 쓴다(2026-09-27 버그 점검: 재출제 경로엔 말풍선·카드 뜻이 빠져 있었다).
+// 뜻은 비동기로 채워지므로, 호출부가 바로 뒤에 HUD를 갱신해 카드 뜻 칸을 비워도 나중에 다시 채워진다.
+function AI단어_보이기(ai_word){
+  로그_추가(react_ai_word(gs, ai_word));
+  const 말풍선 = 단어_말풍선(ai_word, 'ai', true);
+  뜻_붙이기(ai_word, 말풍선.querySelector('.bmean'));
+  const 뜻칸 = document.getElementById('ai-뜻');
+  if(뜻칸) 뜻_붙이기(ai_word, 뜻칸, () => gs.ai_last_word === ai_word);
+}
+
 // 뜻 자동 표시(2026-09-27 관리자님 결정 — 끄투처럼 단어마다 뜻 한 줄). 자리를 먼저 두고 뜻은 도착하면
 // 채운다(턴 진행을 기다리게 하지 않음). 조회 실패·뜻 없음이면 자리를 조용히 치운다.
 // 아직유효: 도착 시점에도 그 자리에 뜻을 써도 되는지(AI 카드는 이미 다음 단어로 바뀌었을 수 있다).
@@ -138,9 +149,8 @@ async function 뜻_붙이기(word, 자리, 아직유효 = () => true){
   const 결과 = await 국어원_단어조회_상세(word).catch(() => null);
   const 첫뜻 = 결과?.존재 && 결과.뜻풀이그룹[0]?.뜻풀이?.[0];
   if(!아직유효()) return;
-  if(!첫뜻){ if(자리.classList.contains('line') || 자리.classList.contains('bmean')) 자리.remove(); return; }
-  const 뜻 = 첫뜻.length > 80 ? 첫뜻.slice(0, 80) + '…' : 첫뜻;
-  자리.textContent = 자리.classList.contains('line') ? `${word} — ${뜻}` : 뜻;   // 카드엔 단어가 이미 크게 있다
+  if(!첫뜻){ if(자리.classList.contains('bmean')) 자리.remove(); return; }   // 카드 칸은 비워 둔 채로 둔다
+  자리.textContent = 첫뜻.length > 80 ? 첫뜻.slice(0, 80) + '…' : 첫뜻;
 }
 function 로그_비우기(){ const l = document.getElementById('로그'); if(l) l.innerHTML = ''; }
 
@@ -698,7 +708,7 @@ async function 단어_처리(raw, valid, reason){
     if(reason.endsWith('사전에 없는 단어입니다.')){
       콤보_끊기();
       로그_추가('↩ 목숨은 그대로예요. 다시 입력해 보세요.', 'sys');
-      프롬프트_갱신();
+      플레이_HUD갱신(); 프롬프트_갱신();
       return false;
     }
     콤보_끊기();
@@ -823,12 +833,8 @@ async function 단어_처리(raw, valid, reason){
   gs.history.push({ word: ai_word, turn: gs.turn });
   gs.ai_last_char = 이을글자(ai_word, gs.rev);
   gs.ai_last_word = ai_word;
-  로그_추가(react_ai_word(gs, ai_word));
-  const ai말풍선 = 단어_말풍선(ai_word, 'ai', true);
+  AI단어_보이기(ai_word);
   플레이_HUD갱신(); 프롬프트_갱신();
-  뜻_붙이기(ai_word, ai말풍선.querySelector('.bmean'));
-  const 뜻칸 = document.getElementById('ai-뜻');
-  if(뜻칸) 뜻_붙이기(ai_word, 뜻칸, () => gs.ai_last_word === ai_word);
 
   // ⚠️ 2026-07-29: 50턴 딜·목표 달성 제안을 **AI 턴 뒤로** 옮겼다.
   // 종전에는 사용자 단어를 받자마자(AI 턴 전에) 제안하고 return해서, 상대가 그 턴을 통째로
@@ -946,7 +952,7 @@ async function AI단어_취소_재출제(disputed, 내세대){
     gs.history.push({ word: new_ai, turn: gs.turn });
     gs.ai_last_char = 이을글자(new_ai, gs.rev);
     gs.ai_last_word = new_ai;
-    로그_추가(react_ai_word(gs, new_ai));
+    AI단어_보이기(new_ai);
     return true;
   }
   로그_추가(대사(gs, '버튼_이의_원본_1', [title(gs)]), 'ok');

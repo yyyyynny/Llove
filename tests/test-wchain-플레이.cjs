@@ -251,7 +251,8 @@ async function main(){
     확인('미션: 카드에 미션 표시', win.document.getElementById('미션').textContent.includes(g.mission));
     const 미션 = g.mission;
     확인('미션: 없는 단어면 보너스 0', win.미션_확인('뷁뷁', 100) === 0 && g.mission === 미션);
-    확인('미션: 두 번 들어가면 +100%', win.미션_확인(미션 + '다' + 미션, 100) === 100);
+    const 채움 = 미션 === '다' ? '나' : '다';   // 미션이 '다'로 뽑혀도 두 번만 들어가게(무작위 실패 방지)
+    확인('미션: 두 번 들어가면 +100%', win.미션_확인(미션 + 채움 + 미션, 100) === 100);
     확인('미션: 달성하면 다른 글자로 바뀐다', g.mission !== 미션 && g.mission_count === 1);
     g.hearts = 1; g.mission_count = 2;
     win.미션_확인(g.mission, 10);
@@ -1085,6 +1086,8 @@ async function main(){
     확인('AI가 새 단어를 낸다', g.ai_last_word !== 가짜단어 && g.ai_last_word !== null,
          `ai_last_word=${g.ai_last_word}`);
     확인('취소 로그가 남는다', 로그텍스트(win).includes('취소'));
+    확인('재출제한 단어도 왼쪽 말풍선으로 기록된다(2026-09-27 버그 점검)',
+         [...win.document.querySelectorAll('#로그 .line.bubble.ai .bw')].pop()?.textContent === g.ai_last_word);
     확인('시도 횟수가 1로 기록됨', g.dispute_attempts === 1, `dispute_attempts=${g.dispute_attempts}`);
   }
   {
