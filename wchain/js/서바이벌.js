@@ -552,6 +552,19 @@ function 단어_제출(){
   return false;
 }
 
+// 타이핑이 0.5초 멈추면 지금 입력한 단어의 끝 글자로 AI가 이을 후보를 미리 받아 둔다(2026-09-27).
+// 제출 뒤 AI 턴이 같은 글자를 물으면 캐시나 진행 중 요청을 그대로 쓴다 — 기록()은 부르지 않아
+// 아직 내지 않은 단어가 판정(세션 조회글자·수집어)에 섞이지 않는다.
+let 선조회_타이머 = null;
+function 입력중_선조회(){
+  clearTimeout(선조회_타이머);
+  선조회_타이머 = setTimeout(() => {
+    const w = document.getElementById('단어입력').value.trim();
+    if(gs.game_state !== 'PLAYING' || !/^[가-힣]{2,}$/.test(w)) return;
+    이을단어_조회(이을글자(w, gs.rev), gs).catch(() => {});
+  }, 500);
+}
+
 async function 단어_처리(raw, valid, reason){
   if(!valid){
     // 노션 11번(한방 단어 즉시 패배)은 2026-07-27 철회 — "한 수 잘못 두면 경고 없이 판이 끝나는"

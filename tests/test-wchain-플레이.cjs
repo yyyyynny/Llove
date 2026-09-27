@@ -744,6 +744,15 @@ async function main(){
     w.fetch = async (url, opt) => { if(JSON.parse(opt.body).글자 !== undefined) 글자요청++; await new Promise(r => setTimeout(r, 20)); return 원fetch(url, opt); };
     await Promise.all([w.국어원_후보목록조회('타', 'start'), w.국어원_후보목록조회('타', 'start')]);
     확인('같은 글자 후보를 동시에 물으면 요청은 한 번', 글자요청 === 1, String(글자요청));
+    // 타이핑이 멈추면 끝 글자 후보를 미리 받는다(판 진행 중일 때만)
+    글자요청 = 0;
+    w.eval("gs.game_state='PLAYING';");
+    const 입력 = w.document.getElementById('단어입력');
+    입력.value = '바다'; 입력.dispatchEvent(new w.Event('input'));
+    입력.value = '바다표'; 입력.dispatchEvent(new w.Event('input'));
+    await new Promise(r => setTimeout(r, 700));
+    확인('타이핑이 멈춘 뒤 마지막 입력 기준으로 한 번만 선조회', 글자요청 === 1, String(글자요청));
+    입력.value = '';
     w.fetch = 원fetch;
   }
 

@@ -418,7 +418,7 @@
     <div class="log" id="로그"></div>
     <div class="choice-box" id="선택박스" style="display:none"></div>
     <form class="input-row fu" id="입력폼" onsubmit="return 단어_제출()">
-      <input id="단어입력" placeholder="단어를 입력하세요" autocomplete="off" maxlength="20">
+      <input id="단어입력" placeholder="단어를 입력하세요" autocomplete="off" maxlength="20" oninput="입력중_선조회()">
       <button type="submit">전송</button>
     </form>
     <div class="util-row fu">
