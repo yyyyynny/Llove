@@ -69,7 +69,8 @@ function 페이지열기({ 온라인 = '정상', 적절성게이트 = null } = {
         요청기록.push(payload);
         if(온라인 === '실패') throw new Error('네트워크 실패(스텁)');
         if(payload.단어 !== undefined){
-          return { ok: true, json: async () => ({ 존재: true }) };
+          // '뷁'이 든 단어만 사전에 없다고 답한다(오타 처리 검사용)
+          return { ok: true, json: async () => ({ 존재: !payload.단어.includes('뷁') }) };
         }
         // 후보 목록 — 실제 우리말샘은 글자당 10~수백 개를 준다. 하나만 주면 AI가 곧바로
         // 막혀(기권 = 사용자 승리) 테스트가 게임 흐름을 재현하지 못하므로, 서로 이어지는
@@ -209,6 +210,37 @@ async function main(){
          '호출부가 여전히 빠져 있음');
   }
 
+  /* ── 3-b. 점수제·콤보·오타 벌칙 (2026-09-27 관리자님 결정) ────────── */
+  console.log('\n[3-b] 점수·콤보·오타');
+  {
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    const g = 상태(win);
+    await 단어넣기(win, '나무');
+    확인('정답이면 점수가 오른다', g.score > 0, String(g.score));
+    확인('HUD에 점수 표시', win.document.getElementById('hud-점수').textContent === g.score.toLocaleString());
+    const 긴단어 = win.턴_점수('가나다라마', g), 짧은단어 = win.턴_점수('가나', g);
+    확인('긴 단어가 점수가 더 높다', 긴단어 > 짧은단어, 긴단어 + ' > ' + 짧은단어);
+    g.combo = 5; const 콤보 = win.턴_점수('가나', g); g.combo = 1;
+    확인('콤보가 쌓이면 점수 배율', 콤보 > 짧은단어, 콤보 + ' > ' + 짧은단어);
+    g.diff = '심연'; const 심연 = win.턴_점수('가나', g); g.diff = '격동';
+    확인('어려운 난이도일수록 점수 배율', 심연 > 짧은단어);
+    // 오타(사전에 없는 단어)는 목숨을 깎지 않고 콤보만 끊는다
+    const 목숨 = g.hearts, 점수 = g.score;
+    g.combo = 4;
+    const 이을 = g.ai_last_char;
+    await 단어넣기(win, 이을 + '뷁뷁');
+    확인('사전에 없는 단어는 목숨 그대로', g.hearts === 목숨, `${목숨} → ${g.hearts}`);
+    확인('사전에 없는 단어는 콤보를 끊는다', g.combo === 0);
+    확인('다시 입력하라는 안내', 로그텍스트(win).includes('다시 입력해 보세요'));
+    확인('점수는 그대로', g.score === 점수);
+    // 결과 화면에 점수와 최고 기록
+    win.eval('게임오버(false)');
+    const 통계 = win.document.getElementById('오버-통계').textContent;
+    확인('결과 화면에 점수·최고 기록', 통계.includes(g.score.toLocaleString()) && /최고/.test(통계), 통계);
+  }
+
   /* ── 4. 매 턴 입력창 포커스 유지 (결함 ④ — 어제 커밋 회귀) ──────────── */
   console.log('\n[4] 입력창 포커스 유지');
   {
@@ -316,7 +348,7 @@ async function main(){
     확인('로그 줄에 fu 진입 애니메이션', !!d.querySelector('#로그 .line.fu'));
 
     // HUD — 진행바가 HUD 밖으로 나가고 상태 배지는 턴 칸 안으로 들어갔다
-    확인('HUD가 3칸', d.querySelectorAll('.hud .hud-item').length === 3);
+    확인('HUD가 4칸(점수·턴·힌트·목숨)', d.querySelectorAll('.hud .hud-item').length === 4);
     확인('진행바가 HUD 밖에 있음', !d.querySelector('.hud .bar-track') && !!d.querySelector('.bar-track'));
     확인('상태 배지가 턴 칸 안에 있음', !!d.querySelector('.hud .hud-item #hud-상태'));
 

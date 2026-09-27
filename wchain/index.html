@@ -251,8 +251,17 @@
     #s-설정 > .set-sec:last-of-type{ margin-bottom:16px; }
 
     /* HUD — 한 줄 세 칸 + 전폭 진행바 */
-    .hud{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:6px; }
-    .hud-item{ background:var(--card); border:1px solid var(--bdr); border-radius:10px; padding:7px 9px; }
+    .hud{ display:grid; grid-template-columns:1.25fr 1fr .8fr .8fr; gap:6px; margin-bottom:6px; }
+    .hud-item{ background:var(--card); border:1px solid var(--bdr); border-radius:10px; padding:7px 9px; position:relative; }
+    /* 점수제(2026-09-27): 콤보 배지·득점 떠오름·결과 화면 점수 */
+    .combo{ font-size:11px; color:var(--warn); }
+    .score-pop{ position:absolute; right:8px; top:4px; font-size:12px; font-weight:800; color:var(--ok);
+      pointer-events:none; animation:scorePop .7s var(--ease-out) forwards; }
+    @keyframes scorePop{ from{ opacity:0; transform:translateY(6px); } 25%{ opacity:1; } to{ opacity:0; transform:translateY(-14px); } }
+    .over-score{ font-size:40px; font-weight:900; color:var(--acc); line-height:1.1; }
+    .over-score small{ font-size:16px; margin-left:3px; color:var(--txt2); }
+    .over-best{ font-size:13px; color:var(--txt2); margin:4px 0 12px; }
+    .over-rows{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px 14px; font-size:12px; color:var(--txt2); }
     .hud-lbl{ font-size:10px; color:var(--txt2); margin-bottom:2px; }
     .hud-val{ font-size:13px; font-weight:700; white-space:nowrap; }
     .bar-track{ background:var(--bg); border-radius:999px; height:5px; overflow:hidden; margin-bottom:10px; }
@@ -403,6 +412,8 @@
   <div class="screen" id="s-플레이">
     <div class="cfg-bar fu" id="설정요약"></div>
     <div class="hud fu">
+      <div class="hud-item" id="hud-점수칸"><div class="hud-lbl">⭐ 점수</div>
+        <div class="hud-val"><span id="hud-점수">0</span> <span id="hud-콤보" class="combo"></span></div></div>
       <div class="hud-item"><div class="hud-lbl" id="hud-턴라벨">⏳ 턴</div>
         <div class="hud-val"><span id="hud-턴"></span> <span id="hud-상태"></span></div></div>
       <div class="hud-item"><div class="hud-lbl">💡 힌트</div><div class="hud-val" id="hud-힌트"></div></div>

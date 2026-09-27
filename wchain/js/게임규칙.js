@@ -321,6 +321,17 @@ function check_title(gs){
 
 // 패배 처리(틀리면 목숨 -1) — 원본 100턴/95턴 직전 탈락 특수 대사 포함.
 // 2026-07-29: 원본의 '실수(strikes) 4회 = 목숨 1개' 2단 구조를 폐지하고 목숨 하나로 통일했다.
+// 턴 점수(2026-09-27 관리자님 결정) — 끄투 getPreScore 공식을 참고해 새로 구현(코드 복사 아님).
+// 긴 단어일수록·판이 길어질수록·빨리 낼수록 높고, 난이도와 콤보(3연속부터 +10%씩, 최대 +50%)를 곱한다.
+// 속도비율: 턴 타이머의 남은 시간 비율(0~1). 타이머가 없는 판은 0.75(보통 속도)로 친다.
+const 난이도_점수배율 = { 안온: 0.8, 격동: 1.0, 초월: 1.25, 심연: 1.5 };
+function 턴_점수(word, gs, 속도비율 = 0.75){
+  const 기본 = 2 * (Math.pow(5 + 7 * word.length, 0.74) + 0.88 * gs.history.length) * (0.5 + 0.5 * 속도비율);
+  const 난이도 = gs.game_mode === 'ARCADE' ? 1 + 0.05 * gs.stage : (난이도_점수배율[gs.diff] ?? 1);
+  const 콤보 = 1 + 0.1 * Math.min(Math.max(gs.combo - 2, 0), 5);
+  return Math.round(기본 * 난이도 * 콤보);
+}
+
 function user_defeat(gs){
   if(gs.game_mode === 'SURVIVAL'){
     if(['안온','격동'].includes(gs.diff) && gs.turn >= 90 && gs.turn <= 99){

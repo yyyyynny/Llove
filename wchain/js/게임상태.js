@@ -8,6 +8,7 @@ function 새게임상태(){
     // strikes·last_log·stage_start_turn은 쓰기만 하고 읽는 곳이 없어 2026-09-27 삭제(Q5)
     turn: 0, stage: 1, stage_turn: 0,
     score: 0, best: 0, hints: 3, hearts: 2,
+    combo: 0, max_combo: 0, longest: '',   // 점수제(2026-09-27): 연속 정답·최고 콤보·가장 긴 단어
     attack_streak: 0, yield_attempts: 0, dispute_attempts: 0, deal_offered: false,
     // 반박한단어(2026-08-22): '적절성 검증'이 적절로 나왔을 때 사용자가 반박할 수 있는데,
     // 같은 단어를 몇 번이고 다시 반박하면 "될 때까지 우기기"가 된다. 어떤 단어에 이미
@@ -83,6 +84,7 @@ function reset_game(gs){
   // (stage>=13이면 3글자 족쇄가 서바이벌에도 걸린다).
   gs.stage = 1;
   gs.turn = 0; gs.stage_turn = 0; gs.score = 0;
+  gs.combo = 0; gs.max_combo = 0; gs.longest = '';
   // 목숨·힌트를 난이도표에서 읽는다(2026-07-29). 아케이드는 층 진행이 난이도 역할을 하므로
   // 원본대로 목숨(아케이드_목숨)·힌트 3 고정(아래 ARCADE 분기에서 다시 덮어쓴다).
   const 난 = 난이도설정(gs);

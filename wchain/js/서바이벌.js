@@ -24,6 +24,35 @@ function 화면(id){
   document.body.classList.toggle('playing', id === '플레이');
 }
 
+/* ── 점수·콤보 (2026-09-27) ── */
+// 타이머 배치 전까지는 항상 보통 속도(0.75) — 타이머가 생기면 남은 시간 비율을 돌려준다
+function 타이머_속도비율(){ return 0.75; }
+function 콤보_끊기(){ gs.combo = 0; }
+// 점수가 오를 때 점수 칸 위로 "+N"이 떠올랐다 사라진다(자주 일어나는 순간이라 짧게 — 700ms).
+function 점수_연출(n){
+  const 칸 = document.getElementById('hud-점수칸');
+  if(!칸 || !n) return;
+  const 뜸 = document.createElement('span');
+  뜸.className = 'score-pop';
+  뜸.textContent = '+' + n;
+  칸.appendChild(뜸);
+  setTimeout(() => 뜸.remove(), 750);
+}
+const 최고점수_KEY = 'plx_잇는_최고점수_v1';
+const 최고점수_키 = () => gs.game_mode === 'ARCADE' ? 'ARCADE' : 'SURVIVAL:' + gs.diff + (gs.infinite ? ':무한' : '');
+// 판이 끝날 때 최고 점수를 갱신하고 [이전 최고, 신기록 여부]를 돌려준다(저장 실패는 조용히 무시).
+function 최고점수_갱신(){
+  let 표 = {};
+  try{ 표 = JSON.parse(localStorage.getItem(최고점수_KEY) || '{}') || {}; }catch(e){}
+  const 이전 = 표[최고점수_키()] || 0;
+  const 신기록 = gs.score > 이전 && !gs.god_mode_active;
+  if(신기록){
+    표[최고점수_키()] = gs.score;
+    try{ localStorage.setItem(최고점수_KEY, JSON.stringify(표)); }catch(e){}
+  }
+  return [이전, 신기록];
+}
+
 /* ── 로그 ── */
 function 로그_추가(text, cls){
   const log = document.getElementById('로그');
@@ -281,6 +310,9 @@ function 플레이_HUD갱신(){
   _이전힌트 = gs.hints; _이전목숨 = gs.hearts;
 
   힌트요소.textContent = 표시무한(gs.hints) + '개';
+  document.getElementById('hud-점수').textContent = gs.score.toLocaleString();
+  const 콤보요소 = document.getElementById('hud-콤보');
+  콤보요소.textContent = gs.combo >= 3 ? `🔥${gs.combo}` : '';
   // 실수(strikes) 폐지(2026-07-29)로 이 칸은 목숨 하나만 보여준다 — 종전 "목숨 · 실수" 2단 표기 삭제.
   목숨요소.textContent = `${표시무한(gs.hearts)}개`;
   // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
@@ -572,6 +604,15 @@ async function 단어_처리(raw, valid, reason){
     // 규칙이 게임을 못 하게 만들어, 부적합 단어는 다른 오답처럼 목숨 1개 차감으로 처리한다
     // (경위: wchain/시스템.md 노션 11번 항목, 철회 전 구현은 git 이력).
     로그_추가(대사(gs, '단어_처리_8', [reason]), 'err');
+    // 사전에 없는 단어(대개 오타)는 목숨을 깎지 않고 다시 입력하게 한다(2026-09-27 관리자님 결정 —
+    // 끄투 방식. 타이머를 켠 판에서는 흘러간 시간이 곧 벌칙이다). 규칙 위반(한방·중복·글자)은 그대로 차감.
+    if(reason.endsWith('사전에 없는 단어입니다.')){
+      콤보_끊기();
+      로그_추가('↩ 목숨은 그대로예요. 다시 입력해 보세요.', 'sys');
+      프롬프트_갱신();
+      return false;
+    }
+    콤보_끊기();
     const result = user_defeat(gs);
     if(result === 'game_over'){ 게임오버(false); return false; }
     플레이_HUD갱신(); 프롬프트_갱신();
@@ -581,6 +622,14 @@ async function 단어_처리(raw, valid, reason){
   // 원본의 정답 반응(react_correct) — 이식 때 호출부가 통째로 빠져 있어서 맞는 단어를 내도
   // 화면에 아무 반응이 없었다(2026-07-27 복원). AI 단어 반응(react_ai_word)만 살아 있었다.
   로그_추가(react_correct(gs), 'ok');
+
+  // 점수·콤보(2026-09-27) — history에 넣기 전에 계산한다(이어진 단어 수 = 지금까지의 사슬 길이)
+  gs.combo += 1;
+  gs.max_combo = Math.max(gs.max_combo, gs.combo);
+  if(raw.length > gs.longest.length) gs.longest = raw;
+  const 얻은점수 = 턴_점수(raw, gs, 타이머_속도비율());
+  gs.score += 얻은점수;
+  점수_연출(얻은점수);
 
   gs.history.push({ word: raw, turn: gs.turn });
   gs.turn += 1;
@@ -1193,6 +1242,7 @@ async function 힌트_본체(내세대){
   }
 
   gs.hints -= 1;
+  콤보_끊기();   // 힌트를 쓴 턴은 연속 정답으로 치지 않는다
   const hint_word = cands[Math.floor(Math.random() * cands.length)];
   로그_추가(대사(gs, '힌트_본체_1', [표시무한(gs.hints)]));
   로그_추가(`   🔤 초성 : ${extract_chosung(hint_word)}`);
@@ -1385,14 +1435,24 @@ function 게임오버(victory){
       ? 대사(gs, '게임오버_생존승리', {칭호: title(gs)})
       : 대사(gs, '게임오버_생존패배', {칭호: title(gs)});
     document.getElementById('오버-메시지').textContent = (victory ? '🏆 [SURVIVAL 클리어] ' : '💀 [GAME OVER] ') + msg;
-    document.getElementById('오버-통계').textContent = `최종 턴: ${gs.turn}  |  최고 기록: ${gs.best}`;
+    결과_통계(`턴 ${gs.turn}`);
   } else {
     const msg = victory
       ? 대사(gs, '게임오버_1', [title(gs)])
       : 대사(gs, '게임오버_탑패배', {층: gs.stage, 칭호: title(gs)});
     document.getElementById('오버-메시지').textContent = (victory ? '🏆 [13층 클리어] ' : '💀 [GAME OVER] ') + msg;
-    document.getElementById('오버-통계').textContent = `최종 층: ${gs.stage}  |  최고 기록: ${gs.best}층`;
+    결과_통계(`${gs.stage}층`);
   }
+}
+
+// 결과 화면 통계(2026-09-27 점수제) — 점수를 크게, 나머지는 한 줄씩
+function 결과_통계(진행){
+  const [이전, 신기록] = 최고점수_갱신();
+  document.getElementById('오버-통계').innerHTML =
+    `<div class="over-score">${gs.score.toLocaleString()}<small>점</small></div>`
+    + `<div class="over-best">${신기록 ? '🎉 최고 기록!' : `최고 ${Math.max(이전, gs.score).toLocaleString()}점`}</div>`
+    + `<div class="over-rows"><span>${진행}</span><span>최고 콤보 ${gs.max_combo}</span>`
+    + (gs.longest ? `<span>가장 긴 단어 『${HTML막기(gs.longest)}』</span>` : '') + '</div>';
 }
 
 function 다시시작(){
