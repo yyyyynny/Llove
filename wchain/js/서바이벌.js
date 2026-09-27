@@ -1558,7 +1558,7 @@ function 결과_통계(진행){
   const [이전, 신기록] = 최고점수_갱신();
   document.getElementById('오버-통계').innerHTML =
     `<div class="over-score">${gs.score.toLocaleString()}<small>점</small></div>`
-    + `<div class="over-best">${신기록 ? '🎉 최고 기록!' : `최고 ${Math.max(이전, gs.score).toLocaleString()}점`}</div>`
+    + `<div class="over-best">${신기록 ? '🎉 최고 기록!' : `최고 ${(gs.god_mode_active ? 이전 : Math.max(이전, gs.score)).toLocaleString()}점`}</div>`
     + `<div class="over-rows"><span>${진행}</span><span>최고 콤보 ${gs.max_combo}</span>`
     + (gs.longest ? `<span>가장 긴 단어 『${HTML막기(gs.longest)}』</span>` : '') + '</div>';
   if(gs.흐름.length) document.getElementById('오버-통계').insertAdjacentHTML('beforeend',
