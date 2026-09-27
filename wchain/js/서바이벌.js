@@ -780,7 +780,7 @@ async function 단어_처리(raw, valid, reason){
       ai_판정사전 = ai_후보사전(gs, [예약]);
       로그_추가(`🔓 [관리자] 지정 단어 『${예약}』를 사용합니다.`, 'sys');
     } else {
-      로그_추가(`🔓 [관리자] 『${예약}』는 지금 이을 수 없어 예약을 버립니다.`, 'warn');
+      로그_추가(`🔓 [관리자] 『${예약}』은(는) 지금 이을 수 없어 예약을 버립니다.`, 'warn');
     }
   }
   if(ai_word === null){
@@ -814,7 +814,7 @@ async function 단어_처리(raw, valid, reason){
   if(ai_한방금지인가(gs) && 한방_판정가능인가(ai_word, gs)
      && is_hanbang(ai_word, used_words(gs), gs.rev, gs.dueum, gs.stage, ai_판정사전)){
     if(gs.god_mode_active){
-      로그_추가(`💀 [AI 자폭] 『${ai_word}』는 한방 단어입니다.`, 'sys');
+      로그_추가(`💀 [AI 자폭] 『${ai_word}』은(는) 한방 단어입니다.`, 'sys');
       로그_추가('🔓 [GOD MODE] 자유 입력권 발동.', 'sys');
       gs.history.push({ word: ai_word, turn: gs.turn }); gs.ai_last_word = ai_word; gs.ai_last_char = null;
       플레이_HUD갱신(); 프롬프트_갱신();
@@ -1077,12 +1077,13 @@ async function 버튼_적절성검증(){
       return;
     }
 
+    const 이유 = 결과.이유 ? ' — ' + 결과.이유.replace(/[.。]+$/, '') : '';   // AI 이유가 마침표로 끝나 ".."가 되던 것
     if(!결과.적절){
       // 부당하다고 판단됨 — 이의있음의 '없는 단어' 분기와 동일하게 취소·재출제.
-      로그_추가(`🤖 인정합니다, 『${disputed}』는 부당한 단어였습니다${결과.이유 ? ' — ' + 결과.이유 : ''}. 취소하겠습니다.`, 'ok');
+      로그_추가(`🤖 인정합니다, 『${disputed}』은(는) 부당한 단어였습니다${이유}. 취소하겠습니다.`, 'ok');
       if(!await AI단어_취소_재출제(disputed, 내세대)) return;
     } else {
-      로그_추가(`🤖 『${disputed}』는 적절한 단어입니다${결과.이유 ? ' — ' + 결과.이유 : ''}.`, 'err');
+      로그_추가(`🤖 『${disputed}』은(는) 적절한 단어입니다${이유}.`, 'err');
       // 판정이 '적절'이면 여기서 끝내지 않고 반박 기회를 준다. 반대(부당) 판정에는 반박을
       // 안 붙이는 이유: 그건 사용자가 원한 결과라 뒤집을 동기가 없다.
       반박대기로_넘김 = 반박_제안(disputed);
