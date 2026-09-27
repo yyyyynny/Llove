@@ -228,6 +228,13 @@ async function main(){
          && ai말.querySelector('.bmean').textContent === '뜻:' + g.ai_last_word, ai말?.innerHTML);
     확인('뜻 자동 표시: 상대 단어 뜻이 카드에', win.document.getElementById('ai-뜻').textContent === `뜻:${g.ai_last_word}`,
          win.document.getElementById('ai-뜻').textContent);
+    // 동음이의어 묶음 중 뜻이 가장 많은 묶음(대개 흔한 단어)을 보인다 — 첫 묶음이 드문 단어여도
+    const 칸 = win.document.createElement('span'); 칸.className = 'bmean';
+    const 원상세 = win.국어원_단어조회_상세;
+    win.국어원_단어조회_상세 = async () => ({ 존재: true, 뜻풀이그룹: [{ 뜻풀이: ['그이의 아버지.'] }, { 뜻풀이: ['안쪽의 부분.', '조직의 안.'] }] });
+    await win.뜻_붙이기('내부', 칸);
+    확인('뜻: 동음이의어 중 뜻이 많은 묶음을 보인다', 칸.textContent === '안쪽의 부분.', 칸.textContent);
+    win.국어원_단어조회_상세 = 원상세;
     확인('정답이면 점수가 오른다', g.score > 0, String(g.score));
     확인('HUD에 점수 표시', win.document.getElementById('hud-점수').textContent === g.score.toLocaleString());
     const 긴단어 = win.턴_점수('가나다라마', g), 짧은단어 = win.턴_점수('가나', g);
@@ -974,6 +981,8 @@ async function main(){
     const { win } = 페이지열기({ 온라인: '없음' });
     await 대사대기(win);
     판시작(win);
+    for(let i = 0; i < 100 && !win.eval('빈도_단어들.length'); i++) await 잠깐(10);   // 비동기 적재가 끝난 뒤 비운다
+    win.eval('빈도_단어들 = []');   // 빈도 목록(흔한 말)도 비워야 '정말 이을 단어가 없는' 국면이 된다
     상태(win).ai_last_char = '가';
     await win.막다른길_확인(값(win, '게임_세대'), '가');
     확인('이을 단어가 없으면 미리 알린다', 로그텍스트(win).includes('찾지 못했습니다'));

@@ -39,6 +39,7 @@ async function 사전_로드(){
 // AI가 희귀어만 내던 문제를 난이도별로 흔한 말을 고르게 해서 푼다(게임규칙.js 흔함_거르기).
 // 적재 전·실패 시엔 빈 표 — 모든 단어가 4가 되고 흔함_거르기가 아무것도 거르지 않아 종전과 같다.
 let 단어_흔함 = new Map();
+let 빈도_단어들 = [];   // 흔함 목록의 단어 전부 — AI 후보 풀 보강용(게임규칙.js ai_후보사전)
 async function 빈도_로드(){
   try{
     const res = await fetch('data/빈도.json');
@@ -47,6 +48,7 @@ async function 빈도_로드(){
     const 표 = new Map();
     (data.단계 || []).forEach((줄, i) => { for(const w of String(줄).split(' ')) if(w) 표.set(w, i + 1); });
     단어_흔함 = 표;
+    빈도_단어들 = [...표.keys()];
   }catch(e){
     console.warn('[사전] data/빈도.json 적재 실패 — 흔함 구분 없이 진행합니다.', e);
   }

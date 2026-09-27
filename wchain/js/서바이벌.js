@@ -150,7 +150,10 @@ function AI단어_보이기(ai_word){
 // 아직유효: 도착 시점에도 그 자리에 뜻을 써도 되는지(AI 카드는 이미 다음 단어로 바뀌었을 수 있다).
 async function 뜻_붙이기(word, 자리, 아직유효 = () => true){
   const 결과 = await 국어원_단어조회_상세(word).catch(() => null);
-  const 첫뜻 = 결과?.존재 && 결과.뜻풀이그룹[0]?.뜻풀이?.[0];
+  // 동음이의어 묶음 중 뜻풀이가 가장 많은 쪽(대개 흔한 단어)을 보인다 — 첫 묶음을 그대로 쓰면
+  // '내부'에 "그이의 아버지"(乃父)가 뜨는 식이었다(2026-09-28 실사전 자동 플레이로 발견).
+  const 묶음 = 결과?.존재 ? [...결과.뜻풀이그룹].sort((a, b) => (b.뜻풀이?.length || 0) - (a.뜻풀이?.length || 0))[0] : null;
+  const 첫뜻 = 묶음?.뜻풀이?.[0];
   if(!아직유효()) return;
   if(!첫뜻){ if(자리.classList.contains('bmean')) 자리.remove(); return; }   // 카드 칸은 비워 둔 채로 둔다
   자리.textContent = 첫뜻.length > 80 ? 첫뜻.slice(0, 80) + '…' : 첫뜻;
@@ -531,7 +534,7 @@ async function 막다른길_확인(내세대, 기준글자){
     if(결과들.some(r => r === null)) return;              // 확인을 못 했으면 말하지 않는다
     const 합본 = 기록();
     const 이을수있음 = find_words(기준글자, used_words(gs), gs.rev, gs.dueum, 0,
-                                 족쇄_최소길이(gs.stage), 합본);
+                                 족쇄_최소길이(gs.stage), ai_후보사전(gs, 합본));   // 빈도 목록의 흔한 말도 포함
     if(!이을수있음.length){
       로그_추가(`⚠️ 『${기준글자}』(으)로 ${gs.rev ? '끝나는' : '시작하는'} 단어를 우리말샘에서 `
               + '찾지 못했습니다. 아는 단어가 있으면 그대로 입력해 보세요 — 우리말샘에 있으면 인정됩니다.',
@@ -785,7 +788,7 @@ async function 단어_처리(raw, valid, reason){
   }
   if(ai_word === null){
     추가후보 = await 온라인후보_가져오기(gs);
-    ai_word = ai_generate_word(gs, 추가후보);
+    ai_word = await AI단어_고르기(gs, 추가후보);
     ai_판정사전 = ai_후보사전(gs, 추가후보);
     온라인조회_보고();   // 희귀어를 실제로 받아 썼는지 / 못 받았는지를 화면에 남긴다
   }
@@ -948,7 +951,7 @@ async function AI단어_취소_재출제(disputed, 내세대){
     gs.ai_last_char = null;
   }
   gs.ai_last_word = null;
-  const new_ai = ai_generate_word(gs, await 온라인후보_가져오기(gs));   // gs.history엔 아직 disputed가 남아 있음
+  const new_ai = await AI단어_고르기(gs, await 온라인후보_가져오기(gs));   // gs.history엔 아직 disputed가 남아 있음
   gs.history = 이전항목들;   // 이제서야 실제로 뺀다(성공·실패 여부와 무관하게)
   if(내세대 !== 게임_세대) return false;   // 대기 중 리셋·재도전이 있었다 — 더 진행하면 안 됨
   if(new_ai){
