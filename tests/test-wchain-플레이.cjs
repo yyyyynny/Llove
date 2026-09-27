@@ -271,6 +271,14 @@ async function main(){
     const 목숨2 = g.hearts;
     win.eval('게임_비동기처리중 = true'); win.타이머_진행(60000);
     확인('타이머: 처리 중에는 시간이 흐르지 않는다', g.hearts === 목숨2);
+    win.eval('게임_비동기처리중 = false'); win.버튼_설명(); win.타이머_진행(60000);
+    확인('타이머: 규칙 설명 창이 떠 있는 동안 멈춘다', g.hearts === 목숨2);
+    win.버튼_설명닫기();
+    // 악마의 거래 선물 힌트는 콤보를 끊지 않는다(사용자가 쓴 힌트가 아님)
+    g.combo = 4; const 힌트전 = g.hints;
+    await win.힌트_본체(win.eval('게임_세대'), true);
+    확인('선물 힌트는 콤보를 끊지 않는다', g.combo === 4 && g.hints === 힌트전 - 1 && !g.이번턴_힌트, `combo=${g.combo} hints=${g.hints}`);
+    g.combo = 0;
     win.eval('게임_비동기처리중 = false'); win.타이머_진행(1); win.타이머_진행(60000);
     확인('타이머: 시간 초과면 목숨 -1', g.hearts === 목숨2 - 1, `${목숨2} → ${g.hearts}`);
     확인('타이머: 시간 초과 안내', 로그텍스트(win).includes('시간 초과'));

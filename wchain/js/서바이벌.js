@@ -33,8 +33,11 @@ const 타이머 = { 키: null, 총: 0, 남은: 0, 제출비율: 0.75, 시각: 0 
 function 타이머_차례키(){ return gs.turn + ':' + (gs.ai_last_word || '') + ':' + gs.hearts; }
 function 타이머_진행(dt){
   const 제한 = 턴_제한초(gs);
-  // 다른 앱·탭으로 가 있는 동안(document.hidden)도 멈춘다 — 돌아오자마자 시간 초과가 나지 않게
+  // 다른 앱·탭으로 가 있는 동안(document.hidden)도 멈춘다 — 돌아오자마자 시간 초과가 나지 않게.
+  // 규칙 설명·관리자·삭제 확인 같은 모달이 떠 있는 동안도 멈춘다(2026-09-27 버그 점검 — 설명을 읽는
+  // 사이 뒤에서 시간 초과로 목숨이 깎였다).
   const 켬 = 제한 !== null && gs.game_state === 'PLAYING' && !document.hidden
+    && !document.querySelector('.modal-bg.show')
     && document.getElementById('s-플레이')?.classList.contains('active');
   const 칸 = document.getElementById('타이머');
   if(칸) 칸.style.display = 제한 !== null ? '' : 'none';
@@ -1258,7 +1261,8 @@ function 힌트_후보(gs, 추가후보 = []){
   return 후보.filter(w => !is_hanbang(w, [...used_words(gs), w], gs.rev, gs.dueum, gs.stage, 사전));
 }
 
-function 버튼_힌트(){
+// 선물: 악마의 거래가 계약 즉시 주는 힌트 — 사용자가 쓴 힌트가 아니므로 콤보를 끊거나 🟨으로 남기지 않는다.
+function 버튼_힌트(선물 = false){
   if(gs.game_state !== 'PLAYING') return;
   if(gs.ai_last_char === null){ 로그_추가('ℹ️ 첫 단어는 자유롭게 입력하세요. 힌트가 필요하지 않습니다.', 'sys'); return; }
   // 힌트도 온라인 후보를 조회할 수 있게 되면서(높은 난이도) 비동기 창이 생겼다 —
@@ -1266,10 +1270,10 @@ function 버튼_힌트(){
   // 조용히 return하면 "버튼이 안 먹는다"로 보이므로 이유를 알려준다(2026-07-27).
   if(게임_비동기처리중){ 로그_추가('⏳ 앞의 처리가 끝난 뒤에 다시 눌러 주세요.', 'sys'); return; }
   // onclick에서 await 없이 불리므로(fire-and-forget) 내부에서 예외가 새어나가지 않게 받는다.
-  비동기_가드('힌트 찾는 중', 힌트_본체).catch(e => console.error('[힌트] 처리 실패', e));
+  비동기_가드('힌트 찾는 중', 내세대 => 힌트_본체(내세대, 선물)).catch(e => console.error('[힌트] 처리 실패', e));
 }
 
-async function 힌트_본체(내세대){
+async function 힌트_본체(내세대, 선물 = false){
 
   // 13층 이상 + 힌트 소진 = 시련의 탑 대신 바로 비상 탈출구
   if(gs.game_mode === 'ARCADE' && gs.stage >= 13 && gs.hints <= 0){
@@ -1345,8 +1349,7 @@ async function 힌트_본체(내세대){
   }
 
   gs.hints -= 1;
-  gs.이번턴_힌트 = true;
-  콤보_끊기();   // 힌트를 쓴 턴은 연속 정답으로 치지 않는다
+  if(!선물){ gs.이번턴_힌트 = true; 콤보_끊기(); }   // 힌트를 쓴 턴은 연속 정답으로 치지 않는다
   // 힌트는 난이도와 무관하게 가장 흔한 말부터(초성만 보고도 떠올릴 수 있어야 힌트다)
   const 흔한것 = Math.min(...cands.map(흔함단계));
   const 고를것 = cands.filter(w => 흔함단계(w) === 흔한것);
@@ -1371,7 +1374,7 @@ function 악마거래_응답(수락){
     // 온라인 후보 조회·어둠의 계약·13층 족쇄 필터·못 찾았을 때의 안내가 같고, 재진입 가드와
     // 세대 확인도 함께 받는다(2026-09-26: 종전 복제본엔 둘 다 없어 조회 중 리셋 시 새 판의
     // 힌트를 깎을 수 있었다). onclick에서 불리므로 결과를 기다리지 않는다.
-    버튼_힌트();
+    버튼_힌트(true);
   } else {
     gs.game_state = 'PLAYING';
     로그_추가(대사(gs, '악마거래_응답_1'));
