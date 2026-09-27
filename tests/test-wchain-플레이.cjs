@@ -752,6 +752,8 @@ async function main(){
     입력.value = '바다표'; 입력.dispatchEvent(new w.Event('input'));
     await new Promise(r => setTimeout(r, 700));
     확인('타이핑이 멈춘 뒤 마지막 입력 기준으로 한 번만 선조회', 글자요청 === 1, String(글자요청));
+    확인('타이핑이 멈추면 단어 존재도 미리 확인(제출 때는 캐시)', 물어본단어.includes('바다표') && !물어본단어.includes('바다'),
+         물어본단어.join(','));
     입력.value = '';
     w.fetch = 원fetch;
   }

@@ -93,15 +93,21 @@ async function 국어원_POST(payload, 타임아웃_MS){
 // — 호출부(서바이벌.js)가 null을 별도로 처리해 이 오판을 없앤다).
 // 합성어 붙임표(`가마-솥`)는 Worker가 변형을 끼워 재조회한다(우리말샘-worker.mjs 붙임표_변형).
 // 2026-07-29~09-27엔 클라이언트도 같은 재조회를 했으나, 없는 단어마다 왕복이 최대 5회 늘어 삭제.
+const 단어조회_진행중 = new Map();   // 타이핑 중 선조회와 제출이 겹치면 요청 하나를 함께 기다린다
 async function 국어원_단어조회(word){
   const 캐시 = 캐시_로드(국어원_캐시_KEY);
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
-
-  const data = await 국어원_POST({ 단어: word }, 국어원_타임아웃_단어_MS);
-  if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
-  캐시[word] = !!data.존재;
-  캐시_저장(국어원_캐시_KEY, 캐시, 국어원_캐시_최대개수);
-  return 캐시[word];
+  if(단어조회_진행중.has(word)) return 단어조회_진행중.get(word);
+  const 요청 = (async () => {
+    const data = await 국어원_POST({ 단어: word }, 국어원_타임아웃_단어_MS);
+    if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
+    const 최신 = 캐시_로드(국어원_캐시_KEY);
+    최신[word] = !!data.존재;
+    캐시_저장(국어원_캐시_KEY, 최신, 국어원_캐시_최대개수);
+    return 최신[word];
+  })();
+  단어조회_진행중.set(word, 요청);
+  try{ return await 요청; } finally{ 단어조회_진행중.delete(word); }
 }
 
 // 단어 존재 + 뜻풀이(동음이의어 그룹) 조회 — '이의 있음' 재설계 전용(2026-08-19).
