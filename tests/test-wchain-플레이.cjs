@@ -732,6 +732,19 @@ async function main(){
     확인('캐시된 단어는 다시 묻지 않는다',
          (await w.국어원_단어조회('없는말말')) === false && 물어본단어.length === 2);
     확인('클라이언트 붙임표_변형은 삭제됨', typeof w.붙임표_변형 === 'undefined');
+
+    // 속도(2026-09-27): 이번 판에서 이미 받은 단어는 다시 묻지 않고, 같은 글자 후보는 동시에 두 번 묻지 않는다
+    w.eval("세션_수집(['구름다리']);");
+    const 전 = 물어본단어.length;
+    확인('세션 수집어는 사전 확인 없이 통과',
+         w.eval("validate_word('구름다리', gs)[0] === true || !validate_word('구름다리', gs)[1].includes('사전에 없는')")
+         && 물어본단어.length === 전);
+    let 글자요청 = 0;
+    const 원fetch = w.fetch;
+    w.fetch = async (url, opt) => { if(JSON.parse(opt.body).글자 !== undefined) 글자요청++; await new Promise(r => setTimeout(r, 20)); return 원fetch(url, opt); };
+    await Promise.all([w.국어원_후보목록조회('타', 'start'), w.국어원_후보목록조회('타', 'start')]);
+    확인('같은 글자 후보를 동시에 물으면 요청은 한 번', 글자요청 === 1, String(글자요청));
+    w.fetch = 원fetch;
   }
 
   /* ── 18. Llove 복귀 시 온보딩 (제보 1) ───────────────────────────── */
@@ -858,6 +871,7 @@ async function main(){
     판시작(w2);
     await 단어넣기(w2, '사슴');
     확인('후보가 넉넉하면 경고하지 않는다', !로그텍스트(w2).includes('곧 막힐 수 있습니다'));
+    확인('후보가 넉넉하면 개수 안내도 하지 않는다(내부 사정 노출 제거)', !/후보 \d+개를 사용/.test(로그텍스트(w2)));
   }
   {
     // (2) 막다른길_확인 — 이을 단어를 못 찾으면 미리 알리고, 있으면 조용하다

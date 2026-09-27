@@ -43,7 +43,10 @@ function validate_word(word, gs){
   // 사전 판정 기준은 우리말샘이다(2026-07-29). 여기서는 보조 사전(유행어·줄임말)만 즉시 통과시키고,
   // 나머지는 "사전에 없는 단어" 사유로 넘겨 UI 레이어가 우리말샘에 물어보게 한다.
   // 반환 형태·사유 문자열은 그대로라 호출부(사유로 분기하는 원본 관례)가 영향받지 않는다.
-  if(!추가사전.includes(word)) return [false, `『${word}』은(는) 사전에 없는 단어입니다.`];
+  // 이번 판에서 우리말샘이 이미 준 단어(세션 수집어 — 후보 목록·확인된 단어)는 등재가 확인된
+  // 것이므로 즉시 통과시킨다(2026-09-27: 종전엔 AI 턴 뒤 미리 받아 둔 후보에 있는 단어도 매번
+  // 우리말샘에 다시 물어 턴마다 1~4초를 기다렸다).
+  if(!추가사전.includes(word) && !세션_수집어.includes(word)) return [false, `『${word}』은(는) 사전에 없는 단어입니다.`];
   if(is_hanbang(word, used_words(gs), gs.rev, gs.dueum, gs.stage)){
     if(gs.game_mode === 'ARCADE') return [false, `『${word}』은(는) 한방 단어입니다. (아케이드에서 사용 불가)`];
     else if(!gs.hanbang) return [false, `『${word}』은(는) 한방 단어입니다. (일반 모드에서 사용 불가)`];
