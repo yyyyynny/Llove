@@ -279,6 +279,9 @@ async function main(){
     // 결과 화면에 점수와 최고 기록
     win.eval('게임오버(false)');
     const 통계 = win.document.getElementById('오버-통계').textContent;
+    const 공유 = win.결과_공유문();
+    확인('결과 공유: 흐름 이모지(정답🟩·목숨🟥)와 점수·주소', 공유.includes('🟩') && 공유.includes('🟥') && 공유.includes(g.score.toLocaleString()+'점') && 공유.includes('/wchain/'), 공유);
+    확인('결과 공유: 단어는 싣지 않는다', !공유.includes('나무'));
     확인('결과 화면에 점수·최고 기록', 통계.includes(g.score.toLocaleString()) && /최고/.test(통계), 통계);
   }
 

@@ -348,6 +348,7 @@ function 턴_제한초(gs){
 }
 
 function user_defeat(gs){
+  gs.흐름?.push('🟥');   // 결과 공유 요약 — 목숨을 잃은 턴
   if(gs.game_mode === 'SURVIVAL'){
     if(['안온','격동'].includes(gs.diff) && gs.turn >= 90 && gs.turn <= 99){
       로그_추가(대사(gs, 'user_defeat_4'));

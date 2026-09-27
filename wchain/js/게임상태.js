@@ -10,6 +10,7 @@ function 새게임상태(){
     score: 0, best: 0, hints: 3, hearts: 2,
     combo: 0, max_combo: 0, longest: '',   // 점수제(2026-09-27): 연속 정답·최고 콤보·가장 긴 단어
     mission: null, mission_count: 0,        // 미션 글자(2026-09-27): 지금 미션·이번 판 달성 횟수
+    흐름: [], 이번턴_힌트: false,           // 결과 공유(2026-09-27): 턴마다 🟩정답·🟨힌트 쓴 정답·🟥목숨 잃음
     attack_streak: 0, yield_attempts: 0, dispute_attempts: 0, deal_offered: false,
     // 반박한단어(2026-08-22): '적절성 검증'이 적절로 나왔을 때 사용자가 반박할 수 있는데,
     // 같은 단어를 몇 번이고 다시 반박하면 "될 때까지 우기기"가 된다. 어떤 단어에 이미
@@ -97,6 +98,7 @@ function reset_game(gs){
   gs.turn = 0; gs.stage_turn = 0; gs.score = 0;
   gs.combo = 0; gs.max_combo = 0; gs.longest = '';
   gs.mission = 새미션(null); gs.mission_count = 0;
+  gs.흐름 = []; gs.이번턴_힌트 = false;
   // 목숨·힌트를 난이도표에서 읽는다(2026-07-29). 아케이드는 층 진행이 난이도 역할을 하므로
   // 원본대로 목숨(아케이드_목숨)·힌트 3 고정(아래 ARCADE 분기에서 다시 덮어쓴다).
   const 난 = 난이도설정(gs);

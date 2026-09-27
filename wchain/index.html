@@ -261,6 +261,8 @@
     .over-score{ font-size:40px; font-weight:900; color:var(--acc); line-height:1.1; }
     .over-score small{ font-size:16px; margin-left:3px; color:var(--txt2); }
     .over-best{ font-size:13px; color:var(--txt2); margin:4px 0 12px; }
+    .over-flow{ max-width:15em; margin:10px auto 0; font-size:15px; line-height:1.35; letter-spacing:1px; word-break:break-all; }
+    .share-note{ font-size:12px; color:var(--ok); min-height:16px; margin:-4px 0 6px; text-align:center; }
     .over-rows{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px 14px; font-size:12px; color:var(--txt2); }
     .hud-lbl{ font-size:10px; color:var(--txt2); margin-bottom:2px; }
     .hud-val{ font-size:13px; font-weight:700; white-space:nowrap; }
@@ -494,6 +496,8 @@
       <div class="emoji" id="오버-이모지">💀</div>
       <div class="msg" id="오버-메시지"></div>
       <div class="stat" id="오버-통계"></div>
+      <button class="btn" style="text-align:center" onclick="결과_공유()">📤 결과 공유</button>
+      <div class="share-note" id="공유-알림"></div>
       <button class="btn acc" onclick="다시시작()">재도전</button>
       <button class="btn" style="text-align:center" onclick="전체리셋()">전체 초기화</button>
     </div>

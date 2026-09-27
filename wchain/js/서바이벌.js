@@ -710,6 +710,7 @@ async function 단어_처리(raw, valid, reason){
 
   const 내뜻 = 마지막_내말풍선?.querySelector('.bmean');
   if(내뜻) 뜻_붙이기(raw, 내뜻);
+  gs.흐름.push(gs.이번턴_힌트 ? '🟨' : '🟩'); gs.이번턴_힌트 = false;
   // 점수·콤보(2026-09-27) — history에 넣기 전에 계산한다(이어진 단어 수 = 지금까지의 사슬 길이)
   gs.combo += 1;
   gs.max_combo = Math.max(gs.max_combo, gs.combo);
@@ -1334,6 +1335,7 @@ async function 힌트_본체(내세대){
   }
 
   gs.hints -= 1;
+  gs.이번턴_힌트 = true;
   콤보_끊기();   // 힌트를 쓴 턴은 연속 정답으로 치지 않는다
   // 힌트는 난이도와 무관하게 가장 흔한 말부터(초성만 보고도 떠올릴 수 있어야 힌트다)
   const 흔한것 = Math.min(...cands.map(흔함단계));
@@ -1523,6 +1525,7 @@ function 소프트락_진입(){
 function 게임오버(victory){
   gs.game_state = 'GAME_OVER';
   화면('오버');
+  document.getElementById('공유-알림').textContent = '';
   document.getElementById('오버-이모지').textContent = victory ? '🏆' : '💀';
 
   if(gs.game_mode === 'SURVIVAL'){
@@ -1548,6 +1551,35 @@ function 결과_통계(진행){
     + `<div class="over-best">${신기록 ? '🎉 최고 기록!' : `최고 ${Math.max(이전, gs.score).toLocaleString()}점`}</div>`
     + `<div class="over-rows"><span>${진행}</span><span>최고 콤보 ${gs.max_combo}</span>`
     + (gs.longest ? `<span>가장 긴 단어 『${HTML막기(gs.longest)}』</span>` : '') + '</div>';
+  if(gs.흐름.length) document.getElementById('오버-통계').insertAdjacentHTML('beforeend',
+    `<div class="over-flow">${gs.흐름.slice(-40).join('')}</div>`);   // 공유문과 같은 흐름(최근 40턴)
+}
+
+// 결과 공유(2026-09-27, Wordle식) — 단어는 빼고 흐름만 이모지로(최근 40턴, 10개씩 줄바꿈).
+// 휴대폰은 공유 시트, 안 되면 클립보드, 그마저 막히면 복사 실패를 솔직히 알린다(창조주 키 복사와 같은 원칙).
+function 결과_공유문(){
+  const 모드 = gs.game_mode === 'ARCADE' ? `아케이드 ${gs.stage}층` : `서바이벌 ${gs.diff}${gs.infinite ? '·무한' : ''}`;
+  const 흐름 = gs.흐름.slice(-40);
+  const 줄들 = []; for(let i = 0; i < 흐름.length; i += 10) 줄들.push(흐름.slice(i, i + 10).join(''));
+  return [`잇는 끝말잇기 · ${모드}`,
+    `⭐ ${gs.score.toLocaleString()}점 · 🔥최고 ${gs.max_combo}콤보 · ${gs.turn}턴 · 🎯미션 ${gs.mission_count}`,
+    ...줄들, location.href.split('#')[0].split('?')[0]].join('\n');
+}
+async function 결과_공유(){
+  const 글 = 결과_공유문();
+  const 알림 = document.getElementById('공유-알림');
+  const 알려 = m => { if(알림) 알림.textContent = m; };
+  try{
+    if(navigator.share){ await navigator.share({ text: 글 }); 알려('공유했습니다'); return; }
+  }catch(e){ if(e && e.name === 'AbortError') return; }   // 사용자가 공유 창을 닫음
+  try{
+    if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(글); 알려('📋 결과를 복사했습니다'); return; }
+  }catch(e){}
+  const ta = document.createElement('textarea'); ta.value = 글; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta); ta.select();
+  let 성공 = false; try{ 성공 = document.execCommand('copy'); }catch(e){}
+  ta.remove();
+  알려(성공 ? '📋 결과를 복사했습니다' : '복사하지 못했습니다');
 }
 
 function 다시시작(){
