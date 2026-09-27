@@ -105,11 +105,15 @@ function ai_generate_word(gs, 추가후보 = []){
   // 놓고 한방 판정만 로컬 DICTIONARY(280개)로 해서, 온라인 후보가 거의 전부 "한방"으로 탈락했다
   // — 난이도 계층화(초월/심연에서 희귀어 사용)가 6초 네트워크만 쓰고 결과는 버리는 상태였다.
   // 다음 글자를 아직 물어본 적 없으면 한방인지 알 수 없다 → 거르지 않는다(위 조회글자 주석 참조).
+  // 2026-09-28 실사전 아케이드 점검: '뭄'처럼 이을 말이 사실상 없는 글자로 끝나는 단어를 AI가 냈다
+  // (아직 물어보지 않은 글자는 "모름"으로 통과시켰기 때문). 이제 풀에 흔한 말 약 2.3만이 있으므로
+  // ① 풀 안에서 이어질 단어가 있는 것을 먼저 쓰고, ② 없으면 종전처럼 "모름"까지, ③ 그래도 없으면 전부.
   function safe_filter(candidates){
     if(!ai_한방금지인가(gs)) return candidates;
-    const safe = candidates.filter(
-      w => !한방_판정가능인가(w, gs)
-        || !is_hanbang(w, [...used, w], gs.rev, ai_dueum, gs.stage, current_dict));
+    const 이어짐 = w => !is_hanbang(w, [...used, w], gs.rev, ai_dueum, gs.stage, current_dict);
+    const 확실 = candidates.filter(이어짐);
+    if(확실.length) return 확실;
+    const safe = candidates.filter(w => !한방_판정가능인가(w, gs) || 이어짐(w));
     return safe.length ? safe : candidates;
   }
 

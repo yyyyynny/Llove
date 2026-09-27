@@ -373,6 +373,17 @@ async function main(){
     확인('전부 희귀어면 그대로 낸다(판이 막히지 않게)', ctx.흔함_거르기(gs, ['사각심']).join(',') === '사각심');
   }
 
+  /* ── 16. 아케이드 AI는 풀에서 이어질 말이 없는 단어를 피한다 (2026-09-28 실사전 점검) ── */
+  console.log('\n[16] 아케이드 AI 한방 회피');
+  {
+    const { ctx } = 세계만들기();
+    const gs = ctx.새게임상태(); gs.game_mode = 'ARCADE'; gs.ai_last_char = '가';
+    const 나온것 = new Set();
+    for(let i = 0; i < 30; i++){ gs.attack_streak = 0; 나온것.add(ctx.ai_generate_word(gs, ['가뭄', '가방', '방법'])); }
+    확인('아직 물어보지 않은 글자라도 풀에 이을 말이 없으면 피한다(가뭄 X)', !나온것.has('가뭄'), [...나온것].join(','));
+    확인('이어질 말이 있는 단어를 낸다', 나온것.has('가방'));
+  }
+
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
   process.exit(실패 ? 1 : 0);
 }
