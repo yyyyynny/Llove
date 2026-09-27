@@ -285,6 +285,13 @@
     .aw-mean:empty{ display:none; }
     .line.mean{ font-size:11.5px; color:var(--txt2); padding-left:14px; }
     .line.mean:empty{ display:none; }
+    /* 턴 타이머(2026-09-27): 상대 단어 카드 아래 얇은 바 — 절반·4분의 1에서 색만 바뀐다(깜빡임 없음) */
+    .timer{ display:flex; align-items:center; gap:8px; margin-top:10px; }
+    .timer-track{ flex:1; height:5px; background:var(--elev); border-radius:3px; overflow:hidden; }
+    .timer-fill{ height:100%; width:100%; background:var(--acc); border-radius:3px; transition:width .1s linear, background-color .3s; }
+    .timer-fill.warn{ background:var(--warn); }
+    .timer-fill.danger{ background:var(--err); }
+    #타이머-초{ font-size:11px; font-weight:700; color:var(--txt2); min-width:3.2em; text-align:right; font-variant-numeric:tabular-nums; }
     .src-note{ font-size:10px; color:var(--txtm); text-align:center; margin-top:6px; }
     .ai-word.empty{ padding:16px 14px; }
     .ai-word.empty small{ margin-top:0; font-size:14px; color:var(--txt); }
@@ -432,6 +439,9 @@
       <span id="ai-단어">─</span>
       <div class="aw-mean" id="ai-뜻" onclick="버튼_뜻보기()" title="눌러서 뜻 전체 보기"></div>
       <small id="prompt-안내">첫 단어를 자유롭게 입력하세요</small>
+      <div class="timer" id="타이머" style="display:none">
+        <div class="timer-track"><div class="timer-fill" id="타이머-바"></div></div><span id="타이머-초"></span>
+      </div>
       <div id="저주표시" style="display:none;margin-top:6px;font-size:11px;color:var(--err)"></div>
     </div>
     <div class="log" id="로그"></div>

@@ -25,8 +25,45 @@ function 화면(id){
 }
 
 /* ── 점수·콤보 (2026-09-27) ── */
-// 타이머 배치 전까지는 항상 보통 속도(0.75) — 타이머가 생기면 남은 시간 비율을 돌려준다
-function 타이머_속도비율(){ return 0.75; }
+/* ── 턴 타이머 (2026-09-27, 난이도별) ──
+   내 차례일 때만 흐른다 — 사전 확인·AI 차례·선택지(거래·계약 등)·다른 화면에서는 멈춘다(100ms 틱이
+   조건을 보고 스스로 멈추므로 곳곳에서 정지·재개를 부를 필요가 없다). 오타로 다시 입력할 때는 이어서
+   흐르고, 새 차례가 되면(턴·상대 단어가 바뀌면) 새로 채운다. 시간이 다 되면 목숨 -1 후 다시 채운다. */
+const 타이머 = { 키: null, 총: 0, 남은: 0, 제출비율: 0.75, 시각: 0 };
+function 타이머_차례키(){ return gs.turn + ':' + (gs.ai_last_word || '') + ':' + gs.hearts; }
+function 타이머_진행(dt){
+  const 제한 = 턴_제한초(gs);
+  // 다른 앱·탭으로 가 있는 동안(document.hidden)도 멈춘다 — 돌아오자마자 시간 초과가 나지 않게
+  const 켬 = 제한 !== null && gs.game_state === 'PLAYING' && !document.hidden
+    && document.getElementById('s-플레이')?.classList.contains('active');
+  const 칸 = document.getElementById('타이머');
+  if(칸) 칸.style.display = 제한 !== null ? '' : 'none';
+  if(!켬) return;
+  const 키 = 타이머_차례키();
+  if(타이머.키 !== 키){ 타이머.키 = 키; 타이머.총 = 제한 * 1000; 타이머.남은 = 타이머.총; }
+  if(!게임_비동기처리중) 타이머.남은 -= dt;
+  타이머_그리기();
+  if(타이머.남은 <= 0) 시간초과();
+}
+function 타이머_그리기(){
+  const 바 = document.getElementById('타이머-바'), 초 = document.getElementById('타이머-초');
+  if(!바 || !타이머.총) return;
+  const 비율 = Math.max(0, 타이머.남은 / 타이머.총);
+  바.style.width = (비율 * 100) + '%';
+  바.className = 'timer-fill' + (비율 <= 0.25 ? ' danger' : 비율 <= 0.5 ? ' warn' : '');
+  초.textContent = Math.max(0, 타이머.남은 / 1000).toFixed(1) + '초';
+}
+function 시간초과(){
+  콤보_끊기();
+  로그_추가('⏰ 시간 초과!', 'err');   // 목숨 안내는 user_defeat 대사가 이어서 한다
+  const result = user_defeat(gs);   // 목숨이 줄어 차례키가 바뀌므로 다음 틱에 시간이 새로 채워진다
+  타이머.키 = null;
+  if(result === 'game_over'){ 게임오버(false); return; }
+  플레이_HUD갱신(); 프롬프트_갱신();
+}
+setInterval(() => { const 지금 = performance.now(); 타이머_진행(지금 - (타이머.시각 || 지금)); 타이머.시각 = 지금; }, 100);
+// 점수의 속도 배율 — 제출하는 순간의 남은 시간 비율(타이머 없는 판은 보통 속도 0.75)
+function 타이머_속도비율(){ return 타이머.제출비율; }
 function 콤보_끊기(){ gs.combo = 0; }
 // 점수가 오를 때 점수 칸 위로 "+N"이 떠올랐다 사라진다(자주 일어나는 순간이라 짧게 — 700ms).
 function 점수_연출(n){
@@ -140,7 +177,7 @@ function 뒤로_모드(){
 // 난이도 칩의 설명 한 줄 — 숫자는 전부 난이도표에서 읽어 온다(값이 두 곳에 적히지 않게).
 function 난이도설명(이름, 성향){
   const d = 난이도표[이름];
-  return `${d.턴}턴 · 목숨${d.목숨} 힌트${d.힌트} — ${성향}`;
+  return `${d.턴}턴 · 목숨${d.목숨} 힌트${d.힌트}${d.타이머 ? ` · ⏱${d.타이머[0]}초` : ''} — ${성향}`;
 }
 // 악마의 거래가 올려 줄 다음 난이도 — 난이도표의 키 순서(안온→격동→초월→심연)를 따르고 심연에서 멈춘다.
 function 다음난이도(diff){
@@ -171,6 +208,9 @@ const 설정_항목 = [
   { 키:'infinite', 종류:'토글', 아이콘:'🔄', 라벨:'무한 모드', 모드:['SURVIVAL'],
     켬설명:'턴 제한 없이 계속 이어갑니다',
     끔설명:'난이도별 목표 턴까지 생존하면 승리합니다' },
+  { 키:'timer', 종류:'토글', 아이콘:'⏱', 라벨:'턴 타이머',
+    켬설명:'격동 20초·초월 15초·심연 10초에서 시작해 점점 짧아집니다 (안온은 없음)',
+    끔설명:'시간 제한 없이 생각할 수 있습니다' },
   { 키:'phrase', 종류:'토글', 아이콘:'✂️', 라벨:'구 허용',
     켬설명:'띄어쓰기 한 번(두 단어)까지 한 단어로 인정합니다',
     끔설명:'붙여 쓴 한 단어만 인정합니다' },
@@ -369,6 +409,7 @@ function 설정요약_갱신(){
   칩.push(`📏 두음 ${({OFF:'끄기', Flexible:'유연', Strict:'엄격'})[gs.dueum] ?? gs.dueum}`);
   if(gs.hanbang) 칩.push('⚔ 한방 허용');
   if(gs.phrase) 칩.push('✂ 구 허용');
+  if(턴_제한초(gs) !== null) 칩.push('⏱ 타이머');
   if(gs.god_mode_active) 칩.push('🔓 GOD MODE');
   통.innerHTML = 칩.map(t => `<span class="cfg-chip">${t}</span>`).join('');
 }
@@ -551,6 +592,7 @@ function 단어_제출(){
 
   // 폼 기본 제출(새로고침)을 막기 위해 이 함수는 동기적으로 false를 반환하고, 비동기 흐름은
   // 비동기_가드 안에서 처리한다(끝나면 반드시 가드 해제).
+  타이머.제출비율 = 턴_제한초(gs) !== null && 타이머.총 ? Math.max(0, 타이머.남은 / 타이머.총) : 0.75;
   비동기_가드('처리 중', async 내세대 => {
     로그_추가('▶ ' + raw, 'me');
     let [valid, reason] = validate_word(raw, gs);

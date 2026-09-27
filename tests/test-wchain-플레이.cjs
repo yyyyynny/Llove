@@ -240,6 +240,22 @@ async function main(){
     확인('사전에 없는 단어는 콤보를 끊는다', g.combo === 0);
     확인('다시 입력하라는 안내', 로그텍스트(win).includes('다시 입력해 보세요'));
     확인('점수는 그대로', g.score === 점수);
+    // 턴 타이머(난이도별) — 안온 없음, 격동 20초·초월 15초·심연 10초, 5턴마다 1초 감소, 끄면 없음
+    const 제한 = (diff, turn, timer = true) => { const s = { ...g, diff, turn, timer, god_mode_active: false }; return win.턴_제한초(s); };
+    확인('타이머: 안온은 없음', 제한('안온', 0) === null);
+    확인('타이머: 격동 20·초월 15·심연 10초에서 시작', 제한('격동', 0) === 20 && 제한('초월', 0) === 15 && 제한('심연', 0) === 10);
+    확인('타이머: 5턴마다 1초씩 줄고 최소치에서 멈춤', 제한('격동', 10) === 18 && 제한('심연', 100) === 4);
+    확인('타이머: 설정에서 끄면 없음', 제한('심연', 0, false) === null);
+    // 시간이 다 되면 목숨 -1, 사전 확인 중(비동기)에는 흐르지 않는다
+    const 목숨2 = g.hearts;
+    win.eval('게임_비동기처리중 = true'); win.타이머_진행(60000);
+    확인('타이머: 처리 중에는 시간이 흐르지 않는다', g.hearts === 목숨2);
+    win.eval('게임_비동기처리중 = false'); win.타이머_진행(1); win.타이머_진행(60000);
+    확인('타이머: 시간 초과면 목숨 -1', g.hearts === 목숨2 - 1, `${목숨2} → ${g.hearts}`);
+    확인('타이머: 시간 초과 안내', 로그텍스트(win).includes('시간 초과'));
+    win.타이머_진행(1);
+    확인('타이머: 초과 뒤 시간이 다시 채워진다', win.eval('타이머.남은') > 1000);
+
     // 결과 화면에 점수와 최고 기록
     win.eval('게임오버(false)');
     const 통계 = win.document.getElementById('오버-통계').textContent;
@@ -406,8 +422,8 @@ async function main(){
     const 난이도행 = [...d.querySelectorAll('#설정-규칙 .set-row')][0];
     확인('srs가 선택 값 설명으로 갱신됨', 난이도행.textContent.includes('160턴'));
 
-    // 토글 항목 3개(.mt 스위치), 사전 행은 잠금(🔒) 표시
-    확인('토글 항목 3개(한방·무한·구)', d.querySelectorAll('#설정-토글 .mt input').length === 3);
+    // 토글 항목 4개(.mt 스위치), 사전 행은 잠금(🔒) 표시
+    확인('토글 항목 4개(한방·무한·타이머·구)', d.querySelectorAll('#설정-토글 .mt input').length === 4);
     확인('사전 행은 잠금 표시', d.getElementById('설정-사전').textContent.includes('🔒'));
   }
 

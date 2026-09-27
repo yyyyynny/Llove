@@ -332,6 +332,14 @@ function 턴_점수(word, gs, 속도비율 = 0.75){
   return Math.round(기본 * 난이도 * 콤보);
 }
 
+// 이번 턴의 제한 시간(초). null = 타이머 없음(설정에서 끔·안온·GOD MODE).
+function 턴_제한초(gs){
+  if(!gs.timer || gs.god_mode_active) return null;
+  const [시작, 최소] = gs.game_mode === 'ARCADE' ? [Math.max(8, 21 - gs.stage), 7] : (난이도설정(gs).타이머 || []);
+  if(시작 == null) return null;
+  return Math.max(최소, 시작 - Math.floor(gs.turn / 5));
+}
+
 function user_defeat(gs){
   if(gs.game_mode === 'SURVIVAL'){
     if(['안온','격동'].includes(gs.diff) && gs.turn >= 90 && gs.turn <= 99){
