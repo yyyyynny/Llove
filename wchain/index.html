@@ -285,6 +285,12 @@
     .aw-mean:empty{ display:none; }
     .line.mean{ font-size:11.5px; color:var(--txt2); padding-left:14px; }
     .line.mean:empty{ display:none; }
+    /* 미션 글자(2026-09-27): 이을 글자 안내 아래 작은 줄 */
+    .mission{ font-size:11.5px; font-weight:400; color:var(--txt2); margin-top:6px; }
+    .mission b{ color:var(--warn); font-size:13px; }
+    .mission span{ color:var(--txtm); }
+    .mission:empty{ display:none; }
+    .ai-word.empty .mission{ margin-top:8px; }
     /* 턴 타이머(2026-09-27): 상대 단어 카드 아래 얇은 바 — 절반·4분의 1에서 색만 바뀐다(깜빡임 없음) */
     .timer{ display:flex; align-items:center; gap:8px; margin-top:10px; }
     .timer-track{ flex:1; height:5px; background:var(--elev); border-radius:3px; overflow:hidden; }
@@ -444,6 +450,7 @@
       <span id="ai-단어">─</span>
       <div class="aw-mean" id="ai-뜻" onclick="버튼_뜻보기()" title="눌러서 뜻 전체 보기"></div>
       <small id="prompt-안내">첫 단어를 자유롭게 입력하세요</small>
+      <div class="mission" id="미션"></div>
       <div class="timer" id="타이머" style="display:none">
         <div class="timer-track"><div class="timer-fill" id="타이머-바"></div></div><span id="타이머-초"></span>
       </div>
@@ -505,6 +512,8 @@
     <b>사전에 없는 단어(오타)</b>는 목숨을 깎지 않고 다시 입력하게 합니다.</p><br>
     <p><b>점수</b> — 긴 단어일수록, 판이 길어질수록, 빨리 낼수록 높습니다. 어려운 난이도일수록 배율이
     크고(안온 ×0.8 ~ 심연 ×1.5), 3번 연속 맞히면 🔥콤보로 더 오릅니다. 오답·오타·힌트를 쓰면 콤보가 끊깁니다.</p><br>
+    <p><b>미션</b> — 카드에 나온 글자(🎯)가 든 단어를 내면 그 턴 점수 +50%. 달성하면 새 글자로 바뀌고,
+    3번 달성할 때마다 목숨 1개를 돌려받습니다(판 시작 목숨까지).</p><br>
     <p><b>턴 타이머</b> — 격동 20초·초월 15초·심연 10초에서 시작해 5턴마다 1초씩 짧아집니다(안온은 없음,
     설정에서 끌 수 있음). 시간이 다 되면 목숨 1개. 사전을 확인하는 동안은 멈춥니다.</p><br>
     <p><b>뜻</b> — 상대 단어 카드에 첫 뜻이, 내 단어는 기록에 한 줄로 붙습니다. 카드의 뜻을 누르면 전체 뜻풀이를 봅니다.</p><br>

@@ -9,6 +9,7 @@ function 새게임상태(){
     turn: 0, stage: 1, stage_turn: 0,
     score: 0, best: 0, hints: 3, hearts: 2,
     combo: 0, max_combo: 0, longest: '',   // 점수제(2026-09-27): 연속 정답·최고 콤보·가장 긴 단어
+    mission: null, mission_count: 0,        // 미션 글자(2026-09-27): 지금 미션·이번 판 달성 횟수
     attack_streak: 0, yield_attempts: 0, dispute_attempts: 0, deal_offered: false,
     // 반박한단어(2026-08-22): '적절성 검증'이 적절로 나왔을 때 사용자가 반박할 수 있는데,
     // 같은 단어를 몇 번이고 다시 반박하면 "될 때까지 우기기"가 된다. 어떤 단어에 이미
@@ -64,6 +65,14 @@ const 난이도설정 = gs => 난이도표[gs.diff] ?? 난이도표.격동;
 // 값을 흩뿌리지 않도록 여기 한 곳에 모아 둔다.
 const 실수환산 = 4;
 const 아케이드_목숨 = 2 * 실수환산;   // 원본 목숨 2개
+
+// 미션 글자(2026-09-27, 끄투 미션 참고) — 이 글자가 든 단어를 내면 그 턴 점수 +50%(글자가 여러 번이면
+// 그만큼). 달성하면 새 미션으로 바뀌고, 3번 달성할 때마다 목숨 +1(판 시작 목숨까지).
+const 미션_글자들 = ['가','나','다','라','마','바','사','아','자','차','카','타','파','하'];
+function 새미션(이전){
+  const 후보 = 미션_글자들.filter(c => c !== 이전);
+  return 후보[Math.floor(Math.random() * 후보.length)];
+}
 const 목숨보상 = 1 * 실수환산;        // 시련의 탑 계약 보상(원본 +1)
 
 function get_max_turns(gs){
@@ -87,6 +96,7 @@ function reset_game(gs){
   gs.stage = 1;
   gs.turn = 0; gs.stage_turn = 0; gs.score = 0;
   gs.combo = 0; gs.max_combo = 0; gs.longest = '';
+  gs.mission = 새미션(null); gs.mission_count = 0;
   // 목숨·힌트를 난이도표에서 읽는다(2026-07-29). 아케이드는 층 진행이 난이도 역할을 하므로
   // 원본대로 목숨(아케이드_목숨)·힌트 3 고정(아래 ARCADE 분기에서 다시 덮어쓴다).
   const 난 = 난이도설정(gs);

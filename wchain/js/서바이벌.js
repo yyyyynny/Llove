@@ -65,6 +65,22 @@ setInterval(() => { const 지금 = performance.now(); 타이머_진행(지금 - 
 // 점수의 속도 배율 — 제출하는 순간의 남은 시간 비율(타이머 없는 판은 보통 속도 0.75)
 function 타이머_속도비율(){ return 타이머.제출비율; }
 function 콤보_끊기(){ gs.combo = 0; }
+// 미션 글자가 들어 있으면 보너스 점수를 돌려주고 새 미션으로 바꾼다(3번마다 목숨 +1, 시작 목숨까지)
+function 미션_확인(word, 기본점수){
+  if(!gs.mission) return 0;
+  const 개수 = [...word].filter(c => c === gs.mission).length;
+  if(!개수) return 0;
+  const 보너스 = Math.round(기본점수 * 0.5 * 개수);
+  로그_추가(`🎯 미션 달성! 『${gs.mission}』 +${보너스}점`, 'ok');
+  gs.mission_count += 1;
+  const 시작목숨 = gs.game_mode === 'ARCADE' ? 아케이드_목숨 : 난이도설정(gs).목숨;
+  if(gs.mission_count % 3 === 0 && gs.hearts < 시작목숨){
+    gs.hearts += 1;
+    로그_추가('❤️ 미션 3번 달성 — 목숨 +1', 'ok');
+  }
+  gs.mission = 새미션(gs.mission);
+  return 보너스;
+}
 // 점수가 오를 때 점수 칸 위로 "+N"이 떠올랐다 사라진다(자주 일어나는 순간이라 짧게 — 700ms).
 function 점수_연출(n){
   const 칸 = document.getElementById('hud-점수칸');
@@ -499,6 +515,9 @@ function 프롬프트_갱신(){
   const 안내 = document.getElementById('prompt-안내');
   // 이어야 할 글자는 이 화면에서 제일 중요한 정보인데 종전엔 작은 회색 안내문에 묻혀 있었다 —
   // 배지로 띄워 한눈에 들어오게 한다(2026-07-28). 방향에 따라 '시작/끝'도 정확히 구분한다.
+  const 미션칸 = document.getElementById('미션');
+  if(미션칸) 미션칸.innerHTML = gs.mission
+    ? `🎯 미션 <b>${HTML막기(gs.mission)}</b> 넣기 · 점수 +50%${gs.mission_count ? ` <span>(${gs.mission_count}회 달성)</span>` : ''}` : '';
   안내.innerHTML = gs.ai_last_char
     ? `<span class="need">${HTML막기(gs.ai_last_char)}</span>(으)로 `
       + `${gs.rev ? '끝나는' : '시작하는'} 단어`
@@ -681,7 +700,8 @@ async function 단어_처리(raw, valid, reason){
   gs.combo += 1;
   gs.max_combo = Math.max(gs.max_combo, gs.combo);
   if(raw.length > gs.longest.length) gs.longest = raw;
-  const 얻은점수 = 턴_점수(raw, gs, 타이머_속도비율());
+  let 얻은점수 = 턴_점수(raw, gs, 타이머_속도비율());
+  얻은점수 += 미션_확인(raw, 얻은점수);
   gs.score += 얻은점수;
   점수_연출(얻은점수);
 

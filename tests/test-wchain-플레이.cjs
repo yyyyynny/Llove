@@ -240,6 +240,20 @@ async function main(){
     확인('사전에 없는 단어는 콤보를 끊는다', g.combo === 0);
     확인('다시 입력하라는 안내', 로그텍스트(win).includes('다시 입력해 보세요'));
     확인('점수는 그대로', g.score === 점수);
+    // 미션 글자 — 든 글자 수만큼 +50%, 달성하면 바뀌고, 3번마다 목숨 +1(시작 목숨까지)
+    확인('미션: 판 시작 때 미션 글자가 정해진다', typeof g.mission === 'string' && g.mission.length === 1);
+    확인('미션: 카드에 미션 표시', win.document.getElementById('미션').textContent.includes(g.mission));
+    const 미션 = g.mission;
+    확인('미션: 없는 단어면 보너스 0', win.미션_확인('뷁뷁', 100) === 0 && g.mission === 미션);
+    확인('미션: 두 번 들어가면 +100%', win.미션_확인(미션 + '다' + 미션, 100) === 100);
+    확인('미션: 달성하면 다른 글자로 바뀐다', g.mission !== 미션 && g.mission_count === 1);
+    g.hearts = 1; g.mission_count = 2;
+    win.미션_확인(g.mission, 10);
+    확인('미션: 3번째 달성에 목숨 +1', g.hearts === 2 && g.mission_count === 3);
+    g.hearts = 7; g.mission_count = 5;
+    win.미션_확인(g.mission, 10);
+    확인('미션: 시작 목숨(격동 7)보다 늘지 않는다', g.hearts === 7);
+
     // 턴 타이머(난이도별) — 안온 없음, 격동 20초·초월 15초·심연 10초, 5턴마다 1초 감소, 끄면 없음
     const 제한 = (diff, turn, timer = true) => { const s = { ...g, diff, turn, timer, god_mode_active: false }; return win.턴_제한초(s); };
     확인('타이머: 안온은 없음', 제한('안온', 0) === null);
