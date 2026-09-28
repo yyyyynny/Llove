@@ -178,7 +178,7 @@
   <div class="modal-bx" onclick="event.stopPropagation()">
     <div class="modal-icon">✏️</div>
     <div class="modal-title">이름 변경</div>
-    <input class="nm-inp" id="nmModalInp" placeholder="새 이름을 입력하세요" maxlength="12" style="margin:8px 0 16px">
+    <input class="nm-inp" id="nmModalInp" aria-label="새 이름" placeholder="새 이름을 입력하세요" maxlength="12" style="margin:8px 0 16px">
     <div class="modal-btns">
       <button class="btn-g" style="flex:1" onclick="closeNmModal()">취소</button>
       <button class="btn-acc" style="flex:2" onclick="applyNmChange()">변경하기</button>
@@ -241,7 +241,7 @@
     </div>
     <div class="ct-palette" id="ctPalette"></div>
     <div style="display:flex;gap:8px;margin-top:12px">
-      <input class="nm-inp" id="ctName" placeholder="테마 이름(선택)" maxlength="16" style="flex:1;margin:0">
+      <input class="nm-inp" id="ctName" aria-label="테마 이름" placeholder="테마 이름(선택)" maxlength="16" style="flex:1;margin:0">
       <button class="btn-g" onclick="커스텀_랜덤()">🎲 랜덤</button>
     </div>
     <button class="btn-acc" style="width:100%;margin-top:10px" onclick="커스텀_적용()">이 색으로 적용</button>
@@ -267,13 +267,13 @@
       🔒 현재 봉인 상태입니다(서버 미준비). 서버 준비 후 코드의 <code>음성생성_활성화</code>를 켜면 동작합니다.
     </div>
     <label class="vc-lbl" for="음성엔드포인트입력">서버 엔드포인트 주소</label>
-    <input class="nm-inp" id="음성엔드포인트입력" placeholder="https://... (로컬 터널 또는 클라우드 GPU)" style="width:100%;margin:4px 0 8px;box-sizing:border-box">
+    <input class="nm-inp" id="음성엔드포인트입력" aria-label="음성 서버 주소" placeholder="https://... (로컬 터널 또는 클라우드 GPU)" style="width:100%;margin:4px 0 8px;box-sizing:border-box">
     <div style="display:flex;gap:8px;margin-bottom:6px">
       <button class="btn-g" style="flex:1" onclick="음성엔드포인트_저장()">주소 저장</button>
       <button class="btn-g" style="flex:1" onclick="음성엔드포인트_지우기()">주소 지우기</button>
     </div>
     <label class="vc-lbl" for="음성테스트입력">테스트 문장</label>
-    <textarea id="음성테스트입력" class="vc-ta" placeholder="예) 안녕하세요, 끝말잇기 시작할게요" maxlength="120"></textarea>
+    <textarea id="음성테스트입력" aria-label="음성 테스트 문장" class="vc-ta" placeholder="예) 안녕하세요, 끝말잇기 시작할게요" maxlength="120"></textarea>
     <!-- 로딩 표시(회전 금지 — 점 불투명도 펄스) -->
     <div id="음성로딩" class="vc-loading" style="display:none">
       <span class="vc-dot"></span><span class="vc-dot"></span><span class="vc-dot"></span>
@@ -320,7 +320,7 @@
   <div id="askInputArea" style="padding:12px 18px;border-top:1px solid var(--bdr);background:var(--card)">
     <div class="ask-input-row">
       <!-- 세션10-h: Enter 전송/줄바꿈 분기는 질문입력_Enter처리()가 기기별(모바일=줄바꿈, PC=전송)로 판단 -->
-      <textarea class="ask-input" id="askInp" placeholder="질문을 입력하세요..." rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" oninput="질문입력_높이조절(this)" onkeypress="질문입력_Enter처리(event)"></textarea>
+      <textarea class="ask-input" id="askInp" aria-label="질문" placeholder="질문을 입력하세요..." rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" oninput="질문입력_높이조절(this)" onkeypress="질문입력_Enter처리(event)"></textarea>
       <button class="ask-send" onclick="sendAsk()">전송</button>
     </div>
   </div>
@@ -335,7 +335,7 @@
     <div class="obj-note" id="objNote" style="display:none"></div>
     <!-- v3.7 항목5: obj-sub — 컨텍스트(synonym/speak/general)별 안내문 분기 표시 -->
     <div class="obj-desc obj-sub">정말로 이 답변이 틀렸다고 생각하십니까?<br>어디가 어떻게 왜 틀렸는지 구체적으로 적어주세요.<br><b>Grok 교차검증 후 인정 시</b> [반박의 화신] 카운터가 올라갑니다.</div>
-    <textarea class="obj-input" id="objInp" placeholder="반박 내용을 입력하세요..."></textarea>
+    <textarea class="obj-input" id="objInp" aria-label="반박 내용" placeholder="반박 내용을 입력하세요..."></textarea>
     <div class="obj-btns">
       <button class="btn-g" style="flex:1" onclick="closeObj()">취소</button>
       <button class="btn-acc" style="flex:2" onclick="submitObj()">반박 제출</button>
@@ -387,7 +387,7 @@
     <div class="fu" style="text-align:center"><h2 style="font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:6px">✨ 환영합니다!</h2><p style="font-size:13px;color:var(--txt2);line-height:1.75">학습 연대기에서 사용할<br>이름을 설정해 주세요</p></div>
     <div class="fu s1">
       <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:6px">이름 (닉네임)</label>
-      <input class="nm-inp" id="nmInp" type="text" placeholder="이름을 입력하세요" maxlength="12" oninput="updateNmPreview()">
+      <input class="nm-inp" id="nmInp" aria-label="이름" type="text" placeholder="이름을 입력하세요" maxlength="12" oninput="updateNmPreview()">
     </div>
     <div class="nm-prev fu s2" id="nmPrev">
       <div class="nm-av" id="nmAvatar">⚔️</div>
@@ -798,7 +798,7 @@
         <div class="spk-mode-btn" id="spkMVoice" onclick="switchSpkMode('voice')">🎤 음성</div>
       </div>
       <div id="spkTextArea">
-        <textarea class="spk-textarea" id="spkInput" placeholder="위 예문(또는 다듬고 싶은 말)을 격식체로 바꿔 입력하세요."></textarea>
+        <textarea class="spk-textarea" id="spkInput" aria-label="격식체로 바꾼 문장" placeholder="위 예문(또는 다듬고 싶은 말)을 격식체로 바꿔 입력하세요."></textarea>
       </div>
       <div id="spkVoiceArea" style="display:none">
         <!-- 항목8: 브라우저 Web Speech API(SpeechRecognition) 기반 한국어 음성 입력 -->

@@ -948,3 +948,5 @@ html[data-글자범위="전체"] .btn-acc{font-size:calc(15px*var(--글자배율
   .ach-item:hover .ach-icon{transform:scale(1.1)}
   .ct-sw-opt:hover{transform:scale(1.12)}
 }
+/* 두 번 탭 확대 지연 제거(웹 인터페이스 지침, 2026-09-29) */
+button,input,textarea,select{touch-action:manipulation}
