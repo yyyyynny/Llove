@@ -47,6 +47,17 @@ async function main() {
       결과[1].뜻풀이.length === 1 && 결과[1].뜻풀이[0].includes('붓과 벼루'));
   }
 
+  // (1-2) 묶음별 일반수 — 전문 분야(cat)·비일반어 뜻은 세지 않는다(2026-09-28 '이중').
+  {
+    const 이중 = [
+      { word: '이중', sense: [{ definition: '시문 둘째 등급', origin: '二中', cat: '문학' }, { definition: '국궁 두 번 맞힘', origin: '二中', cat: '체육' }] },
+      { word: '이중', sense: [{ definition: '두 겹.', origin: '二重', type: '일반어' }, { definition: '성명의 중간 음역', origin: '二重', cat: '불교' }] },
+    ];
+    const 결과 = await 뜻풀이_그룹화_비동기(ENV, 이중);
+    assert('이중: 二中 묶음 일반수 0, 二重 묶음 일반수 1',
+      결과[0].일반수 === 0 && 결과[1].일반수 === 1, JSON.stringify(결과));
+  }
+
   // (2) 순우리말 동음이의어 — origin 없음, view API의 group_code로 분리돼야 한다.
   {
     const viewMap = { A: { group_code: '1' }, B: { group_code: '1' }, C: { group_code: '2' } };

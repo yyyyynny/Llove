@@ -196,7 +196,11 @@ const 뷰_추가조회_최대 = 30;
 
 async function 뜻풀이_그룹화_비동기(env, items){
   const 어원있음 = new Map();   // 'origin:필드값' → 뜻풀이[]
-  const 어원없음 = [];          // { definition, target_code, word } — 순서 보존
+  const 어원없음 = [];          // { definition, target_code, word, 일반 } — 순서 보존
+  // 2026-09-28: 묶음별 '일반 뜻'(전문 분야 cat 없음·일반어) 개수 — 클라이언트 대표뜻()이 흔한 묶음을 고르는 기준.
+  // '이중'은 묶음마다 뜻이 2개씩이라 개수로는 못 가려 옛 등급(二中)이 대표 뜻으로 떴다.
+  const 일반수 = new Map();
+  const 일반인가 = s => !s.cat && (!s.type || s.type === '일반어');
 
   for(const it of items){
     if(!it) continue;
@@ -207,8 +211,9 @@ async function 뜻풀이_그룹화_비동기(env, items){
         const 키 = 'origin:' + s.origin;
         if(!어원있음.has(키)) 어원있음.set(키, []);
         어원있음.get(키).push(String(s.definition));
+        일반수.set(키, (일반수.get(키) || 0) + (일반인가(s) ? 1 : 0));
       } else {
-        어원없음.push({ definition: String(s.definition), target_code: s.target_code, word: it.word });
+        어원없음.push({ definition: String(s.definition), target_code: s.target_code, word: it.word, 일반: 일반인가(s) });
       }
     }
   }
@@ -228,14 +233,16 @@ async function 뜻풀이_그룹화_비동기(env, items){
       const 키 = 그룹코드 != null ? ('group:' + 그룹코드) : ('tc:' + s.target_code);
       if(!어원없음그룹.has(키)) 어원없음그룹.set(키, []);
       어원없음그룹.get(키).push(s.definition);
+      일반수.set(키, (일반수.get(키) || 0) + (s.일반 ? 1 : 0));
     }
   } else if(어원없음.length){
     // 뜻이 1개뿐이거나 target_code가 없거나 상한을 넘음 — 안전하게 표제어 하나로 합친다.
     어원없음그룹.set('word:' + 어원없음[0].word, 어원없음.map(s => s.definition));
+    일반수.set('word:' + 어원없음[0].word, 어원없음.filter(s => s.일반).length);
   }
 
   // 등장 순서(= opendict가 준 순서, 대개 흔한 뜻부터) 그대로 번호만 매긴다.
-  return [...어원있음.values(), ...어원없음그룹.values()].map((뜻풀이, i) => ({ 번호: i + 1, 뜻풀이 }));
+  return [...어원있음.entries(), ...어원없음그룹.entries()].map(([키, 뜻풀이], i) => ({ 번호: i + 1, 뜻풀이, 일반수: 일반수.get(키) || 0 }));
 }
 
 // ── ① 단어 존재 여부 + 뜻풀이 ──────────────────────────────────────────

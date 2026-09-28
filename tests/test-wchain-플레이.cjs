@@ -234,6 +234,10 @@ async function main(){
     win.국어원_단어조회_상세 = async () => ({ 존재: true, 뜻풀이그룹: [{ 뜻풀이: ['그이의 아버지.'] }, { 뜻풀이: ['안쪽의 부분.', '조직의 안.'] }] });
     await win.뜻_붙이기('내부', 칸);
     확인('뜻: 동음이의어 중 뜻이 많은 묶음을 보인다', 칸.textContent === '안쪽의 부분.', 칸.textContent);
+    win.국어원_단어조회_상세 = async () => ({ 존재: true, 뜻풀이그룹: [
+      { 뜻풀이: ['시문 둘째 등급.', '국궁 두 번 맞힘.'], 일반수: 0 }, { 뜻풀이: ['두 겹.', '중간 음역.'], 일반수: 1 }] });
+    await win.뜻_붙이기('이중', 칸);
+    확인('뜻: 뜻 개수가 같으면 일반 뜻이 많은 묶음(이중→두 겹)', 칸.textContent === '두 겹.', 칸.textContent);
     win.국어원_단어조회_상세 = 원상세;
     확인('정답이면 점수가 오른다', g.score > 0, String(g.score));
     확인('HUD에 점수 표시', win.document.getElementById('hud-점수').textContent === g.score.toLocaleString());
