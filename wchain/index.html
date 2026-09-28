@@ -273,7 +273,8 @@
     .share-note{ font-size:12px; color:var(--ok); min-height:16px; margin:-4px 0 6px; text-align:center; }
     .over-rows{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px 14px; font-size:12px; color:var(--txt2); }
     .hud-lbl{ font-size:10px; color:var(--txt2); margin-bottom:2px; }
-    .hud-val{ font-size:13px; font-weight:700; white-space:nowrap; }
+    .hud-val{ font-size:13px; font-weight:700; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    button, input{ touch-action:manipulation; }   /* 두 번 탭 확대 지연 제거(웹 인터페이스 지침) */
     .bar-track{ background:var(--bg); border-radius:999px; height:5px; overflow:hidden; margin-bottom:10px; }
     .bar-fill{ height:100%; background:linear-gradient(90deg,var(--acc),var(--accl)); transition:width .3s; min-width:2px; }
     .status-🟢{ color:var(--ok); } .status-🟡{ color:var(--warn); } .status-🔴{ color:var(--err); }
@@ -478,10 +479,10 @@
       </div>
       <div id="저주표시" style="display:none;margin-top:6px;font-size:11px;color:var(--err)"></div>
     </div>
-    <div class="log" id="로그"></div>
+    <div class="log" id="로그" role="log"></div>
     <div class="choice-box" id="선택박스" style="display:none"></div>
     <form class="input-row fu" id="입력폼" onsubmit="return 단어_제출()">
-      <input id="단어입력" placeholder="단어를 입력하세요" autocomplete="off" maxlength="20" oninput="입력중_선조회()">
+      <input id="단어입력" aria-label="단어 입력" placeholder="단어를 입력하세요" autocomplete="off" maxlength="20" oninput="입력중_선조회()">
       <button type="submit">전송</button>
     </form>
     <div class="util-row fu">
