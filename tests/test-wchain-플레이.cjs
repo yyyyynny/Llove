@@ -946,13 +946,13 @@ async function main(){
     // (4) 후보 캐시 — 버전 접미사가 붙고, 빈 목록은 저장하지 않는다.
     //     빈 목록이 영구히 박히면 Worker를 고쳐도 그 기기에서는 계속 막다른 길이 된다.
     const 국어원 = fs.readFileSync(path.join(WCHAIN, 'js/국어원.js'), 'utf8');
-    확인('후보 캐시 키에 버전이 붙었다', 국어원.includes("'plx_잇는_국어원후보캐시_v3'"));
+    확인('후보 캐시 키에 버전이 붙었다', 국어원.includes("'plx_잇는_국어원후보캐시_v4'"));
 
     const { win } = 페이지열기({ 온라인: '없음' });     // 후보 0건을 돌려주는 스텁
     await 대사대기(win);
     판시작(win);
     await 단어넣기(win, '사슴');
-    const 캐시 = JSON.parse(win.localStorage.getItem('plx_잇는_국어원후보캐시_v3') || '{}');
+    const 캐시 = JSON.parse(win.localStorage.getItem('plx_잇는_국어원후보캐시_v4') || '{}');
     확인('빈 후보 목록은 캐시에 남지 않는다', Object.keys(캐시).length === 0,
          JSON.stringify(캐시));
   }

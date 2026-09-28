@@ -80,7 +80,7 @@ const 정규화 = w => String(w).replace(/[-^]/g, '').trim();
 // 상세 배경은 파일 상단 헤더 참조. 여기서는 진입점(fetch)에서만 쓰고, 단어존재조회()·
 // 후보목록조회() 등 순수 함수는 건드리지 않는다 — 그래서 테스트(caches 전역이 없는
 // Node/jsdom 환경, tests/test-worker-*.cjs)는 이 함수들과 무관하게 그대로 통과한다.
-const 캐시_버전 = 'v2'; // 2026-08-30: 동사·형용사 후보 필터 신설로 올림. 필터·그룹화 로직을 바꾸면 이 값을 올릴 것(안 올리면 예전 로직으로
+const 캐시_버전 = 'v3'; // 2026-09-28: 후보 서버필터(많이 찾은 순 등)로 올림. 2026-08-30: 동사·형용사 후보 필터 신설로 올림. 필터·그룹화 로직을 바꾸면 이 값을 올릴 것(안 올리면 예전 로직으로
                         // 만든 캐시 응답이 TTL 끝날 때까지 계속 나간다).
 const 캐시_TTL초 = 60 * 60 * 24 * 3; // 3일 — 사전 데이터는 그새 바뀔 일이 거의 없다.
 
@@ -150,10 +150,10 @@ async function 오픈API_요청(env, 주소, 파라미터, 이름){
 // 고급 검색(advanced=y, target=1=표제어) — method는 exact | start | end.
 // num은 최솟값 제약이 있어(실측: num=1은 "Invalid num value"로 거부, num=20/100은 정상)
 // 호출부가 항상 유효한 범위의 값을 넘긴다.
-async function 오픈API_검색(env, { q, method, start = 1, num }){
+async function 오픈API_검색(env, { q, method, start = 1, num, 추가 = {} }){
   const data = await 오픈API_요청(env, 국어원_API_기준주소, {
     target_type: 'search', part: 'word', sort: 'dict',
-    advanced: 'y', target: 1, method, start, num, q,
+    advanced: 'y', target: 1, method, start, num, q, ...추가,
   }, '오픈API');
   const channel = data && data.channel;
   const items = (channel && Array.isArray(channel.item)) ? channel.item : [];
@@ -314,6 +314,10 @@ function 후보_부적절한가(it){
 // 다 담기고, 후보 품질 필터를 거치면 어차피 10~20개 안팎으로 줄어드니 실질 손해는 적다.
 const 후보_페이지당개수 = 30;
 const 후보_최대페이지 = 3;   // 최대 90개. 페이지 수를 늘리면 후보는 늘지만 왕복도 늘어난다.
+// 2026-09-28 실사전 점검: 우리말샘순(가나다) 앞 90개만 받으면 '면'은 면각·면간 같은 전문어뿐이라
+// 필터 후 0개('셈'도 0개)였다. 공식 요청 변수(opendict 오픈API 안내)로 서버에서 먼저 거른다 —
+// 많이 찾은 순, 단어·일반어·일상어·명사, 2음절 이상. 아래 후보_부적절한가()는 안전망으로 유지.
+const 후보_서버필터 = { sort: 'popular', type1: 'word', type3: 'general', type4: 'general', pos: 1, letter_s: 2 };
 
 // 2026-08-22 — 후보 조회가 curl 실측 8.8초로 나와 무엇이 느린지(페이지 개수 자체 vs 페이지당
 // 요청 하나의 원래 속도) 확인이 필요했다. 진단 모드일 때 페이지별 왕복 시간을 재서 같이
@@ -328,7 +332,7 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
         const t0 = Date.now();
         const 결과 = await 오픈API_검색(env, {
           q: 글자, method,
-          start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수,
+          start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수, 추가: 후보_서버필터,
         }).catch(() => ({ items: [] }));
         결과._ms = Date.now() - t0;
         return 결과;
