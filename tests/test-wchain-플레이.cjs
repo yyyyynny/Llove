@@ -255,6 +255,7 @@ async function main(){
     확인('사전에 없는 단어는 목숨 그대로', g.hearts === 목숨, `${목숨} → ${g.hearts}`);
     확인('받아들여지지 않은 단어 말풍선은 흐리게(bad)', [...win.document.querySelectorAll('#로그 .line.bubble.me')].pop().classList.contains('bad'));
     확인('사전에 없는 단어는 콤보를 끊는다', g.combo === 0);
+    확인('오답이면 입력창이 흔들린다', win.document.getElementById('단어입력').classList.contains('hit'));
     확인('다시 입력하라는 안내', 로그텍스트(win).includes('다시 입력해 보세요'));
     확인('점수는 그대로', g.score === 점수);
     // 미션 글자 — 든 글자 수만큼 +50%, 달성하면 바뀌고, 3번마다 목숨 +1(시작 목숨까지)

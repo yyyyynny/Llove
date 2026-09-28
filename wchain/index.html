@@ -139,7 +139,15 @@
 
     /* 목숨·힌트가 줄었을 때 흔드는 용도 — Llove style.css의 shakeLR과 동일(2026-08-15 신설) */
     @keyframes shakeLR{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
-    .hud-val.hit{ animation:shakeLR .38s ease both; }
+    .hud-val.hit, #단어입력.hit{ animation:shakeLR .38s ease both; }
+    /* 개편계획 4번(2026-09-29) — 매 턴은 짧게(말풍선 160ms·콤보 120ms), 드문 결과 화면에만 길게 */
+    .log .line.bubble{ animation:bubbleIn .16s var(--ease-out) both; }
+    @keyframes bubbleIn{ from{ opacity:0; transform:translateY(6px) scale(.97); } }
+    .combo.pop{ display:inline-block; animation:comboPop .12s var(--ease-out) both; }
+    @keyframes comboPop{ from{ opacity:.4; transform:scale(.9); } }
+    .over-score{ animation:fadeUp .45s var(--ease-out) both; }
+    .over-best, .over-rows{ animation:fadeUp .45s var(--ease-out) .08s both; }
+    .over-flow{ animation:fadeUp .45s var(--ease-out) .16s both; }
 
     /* 모션에 민감한 사용자를 위한 전역 폴백 — Llove style.css와 동일(wchain은 별도 스타일시트라
        여기도 따로 넣어야 함). */

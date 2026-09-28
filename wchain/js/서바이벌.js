@@ -406,7 +406,9 @@ function 플레이_HUD갱신(){
   힌트요소.textContent = 표시무한(gs.hints) + '개';
   document.getElementById('hud-점수').textContent = gs.score.toLocaleString();
   const 콤보요소 = document.getElementById('hud-콤보');
-  콤보요소.textContent = gs.combo >= 3 ? `🔥${gs.combo}` : '';
+  const 새콤보 = gs.combo >= 3 ? `🔥${gs.combo}` : '';
+  if(새콤보 && 콤보요소.textContent !== 새콤보){ 콤보요소.classList.remove('pop'); void 콤보요소.offsetWidth; 콤보요소.classList.add('pop'); }
+  콤보요소.textContent = 새콤보;
   // 실수(strikes) 폐지(2026-07-29)로 이 칸은 목숨 하나만 보여준다 — 종전 "목숨 · 실수" 2단 표기 삭제.
   목숨요소.textContent = `${표시무한(gs.hearts)}개`;
   // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
@@ -705,6 +707,7 @@ async function 단어_처리(raw, valid, reason){
     // 규칙이 게임을 못 하게 만들어, 부적합 단어는 다른 오답처럼 목숨 1개 차감으로 처리한다
     // (경위: wchain/시스템.md 노션 11번 항목, 철회 전 구현은 git 이력).
     마지막_내말풍선?.classList.add('bad');   // 받아들여지지 않은 단어는 흐리게·취소선
+    흔들기(document.getElementById('단어입력'));   // 오답 피드백(개편계획 4번)
     로그_추가(대사(gs, '단어_처리_8', [reason]), 'err');
     // 사전에 없는 단어(대개 오타)는 목숨을 깎지 않고 다시 입력하게 한다(2026-09-27 관리자님 결정 —
     // 끄투 방식. 타이머를 켠 판에서는 흘러간 시간이 곧 벌칙이다). 규칙 위반(한방·중복·글자)은 그대로 차감.
