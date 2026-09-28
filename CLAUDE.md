@@ -248,3 +248,16 @@ border-radius·padding·transition 속도도 기존 패턴을 따를 것. 다크
   주로 쓸 것: animate · apple-design · review-animations · improve-animations ·
   find-animation-opportunities · redesign-existing-projects · frontend-design · web-design-guidelines
 - 디자인 개편 착수 시: 모달·접이식·클릭 div를 dialog/details/button으로(Q13, 인계 노트 12번)
+
+## 최종 검수 체크리스트 (배포·PR 전 반드시 전부 확인 — 기억에 의존하지 말고 이 목록으로)
+
+> 새로 발견한 "나중에 봐야 할 것"은 대화에만 두지 말고 즉시 여기에 한 줄 추가한다.
+
+- [ ] **Worker 출처(origin) 검사는 브라우저 밖 스크립트가 속일 수 있음**(2026-09-29 확인) — 적절성 판정
+      Worker는 AI 비용이 나가므로 Cloudflare Rate limiting 규칙(IP당 분당 제한)·AI 제공사 월 한도 설정 여부 확인
+- [ ] 게임 주소가 바뀌면 Worker 2개의 `허용_ORIGIN` 갱신 + 재배포(안 하면 403)
+- [ ] API 키가 코드·git 기록에 없는지(`git log -p`로 키 형태 검색), 시크릿은 Cloudflare에만
+- [ ] `GROK_활성화`·`음성생성_활성화` 플래그가 승인 없이 바뀌지 않았는지
+- [ ] `npm test`·`check:js`·`check:deploy`·`check:html` 전부 통과
+- [ ] Worker 소스를 고쳤다면 재배포했는지(레포 커밋만으로는 적용 안 됨)
+- [ ] 보안 점검 스킬(`/security-review`)로 한 번 더 훑기
