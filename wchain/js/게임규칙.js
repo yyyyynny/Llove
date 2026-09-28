@@ -282,7 +282,15 @@ async function 온라인후보_가져오기(gs){
   마지막_온라인조회 = { 상태:'미시도', 개수:0 };
   if(!국어원_활성화 || !gs.ai_last_char) return [];
 
-  const { 결과들, 기록 } = await 이을단어_조회(gs.ai_last_char, gs);
+  // 2026-09-29 실측: 우리말샘이 느린 순간 한 턴이 15초까지 멈췄다. 흔한 말 풀에 이을 말이 이미 있으면
+  // Worker는 1초까지만 기다린다 — 늦게 온 결과는 기기 캐시에 남아 다음 조회에 쓰인다.
+  // ponytail: 고정 1초 — 느린 날 희귀어 후보가 줄어든다. 문제되면 난이도별 대기시간으로
+  const 조회 = 이을단어_조회(gs.ai_last_char, gs);
+  const 풀에있음 = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, 0,
+                            족쇄_최소길이(gs.stage), ai_후보사전(gs)).length > 0;
+  const 받음 = 풀에있음 ? await Promise.race([조회, new Promise(r => setTimeout(r, 1000, null))]) : await 조회;
+  if(!받음) return [];   // 기다리지 않고 풀로 진행(상태 '미시도' — 안내 없음)
+  const { 결과들, 기록 } = 받음;
   // 전부 실패했을 때만 실패로 본다 — 하나라도 받아 왔으면 그걸로 진행하는 편이 낫다.
   if(결과들.every(r => r === null)){
     연속_조회실패 += 1;

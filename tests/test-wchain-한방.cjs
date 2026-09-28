@@ -32,7 +32,7 @@ function 확인(이름, 조건, 비고 = ''){
 function 세계만들기({ 게이트 = true, 온라인 = '정상', 모드 = 'SURVIVAL', 보조사전 = null } = {}){
   const 조회기록 = [];
   const ctx = {
-    console,
+    console, setTimeout,
     국어원_활성화: 게이트,
     // 온라인 사전 스텁.
     //   '정상' → 요청한 글자로 이을 수 있는 단어를 만들어 돌려준다
@@ -41,6 +41,7 @@ function 세계만들기({ 게이트 = true, 온라인 = '정상', 모드 = 'SUR
     async 국어원_후보목록조회(글자, 방향){
       조회기록.push({ 글자, 방향 });
       if(온라인 === '실패') return null;
+      if(온라인 === '멈춤') return new Promise(() => {});   // 응답이 안 오는 Worker
       if(온라인 === '없음') return [];
       // 13층 3글자 족쇄까지 통과하도록 3글자. 실제 우리말샘처럼 여러 개를 주고,
       // 끝 글자가 다시 조회 가능한 글자가 되게 해서 판이 이어지도록 한다.
@@ -391,6 +392,18 @@ async function main(){
     확인('Worker 후보 0개 + 빈도 목록도 없으면 한방 확정', (await ctx.한방_확정인가('화면', gs)) === true);
     vm.runInContext("빈도_단어들 = ['면적', '면허'];", ctx);
     확인('빈도 목록에 이을 말(면적)이 있으면 한방 아님', (await ctx.한방_확정인가('화면', gs)) === false);
+  }
+
+  /* ── 18. 풀에 이을 말이 있으면 느린 Worker를 1초까지만 기다린다 (2026-09-29 — 한 턴 15초 멈춤) ── */
+  console.log('\n[18] AI 후보 대기 상한');
+  {
+    const { ctx, gs } = 세계만들기({ 온라인: '멈춤' });
+    vm.runInContext("빈도_단어들 = ['가방', '방법'];", ctx);
+    gs.ai_last_char = '가';
+    const 시작 = Date.now();
+    const 목록 = await ctx.온라인후보_가져오기(gs);
+    const 걸림 = Date.now() - 시작;
+    확인('응답 없는 Worker여도 약 1초 뒤 풀로 진행', 목록.length === 0 && 걸림 >= 900 && 걸림 < 2500, 걸림 + 'ms');
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
