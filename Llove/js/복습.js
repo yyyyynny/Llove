@@ -161,8 +161,8 @@ function 복습탭_렌더(wrapId, 머리글, 목록, 빈안내, 메타, 액션, 
       <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
         <div class="rv-idx">${idx}</div>
         <div style="flex:1">
-          <div class="rv-word">${item.단어}</div>
-          <div class="rv-desc">${item.뜻}</div>
+          <div class="rv-word">${문자열_이스케이프(item.단어)}</div>
+          <div class="rv-desc">${문자열_이스케이프(item.뜻)}</div>
           <div class="rv-meta"><span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span>${메타(item)}</div>
         </div>
         <div class="rv-acts">${액션(item)}</div>

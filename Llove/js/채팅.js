@@ -719,7 +719,7 @@ function 사전결과_HTML(결과){
   const 그룹 = 뜻풀이그룹_정규화(결과);
   if(!그룹.length) return '사전에서 찾을 수 없는 단어입니다.';
   const 출처 = '<div style="font-size:11px;color:var(--txtm);margin-top:8px">출처: 국립국어원 우리말샘·표준국어대사전 (CC BY-SA 2.0 KR)</div>';
-  const 번호목록 = 뜻들 => 뜻들.map((뜻,i)=>`${i+1}. ${뜻}`).join('<br>');
+  const 번호목록 = 뜻들 => 뜻들.map((뜻,i)=>`${i+1}. ${문자열_이스케이프(뜻)}`).join('<br>');
   if(그룹.length === 1) return 번호목록(그룹[0].뜻풀이) + 출처;
   const 블록들 = 그룹.map((g,gi)=>{
     // ①~⑳은 U+2460부터 연속 — 그 너머는 (21) 같은 괄호 번호
