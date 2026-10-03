@@ -963,14 +963,24 @@
 
     <div class="set-sec fu s1">
       <div class="set-lbl">외관</div>
-      <!-- 세션10-k: 다크/라이트 토글 삭제 — 라이트 테마가 페이퍼 하나뿐이라 실질적으로 "페이퍼로 전환"
-           스위치에 불과했고, 아래 「테마 선택」 그리드와 기능이 겹쳐 정신모델 혼동만 유발(최고 관리자님 확정) -->
+      <div class="th-grid">
+        <div class="tc on" id="th-antique" onclick="setTheme('antique')"><div class="tp-bg tp-a"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">고서</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-navy" onclick="setTheme('navy')"><div class="tp-bg tp-n"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">네이비</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-midnight" onclick="setTheme('midnight')"><div class="tp-bg tp-m"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">미드나이트</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-paper" onclick="setTheme('paper')"><div class="tp-bg tp-p"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr" style="background:#ede8df;border-top-color:#d8d0c0"><span class="tnm" style="color:#281e12">페이퍼</span><span class="tck" style="color:#7a5228">✓</span></div></div>
+        <div class="tc" id="th-forest" onclick="setTheme('forest')"><div class="tp-bg tp-f"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">포레스트</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-custom" onclick="openCustomTheme()"><div class="tp-bg" style="height:48px;background:linear-gradient(135deg,var(--bg),var(--elev),var(--accd));position:relative"><div class="tdots"><div class="td" style="background:#8080ff"></div><div class="td" style="background:#e8e8f0"></div><div class="td" style="background:#404090"></div></div></div><div class="tnr"><span class="tnm">커스텀</span><span class="tck">✓</span></div></div>
+      </div>
+      <div class="set-row" onclick="openFontSelect()">
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-font"/></svg></span>
+        <div style="flex:1"><div class="srl">글꼴</div><div class="srs" id="fontTxt">테마 기본</div></div>
+        <span class="sra">›</span>
+      </div>
       <!-- 세션5 버그1: 「화면 크기」(구 글자 크기) — 앱 전체 zoom 배율. 저장·재실행 유지 -->
       <div class="set-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:9px">
         <div style="display:flex;align-items:center;gap:11px;width:100%">
           <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-screen"/></svg></span>
-          <!-- 세션10-g: 표기·기본 선택칩은 100% 그대로 유지 — 저장된 설정이 없는 사용자에 한해
-               내부적으로 90% 배율만 조용히 적용(항목1). 칩·문구는 건드리지 않음 -->
+
           <div style="flex:1"><div class="srl">화면 크기</div><div class="srs" id="fontScaleTxt">100% — 화면 전체를 확대/축소</div></div>
         </div>
         <div class="fs-opts" id="fontScaleOpts">
@@ -1011,24 +1021,22 @@
     </div>
 
     <div class="set-sec fu s2">
-      <div class="set-lbl">테마 선택</div>
-      <div class="th-grid">
-        <div class="tc on" id="th-antique" onclick="setTheme('antique')"><div class="tp-bg tp-a"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">고서</span><span class="tck">✓</span></div></div>
-        <div class="tc" id="th-navy" onclick="setTheme('navy')"><div class="tp-bg tp-n"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">네이비</span><span class="tck">✓</span></div></div>
-        <div class="tc" id="th-midnight" onclick="setTheme('midnight')"><div class="tp-bg tp-m"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">미드나이트</span><span class="tck">✓</span></div></div>
-        <div class="tc" id="th-paper" onclick="setTheme('paper')"><div class="tp-bg tp-p"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr" style="background:#ede8df;border-top-color:#d8d0c0"><span class="tnm" style="color:#281e12">페이퍼</span><span class="tck" style="color:#7a5228">✓</span></div></div>
-        <div class="tc" id="th-forest" onclick="setTheme('forest')"><div class="tp-bg tp-f"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">포레스트</span><span class="tck">✓</span></div></div>
-        <div class="tc" id="th-custom" onclick="openCustomTheme()"><div class="tp-bg" style="height:48px;background:linear-gradient(135deg,var(--bg),var(--elev),var(--accd));position:relative"><div class="tdots"><div class="td" style="background:#8080ff"></div><div class="td" style="background:#e8e8f0"></div><div class="td" style="background:#404090"></div></div></div><div class="tnr"><span class="tnm">커스텀</span><span class="tck">✓</span></div></div>
-      </div>
-    </div>
-
-    <div class="set-sec fu s3">
       <div class="set-lbl">학습</div>
       <div class="set-row" onclick="openHistoryFilter()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span>
         <div style="flex:1"><div class="srl">최근 출제 제외</div><div class="srs" id="histFilterTxt">사용 안함</div></div>
         <span class="sra">›</span>
       </div>
+      <!-- '앱 안내 다시 보기' — 2026-06 제거했다가 2026-09-27 관리자님 지시로 복원(Q3) -->
+      <div class="set-row" onclick="showOb()">
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span>
+        <div style="flex:1"><div class="srl">앱 안내 다시 보기</div></div>
+        <span class="sra">›</span>
+      </div>
+    </div>
+
+    <div class="set-sec fu s3 set-ai">
+      <div class="set-lbl">AI 기능</div>
       <div class="set-row" style="cursor:default">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></span>
         <div style="flex:1"><div class="srl">AI 문제만 출제</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
@@ -1052,24 +1060,9 @@
         <div style="flex:1"><div class="srl">토큰</div><div class="srs" id="tokenSetTxt">1,500 / 1,500</div></div>
         <span class="sra">›</span>
       </div>
-      <!-- '앱 안내 다시 보기' — 2026-06 제거했다가 2026-09-27 관리자님 지시로 복원(Q3) -->
-      <div class="set-row" onclick="showOb()">
-        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span>
-        <div style="flex:1"><div class="srl">앱 안내 다시 보기</div></div>
-        <span class="sra">›</span>
-      </div>
     </div>
 
     <div class="set-sec fu s4">
-      <div class="set-lbl">기타</div>
-      <div class="set-row" onclick="openFontSelect()">
-        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-font"/></svg></span>
-        <div style="flex:1"><div class="srl">글꼴</div><div class="srs" id="fontTxt">테마 기본</div></div>
-        <span class="sra">›</span>
-      </div>
-    </div>
-
-    <div class="set-sec fu s5">
       <div class="set-lbl">계정</div>
       <!-- 표시 전용(누를 동작 없음) — 화살표·손가락 커서 제거(2026-09-27) -->
       <div class="set-row" style="cursor:default">
@@ -1083,7 +1076,7 @@
       </div>
     </div>
 
-    <div class="set-sec fu s6" style="border-color:color-mix(in srgb,var(--err) 30%,transparent)">
+    <div class="set-sec fu s5">
       <div class="set-lbl" style="color:var(--err)">위험 구역</div>
       <!-- 빌드1: 학습 데이터 초기화 실제 구현 (KNOWLEDGE 15 초기화 범위, 2중 확인) -->
       <div class="set-row" onclick="학습데이터초기화_1단계()">
@@ -1097,6 +1090,10 @@
         <div style="flex:1"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 데이터를 영구 삭제</div></div>
         <span class="sra">›</span>
       </div>
+    </div>
+
+    <div class="set-sec fu s6">
+      <div class="set-lbl">기타</div>
       <div class="set-row" id="devModeRow" onclick="개발자모드_탭()">
         <span class="sri" id="devModeIcon"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg></span>
         <div style="flex:1"><div class="srl" id="devModeLabel" style="color:var(--txtm)">개발자 모드</div><div class="srs" id="devModeDesc">[창조주] 달성 후 활성화</div></div>

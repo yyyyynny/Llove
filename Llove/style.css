@@ -353,6 +353,8 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 .q-bar .qpfill{border-radius:0}
 /* 토큰은 AI 기능에만 쓰인다 — Grok 봉인 중엔 학습 화면의 토큰 바를 숨긴다(기능·데이터는 그대로) */
 .grok-off .tkb,.grok-off .ask-chat-quota,.grok-off .ask-quota{display:none}
+/* 설정의 AI 묶음은 그대로 두고, 봉인 중임을 라벨에서 먼저 알린다(U22) */
+.grok-off .set-ai .set-lbl::after{content:' · 연동 준비 중';font-weight:500;color:var(--txtm)}
 /* v3.7 항목10: max-height 480px로 확장 (4방식 + 2행 추가 대응)
    세션5 버그8: 펼침·접힘 부자연 해소 — 높이·여백·투명도를 함께 전환(수직 전개, fadeUp 계열) */
 .lset-body{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s var(--ease-out),padding .35s var(--ease-out),opacity .3s ease;padding:0 18px}
