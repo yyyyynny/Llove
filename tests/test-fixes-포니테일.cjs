@@ -65,7 +65,7 @@ load((window) => {
   doc.getElementById('sq3DirectInp').value = '돼요';
   ev("직접입력_제출('sq3');");
   assert('C17: 직접입력 제출 후 입력칸 잠금', doc.getElementById('sq3DirectInp').disabled === true);
-  assert('C7: 정답 판정 결과 표시', (doc.getElementById('sq3DirectResult').textContent || '').includes('정답입니다'));
+  assert('C7: 정답 판정 결과 표시', (doc.getElementById('sq3DirectResult').textContent || '').includes('✓ 정답'));
   assert('C7: 채점 후처리로 누적 어휘 +1', ev('사용자.총누적어휘수 || 0') === 누적전 + 1, `${누적전} → ${ev('사용자.총누적어휘수')}`);
   ev("직접입력_제출('sq3');");
   assert('C17: 두 번 제출해도 한 번만 집계', ev('사용자.총누적어휘수 || 0') === 누적전 + 1);

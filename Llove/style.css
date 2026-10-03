@@ -423,6 +423,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .fc-example::after{content:' ❞';color:var(--acc);font-weight:700;font-style:normal}
 .fc-mnemonic{background:color-mix(in srgb,var(--accl) 6%,transparent);border:1px dashed color-mix(in srgb,var(--accl) 30%,transparent);border-radius:9px;padding:10px 14px;font-size:calc(13px*var(--글자배율));line-height:1.65;color:var(--accl)}
 .fc-judge{display:flex;gap:6px;margin-top:14px}
+.fc-judge[data-판정완료] .fc-jbtn{pointer-events:none}
+.fc-judge[data-판정완료] .fc-jbtn:not(.on){opacity:.4}
+.fc-jbtn.on{border-color:currentColor}
+/* U5(10-03): 답하기 전의 「다음」은 조용한 건너뛰기, 답한 뒤(채점 표시·정답 공개·자기 평가)에야 강조된 「다음 →」.
+   답한 표지는 모드마다 달라 화면 본문(#sqNBody)에 그중 하나라도 있는지로 판단한다 */
+.q-next{background:transparent;color:var(--txt2);border:1px solid var(--bdr);font-weight:500;box-shadow:none}
+.q-next .q-go{display:none}
+[id$="Body"]:has(.correct,.wrong,.dad-answer.show,.fc-judge[data-판정완료],[data-제출완료],[id$="FlashBtn"][style*="none"]) .q-next{background:var(--acc);color:var(--bg);border-color:transparent;font-weight:700}
+[id$="Body"]:has(.correct,.wrong,.dad-answer.show,.fc-judge[data-판정완료],[data-제출완료],[id$="FlashBtn"][style*="none"]) .q-next .q-skip{display:none}
+[id$="Body"]:has(.correct,.wrong,.dad-answer.show,.fc-judge[data-판정완료],[data-제출완료],[id$="FlashBtn"][style*="none"]) .q-next .q-go{display:inline}
 .fc-jbtn{flex:1;padding:11px;border-radius:9px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:13px;cursor:pointer;font-weight:700;transition:border-color .15s,color .15s,transform .15s}
 .fc-jbtn.j-know{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
 .fc-jbtn.j-confused{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
@@ -448,7 +458,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .syn-result-title.warn{color:var(--warn)}
 .syn-result-title.err{color:var(--err)}
 .syn-result-def{color:var(--txt);margin-bottom:5px}
-.syn-result-reason{color:var(--txt2);font-size:12px;line-height:1.65;background:color-mix(in srgb,var(--warn) 8%,transparent);border-left:2px solid var(--warn);padding:7px 10px;border-radius:5px;margin-top:6px}
+.syn-result-reason{color:var(--txt2);font-size:calc(13px*var(--글자배율));line-height:1.7;margin-top:6px}
 .syn-actions{display:flex;gap:6px;margin-top:12px}
 .syn-actions .btn-g, .syn-actions .btn-acc{flex:1;padding:10px;font-size:13px}
 .btn-acc.dim{opacity:.45;pointer-events:none}
@@ -841,7 +851,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .modal-btns{display:flex;gap:8px}
 
 /* 세션5: 긴 메시지가 화면을 넘치지 않도록 줄바꿈 허용 + 최대폭 제한 */
-.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--elev);border:1px solid var(--bdr);border-radius:28px;padding:9px 18px;font-size:12px;font-weight:500;color:var(--txt);white-space:normal;max-width:86vw;text-align:center;line-height:1.5;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.38)}
+/* U7(10-03): 화면 위쪽(머리 바로 아래)에 — 종전 하단 88px은 「다음 문제」 단추·질문 입력줄을 가렸다 */
+.toast{position:fixed;top:calc(64px + env(safe-area-inset-top, 0px));left:50%;transform:translateX(-50%) translateY(-12px);background:var(--elev);border:1px solid var(--bdr);border-radius:28px;padding:9px 18px;font-size:12px;font-weight:500;color:var(--txt);white-space:normal;max-width:86vw;text-align:center;line-height:1.5;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.38)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* 추가기능: 새 버전 배포 안내 배너 — 토스트(자동 소멸)와 달리 새로고침 전까지 유지 */

@@ -428,12 +428,10 @@ function judgeCard(type){
     if(판정영역.dataset.판정완료) return;
     판정영역.dataset.판정완료 = '1';
   }
-  const messages={
-    'know':'알았다 — 복습 대기열 졸업 카운트 +1',
-    'confused':'헷갈린다 — 복습 대기열 유지',
-    'unknown':'몰랐다 — 복습 대기열 카운트 초기화'
-  };
-  showToastMsg('✓ ' + messages[type]);
+  // 고른 평가는 단추에 남기고(나머지는 흐리게), 복습에 들어가는지만 짧게 알린다.
+  // 종전 토스트("졸업 카운트 +1")는 내부 용어였고, 실제로는 정답 1회에 바로 졸업이라 사실과도 달랐다
+  document.querySelector(`#sq2Body .fc-jbtn.j-${type}`)?.classList.add('on');
+  if(type !== 'know') showToastMsg('복습 목록에 넣었습니다');
   // 복습 대기열 연동 — 카드 정보 (읽기 (한자) 형식)
   const 카드단어 = 현재플래시카드 ? `${현재플래시카드.reading} (${현재플래시카드.word})` : '';
   const 카드뜻 = 현재플래시카드?.meaning || '';

@@ -50,7 +50,7 @@ function renderDad(data){
           <div class="dad-a-explain">${g.e}</div>
         </div>
       </div>
-      <button class="btn-acc" style="width:100%" onclick="아재_다음문제()">다음 문제 →</button>
+      <button class="btn-acc q-next" style="width:100%" onclick="아재_다음문제()"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
     `;
     return;
   }
@@ -70,7 +70,7 @@ function renderDad(data){
           <div class="dad-a-explain">${g.e}</div>
         </div>
       </div>
-      <button class="btn-acc" style="width:100%" onclick="아재_다음문제()">다음 문제 →</button>
+      <button class="btn-acc q-next" style="width:100%" onclick="아재_다음문제()"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
     `;
     return;
   }
@@ -84,7 +84,7 @@ function renderDad(data){
         <div class="dad-a-explain">${g.e}</div>
       </div>
     </div>
-    <button class="btn-acc" style="width:100%" onclick="아재_다음문제()">다음 문제 →</button>
+    <button class="btn-acc q-next" style="width:100%" onclick="아재_다음문제()"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
   `;
 }
 /* 아재개그 다음 문제 — 같은 난이도 풀에서 랜덤 재출제 */
@@ -110,8 +110,7 @@ function 아재_선다선택(el, 정답){
   el.classList.add(정답 ? 'correct' : 'wrong');
   if(!정답) el.parentElement.querySelectorAll('.aopt').forEach(o=>{ if(o.dataset.정답==='1') o.classList.add('correct'); });
   el.parentElement.querySelectorAll('.aopt').forEach(o=>o.classList.add('disabled'));
-  showToastMsg(정답 ? '🎉 정답!' : '😄 아쉽! 해설을 확인하세요');
-  revealDad();
+  revealDad();   // 맞고 틀림은 보기 색으로, 해설은 아래 정답 공개로 화면 안에 보인다(종전 토스트 중복 제거)
 }
 /* 세션5 버그7: 아재개그 직접입력 제출 — 느슨 비교 후 정답 공개(EXP는 revealDad 1회 잠금 공유) */
 function 아재_직접제출(){

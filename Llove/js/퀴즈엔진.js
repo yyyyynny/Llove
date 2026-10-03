@@ -45,7 +45,7 @@ function 셔플(arr){
    goLearn이 진입마다 0으로 되돌리고, 각 화면의 출제 함수가 새 문제를 그릴 때마다 부른다
    (폴백으로 다른 출제 함수에 넘기는 경우는 넘겨받은 쪽에서만 세도록 폴백 분기 뒤에서 부른다). */
 let 학습진행수 = 0;
-// 화면 상단 배지("🌍 4지선다")의 방식 부분을 현재 학습설정으로 — 아이콘은 진입 때 정한 것 유지
+// 화면 머리 부제("4지선다")를 현재 학습설정으로
 // (2026-09-27: 종전엔 sq1·sq3·sq4 배지가 설정과 무관하게 고정 문구였다)
 function 배지_방식표시(배지id, 방식){
   const 배지 = document.getElementById(배지id);
@@ -117,7 +117,7 @@ function renderQuiz(screenId, data){
       ${sq1 ? '' : `<div class="q-hint">${q.hint||''}</div>`}
     </div>
     ${답영역}
-    <button class="btn-acc" style="width:100%" onclick="다음문제()">다음 문제 →</button>
+    <button class="btn-acc q-next" style="width:100%" onclick="다음문제()"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
   `;
 }
 
@@ -136,7 +136,6 @@ function selAns(el, isCorrect){
     // 빌드1: 실제 EXP 획득 (+20, 꾸준한 발걸음 배율 적용) + Firestore 저장
     const 획득 = EXP획득(20, '퀴즈 정답');
     showExpFloat(el,'+'+획득);
-    showToastMsg('✓ 정답입니다!');
   } else {
     el.classList.add('wrong');
     aopts.forEach(o=>{
@@ -145,10 +144,18 @@ function selAns(el, isCorrect){
         o.classList.add('correct');
       }
     });
-    showToastMsg('✗ 오답입니다');
   }
+  // U8: 결과와 해설을 보기 바로 아래에(직접입력·예문형과 같은 결과 상자). 종전엔 토스트 한 줄뿐이었다
+  el.parentElement.insertAdjacentHTML('afterend', 결과상자_HTML(isCorrect));
   채점_기록(isCorrect, 정답보기, 문제요약, 현재퀴즈문제?.cat || 현재학습모드);
   aopts.forEach(o=>o.classList.add('disabled'));
+}
+
+// 채점 결과 상자 — 선택형·직접입력 공용. 해설은 문항의 출제 근거(reasoning_note, 데이터 JSON)
+function 결과상자_HTML(정답여부, 본문){
+  const 해설 = 현재문제_reasoning_note ? `<div class="syn-result-reason">${현재문제_reasoning_note}</div>` : '';
+  return `<div class="syn-result show"><div class="syn-result-title ${정답여부 ? 'ok' : 'err'}">${정답여부 ? '✓ 정답' : '✗ 오답'}</div>`
+    + (본문 ? `<div class="syn-result-def">${본문}</div>` : '') + 해설 + '</div>';
 }
 
 /* 채점 공통 후처리 — 연속 정답(10연속 → 토큰 +10)·복습 대기열(정답이면 졸업, 틀리면 추가)·
@@ -202,14 +209,10 @@ function 직접입력_제출(screenId){
   const 정답여부 = 직접입력_규격(입력) !== '' && 직접입력_규격(입력) === 직접입력_규격(정답);
   const 결과 = document.getElementById(screenId+'DirectResult');
 
+  if(결과) 결과.innerHTML = 결과상자_HTML(정답여부, 정답여부 ? 정답 : `정답: <b>${정답}</b>`);
   if(정답여부){
-    if(결과) 결과.innerHTML = `<div class="syn-result show"><div class="syn-result-title ok">✓ 정답입니다!</div><div class="syn-result-def">${정답}</div></div>`;
     const 획득 = EXP획득(20, '퀴즈 정답');
     if(결과) showExpFloat(결과,'+'+획득);
-    showToastMsg('✓ 정답입니다!');
-  } else {
-    if(결과) 결과.innerHTML = `<div class="syn-result show"><div class="syn-result-title err">✗ 오답입니다</div><div class="syn-result-def">정답: <b>${정답}</b></div></div>`;
-    showToastMsg('✗ 오답입니다');
   }
   채점_기록(정답여부, 정답, 문제요약, 현재퀴즈문제?.cat || 현재학습모드);
 }
@@ -232,7 +235,7 @@ function 퀴즈_플래시렌더(screenId, q){
       <div class="q-hint">정답</div>
       <div class="q-question" style="color:var(--acc)">${정답}</div>
     </div>
-    <button class="btn-acc" style="width:100%;margin-top:12px" onclick="다음문제()">다음 문제 →</button>
+    <button class="btn-acc q-next" style="width:100%;margin-top:12px" onclick="다음문제()"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
   `;
 }
 function 퀴즈_플래시공개(screenId){
@@ -264,7 +267,7 @@ function 퀴즈_역방향렌더(screenId, q, data){
       <div class="q-hint">위 정답에 해당하는 문제를 고르세요</div>
     </div>
     <div class="aopts">${optsHtml}</div>
-    <button class="btn-acc" style="width:100%" onclick="다음문제()">다음 문제 →</button>
+    <button class="btn-acc q-next" style="width:100%" onclick="다음문제()"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
   `;
 }
 

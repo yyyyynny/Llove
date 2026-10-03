@@ -44,7 +44,7 @@ function sq2_선다렌더(category, 역방향){
       <div class="q-question">${문제}</div>
     </div>
     <div class="aopts">${optsHtml}</div>
-    <button class="btn-acc" style="width:100%" onclick="sq2_출제_렌더(document.getElementById('sq2Title').textContent)">다음 문제 →</button>
+    <button class="btn-acc q-next" style="width:100%" onclick="sq2_출제_렌더(document.getElementById('sq2Title').textContent)"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
   `;
 }
 
@@ -111,20 +111,21 @@ function renderFlashcard(data){
       <div class="fc-back" id="fcBack">
         <div class="fc-row"><div class="fc-row-num">① 읽기</div><div class="fc-reading">${c.reading}</div></div>
         <div class="fc-row"><div class="fc-row-num">② 뜻</div><div class="fc-meaning">${c.meaning}</div></div>
+        <!-- U6(10-03): 자기 평가는 뜻 바로 아래 — 종전엔 「더 알아보기」를 펼쳐야만 보였다 -->
+        <div class="fc-judge">
+          <button class="fc-jbtn j-know" onclick="judgeCard('know')">알았다 ✓</button>
+          <button class="fc-jbtn j-confused" onclick="judgeCard('confused')">헷갈린다 △</button>
+          <button class="fc-jbtn j-unknown" onclick="judgeCard('unknown')">몰랐다 ✗</button>
+        </div>
         <button class="fc-more-btn" id="fcMoreBtn" onclick="showMore()">더 알아보기 ▾</button>
         <div class="fc-more" id="fcMore">
           <div><div class="fc-row-num">③ 한자</div><div class="fc-hanja-list">${hanjaHtml}</div></div>
           <div><div class="fc-row-num">④ 직설</div><div class="fc-direct">${c.direct}</div></div>
           <div><div class="fc-row-num">⑤ 예문</div><div class="fc-example">${c.example}</div></div>
           <div><div class="fc-row-num">⑥ 연상법</div><div class="fc-mnemonic">${c.mnemonic}</div></div>
-          <div class="fc-judge">
-            <button class="fc-jbtn j-know" onclick="judgeCard('know')">알았다 ✓</button>
-            <button class="fc-jbtn j-confused" onclick="judgeCard('confused')">헷갈린다 △</button>
-            <button class="fc-jbtn j-unknown" onclick="judgeCard('unknown')">몰랐다 ✗</button>
-          </div>
         </div>
       </div>
     </div>
-    <button class="btn-acc" style="width:100%;margin-top:12px" onclick="sq2_출제_렌더(document.getElementById('sq2Title').textContent)">다음 카드 →</button>
+    <button class="btn-acc q-next" style="width:100%;margin-top:12px" onclick="sq2_출제_렌더(document.getElementById('sq2Title').textContent)"><span class="q-skip">건너뛰기</span><span class="q-go">다음 카드 →</span></button>
   `;
 }

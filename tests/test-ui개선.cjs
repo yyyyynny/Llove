@@ -69,6 +69,18 @@ load((window) => {
   doc.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
   assert('U14: Esc 한 번 더 누르면 아래 모달도 닫힌다', !보임('infoBg'));
 
+  // U8: 선택형 채점 결과와 해설이 화면 안(보기 아래)에 보인다
+  ev(`DB문제['상식·어원']=[{cat:'상식',q:'문제',opts:[{t:'가',c:true},{t:'나',c:false},{t:'다',c:false},{t:'라',c:false}],reasoning_note:'가인 까닭'}];`);
+  ev("학습설정.sq1='4지선다'; goLearn('상식·어원','sq1',null);");
+  assert('U5: 답하기 전 다음 단추는 건너뛰기', doc.querySelector('#sq1Body .q-next .q-skip').textContent === '건너뛰기');
+  ev("document.querySelector('#sq1Body .aopt').click()");
+  const 결과상자 = doc.querySelector('#sq1Body .aopts + .syn-result');
+  assert('U8: 보기 바로 아래 결과 상자', !!결과상자 && /정답|오답/.test(결과상자.textContent), 결과상자?.textContent);
+  assert('U8: 해설(출제 근거)이 함께 보인다', 결과상자?.querySelector('.syn-result-reason')?.textContent === '가인 까닭');
+  // U6: 플래시카드 자기 평가는 접힌 「더 알아보기」 밖(뜻 바로 아래)
+  ev("renderFlashcard([{cat:'고사성어',word:'漁夫之利',mark:'',reading:'어부지리',meaning:'뜻',hanja:[],direct:'',example:'',mnemonic:''}]);");
+  assert('U6: 자기 평가가 더 알아보기 밖에 있다', !!doc.querySelector('#fcBack > .fc-judge') && !doc.querySelector('#fcMore .fc-judge'));
+
   // U19: 상태색(정답·오답·경고·정보)이 고서 테마 값으로 박혀 있지 않다 — 테마 토큰에서 파생
   const css = fs.readFileSync(path.join(__dirname, '..', 'Llove', 'style.css'), 'utf8');
   const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];

@@ -50,7 +50,7 @@ load((window) => {
   doc.getElementById('sq1DirectInp').value = 정답;
   const exp이전 = ev('사용자.총누적EXP||0');
   ev("직접입력_제출('sq1');");
-  assert('직접입력: 정답 판정 표시', doc.getElementById('sq1DirectResult').innerHTML.includes('정답입니다'));
+  assert('직접입력: 정답 판정 표시', doc.getElementById('sq1DirectResult').innerHTML.includes('✓ 정답'));
   assert('직접입력: 정답 시 EXP 획득', ev('사용자.총누적EXP||0') > exp이전);
   const exp1회 = ev('사용자.총누적EXP||0');
   ev("직접입력_제출('sq1');");
