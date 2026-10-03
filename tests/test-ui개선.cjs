@@ -111,6 +111,10 @@ load((window) => {
   assert('U16: 휴지통 비우기는 바로 지우지 않고 묻는다', ev('복습데이터.휴지통.length') === 1 && 보임('infoBg'));
   ev('closeInfoModal()');
 
+  // U20: 퍼펙트가 아니어도 5문제마다 결과를 알려 준다
+  ev('퀴즈세션 = {수:0, 오답:0}; [true,false,true,true,true].forEach(세션결과_기록);');
+  assert('U20: 5문제 마침 요약', doc.getElementById('toast').textContent === '5문제 마침 — 4/5 정답', doc.getElementById('toast').textContent);
+
   // U19: 상태색(정답·오답·경고·정보)이 고서 테마 값으로 박혀 있지 않다 — 테마 토큰에서 파생
   const css = fs.readFileSync(path.join(__dirname, '..', 'Llove', 'style.css'), 'utf8');
   const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];
