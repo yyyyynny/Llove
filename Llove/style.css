@@ -448,7 +448,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .fc-hanja-item{font-size:calc(20px*var(--글자배율));font-weight:700;color:var(--acc);letter-spacing:2px;font-family:'Nanum Myeongjo',serif}
 .fc-hanja-item small{font-size:12px;color:var(--txt2);font-weight:400;margin-left:8px;letter-spacing:0}
 .fc-direct{background:color-mix(in srgb,var(--inf) 8%,transparent);border:1px solid color-mix(in srgb,var(--inf) 25%,transparent);border-radius:var(--r-l);padding:12px 16px;font-size:calc(14px*var(--글자배율));line-height:1.65;color:var(--inf);font-weight:500;position:relative}
-.fc-direct::before{content:'💬';position:absolute;left:-4px;top:-12px;font-size:18px;background:var(--card);padding:2px}
+
 .fc-example{background:var(--elev);border-left:3px solid var(--acc);padding:10px 14px;font-size:calc(14px*var(--글자배율));line-height:1.7;color:var(--txt2);font-style:italic;border-radius:0 var(--r-m) var(--r-m) 0}
 .fc-example::before{content:'❝ ';color:var(--acc);font-weight:700;font-style:normal}
 .fc-example::after{content:' ❞';color:var(--acc);font-weight:700;font-style:normal}
@@ -528,7 +528,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .dad-answer.show{display:block;animation:fadeUp .4s var(--ease-out) both}
 .dad-a-text{font-size:calc(22px*var(--글자배율));font-weight:700;color:var(--acc);text-align:center;margin-bottom:12px;font-family:'Nanum Myeongjo',serif}
 .dad-a-explain{font-size:calc(13px*var(--글자배율));color:var(--txt2);line-height:1.6;padding-top:12px;border-top:1px solid var(--bdr)}
-.dad-a-explain::before{content:'💡 ';margin-right:4px}
+
 
 /* ━━━ 구어 교정 ━━━ */
 .spk-info{padding:14px 18px;background:var(--card);border-bottom:1px solid var(--bdr)}
@@ -558,7 +558,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .spk-fix{padding:12px;background:color-mix(in srgb,var(--inf) 8%,transparent);border:1px solid color-mix(in srgb,var(--inf) 25%,transparent);border-radius:var(--r-m);font-size:14px;color:var(--inf);margin-bottom:10px;line-height:1.65}
 .spk-fix::before{content:'개선: ';color:var(--inf);font-weight:700;font-size:12px}
 .spk-tip{padding:10px;background:color-mix(in srgb,var(--accl) 6%,transparent);border:1px dashed color-mix(in srgb,var(--accl) 25%,transparent);border-radius:var(--r-m);font-size:12px;color:var(--accl);line-height:1.6}
-.spk-tip::before{content:'💡 '}
+
 
 /* ━━━ 복습 ━━━ */
 .rv-body{padding:14px 18px;display:flex;flex-direction:column;gap:9px}
@@ -813,10 +813,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ask-msg.ai{background:color-mix(in srgb,var(--inf) 6%,transparent);border:1px solid color-mix(in srgb,var(--inf) 20%,transparent);margin-right:32px}
 /* 세션6 항목2: 채팅 내 사고 전개 블록 — 중요 콘텐츠라 기본 글자색(--txt)으로 (모든 테마 가독) */
 .ask-think{background:var(--elev);border:1px solid var(--bdr);border-left:3px solid var(--acc);border-radius:var(--r-m);padding:9px 11px;margin-bottom:9px;font-size:13px;color:var(--txt);line-height:1.7;text-align:left}
-.ask-msg.ai::before{content:'🤖 AI';font-size:11px;color:var(--inf);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
+.ask-msg.ai::before{content:'AI';font-size:11px;color:var(--inf);font-weight:700;display:block;margin-bottom:6px}
+/* 첫 인사는 AI 답변이 아니라 안내라 출처 라벨을 달지 않는다(사전 탭이 기본일 때 「AI」 라벨이 어긋났다) */
+.ask-msg.ai.intro::before{display:none}
+/* 사고전개는 AI 답변용 — 봉인 중엔 단추를 숨긴다(기능·상태는 그대로) */
+.grok-off #thinkToggle{display:none}
 /* Phase 7: 사전 뜻풀이 버블 — AI 챗(.ask-msg.ai)과 시각적으로 구분되게 --acc 계열 사용(신규 색상값 도입 없음) */
 .ask-msg.dict{background:color-mix(in srgb, var(--acc) 8%, transparent);border:1px solid color-mix(in srgb, var(--acc) 25%, var(--bdr));margin-right:32px}
-.ask-msg.dict::before{content:'📖 사전';font-size:11px;color:var(--acc);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
+.ask-msg.dict::before{content:'사전';font-size:11px;color:var(--acc);font-weight:700;display:block;margin-bottom:6px}
 .ask-objection-btn{margin-top:6px;background:transparent;border:1px solid var(--err);color:var(--err);padding:6px 14px;border-radius:var(--r-s);font-size:12px;cursor:pointer;font-family:var(--fn);font-weight:700;transition:background .25s}
 .ask-objection-btn:hover{background:color-mix(in srgb,var(--err) 10%,transparent)}
 
