@@ -39,6 +39,7 @@ function 예문형_렌더(bodyId, item, 다음fn, 이의컨텍스트){
         <button class="btn-acc" onclick="예문형_다음('${bodyId}')">다음 문제 →</button>
       </div>
     </div>
+    <button class="btn-g q-skip-only" onclick="예문형_다음('${bodyId}')">건너뛰기</button>
   `;
 }
 

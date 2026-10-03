@@ -457,6 +457,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .fc-jbtn.on{border-color:currentColor}
 /* U5(10-03): 답하기 전의 「다음」은 조용한 건너뛰기, 답한 뒤(채점 표시·정답 공개·자기 평가)에야 강조된 「다음 →」.
    답한 표지는 모드마다 달라 화면 본문(#sqNBody)에 그중 하나라도 있는지로 판단한다 */
+/* 예문형은 답한 뒤 결과 아래에 「다음 문제」가 따로 나오므로, 답 전 건너뛰기는 답하면 숨긴다 */
+.q-skip-only{width:100%;margin-top:12px}
+[id$="Body"]:has(.correct,.wrong,.acceptable) .q-skip-only{display:none}
 .q-next{background:transparent;color:var(--txt2);border:1px solid var(--bdr);font-weight:500;box-shadow:none}
 .q-next .q-go{display:none}
 [id$="Body"]:has(.correct,.wrong,.dad-answer.show,.fc-judge[data-판정완료],[data-제출완료],[id$="FlashBtn"][style*="none"]) .q-next{background:var(--acc);color:var(--bg);border-color:transparent;font-weight:700}
