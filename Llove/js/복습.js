@@ -159,7 +159,7 @@ function 복습탭_렌더(wrapId, 머리글, 목록, 빈안내, 메타, 액션, 
     ? `<div style="text-align:center;padding:48px 20px;color:var(--txtm);font-size:13px">${빈안내}</div>`
     : 목록.map((item,idx)=>`
       <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
-        <div class="rv-idx">${idx}</div>
+        <div class="rv-idx">${idx+1}</div>
         <div style="flex:1">
           <div class="rv-word">${문자열_이스케이프(item.단어)}</div>
           <div class="rv-desc">${문자열_이스케이프(item.뜻)}</div>

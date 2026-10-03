@@ -334,7 +334,7 @@ window.addEventListener('pagehide', () => 진행중세션_저장());
 
 function 채팅창_초기화(){
   const body = document.getElementById('askBody');
-  if(body) body.innerHTML = '<div class="ask-msg ai">안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요. Grok이 답변드립니다.</div>';
+  if(body) body.innerHTML = '<div class="ask-msg ai">안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요.</div>';
 }
 
 function 새대화_시작(){

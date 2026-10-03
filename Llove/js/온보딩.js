@@ -34,7 +34,7 @@ function setObSlide(i){
 function obNext(){ if(obIdx<OB_TOTAL-1) setObSlide(obIdx+1); }
 function obPrev(){ if(obIdx>0) setObSlide(obIdx-1); }
 function finishOb(){
-  document.getElementById('onboarding').classList.add('gone');
+  온보딩_걷기();
   // 로그인 화면 fadeUp 애니메이션 재실행
   const sl=document.getElementById('sl');
   sl.querySelectorAll('.fu').forEach(e=>{

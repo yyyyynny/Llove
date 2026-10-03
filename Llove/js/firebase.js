@@ -86,7 +86,10 @@ function 로그아웃실행(){
 // 인증 상태 변경 — 로그인 성공 시 Firestore 사용자 문서 로드(기존) 또는 이름 입력(신규)
 // 온보딩(#onboarding)은 position:fixed·z-index:9999로 기본 표시라, 걷어내지 않으면 그 아래 화면이
 // 무엇이든 가려진다. 인증이 끝난 사용자에게 남아 있으면 안 되므로 한 곳으로 모아 둔다.
-function 온보딩_걷기(){ document.getElementById('onboarding')?.classList.add('gone'); }
+function 온보딩_걷기(){
+  document.getElementById('onboarding')?.classList.add('gone');
+  try{ localStorage.setItem('plx_온보딩봄', '1'); }catch(e){ /* localStorage 차단 환경 무시 */ }
+}
 
 function 인증상태_변경(user){
   if(!user){ 현재UID = null; return; }

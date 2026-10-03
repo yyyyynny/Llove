@@ -21,9 +21,12 @@ function 아재풀_구성(난이도){
   const DB풀 = (DB문제['아재개그'] || []).filter(g => (g.난이도 || '아↗그거!') === 난이도);
   return DB풀.length ? [...기본풀, ...DB풀] : 기본풀;
 }
+// UP¡¿ 난이도는 말장난 파악이 더 까다로워 기본(20)의 1.5배(30) 지급
+const 아재_보상 = () => (학습설정.sq4 === 'UP¡¿') ? 30 : 20;
 function renderDad(data){
   학습진행_다음('sq4');
   배지_방식표시('sq4Mode', 학습설정.sq4_input);
+  document.getElementById('sq4Exp').textContent = '+' + 아재_보상();
   const body=document.getElementById('sq4Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재아재풀=data;
@@ -96,9 +99,7 @@ function revealDad(){
   const btn=document.getElementById('dadBtn');
   if(btn) btn.style.display='none';
   // 빌드1: 실제 EXP 획득 + 마스터리(아재개그학습수) +1
-  // UP¡¿ 난이도는 말장난 파악이 더 까다로워 기본(20)의 1.5배(30) 지급
-  const 난이도보상 = (학습설정.sq4 === 'UP¡¿') ? 30 : 20;
-  const 획득 = EXP획득(난이도보상, '아재개그');
+  const 획득 = EXP획득(아재_보상(), '아재개그');
   showExpFloat(document.querySelector('.dad-card'),'+'+획득);
   마스터리증가('아재개그학습수');
   마스터리증가('총누적어휘수');

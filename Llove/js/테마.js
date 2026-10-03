@@ -99,7 +99,7 @@ function setTheme(name, 조용히){
   if(조용히) return;  // 초기 로드·Firestore 복원 시: 토스트·저장 생략
   사용자.테마 = name;
   사용자데이터_저장({테마: name});  // Firestore 설정 동기화 (KNOWLEDGE 13-1)
-  showToastMsg('테마 변경: '+name);
+  showToastMsg('테마 변경: ' + (document.querySelector(`#th-${name} .tnm`)?.textContent || name));
 }
 
 /* 세션5 버그1: 「화면 크기」·「글자 크기」 분리 (KNOWLEDGE — 사용자 검토 지시)
