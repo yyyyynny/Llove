@@ -155,6 +155,11 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 .screen.leaving{animation:slideOut .25s var(--ease-out) both;pointer-events:none}
 /* 세션5: 바텀 네비(72px)에 마지막 버튼이 가리지 않도록 여유 확보 */
 .has-bnav{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
+/* U21(10-03): 넓은 화면(PC)에서 한 줄이 1,200px 넘게 늘어나던 문제 — 화면·하단 네비·질문 패널을 가운데 640px 기둥으로.
+   fixed + 좌우 0 + 최대 폭 + 좌우 auto 여백이면 가운데 정렬된다 */
+@media (min-width:700px){
+  .screen,#g-bnav,.ask-panel{max-width:640px;margin-left:auto;margin-right:auto}
+}
 
 /* ━━━ 바텀 네비 ━━━ */
 #g-bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bdr);display:flex;padding:8px 0 max(16px, env(safe-area-inset-bottom));z-index:200;transition:background .4s,border-color .4s,transform .3s var(--ease-out)}
