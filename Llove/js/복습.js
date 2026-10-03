@@ -150,7 +150,7 @@ function renderReview(){
     item => `<span style="font-size:10px;color:var(--txtm)">${item.잔여일}일 후 삭제</span>`,
     item => `<div class="act-btn" onclick="휴지통_복구('${item.id}')" title="복구">↩</div>
              <div class="act-btn d" onclick="휴지통_영구삭제('${item.id}')" title="영구삭제">✕</div>`,
-    `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="휴지통_전체비우기()">🗑️ 휴지통 비우기</button>`);
+    `<button class="btn-g danger" style="width:100%;margin-top:4px" onclick="휴지통_비우기확인()">휴지통 비우기</button>`);
 }
 
 /* 복습 탭 공통 틀 — 머리글 + (비었으면 안내 | 항목 카드들 + 꼬리 버튼) */
@@ -453,6 +453,11 @@ function 휴지통_영구삭제(id){
   renderReview();
 }
 
+// 종전엔 확인 없이 주 단추 한 번에 전부 영구 삭제됐다 — 개수를 보여 주고 한 번 묻는다
+function 휴지통_비우기확인(){
+  if(복습데이터.휴지통.length===0){ showToastMsg('휴지통이 비어있습니다'); return; }
+  showConfirmModal('🗑️', '휴지통 비우기', `${복습데이터.휴지통.length}개 항목을 영구 삭제합니다.<br>되돌릴 수 없습니다.`, '비우기', 휴지통_전체비우기, true);
+}
 function 휴지통_전체비우기(){
   if(복습데이터.휴지통.length===0){
     showToastMsg('휴지통이 비어있습니다');

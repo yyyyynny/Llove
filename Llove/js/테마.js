@@ -23,7 +23,8 @@ function closeInfoModal(){
 }
 
 /* 버그6: 2중 확인 모달 — 정보 모달 컴포넌트 재사용, [취소]+[확인] 2버튼 */
-function showConfirmModal(icon, title, desc, confirmLabel, onConfirm){
+// 위험=true면 확인 단추를 위험색으로(U16) — 되돌릴 수 없는 동작을 주 단추 모양으로 권하지 않는다
+function showConfirmModal(icon, title, desc, confirmLabel, onConfirm, 위험){
   showInfoModal(icon, title, desc);  // 아이콘·제목·설명·너비 초기화·표시까지 공용 처리
   const btnArea=document.getElementById('infoBtns');
   if(btnArea){
@@ -32,7 +33,7 @@ function showConfirmModal(icon, title, desc, confirmLabel, onConfirm){
     cancel.className='btn-g'; cancel.style.flex='1'; cancel.textContent='취소';
     cancel.onclick=closeInfoModal;
     const ok=document.createElement('button');
-    ok.className='btn-acc'; ok.style.flex='1'; ok.textContent=confirmLabel;
+    ok.className = 위험 ? 'btn-acc btn-danger' : 'btn-acc'; ok.style.flex='1'; ok.textContent=confirmLabel;
     // 첫 모달이 닫힌 뒤 다음 단계 호출 (전환 깜빡임 방지)
     ok.onclick=()=>{ closeInfoModal(); setTimeout(()=>{ if(onConfirm) onConfirm(); }, 240); };
     btnArea.appendChild(cancel); btnArea.appendChild(ok);
@@ -48,7 +49,7 @@ function 계정삭제_1단계(){
 function 계정삭제_2단계(){
   showConfirmModal('🗑️','계정 삭제 (2/2)',
     '<b>마지막 확인</b>입니다. 정말로 계정을 영구 삭제하시겠습니까?<br><br>이 작업은 취소할 수 없습니다.',
-    '영구 삭제', 계정삭제_실행);
+    '영구 삭제', 계정삭제_실행, true);
 }
 function 계정삭제_실행(){
   if(!fbAuth || !fbAuth.currentUser){

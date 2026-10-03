@@ -173,6 +173,9 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 .btn-acc{background:var(--acc);color:var(--bg);border:none;padding:13px 22px;border-radius:10px;font-family:var(--fn);font-weight:700;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;letter-spacing:.3px}
 .btn-acc:hover{filter:brightness(1.06)}
 .btn-acc:active{transform:scale(.97)}
+/* U16: 되돌릴 수 없는 동작은 위험색 — 확인 모달의 최종 단추(.btn-danger)·목록 꼬리의 조용한 단추(.btn-g.danger) */
+.btn-acc.btn-danger{background:var(--err)}
+.btn-g.danger{color:var(--err);border-color:color-mix(in srgb,var(--err) 45%,transparent)}
 .btn-g{background:transparent;color:var(--txt2);border:1px solid var(--bdr);padding:9px 15px;border-radius:8px;font-family:var(--fn);font-size:14px;cursor:pointer;transition:border-color .2s,color .2s}
 .btn-g:hover{border-color:var(--accd);color:var(--acc)}
 

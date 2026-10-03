@@ -103,6 +103,14 @@ load((window) => {
   assert('U13: 일반 단어는 사전 조회', ev('window.__사전호출') === 1);
   ev('closeAsk()');
 
+  // U16: 되돌릴 수 없는 동작의 최종 확인 단추는 위험색, 휴지통 비우기는 한 번 묻는다
+  ev('계정삭제_2단계()');
+  assert('U16: 영구 삭제 확인 단추는 위험색', !!doc.querySelector('#infoBtns .btn-danger'));
+  ev('closeInfoModal()');
+  ev("복습데이터.휴지통 = [{id:'b9', 단어:'가', 뜻:'나', 잔여일:3}]; 휴지통_비우기확인();");
+  assert('U16: 휴지통 비우기는 바로 지우지 않고 묻는다', ev('복습데이터.휴지통.length') === 1 && 보임('infoBg'));
+  ev('closeInfoModal()');
+
   // U19: 상태색(정답·오답·경고·정보)이 고서 테마 값으로 박혀 있지 않다 — 테마 토큰에서 파생
   const css = fs.readFileSync(path.join(__dirname, '..', 'Llove', 'style.css'), 'utf8');
   const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];
