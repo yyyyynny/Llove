@@ -89,6 +89,8 @@
   --mono:'JetBrains Mono',monospace;
 }
 
+/* 분류색(P3): 문해=정보·정답 사이 청록, 재미=오답·정보 사이 자주 — 피드백색(정답 초록·오답 빨강)과 겹치지 않게 */
+[data-theme]{--cat-read:color-mix(in srgb,var(--ok) 45%,var(--inf));--cat-fun:color-mix(in srgb,var(--err) 55%,var(--inf))}
 :root{--r-s:6px;--r-m:10px;--r-l:16px;--scrim:rgba(0,0,0,.62)}  /* 모서리 3단(10-03) — 그 밖엔 50%(원)·999px(알약)만 */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* U14: 키보드로 옮겨 다닐 때만 보이는 공통 초점 링(마우스·터치엔 안 보임). 맨 앞에 둬서
@@ -326,7 +328,7 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
    탭 순간의 피드백이 없었다. 색은 그대로 두고 형태만 살짝 눌러 촉각적 반응을 준다. */
 .mc:active{transform:scale(.98)}
 .mc-icon{font-size:24px;width:40px;display:flex;justify-content:center;flex-shrink:0;color:var(--acc)}
-.mc-g1 .mc-icon{color:var(--inf)}.mc-g2 .mc-icon{color:var(--warn)}.mc-g3 .mc-icon{color:var(--ok)}.mc-g5 .mc-icon{color:var(--err)}
+.mc-g1 .mc-icon{color:var(--inf)}.mc-g2 .mc-icon{color:var(--warn)}.mc-g3 .mc-icon{color:var(--cat-read)}.mc-g5 .mc-icon{color:var(--cat-fun)}
 .mc-name{font-size:16px;font-weight:700;margin-bottom:2px;color:var(--accl)}
 .mc-desc{font-size:12px;color:var(--txt2)}
 .mc-arrow{color:var(--txtm);font-size:22px;transition:transform .25s,color .25s}
@@ -338,13 +340,13 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 .mc.mc-g1:hover{border-color:var(--inf)}
 .mc.mc-g2::before{background:var(--warn);width:5px}
 .mc.mc-g2:hover{border-color:var(--warn)}
-.mc.mc-g3::before{background:var(--ok);width:5px}
-.mc.mc-g3:hover{border-color:var(--ok)}
+.mc.mc-g3::before{background:var(--cat-read);width:5px}
+.mc.mc-g3:hover{border-color:var(--cat-read)}
 /* 세션10-d 항목6·7: 교정 계열(g4=--acc)·재미 계열(g5=--err) 추가 */
 .mc.mc-g4::before{background:var(--acc);width:5px}
 .mc.mc-g4:hover{border-color:var(--acc)}
-.mc.mc-g5::before{background:var(--err);width:5px}
-.mc.mc-g5:hover{border-color:var(--err)}
+.mc.mc-g5::before{background:var(--cat-fun);width:5px}
+.mc.mc-g5:hover{border-color:var(--cat-fun)}
 /* 세션10-d 항목7: 색맹 대비 그룹 라벨 — 각 그룹 색(--gl)을 텍스트로도 노출(색+두께+글자 3중 신호) */
 .mc-glabel{font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--gl,var(--txt2));margin:14px 0 6px 2px;text-transform:none;opacity:.92}
 
