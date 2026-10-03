@@ -5,7 +5,7 @@
 > 최고 관리자: 성재훈
 > ⚠️ 공통 행동 규칙(호칭 · 한 줄 진행 알림 · 표로만 보고 · 포니테일 최소 코드)은 `~/.claude/CLAUDE.md` —
 > 이 프로젝트에서도 매 응답 그대로 적용한다. 대화 압축 뒤에도 예외 없음.
-> 최종 업데이트: 2026년 9월 27일
+> 최종 업데이트: 2026년 10월 3일
 
 ---
 
@@ -43,9 +43,9 @@ wchain/       ← '잇는'(임시 이름) — 끝말잇기 이세계. 서바이�
 
 **Llove/ 내부 ('잇는' 포탈 추가 반영 실측)**
 ```
-index.html    ← 화면 구조(마크업)만, 1,193줄 — style.css·js/*.js 참조
-style.css     ← 전체 스타일 952줄 (테마 변수·컴포넌트·애니메이션)
-js/           ← 로직 25개 파일, 합계 6,058줄 (아래 "JS 분할 구조 원칙" 필독)
+index.html    ← 화면 구조(마크업)만, 1,194줄 — 맨 앞에 단색 SVG 아이콘 묶음(symbol) — style.css·js/*.js 참조
+style.css     ← 전체 스타일 1,009줄 (테마 변수·컴포넌트·애니메이션)
+js/           ← 로직 25개 파일, 합계 6,109줄 (아래 "JS 분할 구조 원칙" 필독)
 ├── 상태.js          # 사용자 런타임 상태·보관함 미러·상태 변수·폰트 목록
 ├── 데이터로드.js     # data/ JSON fetch (정령왕 통합 + 모드 DB 6종)
 ├── 화면전환.js       # slideIn/slideOut·네비 (goNav·goLearn·afterNav)
@@ -157,6 +157,13 @@ wchain/worker/            # Cloudflare Worker 소스 2개(레포와 별도로 Cl
 --fn          /* 본문 폰트 */
 --mono        /* 고정폭 폰트 */
 --exp         /* EXP 바 그라디언트 */
+--ease-out    /* 공용 감속 곡선 */
+--글자배율     /* 학습 콘텐츠 글자 배율(설정 「글자 크기」) — calc(14px*var(--글자배율)) 식으로 */
+/* ↓ 2026-10-03 UI 개선(인계 노트 13절)에서 추가 — 테마와 무관한 단계 토큰은 :root 한 곳 */
+--r-s --r-m --r-l   /* 모서리 3단 6/10/16px. 그 밖엔 50%(원)·999px(알약)만 */
+--scrim       /* 모달 뒤 어둡게(4계열 공용). 질문 시트 배경(.ask-bg)만 기능상 더 옅음 */
+--cat-read --cat-fun  /* 모드 분류색(문해·재미) — [data-theme]에서 --ok/--err와 --inf를 섞어 파생,
+                         정답·오답 피드백색과 겹치지 않게 */
 ```
 > 참고: `--c-bg`/`--c-card`/`--c-acc`/`--c-txt` 4개는 커스텀 테마 에디터가 런타임에
 > 덮어쓰는 **raw 입력값**이고(`document.documentElement.style.setProperty('--c-bg', ...)` 형태),
@@ -172,9 +179,18 @@ wchain/worker/            # Cloudflare Worker 소스 2개(레포와 별도로 Cl
 .fs-opt                        — 단계형 선택 버튼(화면/글자 크기 등)
 .aopt, .onum                   — 번호 배지가 붙은 탭-선택 옵션
 .syn-card, .syn-opt, .syn-result, .syn-actions  — 예문형/판정 결과 카드류
-.mc, .mc-g1~.mc-g5, .mc-glabel — 홈 학습 모드 카드·색 그룹
+.mc, .mc-g1~.mc-g5, .mc-glabel — 홈 학습 모드 카드·색 그룹(홈에선 2열)
+.ic + <use href="#i-이름">      — 단색 SVG 아이콘(index.html 맨 앞 묶음, currentColor·1em). 이모지 아이콘 새로 쓰지 말 것
+.q-bar .q-exit .q-head .q-meta .q-set — 학습 화면 한 줄 머리(나가기·제목/방식·진행·보상·⚙), 진행선은 아래 가장자리
+.q-next(.q-skip/.q-go)         — 답 전엔 「건너뛰기」, 답한 뒤 강조된 「다음 →」(본문의 채점 표지로 CSS :has 판단)
+.btn-danger, .btn-g.danger     — 되돌릴 수 없는 동작(showConfirmModal 6번째 인자 true)
+.ask-entry, .random-skip       — 학습 화면 공용 질문 입구·랜덤 넘어가기
 ```
-border-radius·padding·transition 속도도 기존 패턴을 따를 것. 다크/라이트(테마 5종 + 커스텀) 전부
+> 2026-10-03 원칙(UI 개선): **테두리는 입력·선택 요소에만**, 내용 면은 배경 톤으로 구분. 135deg 그라디언트·
+> 바깥 발광·한글 uppercase는 쓰지 않는다(업적·레벨업·잇 포탈 같은 드문 순간의 발광만 예외). 순차 등장(.fu)은
+> 화면 첫 방문에만. 상세는 `docs/UI감사_2026-10-03.md`.
+
+모서리는 --r-s/m/l, 글자 크기는 11/12/13/14/16/18/22 7단, transition은 .15s/.25s/.4s 3단을 따를 것. 다크/라이트(테마 5종 + 커스텀) 전부
 정상 동작 확인 필수.
 
 ---
