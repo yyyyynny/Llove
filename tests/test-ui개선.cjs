@@ -46,5 +46,16 @@ load((window) => {
   ev("setTheme('antique', true)");
   assert('U17: 첫 채팅 인사에 내부 용어(Grok) 없음', !doc.querySelector('#askBody .ask-msg.ai').textContent.includes('Grok'));
 
+  // 글꼴 정책: 기본은 테마 글꼴, 고른 글꼴은 버튼까지 적용, 「테마 기본」으로 되돌릴 수 있다
+  const 버튼글꼴 = () => window.getComputedStyle(doc.querySelector('.btn-acc')).getPropertyValue('--fn');  // jsdom은 var()를 안 풀어 변수값으로 확인
+  assert('글꼴: 기본 선택은 테마 기본', ev('curFont') === 'theme' && doc.getElementById('fontTxt').textContent === '테마 기본');
+  ev("applyFont('nanum_gothic', true)");
+  assert('글꼴: 고른 글꼴이 버튼에도 적용', 버튼글꼴().includes('Nanum Gothic'), 버튼글꼴());
+  ev("applyFont('theme', true)");
+  assert('글꼴: 테마 기본으로 되돌리면 덮어쓰기 해제', !doc.body.style.getPropertyValue('--fn') && !버튼글꼴().includes('Nanum Gothic'), 버튼글꼴());
+  ev('openFontSelect()');
+  assert('글꼴: 선택 목록 맨 위가 테마 기본', doc.querySelector('#fontList .fo').dataset.key === 'theme');
+  ev('closeFont()');
+
   process.exit(finish() > 0 ? 1 : 0);
 });

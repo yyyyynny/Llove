@@ -236,8 +236,8 @@ function 복습대기열_정답처리(단어){
 let curScreen='sl';
 let userName=사용자.이름;
 let curExp=사용자.현재EXP, curLv=사용자.레벨;
-// 버그D 수정: 'gowun'은 FONTS 배열에 없는 유령 키였음 → 기본 글꼴(나눔스퀘어 Neo) 실제 키로 교정 (KNOWLEDGE 8·19)
-let curFont='nanum_square';
+// 10-03 관리자님 결정: 기본은 테마 글꼴('theme'). 고른 글꼴이 있으면 그것이 앱 전체(버튼·입력창 포함)에 적용된다
+let curFont='theme';
 
 // 레벨업 공식: 110 + (레벨-1) × 28
 // α3: 하급신 구간(Lv.36~46)은 ×1.123 적용 — 성장 정체 의도 (KNOWLEDGE 11)
@@ -337,6 +337,8 @@ const 기본이름풀=[
 //   - family명을 @font-face/KNOWLEDGE 19와 일치시키고, 출처 표기를 '임베딩' → '눈누 CDN'으로 정정.
 //   - mona: KNOWLEDGE 19 기준 family명은 'Mona'. CDN 직접 검증 불가하여 'Mona-Sans' 폴백을 함께 둠.
 //   - weight: 단일 굵기로 배포된 폰트(평창평화체 Light=300)의 미리보기 굵기 지정용 (버그B 연동).
+// 「테마 기본」 — FONTS(출처 표기 대상)에는 넣지 않고 선택 목록 맨 위에만 붙인다
+const 테마글꼴 = {key:'theme', name:'테마 기본', sample:'테마를 바꾸면 글꼴도 함께 바뀝니다'};
 const FONTS=[
   // ━━━ CDN 4종 ━━━
   {key:'nanum_gothic',   name:'나눔고딕',          css:"'Nanum Gothic',sans-serif",            sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},

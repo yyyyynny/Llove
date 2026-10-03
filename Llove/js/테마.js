@@ -367,14 +367,14 @@ function openFontSelect(){
   가사세트 = (가사세트==='A') ? 'B' : 'A';  // 열 때마다 세트 교체
   const list=document.getElementById('fontList');
   list.innerHTML='';
-  FONTS.forEach(f=>{
+  [테마글꼴, ...FONTS].forEach(f=>{
     const div=document.createElement('div');
     div.className='fo'+(f.key===curFont?' on':'');
     div.dataset.key=f.key;
     div.onclick=()=>applyFont(f.key);
     // 버그B 수정: 기존의 취약한 style 조립 로직 제거. css는 순수 font-family 스택이므로 그대로 적용하고,
     //   단일 굵기로 배포된 폰트(weight 지정)는 미리보기에 굵기를 함께 적용한다.
-    const 미리보기스타일 = `font-family:${f.css}` + (f.weight ? `;font-weight:${f.weight}` : '');
+    const 미리보기스타일 = f.css ? `font-family:${f.css}` + (f.weight ? `;font-weight:${f.weight}` : '') : '';
     // 빌드1: 미리보기 문구는 가사 2세트에서 — 매핑 없는 폰트만 기존 sample 폴백
     const 미리보기문구 = (글꼴가사[f.key] && 글꼴가사[f.key][가사세트]) || f.sample;
     div.innerHTML=`
@@ -397,10 +397,12 @@ function closeFont(){
   document.getElementById('fontBg').classList.remove('show');
 }
 function applyFont(key, 조용히){
-  const f=FONTS.find(x=>x.key===key);
+  const f=[테마글꼴, ...FONTS].find(x=>x.key===key);
   if(!f) return;
   curFont=key;
-  document.body.style.fontFamily=f.css;
+  // 테마 변수 --fn을 덮어써야 var(--fn)을 직접 쓰는 버튼·입력창까지 같은 글꼴이 된다(종전: body에만 적용)
+  if(f.css) document.body.style.setProperty('--fn', f.css);
+  else document.body.style.removeProperty('--fn');
   document.getElementById('fontTxt').textContent=f.name;
   // on 클래스 갱신 — 새로 고른 글꼴에만 선택 표시
   document.querySelectorAll('.fo').forEach(el=>el.classList.toggle('on', el.dataset.key===key));

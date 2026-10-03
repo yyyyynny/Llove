@@ -1,32 +1,18 @@
-// 세션10-f/g 모바일 실기기 피드백 검증 — 화면크기(표기 100%·실제 0.9 조용히 적용)·범위(70~150%)·
+// 세션10-f/g 모바일 실기기 피드백 검증 — 화면크기(기본 100%, 10-03 실제값도 100%로 통일)·범위(70~150%)·
 // 초기화 시 배너/프로필 리셋·배너 크롭 좌표 버그
 const { load, makeHarness } = require('./load.cjs');
 load((window) => {
   const { assert, finish } = makeHarness('세션10-f 모바일 피드백 수정 테스트');
   const doc = window.document, ev = (c) => window.eval(c);
 
-  /* ── 항목1(세션10-g 정정): 기본 선택칩·문구는 100% 그대로, 저장값 없을 때만 zoom 0.9를 "조용히" 적용 ──
-     사용자 확인: "기본 선택칩(100%)은 그대로 두고, 실제 적용되는 배율만 90%로" — 표기(100%)와 실제 zoom(0.9)
-     사이 의도된 불일치. setFontScale을 거치면 칩·문구가 "90%"로 바뀌어버리므로 그건 쓰지 않는다. */
-  assert('#1: 화면 크기 패널 기본 표기는 100% 유지', doc.getElementById('fontScaleTxt').textContent.startsWith('100%'));
-  assert('#1: 100% 칩이 기본 on(90%로 바뀌지 않음)', doc.querySelector('#fontScaleOpts .fs-opt.on').textContent.trim() === '100%');
+  /* ── 항목1: 10-03 관리자님 결정으로 표기와 실제를 맞춘다 — 저장값이 없으면 실제 배율도 100%
+     (세션10-g의 "표기 100%·실제 0.9 조용히 적용"은 폐기. 부팅 코드를 테스트에 베껴 재현하던 방식도 실제 부팅 상태 검사로 교체) */
+  assert('#1: 화면 크기 패널 기본 표기는 100%', doc.getElementById('fontScaleTxt').textContent.startsWith('100%'));
+  assert('#1: 100% 칩이 기본 on', doc.querySelector('#fontScaleOpts .fs-opt.on').textContent.trim() === '100%');
+  assert('#1: 저장값 없는 부팅은 실제 배율도 100%(zoom 미적용)', doc.documentElement.style.zoom === '', doc.documentElement.style.zoom);
 
-  // 게스트 부팅 경로(저장값 없을 때) — 실제 코드와 동일한 패턴 재현
-  window.localStorage.removeItem('plx_화면배율');
-  ev(`
-    const 저장화면 = localStorage.getItem('plx_화면배율');
-    if(저장화면) setFontScale(parseInt(저장화면,10), true);
-    else document.documentElement.style.zoom = '0.9';
-  `);
-  assert('#1: 저장값 없는 게스트 부팅 시 zoom 0.9(조용히 적용)', doc.documentElement.style.zoom === '0.9');
-  assert('#1: 조용히 적용 후에도 칩·문구는 100% 그대로', doc.getElementById('fontScaleTxt').textContent.startsWith('100%'));
-
-  // Firestore 복원 경로(저장값 없을 때) 재현
-  ev(`if(undefined) setFontScale(undefined, true); else document.documentElement.style.zoom = '0.9';`);
-  assert('#1: Firestore 데이터에 화면배율 없을 때도 zoom 0.9로 조용히 적용', doc.documentElement.style.zoom === '0.9');
-
-  // 기존 저장값이 있으면 setFontScale로 정상 복원(칩·문구도 그 값에 맞춰 동기화되는 게 맞음)
-  ev(`if(125) setFontScale(125, true); else document.documentElement.style.zoom = '0.9';`);
+  // 저장값이 있으면 setFontScale로 복원(칩·문구도 그 값에 맞춰 동기화)
+  ev('setFontScale(125, true);');
   assert('#1: 저장된 값(125%)이 있으면 정상 복원(칩도 125%로)', doc.documentElement.style.zoom === '1.25' && doc.querySelector('#fontScaleOpts .fs-opt.on').textContent.trim() === '125%');
   ev("setFontScale(100, true);"); // 다음 테스트를 위해 원복
 

@@ -114,12 +114,8 @@ function 복원단계(이름, 작업){
 복원단계('커스텀 테마', () => 커스텀_복원());  // 항목3: 테마가 custom일 때 변수 세팅이 선행돼야 함
 복원단계('테마', () => { const v = localStorage.getItem('plx_테마'); if(v) setTheme(v, true); });
 복원단계('글꼴', () => { const v = localStorage.getItem('plx_폰트'); if(v) applyFont(v, true); });
-// 세션5: 화면 크기 복원 / 세션10-g 항목1: 저장값 없으면 칩·문구는 100% 그대로, zoom만 조용히 0.9
-복원단계('화면 배율', () => {
-  const v = localStorage.getItem('plx_화면배율');
-  if(v) setFontScale(parseInt(v,10), true);
-  else document.documentElement.style.zoom = '0.9';
-});
+// 세션5: 화면 크기 복원 — 저장값이 없으면 기본 100%(10-03: 종전 "표기 100%·실제 0.9"는 폐기)
+복원단계('화면 배율', () => { const v = localStorage.getItem('plx_화면배율'); if(v) setFontScale(parseInt(v,10), true); });
 복원단계('글자 배율', () => { const v = localStorage.getItem('plx_글자배율'); if(v) set글자크기(parseInt(v,10), true); });  // 세션5
 복원단계('학습 설정', () => {   // 세션5 버그7
   const v = JSON.parse(localStorage.getItem('plx_학습설정')||'null');
