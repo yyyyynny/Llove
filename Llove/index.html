@@ -190,7 +190,7 @@
 <!-- 일반 모달 -->
 <div class="modal-bg" id="infoBg" onclick="배경클릭_닫기(event, closeInfoModal)">
   <div class="modal-bx" onclick="event.stopPropagation()">
-    <div class="modal-icon" id="infoIcon">ℹ️</div>
+    <div class="modal-icon" id="infoIcon"></div>
     <div class="modal-title" id="infoTitle">안내</div>
     <div class="modal-desc" id="infoDesc">설명</div>
     <div class="modal-btns" id="infoBtns">
@@ -221,7 +221,7 @@
 <!-- 이름 변경 모달 -->
 <div class="modal-bg" id="nmModalBg" onclick="배경클릭_닫기(event, closeNmModal)">
   <div class="modal-bx" onclick="event.stopPropagation()">
-    <div class="modal-icon">✏️</div>
+    <div class="modal-icon"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></div>
     <div class="modal-title">이름 변경</div>
     <input class="nm-inp" id="nmModalInp" aria-label="새 이름" placeholder="새 이름을 입력하세요" maxlength="12" style="margin:8px 0 16px">
     <div class="modal-btns">
@@ -254,7 +254,7 @@
       <div id="fontCreditList" style="display:flex;flex-direction:column;gap:3px"></div>
       <!-- 빌드1: 가사 미리보기 출처 표기 의무 (KNOWLEDGE 19) -->
       <div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bdr)">
-        🎵 가사 © 음율 (피차일반) · © ユイリ (Betelgeuse) · 각 아티스트 저작권 보유
+        가사 © 음율 (피차일반) · © ユイリ (Betelgeuse) · 각 아티스트 저작권 보유
       </div>
       <!-- 항목2: 상업적 이용 관련 경고 문구는 사용자 UI에서 제거.
            (내부 관리 메모) 광고 적용 시점에 폰트·가사 라이선스의 상업적 사용 가능 여부를 재확인할 것. -->
@@ -309,7 +309,7 @@
     </div>
     <!-- 봉인 안내 — 음성생성_활성화=false 동안 노출 -->
     <div id="음성봉인안내" style="margin:10px 0;padding:9px 11px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;font-size:11px;color:var(--txt2);line-height:1.7">
-      🔒 현재 봉인 상태입니다(서버 미준비). 서버 준비 후 코드의 <code>음성생성_활성화</code>를 켜면 동작합니다.
+      현재 봉인 상태입니다(서버 미준비). 서버 준비 후 코드의 <code>음성생성_활성화</code>를 켜면 동작합니다.
     </div>
     <label class="vc-lbl" for="음성엔드포인트입력">서버 엔드포인트 주소</label>
     <input class="nm-inp" id="음성엔드포인트입력" aria-label="음성 서버 주소" placeholder="https://... (로컬 터널 또는 클라우드 GPU)" style="width:100%;margin:4px 0 8px;box-sizing:border-box">
