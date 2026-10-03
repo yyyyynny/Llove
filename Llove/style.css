@@ -98,7 +98,8 @@
 html,body{width:100%;height:100%;overflow:hidden}
 /* 세션6 버그1(근본): 비입력 요소 탭 시 텍스트 캐럿 깜빡임 차단 —
    전역은 선택 불가 + 캐럿 투명, 입력창(input/textarea)만 예외 복원 */
-body{font-family:var(--fn);background:var(--bg);color:var(--txt);transition:background .4s,color .4s;user-select:none;-webkit-user-select:none;caret-color:transparent}
+/* 한국어는 낱말(어절) 단위로 줄바꿈 — 「맞춤/법」처럼 글자 중간에서 끊기지 않게, 아주 긴 낱말만 예외로 끊는다 */
+body{font-family:var(--fn);word-break:keep-all;overflow-wrap:break-word;background:var(--bg);color:var(--txt);transition:background .4s,color .4s;user-select:none;-webkit-user-select:none;caret-color:transparent}
 input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 /* 세션6 항목11: 아바타 이미지 프로필 지원 — 원형 틀 밖으로 이미지가 새지 않게 */
 .hav,.st-av,.set-av,.nm-av{overflow:hidden}
@@ -305,7 +306,15 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 .kc-dot.on{background:var(--acc);width:14px}
 .kc-word{color:var(--acc);font-weight:700;cursor:pointer;border-bottom:1px dashed var(--accd);padding-bottom:1px;transition:color .25s,border-color .25s}
 .kc-word:hover{color:var(--accl);border-bottom-color:var(--acc)}
-.hs{padding:0 20px 20px}
+/* P3(10-03): 홈 모드 카드 2열 — 10장이 같은 무게로 한 줄씩 내려가 두 화면을 넘던 목록을 한 화면 반으로.
+   그룹 라벨·랜덤 카드는 한 줄 전체, 카드는 아이콘·이름·설명 세로 배치(화살표 생략) */
+.hs{padding:0 20px 20px;display:grid;grid-template-columns:1fr 1fr;column-gap:9px;align-items:stretch}
+.hs>.sec-t,.hs>.mc-glabel,.hs>.mc.s10{grid-column:1/-1}
+.hs>.mc:not(.s10){flex-direction:column;align-items:flex-start;gap:8px;padding:14px 12px 13px 16px}
+.hs>.mc:not(.s10) .mc-arrow{display:none}
+.hs>.mc:not(.s10) .mc-icon{width:auto;justify-content:flex-start}
+.hs>.mc:not(.s10) .mc-name{font-size:16px}
+.hs>.mc:not(.s10) .mc-desc{line-height:1.45}
 /* 세션6 항목8: 「학습 모드」 라벨·카드 강조 — 터치에선 hover가 없으므로 상시 강조로 전환 */
 .sec-t{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:10px;margin-top:18px}
 .mc{background:var(--card);border:1px solid transparent;border-radius:var(--r-m);padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:9px;transition:transform .25s,border-color .25s,background .4s,box-shadow .25s;position:relative;overflow:hidden}
