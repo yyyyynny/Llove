@@ -21,10 +21,11 @@
    테마 변수 (5개 프리셋 + 커스텀)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 :root,[data-theme="antique"]{
+  /* 10-03: --txtm(옅은 글자)을 카드 위 대비 약 1.9:1 → 3.3:1 이상으로(5개 테마·커스텀 공통 기준) */
   color-scheme:dark;   /* 스크롤바·입력 기본 컨트롤 색 — 밝은 테마(페이퍼)는 light */
   --bg:#111009;--card:#1a1710;--elev:#222018;--bdr:#302a20;--bdrg:#483e2e;
   --acc:#b8956a;--accl:#d4b48a;--accd:#6e5438;
-  --txt:#e8e0d0;--txt2:#9a8e7a;--txtm:#504535;
+  --txt:#e8e0d0;--txt2:#9a8e7a;--txtm:#756958;
   --ok:#78b878;--err:#c07070;--inf:#7898c8;--warn:#e09060;
   --exp:linear-gradient(90deg,#b8956a,#d4b48a);
   --fn:'Gowun Batang',serif;
@@ -33,7 +34,7 @@
 [data-theme="navy"]{
   --bg:#080d18;--card:#0d1425;--elev:#121c32;--bdr:#1c2a42;--bdrg:#263a58;
   --acc:#5090f0;--accl:#78b0ff;--accd:#2c5898;
-  --txt:#d8e8ff;--txt2:#6888b0;--txtm:#324860;
+  --txt:#d8e8ff;--txt2:#6888b0;--txtm:#506b8c;
   --ok:#48d898;--err:#d85868;--inf:#48c0e0;--warn:#e09060;
   --exp:linear-gradient(90deg,#5090f0,#78b0ff);
   --fn:'Noto Sans KR',sans-serif;
@@ -42,7 +43,7 @@
 [data-theme="midnight"]{
   --bg:#08060f;--card:#0e0c1c;--elev:#141228;--bdr:#201c3c;--bdrg:#302858;
   --acc:#8e62f0;--accl:#b090ff;--accd:#5438a8;
-  --txt:#e0d8ff;--txt2:#7870a8;--txtm:#3c3860;
+  --txt:#e0d8ff;--txt2:#7870a8;--txtm:#665f92;
   --ok:#58d888;--err:#d85878;--inf:#58c0f0;--warn:#e09060;
   --exp:linear-gradient(90deg,#8e62f0,#b090ff);
   --fn:'Noto Sans KR',sans-serif;
@@ -52,7 +53,7 @@
   color-scheme:light;
   --bg:#ede8df;--card:#f5f1ea;--elev:#faf8f4;--bdr:#d8d0c0;--bdrg:#c0b8a8;
   --acc:#7a5228;--accl:#9a7040;--accd:#b89868;
-  --txt:#281e12;--txt2:#786050;--txtm:#a89880;
+  --txt:#281e12;--txt2:#786050;--txtm:#95826d;
   --ok:#386840;--err:#a82828;--inf:#284888;--warn:#a86020;
   --exp:linear-gradient(90deg,#7a5228,#9a7040);
   --fn:'Nanum Myeongjo',serif;
@@ -61,7 +62,7 @@
 [data-theme="forest"]{
   --bg:#060c08;--card:#0c1410;--elev:#101a12;--bdr:#1a2c1e;--bdrg:#263e2a;
   --acc:#52a868;--accl:#72c888;--accd:#2e6040;
-  --txt:#d0e8d4;--txt2:#6a9870;--txtm:#304838;
+  --txt:#d0e8d4;--txt2:#6a9870;--txtm:#4d7054;
   --ok:#72c888;--err:#c87858;--inf:#68a8c8;--warn:#e09060;
   --exp:linear-gradient(90deg,#52a868,#72c888);
   --fn:'Noto Sans KR',sans-serif;
@@ -81,7 +82,7 @@
   --accd:color-mix(in srgb, var(--c-acc,#8080ff) 64%, #000000 30%);
   --txt:var(--c-txt,#e8e8f0);
   --txt2:color-mix(in srgb, var(--c-txt,#e8e8f0) 60%, var(--c-bg,#0e0e14) 40%);
-  --txtm:color-mix(in srgb, var(--c-txt,#e8e8f0) 38%, var(--c-bg,#0e0e14) 62%);
+  --txtm:color-mix(in srgb, var(--c-txt,#e8e8f0) 50%, var(--c-bg,#0e0e14) 50%);
   --ok:#60d890;--err:#d86070;--inf:#60b8e8;--warn:#e09060;
   --exp:linear-gradient(90deg,var(--c-acc,#8080ff),color-mix(in srgb, var(--c-acc,#8080ff) 62%, #ffffff 38%));
   --fn:'Noto Sans KR',sans-serif;   /* 글꼴은 테마가 아니라 설정 '글꼴'(applyFont)이 정한다 */
