@@ -121,7 +121,8 @@ load((window) => {
 
   /* ── 추가: 토스트 줄바꿈 / 바텀 여백 ── */
   assert('추가: 토스트 넘침 방지(max-width)', /\.toast\{[^}]*max-width/.test(css));
-  assert('추가: 바텀 네비 여백 확대(96px)', /\.has-bnav\{padding-bottom:96px\}/.test(css));
+  // 10-03: 홈 표시줄 기기용 안전 영역(safe-area-inset-bottom)을 더한다
+  assert('추가: 바텀 네비 여백 확대(96px + 안전 영역)', /\.has-bnav\{padding-bottom:calc\(96px \+ env\(safe-area-inset-bottom/.test(css));
 
   let fail = 0;
   console.log('\n=== 세션5 실사용 검토 수정 테스트 ===');
