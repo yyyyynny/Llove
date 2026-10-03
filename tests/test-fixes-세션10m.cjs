@@ -23,6 +23,7 @@ assert('shakeLR은 키프레임 하나만 유지(중복 정의 없음)',
   (LLOVE_CSS.match(/@keyframes shakeLR/g) || []).length === 1);
 
 /* ⚠️ 회귀 방지 — 애니메이션 fill-mode:both가 정답 배경을 덮어쓰지 않는지.
+   (10-03: 고서 고정값 rgba → 테마 토큰 color-mix로 바뀌어 비교 문자열도 갱신)
    CSS 애니메이션은 일반 선언보다 우선하고 both면 끝값이 계속 남는다. 자체 배경 .18을 가진
    요소에 .08로 끝나는 correctPop을 걸면 세션10-o가 세운 대비가 영구히 무너진다(실제로 한 번
    그렇게 넣었다가 잡아낸 결함). 끝값이 요소의 쉬는 배경과 일치하는지 짝을 맞춰 검사한다. */
@@ -33,14 +34,14 @@ const 정답끝값 = (키프레임) => {
   return m && m[1].trim();
 };
 assert('correctPop은 .08로 끝난다(.aopt는 자체 배경이 없어 이게 쉬는 값)',
-  정답끝값('correctPop') === 'rgba(120,184,120,.08)', 정답끝값('correctPop'));
+  정답끝값('correctPop') === 'color-mix(in srgb,var(--ok) 8%,transparent)', 정답끝값('correctPop'));
 assert('correctPop18은 .18로 끝난다(자체 배경 .18을 가진 요소용)',
-  정답끝값('correctPop18') === 'rgba(120,184,120,.18)', 정답끝값('correctPop18'));
+  정답끝값('correctPop18') === 'color-mix(in srgb,var(--ok) 18%,transparent)', 정답끝값('correctPop18'));
 for (const sel of ['\\.syn-opt\\.correct', '\\.rc-opt\\.correct', '#sq7Opts \\.aopt\\.correct']) {
   const 규칙 = LLOVE_CSS.match(new RegExp(sel + '(?:,[^{]*)?\\{([^}]*)\\}'));   // 셀렉터 목록으로 묶여 있어도 본문을 찾는다
   const 본문 = 규칙 ? 규칙[1] : '';
   assert(`${sel.replace(/\\/g, '')}: 배경 .18과 애니메이션 끝값이 어긋나지 않는다`,
-    본문.includes('rgba(120,184,120,.18)') && 본문.includes('correctPop18'),
+    본문.includes('color-mix(in srgb,var(--ok) 18%,transparent)') && 본문.includes('correctPop18'),
     본문.slice(0, 90));
 }
 assert('자체 배경 .18을 가진 선택자에 .08로 끝나는 correctPop이 걸려 있지 않다',

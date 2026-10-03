@@ -395,6 +395,16 @@ function 키보드접근_시작(){
     el.click();
   });
 
+  // Esc → 맨 위에 열린 오버레이의 배경을 누른 것과 같게 닫는다(배경 탭을 막아 둔 경우는 Esc로도 안 닫힌다)
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Escape') return;
+    const 열린 = [...document.querySelectorAll(키보드_배경선택자)].filter(el => el.classList.contains('show')).reverse();
+    const 맨위 = 열린.sort((a, b) => (parseInt(getComputedStyle(b).zIndex) || 0) - (parseInt(getComputedStyle(a).zIndex) || 0))[0];
+    if(!맨위) return;
+    마지막포인터다운타깃 = null;   // 직전 클릭 위치가 안쪽이었어도 배경 클릭으로 인정되게
+    맨위.click();
+  });
+
   키보드접근_보강(document);
 
   // ③ 동적 렌더 자동 보강

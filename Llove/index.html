@@ -306,7 +306,7 @@
       <button id="askNewBtn" onclick="새대화_시작()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">🆕 새 대화</button>
       <!-- β7: 사고전개 탭 — 기본 OFF, 매번 수동 ON (KNOWLEDGE 5-1) / 세션6 항목2: 가시성 상향(--txt·11px) -->
       <button id="thinkToggle" onclick="사고전개_토글()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">🧠 사고전개 OFF</button>
-      <button id="askCls창조주" onclick="closeAsk()" style="display:none;background:rgba(192,112,112,.15);border:1px solid var(--err);color:var(--err);padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700">중도 포기</button>
+      <button id="askCls창조주" onclick="closeAsk()" style="display:none;background:color-mix(in srgb,var(--err) 15%,transparent);border:1px solid var(--err);color:var(--err);padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700">중도 포기</button>
       <button class="ask-cls" onclick="closeAsk()">✕</button>
     </div>
   </div>
@@ -1083,7 +1083,7 @@
       </div>
     </div>
 
-    <div class="set-sec fu s6" style="border-color:rgba(192,112,112,.3)">
+    <div class="set-sec fu s6" style="border-color:color-mix(in srgb,var(--err) 30%,transparent)">
       <div class="set-lbl" style="color:var(--err)">위험 구역</div>
       <!-- 빌드1: 학습 데이터 초기화 실제 구현 (KNOWLEDGE 15 초기화 범위, 2중 확인) -->
       <div class="set-row" onclick="학습데이터초기화_1단계()">

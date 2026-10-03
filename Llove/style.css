@@ -87,6 +87,10 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+/* U14: 키보드로 옮겨 다닐 때만 보이는 공통 초점 링(마우스·터치엔 안 보임). 맨 앞에 둬서
+   자체 초점 표시(테두리 색)를 가진 입력창의 outline:none이 뒤에서 이기게 한다 */
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.mt input:focus-visible+.mtt{outline:2px solid var(--acc);outline-offset:2px}
 html,body{width:100%;height:100%;overflow:hidden}
 /* 세션6 버그1(근본): 비입력 요소 탭 시 텍스트 캐럿 깜빡임 차단 —
    전역은 선택 불가 + 캐럿 투명, 입력창(input/textarea)만 예외 복원 */
@@ -116,14 +120,14 @@ html{scrollbar-gutter:stable}
 @keyframes auraBreath{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
 @keyframes expFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-64px)}}
 @keyframes shakeLR{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
-@keyframes correctPop{0%{background:rgba(120,184,120,.4)}100%{background:rgba(120,184,120,.08)}}
+@keyframes correctPop{0%{background:color-mix(in srgb,var(--ok) 40%,transparent)}100%{background:color-mix(in srgb,var(--ok) 8%,transparent)}}
 /* correctPop의 짝 — 끝값만 .18로 다르다.
    ⚠️ 왜 따로 두는가(2026-08-15): CSS 애니메이션은 일반 선언보다 우선하고, fill-mode:both면
    끝 키프레임 값이 **끝난 뒤에도 계속** 요소를 덮어쓴다. 그래서 자체 배경 .18을 가진 요소
    (.syn-opt·.rc-opt·#sq7Opts .aopt)에 .08로 끝나는 correctPop을 걸면 정답 배경이 영구히
    .08로 옅어져, 세션10-o가 "정답/오답 구분이 약하다"며 세워 둔 대비가 도로 무너진다.
    .aopt는 자체 배경이 없어 .08이 곧 쉬는 값이므로 correctPop을 그대로 쓴다. */
-@keyframes correctPop18{0%{background:rgba(120,184,120,.4)}100%{background:rgba(120,184,120,.18)}}
+@keyframes correctPop18{0%{background:color-mix(in srgb,var(--ok) 40%,transparent)}100%{background:color-mix(in srgb,var(--ok) 18%,transparent)}}
 @keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes treeLine{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
@@ -175,10 +179,10 @@ html{scrollbar-gutter:stable}
 
 .tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .ta{background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 28%,transparent)}
-.tg{background:rgba(90,184,90,.12);color:var(--ok);border:1px solid rgba(90,184,90,.25)}
-.tb{background:rgba(90,152,200,.12);color:var(--inf);border:1px solid rgba(90,152,200,.25)}
+.tg{background:color-mix(in srgb,var(--ok) 12%,transparent);color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 25%,transparent)}
+.tb{background:color-mix(in srgb,var(--inf) 12%,transparent);color:var(--inf);border:1px solid color-mix(in srgb,var(--inf) 25%,transparent)}
 .tp{background:rgba(180,100,210,.12);color:#c39bd3;border:1px solid rgba(180,100,210,.25)}
-.tag-ai{background:rgba(120,180,255,.15);color:var(--inf);border:1px solid rgba(120,180,255,.35);padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+.tag-ai{background:color-mix(in srgb,var(--inf) 15%,transparent);color:var(--inf);border:1px solid color-mix(in srgb,var(--inf) 35%,transparent);padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
 
 .exp-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--bdr)}
 .exp-fill{height:100%;background:var(--exp);border-radius:4px;width:0;transition:width 1.1s var(--ease-out)}
@@ -380,8 +384,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 /* 세션10-o: 문장 배열(sq7) 판정 시 정답/오답 구분이 약했던 문제 — 전역 .aopt.correct/.wrong은
    테두리색만 바뀌어(4지선다 sq1과 공유하는 스타일이라 거기는 손대지 않음) sq6 지문 독해(.rc-opt)·
    예문형(.syn-opt)이 쓰는 "배경 톤 + 글자색" 대비를 sq7에만 스코프해 추가한다. */
-#sq7Opts .aopt.correct{background:rgba(120,184,120,.18);color:var(--ok);animation:correctPop18 .45s ease both}
-#sq7Opts .aopt.wrong{background:rgba(192,112,112,.15);color:var(--err);opacity:.7}
+#sq7Opts .aopt.correct{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok);animation:correctPop18 .45s ease both}
+#sq7Opts .aopt.wrong{background:color-mix(in srgb,var(--err) 15%,transparent);color:var(--err);opacity:.7}
 .otxt{font-size:calc(14px*var(--글자배율));font-weight:500;line-height:1.5}
 .exp-gain{background:color-mix(in srgb,var(--acc) 8%,transparent);border:1px solid color-mix(in srgb,var(--acc) 22%,transparent);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
 .egl{font-size:13px;color:var(--txt2)}
@@ -410,17 +414,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .fc-hanja-list{display:flex;flex-direction:column;gap:6px;background:var(--elev);padding:14px;border-radius:9px;border:1px solid var(--bdr)}
 .fc-hanja-item{font-size:calc(20px*var(--글자배율));font-weight:700;color:var(--acc);letter-spacing:2px;font-family:'Nanum Myeongjo',serif}
 .fc-hanja-item small{font-size:12px;color:var(--txt2);font-weight:400;margin-left:8px;letter-spacing:0}
-.fc-direct{background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:14px;padding:12px 16px;font-size:calc(14px*var(--글자배율));line-height:1.65;color:var(--inf);font-weight:500;position:relative}
+.fc-direct{background:color-mix(in srgb,var(--inf) 8%,transparent);border:1px solid color-mix(in srgb,var(--inf) 25%,transparent);border-radius:14px;padding:12px 16px;font-size:calc(14px*var(--글자배율));line-height:1.65;color:var(--inf);font-weight:500;position:relative}
 .fc-direct::before{content:'💬';position:absolute;left:-4px;top:-12px;font-size:20px;background:var(--card);padding:2px}
 .fc-example{background:var(--elev);border-left:3px solid var(--acc);padding:10px 14px;font-size:calc(14px*var(--글자배율));line-height:1.7;color:var(--txt2);font-style:italic;border-radius:0 8px 8px 0}
 .fc-example::before{content:'❝ ';color:var(--acc);font-weight:700;font-style:normal}
 .fc-example::after{content:' ❞';color:var(--acc);font-weight:700;font-style:normal}
-.fc-mnemonic{background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.3);border-radius:9px;padding:10px 14px;font-size:calc(13px*var(--글자배율));line-height:1.65;color:var(--accl)}
+.fc-mnemonic{background:color-mix(in srgb,var(--accl) 6%,transparent);border:1px dashed color-mix(in srgb,var(--accl) 30%,transparent);border-radius:9px;padding:10px 14px;font-size:calc(13px*var(--글자배율));line-height:1.65;color:var(--accl)}
 .fc-judge{display:flex;gap:6px;margin-top:14px}
 .fc-jbtn{flex:1;padding:11px;border-radius:9px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt2);font-family:var(--fn);font-size:13px;cursor:pointer;font-weight:700;transition:border-color .15s,color .15s,transform .15s}
-.fc-jbtn.j-know{color:var(--ok);border-color:rgba(120,184,120,.3)}
-.fc-jbtn.j-confused{color:var(--warn);border-color:rgba(224,144,96,.3)}
-.fc-jbtn.j-unknown{color:var(--err);border-color:rgba(192,112,112,.3)}
+.fc-jbtn.j-know{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+.fc-jbtn.j-confused{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.fc-jbtn.j-unknown{color:var(--err);border-color:color-mix(in srgb,var(--err) 30%,transparent)}
 
 .fc-jbtn:active{transform:scale(.96)}
 
@@ -431,9 +435,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .syn-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 .syn-opt{padding:13px 10px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:calc(14px*var(--글자배율));font-weight:700;color:var(--txt);text-align:center;transition:background .15s,border-color .15s,color .15s,opacity .15s,transform .15s;position:relative}
 .syn-opt:hover,.rc-opt:hover{border-color:var(--acc)}
-.syn-opt.correct,.rc-opt.correct{background:rgba(120,184,120,.18);border-color:var(--ok);color:var(--ok);animation:correctPop18 .45s ease both}
-.syn-opt.acceptable{background:rgba(224,144,96,.18);border-color:var(--warn);color:var(--warn)}
-.syn-opt.wrong,.rc-opt.wrong{background:rgba(192,112,112,.15);border-color:var(--err);color:var(--err);opacity:.7;animation:shakeLR .38s ease both}
+.syn-opt.correct,.rc-opt.correct{background:color-mix(in srgb,var(--ok) 18%,transparent);border-color:var(--ok);color:var(--ok);animation:correctPop18 .45s ease both}
+.syn-opt.acceptable{background:color-mix(in srgb,var(--warn) 18%,transparent);border-color:var(--warn);color:var(--warn)}
+.syn-opt.wrong,.rc-opt.wrong{background:color-mix(in srgb,var(--err) 15%,transparent);border-color:var(--err);color:var(--err);opacity:.7;animation:shakeLR .38s ease both}
 .syn-opt.dim,.rc-opt.dim{opacity:.45;pointer-events:none}
 .syn-result{margin-top:14px;padding:13px 14px;border-radius:10px;background:var(--elev);border:1px solid var(--bdr);font-size:calc(13px*var(--글자배율));line-height:1.7;display:none}
 .syn-result.show{display:block;animation:fadeUp .3s var(--ease-out) both}
@@ -442,7 +446,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .syn-result-title.warn{color:var(--warn)}
 .syn-result-title.err{color:var(--err)}
 .syn-result-def{color:var(--txt);margin-bottom:5px}
-.syn-result-reason{color:var(--txt2);font-size:12px;line-height:1.65;background:rgba(224,144,96,.08);border-left:2px solid var(--warn);padding:7px 10px;border-radius:5px;margin-top:6px}
+.syn-result-reason{color:var(--txt2);font-size:12px;line-height:1.65;background:color-mix(in srgb,var(--warn) 8%,transparent);border-left:2px solid var(--warn);padding:7px 10px;border-radius:5px;margin-top:6px}
 .syn-actions{display:flex;gap:6px;margin-top:12px}
 .syn-actions .btn-g, .syn-actions .btn-acc{flex:1;padding:10px;font-size:13px}
 .btn-acc.dim{opacity:.45;pointer-events:none}
@@ -466,7 +470,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .rc-opt{padding:12px 14px;border:1px solid var(--bdr);background:var(--elev);border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;color:var(--txt);text-align:left;line-height:1.5;transition:background .15s,border-color .15s,color .15s,opacity .15s,transform .15s}
 /* .rc-opt 상태(hover·정답·오답·흐림)는 .syn-opt와 같은 규칙을 공유한다(위 .syn-opt 상태 규칙 참조) */
 /* 예문형 근사 정답 → 지문 독해 유도 넛지 (세션10-c 항목1) */
-.syn-nudge{margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(120,184,120,.08);border:1px dashed var(--ok);font-size:12px;color:var(--txt2);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.syn-nudge{margin-top:10px;padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--ok) 8%,transparent);border:1px dashed var(--ok);font-size:12px;color:var(--txt2);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .syn-nudge button{padding:6px 10px;font-size:12px}
 
 /* ━━━ 아재개그 ━━━ */
@@ -493,7 +497,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 /* 항목8: 음성 입력 UI */
 .spk-voice{display:flex;flex-direction:column;align-items:stretch;gap:10px}
 .spk-mic-btn{display:flex;align-items:center;justify-content:center;gap:9px;padding:14px;border-radius:11px;border:1px solid var(--bdr);background:var(--elev);color:var(--txt);font-family:var(--fn);font-size:15px;font-weight:700;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
-.spk-mic-btn.rec{border-color:var(--err);color:var(--err);background:rgba(192,112,112,.08)}
+.spk-mic-btn.rec{border-color:var(--err);color:var(--err);background:color-mix(in srgb,var(--err) 8%,transparent)}
 .spk-mic-ico{font-size:20px}
 .spk-mic-btn.rec .spk-mic-ico{animation:pulse 1s ease-in-out infinite}
 .spk-voice-status{font-size:13px;color:var(--txt2);line-height:1.6;text-align:center}
@@ -505,9 +509,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .spk-result-title{font-size:12px;color:var(--acc);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
 .spk-orig{padding:10px;background:var(--elev);border-radius:8px;font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.6}
 .spk-orig::before{content:'입력: ';color:var(--txtm);font-weight:700}
-.spk-fix{padding:12px;background:rgba(120,180,255,.08);border:1px solid rgba(120,180,255,.25);border-radius:8px;font-size:14px;color:var(--inf);margin-bottom:10px;line-height:1.65}
+.spk-fix{padding:12px;background:color-mix(in srgb,var(--inf) 8%,transparent);border:1px solid color-mix(in srgb,var(--inf) 25%,transparent);border-radius:8px;font-size:14px;color:var(--inf);margin-bottom:10px;line-height:1.65}
 .spk-fix::before{content:'개선: ';color:var(--inf);font-weight:700;font-size:12px}
-.spk-tip{padding:10px;background:rgba(255,210,80,.06);border:1px dashed rgba(255,210,80,.25);border-radius:8px;font-size:12px;color:var(--accl);line-height:1.6}
+.spk-tip{padding:10px;background:color-mix(in srgb,var(--accl) 6%,transparent);border:1px dashed color-mix(in srgb,var(--accl) 25%,transparent);border-radius:8px;font-size:12px;color:var(--accl);line-height:1.6}
 .spk-tip::before{content:'💡 '}
 
 /* ━━━ 복습 ━━━ */
@@ -531,7 +535,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .act-btn:hover{border-color:var(--accd);color:var(--acc)}
 .act-btn.d:hover{border-color:var(--err);color:var(--err)}
 .act-btn.fav.on{color:#ffd060;border-color:rgba(255,208,96,.3)}
-.bin-info{font-size:12px;color:var(--txtm);padding:8px 12px;background:rgba(255,144,80,.05);border:1px dashed rgba(255,144,80,.2);border-radius:8px;line-height:1.6;margin-bottom:8px}
+.bin-info{font-size:12px;color:var(--txtm);padding:8px 12px;background:color-mix(in srgb,var(--warn) 5%,transparent);border:1px dashed color-mix(in srgb,var(--warn) 20%,transparent);border-radius:8px;line-height:1.6;margin-bottom:8px}
 
 /* ━━━ 업적 ━━━ */
 .ach-sum{background:var(--card);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;gap:14px;flex-shrink:0}
@@ -574,7 +578,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ach-d-table td{padding:8px 4px}
 .ach-d-table td:first-child{color:var(--txt2)}
 .ach-d-table td:last-child{color:var(--acc);font-weight:700;text-align:right}
-.ach-d-current{background:rgba(120,184,120,.08)}
+.ach-d-current{background:color-mix(in srgb,var(--ok) 8%,transparent)}
 .ach-d-current td{color:var(--ok) !important;font-weight:700}
 
 /* ━━━ 현황 (CMD tree) ━━━ */
@@ -760,7 +764,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ask-msg{padding:12px 14px;border-radius:9px;font-size:calc(14px*var(--글자배율));line-height:1.7;user-select:text;-webkit-user-select:text}
 /* 세션5 버그3: 보조색(--txt2)이 어두운 테마에서 배경에 묻힘 — 본문은 기본 글자색 사용 */
 .ask-msg.user{background:var(--elev);color:var(--txt);text-align:right;margin-left:32px;border:1px solid var(--bdr)}
-.ask-msg.ai{background:rgba(120,180,255,.06);border:1px solid rgba(120,180,255,.2);margin-right:32px}
+.ask-msg.ai{background:color-mix(in srgb,var(--inf) 6%,transparent);border:1px solid color-mix(in srgb,var(--inf) 20%,transparent);margin-right:32px}
 /* 세션6 항목2: 채팅 내 사고 전개 블록 — 중요 콘텐츠라 기본 글자색(--txt)으로 (모든 테마 가독) */
 .ask-think{background:var(--elev);border:1px solid var(--bdr);border-left:3px solid var(--acc);border-radius:8px;padding:9px 11px;margin-bottom:9px;font-size:13px;color:var(--txt);line-height:1.7;text-align:left}
 .ask-msg.ai::before{content:'🤖 AI';font-size:11px;color:var(--inf);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
@@ -768,7 +772,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ask-msg.dict{background:color-mix(in srgb, var(--acc) 8%, transparent);border:1px solid color-mix(in srgb, var(--acc) 25%, var(--bdr));margin-right:32px}
 .ask-msg.dict::before{content:'📖 사전';font-size:11px;color:var(--acc);font-weight:700;display:block;margin-bottom:6px;letter-spacing:1px}
 .ask-objection-btn{margin-top:6px;background:transparent;border:1px solid var(--err);color:var(--err);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--fn);font-weight:700;transition:background .2s}
-.ask-objection-btn:hover{background:rgba(192,112,112,.1)}
+.ask-objection-btn:hover{background:color-mix(in srgb,var(--err) 10%,transparent)}
 
 .obj-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
 .obj-modal{background:var(--card);border:1px solid var(--err);border-radius:16px;padding:22px;max-width:320px;width:100%;transform:scale(.85);transition:transform .35s var(--ease-out)}
@@ -801,6 +805,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .modal-bg{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
 /* 오버레이 공통 표시 — 업적 상세·질문 패널 배경·이의 모달·업적/레벨업 팝업·일반 모달 */
 .ach-detail-bg.show,.ask-bg.show,.obj-bg.show,.ov-bg.show,.modal-bg.show{opacity:1;pointer-events:all}
+/* U14: 닫힌 오버레이는 Tab 순서·화면 낭독에서도 빠지게 숨긴다 — 닫힐 땐 페이드가 끝난 뒤에 */
+.ach-detail-bg,.ask-bg,.obj-bg,.ov-bg,.modal-bg{visibility:hidden;transition:opacity .3s,visibility 0s .3s}
+.ach-detail-bg.show,.ask-bg.show,.obj-bg.show,.ov-bg.show,.modal-bg.show{visibility:visible;transition:opacity .3s}
+.ask-panel{visibility:hidden;transition:transform .4s var(--ease-out),visibility 0s .4s}
+.ask-panel.show{visibility:visible;transition:transform .4s var(--ease-out)}
 /* 세션10-e 항목2: PC 등 큰 뷰포트에서 340px 고정폭이 여백만 남기던 문제 — 뷰포트 비례(clamp)로 반응형화.
    폰(46vw가 320 미만)에서는 하한 320px로 기존과 거의 동일, 데스크톱은 최대 520px까지 확장 */
 .modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px;max-width:clamp(320px, 46vw, 520px);width:100%;transform:scale(.85);transition:transform .35s var(--ease-out);max-height:80vh;overflow-y:auto}

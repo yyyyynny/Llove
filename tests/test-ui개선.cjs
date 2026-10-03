@@ -1,4 +1,6 @@
 // 2026-10-03 UI 개선(인계 노트 13절, docs/UI감사_2026-10-03.md) — 고친 동작 회귀 검증
+const fs = require('fs');
+const path = require('path');
 const { load, makeHarness } = require('./load.cjs');
 
 load((window) => {
@@ -56,6 +58,21 @@ load((window) => {
   ev('openFontSelect()');
   assert('글꼴: 선택 목록 맨 위가 테마 기본', doc.querySelector('#fontList .fo').dataset.key === 'theme');
   ev('closeFont()');
+
+  // U14: 닫힌 모달은 Tab 순서에서 빠지고(visibility), Esc로 맨 위 모달이 닫힌다
+  const 가시성 = (id) => window.getComputedStyle(doc.getElementById(id)).visibility;
+  assert('U14: 닫힌 이의있음 모달은 숨김(Tab 제외)', 가시성('objBg') === 'hidden', 가시성('objBg'));
+  ev("showInfoModal('ℹ️','안내','내용'); openObj('general');");
+  assert('U14: 열린 모달은 보임', 가시성('objBg') === 'visible' && 가시성('infoBg') === 'visible');
+  doc.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert('U14: Esc는 맨 위(이의있음)만 닫는다', !보임('objBg') && 보임('infoBg'));
+  doc.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert('U14: Esc 한 번 더 누르면 아래 모달도 닫힌다', !보임('infoBg'));
+
+  // U19: 상태색(정답·오답·경고·정보)이 고서 테마 값으로 박혀 있지 않다 — 테마 토큰에서 파생
+  const css = fs.readFileSync(path.join(__dirname, '..', 'Llove', 'style.css'), 'utf8');
+  const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];
+  assert('U19: 상태색 고정 rgba가 남아 있지 않다', 박힌색.length === 0, 박힌색.join(' '));
 
   process.exit(finish() > 0 ? 1 : 0);
 });
