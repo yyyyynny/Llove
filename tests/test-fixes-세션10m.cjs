@@ -72,8 +72,9 @@ assert('wchain: 게이팅 밖에 남은 hover 이동이 없다', 남은W.length 
 // 색·테두리 피드백은 게이팅 밖에 남겨 둔다(터치에서도 눌린 느낌이 나야 함)
 assert('색 피드백은 터치에서도 유지된다(.mc:hover 테두리)',
   /\.mc:hover\{[^}]*border-color/.test(LLOVE_CSS));
-assert('그림자 피드백도 유지된다(.btn-acc:hover)',
-  /\.btn-acc:hover\{[^}]*box-shadow/.test(LLOVE_CSS));
+// 10-03: 떠오르는 그림자(템플릿 신호)는 밝기 변화로 대체 — 피드백 자체는 유지
+assert('누름 피드백도 유지된다(.btn-acc:hover 밝기)',
+  /\.btn-acc:hover\{[^}]*filter:brightness/.test(LLOVE_CSS));
 
 /* (d) transition:all 금지 — 의도 안 한 속성(padding·max-height·font-size 등)까지
    GPU 밖에서 애니메이션한다. 각 규칙이 실제로 바꾸는 속성만 나열해야 한다. */

@@ -49,6 +49,9 @@ function 배경클릭_닫기(ev, 닫기fn){
   닫기fn();
 }
 
+// U12(10-03): 순차 등장(.fu)은 화면마다 첫 방문에만. display:none→표시 때 CSS 애니메이션이 매번 다시
+// 돌아, 종전엔 홈으로 돌아올 때마다 카드 10장이 다시 올라왔다(반복되면 기다림·거슬림)
+const 본화면 = new Set();
 function goNav(id, btn){
   if(id===curScreen) return;
   const prev=document.getElementById(curScreen);
@@ -63,13 +66,17 @@ function goNav(id, btn){
     setTimeout(()=>{prev.classList.remove('leaving')},280);
   }
 
+  const 첫방문 = !본화면.has(id);
+  본화면.add(id);
+  // 다시 오는 화면은 표시되기 전에 멈춰 둬야 첫 프레임부터 깜빡이지 않는다
+  if(!첫방문) next.querySelectorAll('.fu').forEach(e=>{ e.style.animation='none'; });
   next.classList.add('active');
   // v3.7 항목18: 화면 전환 시 scrollTop 초기화 (이전 화면의 스크롤 잔재 방지)
   next.scrollTop=0;
   next.querySelectorAll('.qbody, .ach-list, .set-body, .seg-content').forEach(el=>{ el.scrollTop=0; });
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     next.classList.add('entering');
-    next.querySelectorAll('.fu').forEach(e=>{e.style.animation='none';void e.offsetWidth;e.style.animation='';});
+    if(첫방문) next.querySelectorAll('.fu').forEach(e=>{e.style.animation='none';void e.offsetWidth;e.style.animation='';});
     setTimeout(()=>next.classList.remove('entering'),400);
   }));
 

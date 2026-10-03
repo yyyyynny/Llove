@@ -81,6 +81,11 @@ load((window) => {
   ev("renderFlashcard([{cat:'고사성어',word:'漁夫之利',mark:'',reading:'어부지리',meaning:'뜻',hanja:[],direct:'',example:'',mnemonic:''}]);");
   assert('U6: 자기 평가가 더 알아보기 밖에 있다', !!doc.querySelector('#fcBack > .fc-judge') && !doc.querySelector('#fcMore .fc-judge'));
 
+  // U12: 순차 등장은 첫 방문에만 — 홈에 다시 오면 카드가 다시 올라오지 않는다
+  ev("goNav('sh',null)"); ev("goNav('ss',null)"); ev("goNav('sh',null)");
+  const 홈카드 = doc.querySelector('#sh .mc.fu');
+  assert('U12: 재방문한 홈 카드는 등장 연출 정지', 홈카드.style.animation.startsWith('none'), 홈카드.style.animation);
+
   // U19: 상태색(정답·오답·경고·정보)이 고서 테마 값으로 박혀 있지 않다 — 테마 토큰에서 파생
   const css = fs.readFileSync(path.join(__dirname, '..', 'Llove', 'style.css'), 'utf8');
   const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];

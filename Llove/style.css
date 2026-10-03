@@ -117,7 +117,6 @@ html{scrollbar-gutter:stable}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-28px)}}
-@keyframes auraBreath{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
 @keyframes expFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-64px)}}
 @keyframes shakeLR{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 @keyframes correctPop{0%{background:color-mix(in srgb,var(--ok) 40%,transparent)}100%{background:color-mix(in srgb,var(--ok) 8%,transparent)}}
@@ -168,8 +167,8 @@ html{scrollbar-gutter:stable}
 .nv-icon{font-size:23px;transition:transform .25s var(--ease-out)}
 
 /* ━━━ 공통 컴포넌트 ━━━ */
-.btn-acc{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;padding:13px 22px;border-radius:10px;font-family:var(--fn);font-weight:700;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;letter-spacing:.3px}
-.btn-acc:hover{box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.btn-acc{background:var(--acc);color:var(--bg);border:none;padding:13px 22px;border-radius:10px;font-family:var(--fn);font-weight:700;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;letter-spacing:.3px}
+.btn-acc:hover{filter:brightness(1.06)}
 .btn-acc:active{transform:scale(.97)}
 .btn-g{background:transparent;color:var(--txt2);border:1px solid var(--bdr);padding:9px 15px;border-radius:8px;font-family:var(--fn);font-size:14px;cursor:pointer;transition:border-color .2s,color .2s}
 .btn-g:hover{border-color:var(--accd);color:var(--acc)}
@@ -197,7 +196,7 @@ html{scrollbar-gutter:stable}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 #onboarding{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
 #onboarding.gone{display:none}
-.ob-prog{position:absolute;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accd),var(--acc));transition:width .4s var(--ease-out);z-index:5}
+.ob-prog{position:absolute;top:0;left:0;height:2px;background:var(--acc);transition:width .4s var(--ease-out);z-index:5}
 /* padding 세로 4→6: 종전 높이 22px 로 터치 최소치(24px) 미달(2026-08-22 실측). 절대 위치라 주변 레이아웃 영향 없음 */
 .ob-skip{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--txtm);font-size:13px;cursor:pointer;font-family:var(--fn);padding:6px 8px;z-index:6}
 .ob-skip:hover{color:var(--txt2)}
@@ -207,7 +206,6 @@ html{scrollbar-gutter:stable}
 .ob-slide.active{opacity:1;transform:translateX(0);pointer-events:all}
 .ob-slide.exit{opacity:0;transform:translateX(-32px)}
 .ob-bg,.lg-bg{position:absolute;inset:0;pointer-events:none}
-.ob-aura,.lg-aura{position:absolute;width:440px;height:440px;background:radial-gradient(ellipse 60% 55% at 50% 50%,color-mix(in srgb,var(--acc) 8%,transparent),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:auraBreath 4s ease-in-out infinite}
 /* 세션9: 아이콘 크기 체계 통일 — 히어로(44px)/목록(26px)/소형(20px) 3단계로 수렴 */
 .ob-icon{font-size:44px;margin-bottom:18px;animation:fadeUp .5s var(--ease-out) both}
 .ob-title{font-family:'Nanum Myeongjo',serif;font-size:25px;font-weight:800;color:var(--acc);text-align:center;margin-bottom:8px;line-height:1.38;letter-spacing:.4px}
@@ -221,15 +219,15 @@ html{scrollbar-gutter:stable}
 .ob-fi{font-size:26px;width:32px;text-align:center}
 .ob-fn{font-size:14px;font-weight:700;margin-bottom:2px}
 .ob-fd{font-size:12px;color:var(--txt2)}
-.ob-start-btn{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;padding:14px 40px;border-radius:11px;font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:700;cursor:pointer;margin-top:22px;transition:transform .2s,box-shadow .2s;animation:fadeUp .5s .35s var(--ease-out) both}
-.ob-start-btn:hover{box-shadow:0 6px 22px color-mix(in srgb,var(--acc) 35%,transparent)}
+.ob-start-btn{background:var(--acc);color:var(--bg);border:none;padding:14px 40px;border-radius:11px;font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:700;cursor:pointer;margin-top:22px;transition:transform .2s,box-shadow .2s;animation:fadeUp .5s .35s var(--ease-out) both}
+.ob-start-btn:hover{filter:brightness(1.06)}
 .ob-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 26px 34px;flex-shrink:0}
 .ob-dots{display:flex;gap:5px}
 .ob-dot{width:6px;height:6px;border-radius:3px;background:var(--bdr);transition:width .3s var(--ease-out),background .3s var(--ease-out)}
 .ob-dot.on{width:18px;background:var(--acc)}
 .ob-nb{background:var(--card);border:1px solid var(--bdr);color:var(--txt2);padding:8px 17px;border-radius:8px;font-family:var(--fn);font-size:14px;cursor:pointer;transition:background .2s,border-color .2s,color .2s,opacity .2s}
 .ob-nb:hover{border-color:var(--accd);color:var(--acc)}
-.ob-nb.pri{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border-color:transparent;font-weight:700}
+.ob-nb.pri{background:var(--acc);color:var(--bg);border-color:transparent;font-weight:700}
 .ob-nb.inv{opacity:0;pointer-events:none}
 
 /* ━━━ 로그인 ━━━ */
@@ -238,9 +236,9 @@ html{scrollbar-gutter:stable}
    safe-area-inset: 노치·펀치홀 기기에서 여백이 깎이지 않도록 가산. */
 #sl{justify-content:center;align-items:center;padding:40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-right)) 40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-left))}  /* position:relative 삭제(2026-09-27) — .screen의 fixed 전체화면을 덮어써 세로 가운데 정렬이 안 되던 원인 */
 .lg-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:min(400px, 100% - 40px)}
-.lg-icon-wrap{width:76px;height:76px;background:linear-gradient(135deg,#1e2535,#2a3550);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:44px}
+.lg-icon-wrap{width:76px;height:76px;background:var(--elev);border:2px solid var(--accd);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:44px}
 .lg-title{font-family:'Nanum Myeongjo',serif;font-size:26px;color:var(--acc);letter-spacing:3px}
-.lg-sub{font-size:11px;color:var(--txtm);letter-spacing:3px;text-transform:uppercase}
+.lg-sub{font-size:11px;color:var(--txtm);letter-spacing:1px}
 .lg-desc{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;width:100%;text-align:center}
 .lg-desc p{font-size:14px;color:var(--txt2);line-height:1.75}
 .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:15px;color:var(--txt);font-family:var(--fn);font-size:15px;font-weight:500;cursor:pointer;transition:border-color .2s,transform .2s}
@@ -254,7 +252,7 @@ html{scrollbar-gutter:stable}
 .nm-inp:focus{border-color:var(--acc)}
 .nm-prev{background:var(--elev);border:1px solid var(--bdr);border-radius:11px;padding:14px;display:flex;align-items:center;gap:12px;transition:border-color .3s}
 .nm-prev.has{border-color:var(--accd)}
-.nm-av{width:46px;height:46px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px}
+.nm-av{width:46px;height:46px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px}
 .nm-pname{font-weight:700;font-size:15px}
 .nm-prev.has .nm-pname{color:var(--acc)}
 .nm-rank{font-size:12px;color:var(--acc)}
@@ -264,9 +262,9 @@ html{scrollbar-gutter:stable}
 .hh-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .hg{font-size:13px;color:var(--txt2)}
 .hun{font-size:21px;font-weight:700}
-.hav{width:46px;height:46px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:transform .2s}
+.hav{width:46px;height:46px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:transform .2s}
 .hav:active{transform:scale(.9)}
-.lbdg{background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);font-weight:900;font-size:12px;padding:3px 9px;border-radius:18px}
+.lbdg{background:var(--acc);color:var(--bg);font-weight:900;font-size:12px;padding:3px 9px;border-radius:18px}
 .rn{font-size:14px;color:var(--acc);font-weight:600}
 .exp-row{display:flex;justify-content:space-between;font-size:11px;color:var(--txtm);margin-top:5px}
 .stat-row{display:flex;gap:9px;margin-top:12px}
@@ -274,8 +272,8 @@ html{scrollbar-gutter:stable}
 .stat-chip:hover{border-color:var(--accd)}
 .sc-val{font-size:19px;font-weight:700;color:var(--acc)}
 .sc-lbl{font-size:10px;color:var(--txtm);margin-top:2px}
-.kc{margin:14px 20px;background:linear-gradient(135deg,var(--card),var(--elev));border:1px solid var(--accd);border-radius:12px;padding:14px;cursor:pointer;position:relative;overflow:hidden;min-height:96px}
-.kl{font-size:11px;color:var(--acc);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:7px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.kc{margin:14px 20px;background:var(--card);border:1px solid var(--accd);border-radius:12px;padding:14px;cursor:pointer;position:relative;overflow:hidden;min-height:96px}
+.kl{font-size:11px;color:var(--acc);margin-bottom:7px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
 .kt{font-size:15px;line-height:1.78;font-style:italic}
 .kt-author{font-size:12px;color:var(--txt2);text-align:right;margin-top:6px;font-style:normal}
 /* ━━━ v3.7 항목11: 「오늘 한 문장」슬라이드 배너 (KNOWLEDGE 24섹션) ━━━
@@ -294,10 +292,10 @@ html{scrollbar-gutter:stable}
 .kc-word:hover{color:var(--accl);border-bottom-color:var(--acc)}
 .hs{padding:0 20px 20px}
 /* 세션6 항목8: 「학습 모드」 라벨·카드 강조 — 터치에선 hover가 없으므로 상시 강조로 전환 */
-.sec-t{font-size:13px;font-weight:700;color:var(--txt);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px;margin-top:18px}
-.mc{--mc-glow:var(--acc);background:var(--card);border:1px solid var(--bdrg);border-radius:12px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:9px;transition:transform .2s,border-color .2s,background .4s,box-shadow .2s;position:relative;overflow:hidden}
+.sec-t{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:10px;margin-top:18px}
+.mc{background:var(--card);border:1px solid var(--bdrg);border-radius:12px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:9px;transition:transform .2s,border-color .2s,background .4s,box-shadow .2s;position:relative;overflow:hidden}
 .mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc);transition:width .25s}
-.mc:hover{border-color:var(--acc);box-shadow:0 6px 20px -8px var(--mc-glow)}
+.mc:hover{border-color:var(--acc)}
 .mc:hover::before{width:6px}
 .mc:hover .mc-arrow{color:var(--acc)}
 /* 2026-09-23 디자인 개편 파일럿: 터치 시 눌리는 느낌(press feedback) — 기존엔 호버만 있고
@@ -311,20 +309,20 @@ html{scrollbar-gutter:stable}
    vs 지문 독해 테두리 색 구분 — 기존 테마 변수(--inf·--warn·--ok) 재사용.
    세션10-c: 고서 테마에서 --warn(주황)이 --acc(황갈)와 구분 안 되던 문제 → 혼합비율 40%→65%로 상향,
    액센트 바를 상시 5px(호버 전엔 4px였음)로 키워 색만이 아니라 두께로도 구분되게 보강 */
-.mc.mc-g1{border-color:color-mix(in srgb, var(--inf) 65%, var(--bdrg));--mc-glow:var(--inf)}
+.mc.mc-g1{border-color:color-mix(in srgb, var(--inf) 65%, var(--bdrg))}
 .mc.mc-g1::before{background:var(--inf);width:5px}
 .mc.mc-g1:hover{border-color:var(--inf)}
-.mc.mc-g2{border-color:color-mix(in srgb, var(--warn) 65%, var(--bdrg));--mc-glow:var(--warn)}
+.mc.mc-g2{border-color:color-mix(in srgb, var(--warn) 65%, var(--bdrg))}
 .mc.mc-g2::before{background:var(--warn);width:5px}
 .mc.mc-g2:hover{border-color:var(--warn)}
-.mc.mc-g3{border-color:color-mix(in srgb, var(--ok) 65%, var(--bdrg));--mc-glow:var(--ok)}
+.mc.mc-g3{border-color:color-mix(in srgb, var(--ok) 65%, var(--bdrg))}
 .mc.mc-g3::before{background:var(--ok);width:5px}
 .mc.mc-g3:hover{border-color:var(--ok)}
 /* 세션10-d 항목6·7: 교정 계열(g4=--acc)·재미 계열(g5=--err) 추가 */
-.mc.mc-g4{border-color:color-mix(in srgb, var(--acc) 65%, var(--bdrg));--mc-glow:var(--acc)}
+.mc.mc-g4{border-color:color-mix(in srgb, var(--acc) 65%, var(--bdrg))}
 .mc.mc-g4::before{background:var(--acc);width:5px}
 .mc.mc-g4:hover{border-color:var(--acc)}
-.mc.mc-g5{border-color:color-mix(in srgb, var(--err) 65%, var(--bdrg));--mc-glow:var(--err)}
+.mc.mc-g5{border-color:color-mix(in srgb, var(--err) 65%, var(--bdrg))}
 .mc.mc-g5::before{background:var(--err);width:5px}
 .mc.mc-g5:hover{border-color:var(--err)}
 /* 세션10-d 항목7: 색맹 대비 그룹 라벨 — 각 그룹 색(--gl)을 텍스트로도 노출(색+두께+글자 3중 신호) */
@@ -518,7 +516,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .spk-submit{width:100%;margin-top:8px}
 .spk-result{background:var(--card);border:1px solid var(--accd);border-radius:14px;padding:16px;display:none}
 .spk-result.show{display:block;animation:fadeUp .4s var(--ease-out) both}
-.spk-result-title{font-size:12px;color:var(--acc);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.spk-result-title{font-size:12px;color:var(--acc);font-weight:700;margin-bottom:10px}
 .spk-orig{padding:10px;background:var(--elev);border-radius:8px;font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.6}
 .spk-orig::before{content:'입력: ';color:var(--txtm);font-weight:700}
 .spk-fix{padding:12px;background:color-mix(in srgb,var(--inf) 8%,transparent);border:1px solid color-mix(in srgb,var(--inf) 25%,transparent);border-radius:8px;font-size:14px;color:var(--inf);margin-bottom:10px;line-height:1.65}
@@ -531,7 +529,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .rv-cap{background:var(--card);border:1px solid var(--bdr);border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .rv-cap-lbl{font-size:13px;color:var(--txt2);white-space:nowrap}
 .cap-bar{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
-.cap-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--ok),#5dde8f);transition:width .5s}
+.cap-fill{height:100%;border-radius:3px;background:var(--ok);transition:width .5s}
 .rv-cap-val{font-size:13px;font-weight:700;cursor:pointer;color:var(--acc)}
 .rv-cap-val:hover{text-decoration:underline}
 .rv-item{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:11px;animation:fadeUp .35s var(--ease-out) both;transition:opacity .3s}
@@ -557,7 +555,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ach-divider{width:1px;background:var(--bdr)}
 .ach-body{padding:14px 18px}
 .ach-sec{margin-bottom:22px}
-.ach-sec-t{font-size:12px;font-weight:700;color:var(--txtm);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px}
+.ach-sec-t{font-size:12px;font-weight:700;color:var(--txtm);margin-bottom:10px}
 .ach-list{display:flex;flex-direction:column;gap:7px}
 .ach-item{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:transform .2s,border-color .2s;animation:fadeUp .35s var(--ease-out) both}
 .ach-item:hover{border-color:var(--bdrg)}
@@ -600,7 +598,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
    그 위 z-index로 띄운다. 기존 .st-banner 독립 박스(72px)는 폐지, 카드 자체 높이를 키워 배너를 확장 */
 .st-prof{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px}
 .prof-banner{position:relative;overflow:hidden;isolation:isolate;min-height:184px;cursor:pointer}
-.prof-banner .banner-layer{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,var(--accd),var(--acc));cursor:pointer;transition:background .3s}
+.prof-banner .banner-layer{position:absolute;inset:0;z-index:0;background:var(--acc);cursor:pointer;transition:background .3s}
 .prof-banner .banner-layer img{width:100%;height:100%;object-fit:cover;display:block}
 .prof-banner::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
   background:linear-gradient(to top, rgba(0,0,0,.62), rgba(0,0,0,.1) 62%, rgba(0,0,0,0))}
@@ -610,7 +608,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .prof-banner .st-ttl, .prof-banner .set-ttl, .prof-banner .set-em{color:#f0e8da;text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .prof-banner .set-eb{border-color:rgba(255,255,255,.5);color:#fff;background:rgba(0,0,0,.2)}
 .prof-banner .set-eb:hover{border-color:#fff}
-.st-av{width:72px;height:72px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:37px;flex-shrink:0}
+.st-av{width:72px;height:72px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:37px;flex-shrink:0}
 /* 세션7 항목12: 이름 강조 확대(전역 +10%와 별도) / 세션10-d 항목4: 배너 확대에 맞춰 이름도 상향 */
 .st-name{font-size:28px;font-weight:900;margin-bottom:3px}
 .st-ttl{font-size:13px;color:var(--acc);margin-bottom:6px}
@@ -651,7 +649,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 /* ━━━ 설정 ━━━ */
 .set-body{padding:14px 18px;display:flex;flex-direction:column;gap:13px}
 .set-prof{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;transition:background .4s,border-color .4s}
-.set-av{width:72px;height:72px;background:linear-gradient(135deg,var(--accd),var(--acc));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:37px;cursor:pointer;flex-shrink:0}
+.set-av{width:72px;height:72px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:37px;cursor:pointer;flex-shrink:0}
 .set-nm{font-size:25px;font-weight:800;margin-bottom:3px}
 .set-ttl{font-size:12px;color:var(--acc);margin-bottom:2px}
 .set-em{font-size:12px;color:var(--txt2)}
@@ -659,7 +657,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .set-eb:hover{border-color:var(--accd);color:var(--acc)}
 
 .set-sec{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:14px 16px;transition:background .4s,border-color .4s}
-.set-lbl{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px}
+.set-lbl{font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:10px}
 .set-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--bdr);cursor:pointer;transition:opacity .2s}
 .set-row:last-child{border-bottom:none}
 .set-row:hover{opacity:.85}
@@ -771,7 +769,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ask-input-row{display:flex;gap:8px}
 .ask-input{flex:1;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:11px 14px;color:var(--txt);font-family:var(--fn);font-size:14px;outline:none;transition:border-color .2s}
 .ask-input:focus{border-color:var(--acc)}
-.ask-send{padding:11px 18px;background:linear-gradient(135deg,var(--accd),var(--acc));color:var(--bg);border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn)}
+.ask-send{padding:11px 18px;background:var(--acc);color:var(--bg);border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn)}
 /* 세션7: 전역 user-select:none의 예외 — AI 답변·설명은 복사할 수 있어야 함 */
 .ask-msg{padding:12px 14px;border-radius:9px;font-size:calc(14px*var(--글자배율));line-height:1.7;user-select:text;-webkit-user-select:text}
 /* 세션5 버그3: 보조색(--txt2)이 어두운 테마에서 배경에 묻힘 — 본문은 기본 글자색 사용 */
@@ -806,7 +804,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .pp-exp{font-size:26px;font-weight:900;color:var(--accl);margin-bottom:18px}
 
 .lvup-popup{background:var(--card);border:1px solid var(--acc);border-radius:18px;padding:28px 22px;text-align:center;max-width:295px;width:100%;box-shadow:0 0 36px color-mix(in srgb,var(--acc) 18%,transparent);transform:scale(.85);transition:transform .4s var(--ease-out)}
-.lvup-burst{font-size:70px;animation:bounce 1s ease-in-out infinite}
+.lvup-burst{font-size:70px;animation:bounce 1s ease-in-out}
 .lvup-txt{font-family:'Nanum Myeongjo',serif;font-size:30px;font-weight:700;color:var(--accl);letter-spacing:2px;text-shadow:0 0 28px color-mix(in srgb,var(--acc) 70%,transparent)}
 .lvup-new{font-size:15px;color:var(--txt2);margin-top:6px}
 .lvup-badge{display:inline-flex;align-items:center;gap:9px;background:color-mix(in srgb,var(--acc) 10%,transparent);border:2px solid var(--acc);border-radius:40px;padding:10px 20px;margin:13px 0}
