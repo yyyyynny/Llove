@@ -354,6 +354,13 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 .q-bar .qpbar{position:absolute;left:0;right:0;bottom:-1px;height:2px;border-radius:0;background:transparent}
 .q-bar .qpfill{border-radius:0}
 /* 토큰은 AI 기능에만 쓰인다 — Grok 봉인 중엔 학습 화면의 토큰 바를 숨긴다(기능·데이터는 그대로) */
+/* U23: 학습 화면 공용 — 아래 「질문하기」 입구·랜덤 진입 때만 보이는 넘어가기(종전 7화면에 인라인 복사) */
+.ask-entry-wrap{padding:10px 18px 4px;flex-shrink:0}
+.ask-entry{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r-m);padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--txt2);font-size:12px}
+.ask-entry .ic{font-size:16px}
+.ask-chat-quota{margin-left:auto;font-size:11px;color:var(--txtm)}
+.random-skip{padding:0 18px 6px}
+.random-skip .btn-g{width:100%;padding:9px}
 .grok-off .tkb,.grok-off .ask-chat-quota,.grok-off .ask-quota{display:none}
 /* 설정의 AI 묶음은 그대로 두고, 봉인 중임을 라벨에서 먼저 알린다(U22) */
 .grok-off .set-ai .set-lbl::after{content:' · 연동 준비 중';font-weight:500;color:var(--txtm)}
