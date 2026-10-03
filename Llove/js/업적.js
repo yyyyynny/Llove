@@ -158,19 +158,32 @@ function 업적_단발달성(key){
 function 업적_팝업표시(key, 단계, exp){
   const 항목 = ACH_DATA.flatMap(s=>s.items).find(a=>a.key===key);
   if(!항목) return;
-  const ppIcon=document.getElementById('ppIcon'), ppTitle=document.getElementById('ppTitle'),
-        ppStage=document.getElementById('ppStage'), ppDesc=document.getElementById('ppDesc'),
-        ppStars=document.getElementById('ppStars'), ppExp=document.getElementById('ppExp');
-  if(!ppIcon) return;
-  ppIcon.textContent = 항목.icon;
-  ppTitle.textContent = 항목.name;
-  ppStage.textContent = (단계==null) ? '달성!' : stageLabel(단계) + ' 획득!';
-  ppDesc.textContent = 항목.zalgo ? '히든 업적' : (항목.cat || '');
-  ppStars.innerHTML = (단계==null)
-    ? '<span class="ach-star-filled" style="font-size:20px">☾</span>'
-    : buildStars(단계, false);
-  ppExp.textContent = '+' + exp + ' EXP';
-  document.getElementById('achOv').classList.add('show');
+  팝업_예약(()=>{
+    const ppIcon=document.getElementById('ppIcon'), ppTitle=document.getElementById('ppTitle'),
+          ppStage=document.getElementById('ppStage'), ppDesc=document.getElementById('ppDesc'),
+          ppStars=document.getElementById('ppStars'), ppExp=document.getElementById('ppExp');
+    if(!ppIcon) return;
+    ppIcon.textContent = 항목.icon;
+    ppTitle.textContent = 항목.name;
+    ppStage.textContent = (단계==null) ? '달성!' : stageLabel(단계) + ' 획득!';
+    ppDesc.textContent = 항목.zalgo ? '히든 업적' : (항목.cat || '');
+    ppStars.innerHTML = (단계==null)
+      ? '<span class="ach-star-filled" style="font-size:20px">☾</span>'
+      : buildStars(단계, false);
+    ppExp.textContent = '+' + exp + ' EXP';
+    document.getElementById('achOv').classList.add('show');
+  });
+}
+
+// 축하 팝업 대기열 — 업적·레벨업이 한꺼번에 와도 겹치거나 덮어쓰지 않고 하나씩 띄운다
+const 팝업대기열 = [];
+function 팝업_예약(보이기){
+  팝업대기열.push(보이기);
+  if(팝업대기열.length === 1) 보이기();
+}
+function 팝업_다음(){
+  팝업대기열.shift();
+  if(팝업대기열.length) 팝업대기열[0]();
 }
 
 // 업적로그 서브컬렉션 기록 (KNOWLEDGE 13-1)
@@ -484,5 +497,5 @@ function triggerLvUp(){
   const 캡 = 사용자.개발자모드 ? 120 : 최대레벨;  // 개발자 모드: Lv.120 확장 (KNOWLEDGE 14)
   레벨업팝업(Math.min(표시레벨() + 1, 캡));
 }
-function closeLvUp(){ document.getElementById('lvupOv').classList.remove('show'); }
-function closeAchOv(){ document.getElementById('achOv').classList.remove('show'); }
+function closeLvUp(){ document.getElementById('lvupOv').classList.remove('show'); 팝업_다음(); }
+function closeAchOv(){ document.getElementById('achOv').classList.remove('show'); 팝업_다음(); }

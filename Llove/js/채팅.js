@@ -746,6 +746,10 @@ function openObj(컨텍스트){
     showToastMsg('💎 토큰 소진 — 이의있음!은 충전 후 사용 가능합니다');
     return;
   }
+  // 봉인 중엔 쓰기 전에 알 수 있게 제출 버튼부터 막아 둔다(종전: 다 쓰고 제출하면 글이 지워졌다)
+  const 제출 = document.getElementById('objSubmit');
+  제출.disabled = !GROK_활성화;
+  제출.textContent = GROK_활성화 ? '반박 제출' : 'Grok 연동 후 제출 가능';
   document.getElementById('objBg').classList.add('show');
   setTimeout(()=>document.getElementById('objInp').focus(),300);
 }
@@ -765,8 +769,7 @@ function submitObj(){
     return;
   }
   if(!GROK_활성화){
-    // 크레딧 미구매 단계: 가짜 판정 폐기 — 호출·차감 없이 안내만 (구 데모의 거짓 「반박의 화신 +1」 제거)
-    closeObj();
+    // 크레딧 미구매 단계: 가짜 판정 폐기 — 호출·차감 없이 안내만, 쓴 글은 지우지 않는다
     showToastMsg('🔌 이의있음!은 Grok 연동 후 사용 가능합니다 (토큰 차감 없음)');
     return;
   }

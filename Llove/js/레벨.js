@@ -91,9 +91,11 @@ function 학습일갱신(){
 // 레벨업 팝업 — 도달한 레벨 기준 표시
 function 레벨업팝업(레벨){
   const 등급 = 등급정보(레벨);
-  document.getElementById('lvupLvText').textContent='Lv.'+레벨;
-  document.getElementById('lvupRankText').textContent=등급.등급+' · '+등급.세부;
-  document.getElementById('lvupOv').classList.add('show');
+  팝업_예약(()=>{
+    document.getElementById('lvupLvText').textContent='Lv.'+레벨;
+    document.getElementById('lvupRankText').textContent=등급.등급+' · '+등급.세부;
+    document.getElementById('lvupOv').classList.add('show');
+  });
 }
 
 // 10연속 정답 → 토큰 +10 복구 (KNOWLEDGE 32 복구 시스템, 무제한)

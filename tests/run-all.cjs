@@ -34,7 +34,8 @@ const 테스트들 = [
   ['Worker 뜻풀이 동음이의어 그룹화', 'test-worker-뜻풀이그룹화.cjs'],
   ['Worker 후보 품질 필터', 'test-worker-후보필터.cjs'],
   ['Worker 단어 적절성 판정', 'test-worker-적절성판정.cjs'],
-  ['실험실 상태 표시 정합성', 'test-실험실.cjs']
+  ['실험실 상태 표시 정합성', 'test-실험실.cjs'],
+  ['UI 개선 감사 지적 수정', 'test-ui개선.cjs']
 ];
 
 let 실패 = 0;
