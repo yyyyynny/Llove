@@ -275,7 +275,7 @@ function 커스텀_적용(){
 /* 세션5 버그2: 커스텀 이름을 테마 선택 칩 라벨에 반영 — 이름 없으면 「커스텀」 유지 */
 function 커스텀칩_라벨갱신(){
   const el = document.querySelector('#th-custom .tnm');
-  if(el) el.textContent = '🎨 ' + (커스텀이름 || '커스텀');
+  if(el) el.textContent = 커스텀이름 || '커스텀';
 }
 function 커스텀_저장persist(){
   try{

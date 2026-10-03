@@ -86,6 +86,13 @@ load((window) => {
   const 홈카드 = doc.querySelector('#sh .mc.fu');
   assert('U12: 재방문한 홈 카드는 등장 연출 정지', 홈카드.style.animation.startsWith('none'), 홈카드.style.animation);
 
+  // U10: 네비·모드 카드·설정 행 아이콘은 단색 SVG — 이모지 없음, 참조한 아이콘은 모두 묶음에 있다
+  const 그림문자 = /\p{Extended_Pictographic}/u;
+  const 아이콘자리 = [...doc.querySelectorAll('.nv-btn, .mc-icon, .sri, .ob-fi')];
+  assert('U10: 아이콘 자리에 이모지가 없다', 아이콘자리.every(e => !그림문자.test(e.textContent)), 아이콘자리.filter(e => 그림문자.test(e.textContent)).map(e => e.textContent.trim()).join(' '));
+  const 없는아이콘 = [...doc.querySelectorAll('use')].map(u => u.getAttribute('href')).filter(h => !doc.querySelector(h));
+  assert('U10: 참조한 아이콘이 모두 묶음에 있다', 없는아이콘.length === 0, 없는아이콘.join(' '));
+
   // U19: 상태색(정답·오답·경고·정보)이 고서 테마 값으로 박혀 있지 않다 — 테마 토큰에서 파생
   const css = fs.readFileSync(path.join(__dirname, '..', 'Llove', 'style.css'), 'utf8');
   const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];

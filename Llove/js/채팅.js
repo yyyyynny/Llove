@@ -219,7 +219,7 @@ function 갱신_설정_개발자모드_UI(){
 
   if(사용자.개발자모드){
     // 활성화 상태
-    icon.textContent = '🔓';
+    icon.querySelector('use')?.setAttribute('href', '#i-unlock');
     label.style.color = 'var(--accl)';
     label.textContent = '개발자 모드';
     desc.textContent = '활성화됨 — 탭하여 진입';
@@ -227,7 +227,7 @@ function 갱신_설정_개발자모드_UI(){
     arrow.style.color = 'var(--acc)';
   } else {
     // 잠금 상태
-    icon.textContent = '🔒';
+    icon.querySelector('use')?.setAttribute('href', '#i-lock');
     label.style.color = 'var(--txtm)';
     label.textContent = '개발자 모드';
     desc.textContent = '[창조주] 달성 후 활성화';

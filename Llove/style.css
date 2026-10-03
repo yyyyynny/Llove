@@ -165,6 +165,9 @@ html{scrollbar-gutter:stable}
 .nv-btn.on .nv-icon{transform:scale(1.08)}
 .nv-btn:active{transform:scale(.86)}
 .nv-icon{font-size:23px;transition:transform .25s var(--ease-out)}
+/* U10: 단색 SVG 아이콘 공통 — 크기는 부모 글자 크기, 색은 글자색을 따른다 */
+.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:-.15em}
+.nv-icon.ic{font-size:22px}
 
 /* ━━━ 공통 컴포넌트 ━━━ */
 .btn-acc{background:var(--acc);color:var(--bg);border:none;padding:13px 22px;border-radius:10px;font-family:var(--fn);font-weight:700;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;letter-spacing:.3px}
@@ -217,6 +220,7 @@ html{scrollbar-gutter:stable}
 .ob-feat{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:11px 14px;display:flex;align-items:center;gap:12px;animation:fadeUp .38s var(--ease-out) both}
 .ob-feat:nth-child(1){animation-delay:.05s}.ob-feat:nth-child(2){animation-delay:.10s}.ob-feat:nth-child(3){animation-delay:.15s}.ob-feat:nth-child(4){animation-delay:.20s}.ob-feat:nth-child(5){animation-delay:.25s}.ob-feat:nth-child(6){animation-delay:.30s}.ob-feat:nth-child(7){animation-delay:.35s}
 .ob-fi{font-size:26px;width:32px;text-align:center}
+.ob-fi .ic{font-size:22px;color:var(--acc)}
 .ob-fn{font-size:14px;font-weight:700;margin-bottom:2px}
 .ob-fd{font-size:12px;color:var(--txt2)}
 .ob-start-btn{background:var(--acc);color:var(--bg);border:none;padding:14px 40px;border-radius:11px;font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:700;cursor:pointer;margin-top:22px;transition:transform .2s,box-shadow .2s;animation:fadeUp .5s .35s var(--ease-out) both}
@@ -270,7 +274,8 @@ html{scrollbar-gutter:stable}
 .stat-row{display:flex;gap:9px;margin-top:12px}
 .stat-chip{flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:9px;padding:9px;text-align:center;transition:transform .2s,border-color .2s}
 .stat-chip:hover{border-color:var(--accd)}
-.sc-val{font-size:19px;font-weight:700;color:var(--acc)}
+.sc-val{font-size:19px;font-weight:700;color:var(--acc);display:flex;align-items:center;justify-content:center;gap:5px;font-variant-numeric:tabular-nums}
+.sc-val .ic{font-size:16px;color:var(--txt2)}
 .sc-lbl{font-size:10px;color:var(--txtm);margin-top:2px}
 .kc{margin:14px 20px;background:var(--card);border:1px solid var(--accd);border-radius:12px;padding:14px;cursor:pointer;position:relative;overflow:hidden;min-height:96px}
 .kl{font-size:11px;color:var(--acc);margin-bottom:7px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
@@ -301,7 +306,8 @@ html{scrollbar-gutter:stable}
 /* 2026-09-23 디자인 개편 파일럿: 터치 시 눌리는 느낌(press feedback) — 기존엔 호버만 있고
    탭 순간의 피드백이 없었다. 색은 그대로 두고 형태만 살짝 눌러 촉각적 반응을 준다. */
 .mc:active{transform:scale(.98)}
-.mc-icon{font-size:26px;width:40px;text-align:center;flex-shrink:0}
+.mc-icon{font-size:24px;width:40px;display:flex;justify-content:center;flex-shrink:0;color:var(--acc)}
+.mc-g1 .mc-icon{color:var(--inf)}.mc-g2 .mc-icon{color:var(--warn)}.mc-g3 .mc-icon{color:var(--ok)}.mc-g5 .mc-icon{color:var(--err)}
 .mc-name{font-size:17px;font-weight:700;margin-bottom:2px;color:var(--accl)}
 .mc-desc{font-size:12px;color:var(--txt2)}
 .mc-arrow{color:var(--txtm);font-size:21px;transition:transform .2s,color .2s}
@@ -336,7 +342,7 @@ html{scrollbar-gutter:stable}
 /* U4(10-03): 학습 화면 머리 — 나가기·제목/방식·진행·⚙를 한 줄로, 진행 막대는 아래 가장자리 선.
    종전엔 머리·진행·토큰·설정 띠 4겹이 문제를 230px 아래로 밀었다 */
 .q-bar{padding:8px 8px 10px 4px;gap:4px}
-.q-exit,.q-set{background:none;border:none;color:var(--txt2);font-size:20px;line-height:1;padding:8px 10px;border-radius:8px;cursor:pointer;font-family:var(--fn);flex-shrink:0;transition:color .2s,background .2s}
+.q-exit,.q-set{display:flex;align-items:center;background:none;border:none;color:var(--txt2);font-size:20px;line-height:1;padding:8px 10px;border-radius:8px;cursor:pointer;font-family:var(--fn);flex-shrink:0;transition:color .2s,background .2s}
 .q-set.on{color:var(--acc);background:var(--elev)}
 .q-head{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .q-head .tbt{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -344,7 +350,7 @@ html{scrollbar-gutter:stable}
 .q-bar .qpbar{position:absolute;left:0;right:0;bottom:-1px;height:2px;border-radius:0;background:transparent}
 .q-bar .qpfill{border-radius:0}
 /* 토큰은 AI 기능에만 쓰인다 — Grok 봉인 중엔 학습 화면의 토큰 바를 숨긴다(기능·데이터는 그대로) */
-.grok-off .tkb{display:none}
+.grok-off .tkb,.grok-off .ask-chat-quota,.grok-off .ask-quota{display:none}
 /* v3.7 항목10: max-height 480px로 확장 (4방식 + 2행 추가 대응)
    세션5 버그8: 펼침·접힘 부자연 해소 — 높이·여백·투명도를 함께 전환(수직 전개, fadeUp 계열) */
 .lset-body{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s var(--ease-out),padding .35s var(--ease-out),opacity .3s ease;padding:0 18px}
@@ -661,7 +667,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .set-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--bdr);cursor:pointer;transition:opacity .2s}
 .set-row:last-child{border-bottom:none}
 .set-row:hover{opacity:.85}
-.sri{font-size:20px;width:26px;text-align:center;flex-shrink:0}
+.sri{font-size:20px;width:26px;display:flex;justify-content:center;flex-shrink:0;color:var(--txt2)}
 .srl{font-size:14px;font-weight:500}
 .srs{font-size:13px;color:var(--txt2);margin-top:2px}
 /* 항목3: 커스텀 테마 에디터 */

@@ -22,9 +22,9 @@ load((window) => {
 
   /* ── 버그2: 커스텀 테마 이름 → 테마 칩 라벨 반영 ── */
   ev("커스텀이름='새벽바다'; 커스텀_저장persist();");
-  assert('버그2: 이름 지정 시 칩 라벨 변경', doc.querySelector('#th-custom .tnm').textContent === '🎨 새벽바다');
+  assert('버그2: 이름 지정 시 칩 라벨 변경', doc.querySelector('#th-custom .tnm').textContent === '새벽바다');
   ev("커스텀이름=''; 커스텀_저장persist();");
-  assert('버그2: 이름 없으면 「커스텀」 유지', doc.querySelector('#th-custom .tnm').textContent === '🎨 커스텀');
+  assert('버그2: 이름 없으면 「커스텀」 유지', doc.querySelector('#th-custom .tnm').textContent === '커스텀');
 
   /* ── 버그5: 성장 상세에도 등급 표시 (현황과 통일) ── */
   ev('curLv=70; 렌더_성장상세();');

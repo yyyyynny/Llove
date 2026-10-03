@@ -126,9 +126,9 @@ function afterNav(id){
     document.getElementById('homeRank').textContent=등급.등급;
     document.getElementById('homeTitle').textContent='· '+등급.세부;
     document.getElementById('homeExpTxt').textContent=`${표시Exp} / ${표시Max} EXP`;
-    document.getElementById('homeStreak').textContent='🔥 '+사용자.연속학습일;
-    document.getElementById('homeVocab').textContent='📚 '+표시마스터리('총누적어휘수');
-    document.getElementById('homeReview').textContent='📝 '+사용자.복습대기열수;
+    document.getElementById('homeStreak').textContent=사용자.연속학습일;
+    document.getElementById('homeVocab').textContent=표시마스터리('총누적어휘수');
+    document.getElementById('homeReview').textContent=사용자.복습대기열수;
 
     // EXP 바 애니메이션 (transition:none → rAF 두 번 → transition 복구)
     const bar=document.getElementById('homeExp');
