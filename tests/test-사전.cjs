@@ -46,9 +46,11 @@ load(async (window) => {
   const 실패결과 = await ev("사전_단어조회('테스트오류단어')");
   assert('네트워크 실패 시 null로 안전 강등', 실패결과 === null);
 
-  // 3) 질문하기 패널 모드 탭 — 기본 AI, 전환 시 UI·placeholder·상태 변수 동기화
+  // 3) 질문하기 패널 모드 탭 — 봉인 중 기본은 사전(10-03), 전환 시 UI·placeholder·상태 변수 동기화
   ev("openAsk();");
-  assert('패널 열 때 기본 AI 모드', ev("사전모드") === false);
+  assert('봉인 중 패널 기본은 사전 모드', ev("사전모드") === true);
+  ev("질문모드_전환('ai');");
+  assert('AI 모드 전환 — 상태 변수', ev("사전모드") === false);
   assert('AI 탭 활성 표시', doc.getElementById('askTabAI').classList.contains('on'));
   assert('사전 탭 비활성 표시', !doc.getElementById('askTabDict').classList.contains('on'));
   ev("질문모드_전환('dict');");
@@ -118,9 +120,9 @@ load(async (window) => {
   await new Promise(r => setTimeout(r, 30));
   assert('사전 모드는 토큰 미차감', ev("사용자.보유토큰") === 토큰전, `전=${토큰전} 후=${ev("사용자.보유토큰")}`);
 
-  // 8) 패널을 다시 열면 AI 모드로 리셋(사전 모드가 남지 않음)
-  ev("closeAsk(); openAsk();");
-  assert('재오픈 시 AI 모드로 리셋', ev("사전모드") === false);
+  // 8) 패널을 다시 열면 기본 모드로 리셋(AI 탭으로 바꿔 둔 상태가 남지 않음)
+  ev("질문모드_전환('ai'); closeAsk(); openAsk();");
+  assert('재오픈 시 기본(봉인 중 사전) 모드로 리셋', ev("사전모드") === true);
 
   // 8-b) 조회 중 대기 버블(2026-08-22) — 응답이 오기 전까지 화면이 무반응이면 안 된다
   ev("openAsk(); 질문모드_전환('dict');");

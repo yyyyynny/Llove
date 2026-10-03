@@ -503,7 +503,9 @@ function openAsk(){
   const b=document.getElementById('thinkToggle');
   if(b){ b.textContent='🧠 사고전개 OFF'; b.style.color=''; b.style.borderColor=''; }
   토큰표시_갱신();
-  질문모드_전환('ai');  // Phase 7: 패널 열 때마다 AI 질문 모드로 리셋(사전 모드가 남아있지 않게)
+  // 패널 열 때마다 기본 모드로 리셋 — Grok 봉인 중엔 실제로 답하는 사전 모드가 기본(10-03, 관리자님 결정 4).
+  // AI 탭은 그대로 있어 언제든 전환할 수 있다
+  질문모드_전환(GROK_활성화 ? 'ai' : 'dict');
   document.getElementById('askBg').classList.add('show');
   document.getElementById('askPanel').classList.add('show');
   setTimeout(()=>document.getElementById('askInp').focus(),400);
@@ -556,7 +558,10 @@ function 질문입력_Enter처리(ev){
 
 /* 메시지 전송: 창조주 키 감지 + 일반 응답 */
 function sendAsk(){
-  if(사전모드){ sendAsk_사전(); return; }  // Phase 7: 사전 모드는 완전히 별개 흐름(토큰·창조주 로직 없음)
+  // Phase 7: 사전 모드는 완전히 별개 흐름(토큰·창조주 로직 없음). 단 창조주 키 문장(【】)은 사전 단어가 아니므로
+  // 사전 모드가 기본이 된 뒤에도(10-03) 종전처럼 아래 창조주 흐름으로 보낸다 — 진입 경로 보존
+  const 원문 = document.getElementById('askInp').value.trim();
+  if(사전모드 && !/[【】]/.test(원문) && 키정규화(원문) !== 키정규화(창조주키)){ sendAsk_사전(); return; }
 
   const inp=document.getElementById('askInp');
   const q=inp.value.trim();

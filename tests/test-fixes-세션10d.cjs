@@ -70,7 +70,8 @@ load((window) => {
     const 카드들 = Array.from(doc.querySelectorAll('.hs .mc')).map(c=>(c.querySelector('.mc-name')||{}).textContent);
     assert('#6: 맞춤법이 학습 모드 첫 카드', 카드들[0] === '맞춤법');
     assert('#6: 구어 교정이 둘째 카드', 카드들[1] === '구어 교정');
-    assert('#6: mc-g4(교정)·mc-g5(재미) CSS 존재', /\.mc\.mc-g4\{/.test(css) && /\.mc\.mc-g5\{/.test(css));
+    // 10-03: 그룹 색은 테두리 대신 왼쪽 막대(::before)·아이콘 색으로 표시
+    assert('#6: mc-g4(교정)·mc-g5(재미) CSS 존재', /\.mc\.mc-g4::before\{/.test(css) && /\.mc\.mc-g5::before\{/.test(css));
     assert('#7: 색맹 그룹 라벨 존재', doc.querySelectorAll('.mc-glabel').length >= 4);
     assert('#7: 지문 독해 랜덤 목록 포함', ev("랜덤학습_모드목록.some(m=>m[0]==='지문 독해')") === true);
 

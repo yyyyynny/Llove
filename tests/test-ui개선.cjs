@@ -93,6 +93,16 @@ load((window) => {
   const 없는아이콘 = [...doc.querySelectorAll('use')].map(u => u.getAttribute('href')).filter(h => !doc.querySelector(h));
   assert('U10: 참조한 아이콘이 모두 묶음에 있다', 없는아이콘.length === 0, 없는아이콘.join(' '));
 
+  // U13: 봉인 중 질문하기는 사전 모드가 기본 — 창조주 키 문장(【】)은 그래도 창조주 흐름으로 간다(진입 경로 보존)
+  ev('openAsk()');
+  assert('U13: 봉인 중 질문하기 기본은 사전 모드', ev('사전모드') === true);
+  ev("window.__사전호출 = 0; sendAsk_사전 = function(){ window.__사전호출++; };");
+  ev("document.getElementById('askInp').value = '【원한다면】'; sendAsk();");
+  assert('U13: 【】 문장은 사전 조회로 새지 않는다', ev('window.__사전호출') === 0);
+  ev("document.getElementById('askInp').value = '사과'; sendAsk();");
+  assert('U13: 일반 단어는 사전 조회', ev('window.__사전호출') === 1);
+  ev('closeAsk()');
+
   // U19: 상태색(정답·오답·경고·정보)이 고서 테마 값으로 박혀 있지 않다 — 테마 토큰에서 파생
   const css = fs.readFileSync(path.join(__dirname, '..', 'Llove', 'style.css'), 'utf8');
   const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];
