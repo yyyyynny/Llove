@@ -92,6 +92,8 @@ function showToastMsg(msg){
 // 테마 선택은 이제 아래 「테마 선택」 그리드 단일 경로로만 이뤄짐(정신모델 단순화, 최고 관리자님 확정)
 function setTheme(name, 조용히){
   document.body.setAttribute('data-theme',name);
+  // 주소창·상태 표시줄 색도 테마 배경으로(theme-color). 기본 컨트롤 밝기(color-scheme)는 style.css 테마 블록
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#111009');
   document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
   document.getElementById('th-'+name)?.classList.add('on');
   // 빌드1: plx_ 로컬 캐시 (새로고침 대비)

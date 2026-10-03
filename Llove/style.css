@@ -21,6 +21,7 @@
    테마 변수 (5개 프리셋 + 커스텀)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 :root,[data-theme="antique"]{
+  color-scheme:dark;   /* 스크롤바·입력 기본 컨트롤 색 — 밝은 테마(페이퍼)는 light */
   --bg:#111009;--card:#1a1710;--elev:#222018;--bdr:#302a20;--bdrg:#483e2e;
   --acc:#b8956a;--accl:#d4b48a;--accd:#6e5438;
   --txt:#e8e0d0;--txt2:#9a8e7a;--txtm:#504535;
@@ -48,6 +49,7 @@
   --mono:'JetBrains Mono',monospace;
 }
 [data-theme="paper"]{
+  color-scheme:light;
   --bg:#ede8df;--card:#f5f1ea;--elev:#faf8f4;--bdr:#d8d0c0;--bdrg:#c0b8a8;
   --acc:#7a5228;--accl:#9a7040;--accd:#b89868;
   --txt:#281e12;--txt2:#786050;--txtm:#a89880;
@@ -98,8 +100,6 @@ body{font-family:var(--fn);background:var(--bg);color:var(--txt);transition:back
 input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 /* 세션6 항목11: 아바타 이미지 프로필 지원 — 원형 틀 밖으로 이미지가 새지 않게 */
 .hav,.st-av,.set-av,.nm-av{overflow:hidden}
-/* v3.5: 모달 열림 시 레이아웃 쉬프트 방지 — 스크롤바 폭 보정 */
-html{scrollbar-gutter:stable}
 
 /* ━━━ v3.7 항목16: 다크·라이트 전환 색 시프트 해소 ━━━
    모든 요소의 색·테두리 변화를 0.4초로 동기화하여 「반박자 어긋남」 제거.
@@ -154,10 +154,10 @@ html{scrollbar-gutter:stable}
 .screen.entering{animation:slideIn .35s var(--ease-out) both}
 .screen.leaving{animation:slideOut .25s var(--ease-out) both;pointer-events:none}
 /* 세션5: 바텀 네비(72px)에 마지막 버튼이 가리지 않도록 여유 확보 */
-.has-bnav{padding-bottom:96px}
+.has-bnav{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
 
 /* ━━━ 바텀 네비 ━━━ */
-#g-bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bdr);display:flex;padding:8px 0 16px;z-index:200;transition:background .4s,border-color .4s,transform .3s var(--ease-out)}
+#g-bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bdr);display:flex;padding:8px 0 max(16px, env(safe-area-inset-bottom));z-index:200;transition:background .4s,border-color .4s,transform .3s var(--ease-out)}
 #g-bnav.hidden{transform:translateY(100%)}
 .nv-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;cursor:pointer;color:var(--txtm);font-size:10px;font-weight:500;transition:color .25s,transform .25s;background:none;border:none;font-family:var(--fn)}
 /* v3.7 항목15: 활성 인디케이터 부드러운 색·스케일 전환 */
@@ -812,6 +812,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .lvup-rk{font-size:15px;color:var(--txt)}
 
 /* 일반 모달 */
+/* 안내·확인 모달(#infoBg)은 다른 일반 모달 위에서 열리는 일이 많아 한 단 위에 둔다(종전: 같은 350이라 선택 모달 아래 깔림) */
+#infoBg{z-index:360}
 .modal-bg{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
 /* 오버레이 공통 표시 — 업적 상세·질문 패널 배경·이의 모달·업적/레벨업 팝업·일반 모달 */
 .ach-detail-bg.show,.ask-bg.show,.obj-bg.show,.ov-bg.show,.modal-bg.show{opacity:1;pointer-events:all}
