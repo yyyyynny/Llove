@@ -224,17 +224,18 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 .ob-slide.exit{opacity:0;transform:translateX(-32px)}
 .ob-bg,.lg-bg{position:absolute;inset:0;pointer-events:none}
 /* 세션9: 아이콘 크기 체계 통일 — 히어로(44px)/목록(26px)/소형(20px) 3단계로 수렴 */
-.ob-icon{font-size:44px;margin-bottom:18px;animation:fadeUp .5s var(--ease-out) both}
+.ob-icon{font-size:44px;color:var(--acc);margin-bottom:18px;animation:fadeUp .5s var(--ease-out) both}
 .ob-title{font-family:'Nanum Myeongjo',serif;font-size:25px;font-weight:800;color:var(--acc);text-align:center;margin-bottom:8px;line-height:1.38;letter-spacing:.4px}
 .ob-div{width:40px;height:2px;background:linear-gradient(90deg,transparent,var(--accd),transparent);margin:14px auto}
 /* 세션8: 로그인 화면과 동일한 이유로 고정 max-width → min() 비례 상한 */
 .ob-sub{font-size:14px;color:var(--txt2);text-align:center;line-height:1.85;max-width:min(340px, 100% - 24px)}
 .ob-sub b{color:var(--accl);font-weight:700}
-.ob-feats{display:flex;flex-direction:column;gap:8px;width:100%;max-width:min(360px, 100% - 24px);margin-top:10px}
-.ob-feat{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r-m);padding:11px 14px;display:flex;align-items:center;gap:12px;animation:fadeUp .38s var(--ease-out) both}
+/* 10-03: 9가지가 테두리 카드로 쌓여 화면을 넘던 목록 → 테두리 없는 2열 목록(한 화면 안) */
+.ob-feats{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;width:100%;max-width:min(400px, 100% - 24px);margin-top:14px}
+.ob-feat{display:flex;align-items:flex-start;gap:10px;text-align:left;animation:fadeUp .38s var(--ease-out) both}
 .ob-feat:nth-child(1){animation-delay:.05s}.ob-feat:nth-child(2){animation-delay:.10s}.ob-feat:nth-child(3){animation-delay:.15s}.ob-feat:nth-child(4){animation-delay:.20s}.ob-feat:nth-child(5){animation-delay:.25s}.ob-feat:nth-child(6){animation-delay:.30s}.ob-feat:nth-child(7){animation-delay:.35s}
-.ob-fi{font-size:26px;width:32px;text-align:center}
-.ob-fi .ic{font-size:22px;color:var(--acc)}
+.ob-fi{font-size:26px;width:22px;text-align:center;display:flex;padding-top:1px}
+.ob-fi .ic{font-size:20px;color:var(--acc)}
 .ob-fn{font-size:14px;font-weight:700;margin-bottom:2px}
 .ob-fd{font-size:12px;color:var(--txt2)}
 .ob-start-btn{background:var(--acc);color:var(--bg);border:none;padding:14px 40px;border-radius:var(--r-m);font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:700;cursor:pointer;margin-top:22px;transition:transform .25s,box-shadow .25s;animation:fadeUp .5s .35s var(--ease-out) both}
@@ -254,10 +255,11 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
    safe-area-inset: 노치·펀치홀 기기에서 여백이 깎이지 않도록 가산. */
 #sl{justify-content:center;align-items:center;padding:40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-right)) 40px calc(clamp(20px, 6vw, 40px) + env(safe-area-inset-left))}  /* position:relative 삭제(2026-09-27) — .screen의 fixed 전체화면을 덮어써 세로 가운데 정렬이 안 되던 원인 */
 .lg-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:min(400px, 100% - 40px)}
-.lg-icon-wrap{width:76px;height:76px;background:var(--elev);border:2px solid var(--accd);border-radius:var(--r-l);display:flex;align-items:center;justify-content:center;font-size:44px}
+.lg-icon-wrap{width:76px;height:76px;background:var(--elev);border:1px solid var(--bdrg);color:var(--acc);border-radius:var(--r-l);display:flex;align-items:center;justify-content:center;font-size:44px}
 .lg-title{font-family:'Nanum Myeongjo',serif;font-size:26px;color:var(--acc);letter-spacing:3px}
 .lg-sub{font-size:11px;color:var(--txtm);letter-spacing:1px}
-.lg-desc{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r-m);padding:18px;width:100%;text-align:center}
+/* 10-03: 소개 문장을 테두리 상자에 넣지 않고 글로만(카드 남용·온보딩 문장과 같은 상자 반복 해소) */
+.lg-desc{width:100%;text-align:center;padding:2px 0 6px}
 .lg-desc p{font-size:14px;color:var(--txt2);line-height:1.75}
 .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;background:var(--elev);border:1px solid var(--bdr);border-radius:var(--r-m);padding:15px;color:var(--txt);font-family:var(--fn);font-size:16px;font-weight:500;cursor:pointer;transition:border-color .25s,transform .25s}
 .btn-google:hover{border-color:var(--accd)}
