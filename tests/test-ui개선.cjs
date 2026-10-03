@@ -119,6 +119,13 @@ load((window) => {
   ev('퀴즈세션 = {수:0, 오답:0}; [true,false,true,true,true].forEach(세션결과_기록);');
   assert('U20: 5문제 마침 요약', doc.getElementById('toast').textContent === '5문제 마침 — 4/5 정답', doc.getElementById('toast').textContent);
 
+  // U10: 모달 아이콘은 묶음에 있는 것은 SVG, 세계관 연출(👑)은 글자 그대로
+  ev("showInfoModal('🔒','잠김','내용')");
+  assert('U10: 모달 아이콘 SVG', !!doc.querySelector('#infoIcon use[href="#i-lock"]'));
+  ev("showInfoModal('👑','알현','내용')");
+  assert('U10: 세계관 아이콘은 그대로', doc.getElementById('infoIcon').textContent === '👑');
+  ev('closeInfoModal()');
+
   // U19: 상태색(정답·오답·경고·정보)이 고서 테마 값으로 박혀 있지 않다 — 테마 토큰에서 파생
   const css = fs.readFileSync(path.join(__dirname, '..', 'Llove', 'style.css'), 'utf8');
   const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];

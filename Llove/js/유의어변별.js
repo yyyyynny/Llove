@@ -35,7 +35,7 @@ function 예문형_렌더(bodyId, item, 다음fn, 이의컨텍스트){
       </div>
       <div class="syn-result" id="${bodyId}SynResult"></div>
       <div class="syn-actions" id="${bodyId}SynActions" style="display:none">
-        ${이의컨텍스트 ? `<button class="btn-g" onclick="openObj('${이의컨텍스트}')">⚖️ 이의있음!</button>` : ''}
+        ${이의컨텍스트 ? `<button class="btn-g" onclick="openObj('${이의컨텍스트}')">이의있음!</button>` : ''}
         <button class="btn-acc" onclick="예문형_다음('${bodyId}')">다음 문제 →</button>
       </div>
     </div>
@@ -66,7 +66,7 @@ function 예문형_선택(bodyId, btn){
 
   // 사용자 선택 결과 헤더
   const 헤더 =
-    선택kind === 'correct'    ? `<div class="syn-result-title ok">✅ 정답 — 「${선택word}」를 선택했습니다</div>` :
+    선택kind === 'correct'    ? `<div class="syn-result-title ok">✓ 정답 — 「${선택word}」를 선택했습니다</div>` :
     선택kind === 'acceptable' ? `<div class="syn-result-title warn">△ 근사 정답 — 「${선택word}」를 선택했습니다</div>` :
                                 `<div class="syn-result-title err">✗ 오답 — 「${선택word}」를 선택했습니다</div>`;
 
@@ -77,7 +77,7 @@ function 예문형_선택(bodyId, btn){
     const 선택됨 = (w === 선택word);
     let badge='', cls='', def='', reason='';
     if(k === 'correct'){
-      badge='✅ 정답'; cls='ok'; def=item.correct.def;
+      badge='✓ 정답'; cls='ok'; def=item.correct.def;
     } else if(k === 'acceptable'){
       const a = item.acceptable.find(x=>x.w === w);
       badge='△ 근사'; cls='warn'; def=a?.def ?? ''; reason=a?.reason ?? '';
@@ -96,7 +96,7 @@ function 예문형_선택(bodyId, btn){
   // 세션10-c 항목1: 근사(acceptable) 판정 순간에만 지문 독해로 유도하는 넛지 — 데이터·판정 로직은
   // 그대로 두고(근사=EXP 없음 정책 유지) 더 넓은 맥락으로 변별하는 다른 모드를 안내만 한다.
   const 넛지 = 선택kind === 'acceptable'
-    ? `<div class="syn-nudge">🔍 이 문항이 애매하셨나요? 더 넓은 맥락으로 판단하는 <b>지문 독해</b>를 추천합니다.
+    ? `<div class="syn-nudge">이 문항이 애매하셨나요? 더 넓은 맥락으로 판단하는 <b>지문 독해</b>를 추천합니다.
        <button class="btn-g" onclick="goLearn('지문 독해','sq6',null)">지문 독해로 가기</button></div>`
     : '';
 
@@ -254,13 +254,13 @@ function 독해_선택(btn){
   btn.classList.remove('dim');
 
   const 헤더 = 정답여부
-    ? `<div class="syn-result-title ok">✅ 정답입니다</div>`
+    ? `<div class="syn-result-title ok">✓ 정답입니다</div>`
     : `<div class="syn-result-title err">✗ 오답입니다</div>`;
   const 항목들 = item.보기.map((b,i)=>{
     const 선택됨 = i === 선택idx;
     return `
       <div class="syn-result-item${선택됨 ? ' picked' : ''}">
-        <div class="syn-ri-head ${b.정답 ? 'ok' : 'err'}">${b.정답 ? '✅ 정답' : '✗ 오답'}${선택됨 ? ' <span class="syn-ri-pick">← 내 선택</span>' : ''}</div>
+        <div class="syn-ri-head ${b.정답 ? 'ok' : 'err'}">${b.정답 ? '✓ 정답' : '✗ 오답'}${선택됨 ? ' <span class="syn-ri-pick">← 내 선택</span>' : ''}</div>
         <div class="syn-result-def">${b.문장}</div>
         <div class="syn-result-reason">${b.해설}</div>
       </div>`;
@@ -396,7 +396,7 @@ function 문장배열_판정(){
     el.classList.add(사용자위치 === 원본idx ? 'correct' : 'wrong');
   });
   const 헤더 = 전체정답
-    ? `<div class="syn-result-title ok">✅ 정답입니다</div>`
+    ? `<div class="syn-result-title ok">✓ 정답입니다</div>`
     : `<div class="syn-result-title err">✗ 순서가 틀렸습니다</div>`;
   const 정답나열 = item.문장들.map((s,i)=>`${i+1}. ${s}`).join('<br>');
   const resultEl = document.getElementById('sq7Result');

@@ -65,7 +65,7 @@ function 게스트로그인(){
   userName = 사용자.이름;
   온보딩_걷기();
   goNav('sh', null);
-  showToastMsg('🔓 비로그인 테스트 모드 — 저장은 되지 않습니다');
+  showToastMsg('비로그인 테스트 모드 — 저장은 되지 않습니다');
 }
 document.addEventListener('keydown', 테스트진입_키감지);
 // 키보드만으로도 앱을 쓸 수 있게 — role/tabindex 부여 + Enter/Space 위임 (화면전환.js)

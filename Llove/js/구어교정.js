@@ -64,7 +64,7 @@ function 음성인식_토글(){
     음성인식중 = true;
     음성인식_UI갱신();
     const st=document.getElementById('spkVoiceStatus');
-    if(st) st.textContent='🔴 듣고 있습니다… 말이 끝나면 자동으로 정리됩니다.';
+    if(st) st.textContent='듣고 있습니다… 말이 끝나면 자동으로 정리됩니다.';
   };
   음성인식객체.onresult = (e)=>{
     let interim = '';
@@ -143,7 +143,7 @@ function submitSpk(){
   // Grok 미연동 단계: 정령왕 예문의 모범답안·포인트와 비교하는 방식으로 동작
   if(구어교정현재){
     document.getElementById('spkFixTxt').textContent = 구어교정현재.격식;
-    document.getElementById('spkTipTxt').textContent = '💡 ' + (구어교정현재.포인트 || '');
+    document.getElementById('spkTipTxt').textContent = 구어교정현재.포인트 || '';
   } else {
     document.getElementById('spkFixTxt').textContent = '(AI 연동 후 입력 문장에 맞춘 교정안이 제공됩니다)';
     document.getElementById('spkTipTxt').textContent = '지금은 예문 모범답안 비교 모드로 동작합니다.';

@@ -357,7 +357,7 @@ function openAchDetail(key){
     descEl.classList.remove('zalgo');
   } else if(target.key==='creator' && target.stage==='unl'){
     // 달성 후에는 블러 없이 보이며 복사 가능
-    descEl.innerHTML=`<div style="white-space:pre-line;font-size:12px;line-height:1.8;color:var(--accl);user-select:text;-webkit-user-select:text;padding:10px;background:var(--bg);border-radius:8px">${target.blurText||''}</div><button style="width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">📋 키 문장 복사</button>`;
+    descEl.innerHTML=`<div style="white-space:pre-line;font-size:12px;line-height:1.8;color:var(--accl);user-select:text;-webkit-user-select:text;padding:10px;background:var(--bg);border-radius:8px">${target.blurText||''}</div><button style="width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">키 문장 복사</button>`;
     descEl.classList.remove('zalgo');
   } else {
     descEl.innerHTML=target.desc;
@@ -400,7 +400,7 @@ function revealBlur(){
     box.onclick=null;
     const hint=document.getElementById('blurHint');
     if(hint){
-      hint.innerHTML='<button style="margin-top:6px;padding:8px 16px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">📋 키 문장 복사</button>';
+      hint.innerHTML='<button style="margin-top:6px;padding:8px 16px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">키 문장 복사</button>';
       hint.style.color='';
     }
   }
@@ -413,7 +413,7 @@ function 복사_창조주키(){
   // 모던 브라우저: navigator.clipboard
   if(navigator.clipboard && window.isSecureContext){
     navigator.clipboard.writeText(키문장).then(()=>{
-      showToastMsg('📋 클립보드에 복사됨');
+      showToastMsg('클립보드에 복사됨');
     }).catch(()=>{
       복사_폴백(키문장);
     });
@@ -434,7 +434,7 @@ function 복사_폴백(text){
   // 종전엔 false여도 "복사됨"을 띄워, 실제로는 복사가 안 됐는데 성공으로 안내했다)
   let 성공 = false;
   try { 성공 = document.execCommand('copy'); } catch(e) {}
-  showToastMsg(성공 ? '📋 클립보드에 복사됨' : '복사 실패 — 직접 선택해 주세요');
+  showToastMsg(성공 ? '클립보드에 복사됨' : '복사 실패 — 직접 선택해 주세요');
   document.body.removeChild(ta);
 }
 function closeAchDetail(){

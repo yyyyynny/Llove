@@ -30,7 +30,7 @@ const UI_TEXT = {
     }
   },
   이의있음: {
-    출제근거라벨: "📋 출제 근거",
+    출제근거라벨: "출제 근거",
     반박입력플레이스홀더: "어디가 틀렸나요?",   // 미구현 — 지금 #objInp는 "반박 내용을 입력하세요..." 고정
     위협감지: "?? 위협 감지??",                 // 미구현 — KNOWLEDGE 5 악용 방지(분당 3회 등) 10분 락
     락안내: "10분 후 해제됩니다"                // 미구현 — 위와 같은 락
@@ -69,7 +69,7 @@ function 토큰락_체크(){
     토큰경고단계 = 0;
     사용자데이터_저장({보유토큰:1500, 토큰소진시각:null, 토큰락해제시각:null});
     토큰표시_갱신();
-    showToastMsg('💎 토큰이 전량 충전되었습니다 (1,500)');
+    showToastMsg('토큰이 전량 충전되었습니다 (1,500)');
   }
 }
 
@@ -78,7 +78,7 @@ function 토큰차감(기능명, 양){
   if(사용자.개발자모드) return true;        // 개발자 모드: 토큰 제한 해제 (KNOWLEDGE 14)
   if(창조주달성진행중) return true;          // 창조주 달성 흐름 중 차감 정지 (KNOWLEDGE 32)
   토큰락_체크();
-  if(사용자.토큰락해제시각){ showToastMsg('🔒 ' + UI_TEXT.토큰.락안내); return false; }
+  if(사용자.토큰락해제시각){ showToastMsg('' + UI_TEXT.토큰.락안내); return false; }
   if((사용자.보유토큰 || 0) < 양){ showToastMsg(UI_TEXT.토큰.소진안내); return false; }
   사용자.보유토큰 -= 양;
   사용자.총소비토큰 = (사용자.총소비토큰 || 0) + 양;
@@ -111,7 +111,7 @@ function 토큰경고_검사(){
   if(단계 > 토큰경고단계){
     토큰경고단계 = 단계;
     const 문구 = 단계===3 ? UI_TEXT.토큰.경고25 : 단계===2 ? UI_TEXT.토큰.경고50 : UI_TEXT.토큰.경고75;
-    showToastMsg('💎 ' + 문구);
+    showToastMsg('' + 문구);
   } else if(단계 < 토큰경고단계){
     토큰경고단계 = 단계;  // 복구로 상향 시 경고 단계 되감기
   }
@@ -126,7 +126,7 @@ function 토큰복구(양, 사유){
   사용자데이터_저장({보유토큰: 사용자.보유토큰});
   토큰경고_검사();
   토큰표시_갱신();
-  showToastMsg(`💎 +${양} 토큰 (${사유})`);
+  showToastMsg(`+${양} 토큰 (${사유})`);
 }
 
 // 차감 내역 기록 — 세션 미러 + Firestore 토큰로그 서브컬렉션 (KNOWLEDGE 13-1)
@@ -154,7 +154,7 @@ function 토큰표시_갱신(){
   let 라벨 = `${포맷(잔량)} / 1,500`;
   if(잠금){
     const 남은분 = Math.max(0, Math.ceil((new Date(사용자.토큰락해제시각).getTime() - Date.now())/60000));
-    라벨 = `🔒 충전까지 ${Math.floor(남은분/60)}시간 ${남은분%60}분`;
+    라벨 = `충전까지 ${Math.floor(남은분/60)}시간 ${남은분%60}분`;
   }
   document.querySelectorAll('.tkb').forEach(bar=>{
     bar.classList.toggle('tkb-lock', 잠금);

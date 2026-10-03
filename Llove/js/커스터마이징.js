@@ -90,7 +90,7 @@ function 프로필선택_열기(){
       <div style="display:flex;flex-wrap:wrap;gap:6px">${이모지들}</div>
       <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">이미지 프리셋 — 누구나 사용 가능</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">${이미지들}</div>
-      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '🔒 초월자(Lv.16) 해금'}</div>
+      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
       <button class="btn-g" style="width:100%;padding:9px" onclick="이미지_업로드시도('프로필')">📁 내 사진 선택…</button>
       <input type="file" id="프로필파일입력" accept="image/*" style="display:none" onchange="이미지_파일처리(this,'프로필')">
     </div>`);
@@ -143,7 +143,7 @@ function 배너선택_열기(){
       <div style="font-size:11px;color:var(--txt2);margin-bottom:5px">기본 배너 — 누구나 사용 가능</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">${그라들}</div>
       ${이미지섹션}
-      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '🔒 초월자(Lv.16) 해금'}</div>
+      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
       <button class="btn-g" style="width:100%;padding:9px" onclick="이미지_업로드시도('배너')">📁 내 사진 선택…</button>
       <input type="file" id="배너파일입력" accept="image/*" style="display:none" onchange="이미지_파일처리(this,'배너')">
     </div>`);

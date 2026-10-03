@@ -4,8 +4,17 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    안내 모달
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// 모달·목록 아이콘: 호출부가 넘긴 이모지를 단색 SVG(index.html 아이콘 묶음)로 그린다(U10).
+// 묶음에 없는 것(👑 창조주·주신, ⚖️ 이의있음 같은 세계관 연출)은 글자 그대로 둔다
+const 이모지아이콘 = {'🔒':'lock','🔓':'unlock','💬':'chat','🧭':'compass','❌':'warn','⚠️':'warn','🚫':'warn','🚪':'logout',
+  '🗑️':'trash','🔁':'review','✨':'spark','💎':'gem','🎲':'dice','🧪':'flask','🖼️':'user','ℹ️':'info','🔗':'link',
+  '🎙':'mic','🤖':'spark','🧠':'spark','✏️':'pencil','⚙️':'sliders'};
+function 아이콘_HTML(이모지){
+  const id = 이모지아이콘[이모지];
+  return id ? `<svg class="ic" aria-hidden="true"><use href="#i-${id}"/></svg>` : 문자열_이스케이프(이모지 || '');
+}
 function showInfoModal(icon, title, desc, 와이드){
-  document.getElementById('infoIcon').textContent=icon;
+  document.getElementById('infoIcon').innerHTML=아이콘_HTML(icon);
   document.getElementById('infoTitle').textContent=title;
   document.getElementById('infoDesc').innerHTML=desc;
   // v3.7: 호출마다 「확인」 버튼으로 초기화 (개발자모드_탭 등 동적 버튼 잔재 방지)
@@ -54,7 +63,7 @@ function 계정삭제_2단계(){
 function 계정삭제_실행(){
   if(!fbAuth || !fbAuth.currentUser){
     console.error('[Firebase] 로그인 상태가 아님 — 계정 삭제 불가');
-    showToastMsg('🗑️ 삭제할 계정이 없습니다');
+    showToastMsg('삭제할 계정이 없습니다');
     return;
   }
   const uid = fbAuth.currentUser.uid;
@@ -67,7 +76,7 @@ function 계정삭제_실행(){
     .then(()=> fbAuth.currentUser.delete())
     .then(()=>{
       현재UID = null;
-      showToastMsg('🗑️ 계정이 삭제되었습니다');
+      showToastMsg('계정이 삭제되었습니다');
       goNav('sl', null);
     })
     .catch(e=>{
@@ -273,7 +282,7 @@ function 커스텀_적용(){
   커스텀_색적용DOM();
   setTheme('custom');           // data-theme=custom 적용 + plx_테마 저장 + 테마칩 동기화
   커스텀_저장persist();
-  showToastMsg('🎨 커스텀 테마 적용' + (커스텀이름 ? ` · ${커스텀이름}` : ''));
+  showToastMsg('커스텀 테마 적용' + (커스텀이름 ? ` · ${커스텀이름}` : ''));
 }
 /* 세션5 버그2: 커스텀 이름을 테마 선택 칩 라벨에 반영 — 이름 없으면 「커스텀」 유지 */
 function 커스텀칩_라벨갱신(){
@@ -429,7 +438,7 @@ function toggleAiOnly(){
 
 /* 히스토리 필터 */
 function openHistoryFilter(){
-  선택모달_열기('📋 최근 출제 제외', '중복 문제를 막을지 설정합니다. 모드별로 독립 관리됩니다.',
+  선택모달_열기('최근 출제 제외', '중복 문제를 막을지 설정합니다. 모드별로 독립 관리됩니다.',
     ['off','30','50','80','100','120'].map(v=>{
       const 라벨 = v==='off' ? '사용 안함' : `최근 ${v}개`;
       return {라벨, 켜짐: v===histFilter, 클릭: ()=>applyHistoryFilter(v, 라벨)};

@@ -206,7 +206,7 @@ function 복습대기열_추가(단어, 뜻, 모드){
     const 오래된idx = 복습데이터.대기열.findIndex(x=>!x.즐겨찾기);
     if(오래된idx < 0) break;  // 전부 즐겨찾기면 이동 불가
     대기열항목_휴지통으로(오래된idx);
-    showToastMsg('📥 대기열 초과 — 가장 오래된 항목이 휴지통으로 이동');
+    showToastMsg('대기열 초과 — 가장 오래된 항목이 휴지통으로 이동');
   }
   const 항목 = {id:보관함_임시ID(), 단어, 뜻, 모드, 모드클래스:모드클래스계산(모드), 연속정답수:0, 즐겨찾기:false, 추가시각:Date.now()};
   복습데이터.대기열.push(항목);
@@ -214,7 +214,7 @@ function 복습대기열_추가(단어, 뜻, 모드){
   // 상한 5개 이내 경고 알람 (KNOWLEDGE 7)
   const 남은자리 = 사용자.복습대기열상한 - 복습데이터.대기열.length;
   if(남은자리 >= 0 && 남은자리 <= 5 && (사용자.알림설정 ?? true)){
-    showToastMsg(`⚠️ 복습 대기열 자리가 ${남은자리}개 남았습니다`);
+    showToastMsg(`복습 대기열 자리가 ${남은자리}개 남았습니다`);
   }
   if(curScreen==='sr') renderReview();
 }
@@ -226,7 +226,7 @@ function 복습대기열_정답처리(단어){
   if(idx < 0) return;
   const [항목] = 복습데이터.대기열.splice(idx,1);
   보관함_문서삭제('복습대기열', 항목.id);
-  showToastMsg(`🎓 「${항목.단어}」 복습 졸업!`);
+  showToastMsg(`「${항목.단어}」 복습 졸업!`);
   if(curScreen==='sr') renderReview();
 }
 

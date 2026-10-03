@@ -51,7 +51,7 @@ function 개발자패널_열기(){
   if(btnArea){
     btnArea.innerHTML = `
       <button class="btn-g" style="flex:1" onclick="closeInfoModal()">닫기</button>
-      <button class="btn-acc" style="flex:1.4;background:linear-gradient(135deg,#5030a0,#8060c0);border-color:#8060c0" onclick="개발자모드_봉인_실행()">🔒 봉인하기</button>
+      <button class="btn-acc" style="flex:1.4;background:linear-gradient(135deg,#5030a0,#8060c0);border-color:#8060c0" onclick="개발자모드_봉인_실행()">봉인하기</button>
     `;
   }
 }

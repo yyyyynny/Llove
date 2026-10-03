@@ -131,22 +131,22 @@ function renderReview(){
       <span class="rv-cap-lbl">용량</span>
       <div class="cap-bar"><div class="cap-fill" style="width:${Math.min(100,(대기열.length/상한)*100)}%"></div></div>
       <span class="rv-cap-val" onclick="openCapacity()">${대기열.length} / ${상한} ⚙</span>
-    </div>`, 대기열, '📥 대기열이 비어있습니다',
+    </div>`, 대기열, '대기열이 비어있습니다',
     // 세션7 항목5: 졸업 기준 1회 — 점 1개
     item => `<div class="rv-dots"><div class="rv-dot${0<item.연속정답수?' f':''}"></div></div>
              <span style="font-size:10px;color:var(--txtm)">${item.연속정답수}/1</span>`,
     item => `<div class="act-btn fav${item.즐겨찾기?' on':''}" onclick="대기열_즐겨찾기토글('${item.id}')" title="즐겨찾기">${item.즐겨찾기?'★':'☆'}</div>
-             <div class="act-btn d" onclick="대기열_휴지통이동('${item.id}')" title="삭제">🗑</div>`,
+             <div class="act-btn d" onclick="대기열_휴지통이동('${item.id}')" title="삭제" aria-label="삭제"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></div>`,
     // 복습 시작 — 대기열 순차 복습 플레이 (완료 시 토큰 +30, 일 3회 — KNOWLEDGE 32)
-    `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="복습시작()">🔁 복습 시작</button>`);
-  복습탭_렌더('rvFav', `<div class="bin-info">⭐ 즐겨찾기는 무한 보관 가능하며 다른 시스템(대기열·휴지통)의 영향을 받지 않습니다.</div>`,
-    복습데이터.즐겨찾기, '⭐ 즐겨찾기가 비어있습니다',
+    `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="복습시작()">복습 시작</button>`);
+  복습탭_렌더('rvFav', `<div class="bin-info">즐겨찾기는 무한 보관 가능하며 다른 시스템(대기열·휴지통)의 영향을 받지 않습니다.</div>`,
+    복습데이터.즐겨찾기, '즐겨찾기가 비어있습니다',
     () => '',
     item => `<div class="act-btn" onclick="즐겨찾기_다시풀기('${item.id}')" title="다시 풀기">↻</div>
-             <div class="act-btn" onclick="즐겨찾기_유사문제('${item.id}')" title="유사 문제">✨</div>
+             <div class="act-btn" onclick="즐겨찾기_유사문제('${item.id}')" title="유사 문제" aria-label="유사 문제"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></div>
              <div class="act-btn d" onclick="즐겨찾기_해제('${item.id}')" title="해제">★</div>`);
-  복습탭_렌더('rvBin', `<div class="bin-info">🕒 휴지통의 항목은 <b>20일 후 자동 삭제</b>됩니다. 그 전에 복구하거나 영구삭제할 수 있습니다.</div>`,
-    복습데이터.휴지통, '🗑️ 휴지통이 비어있습니다',
+  복습탭_렌더('rvBin', `<div class="bin-info">휴지통의 항목은 <b>20일 후 자동 삭제</b>됩니다. 그 전에 복구하거나 영구삭제할 수 있습니다.</div>`,
+    복습데이터.휴지통, '휴지통이 비어있습니다',
     item => `<span style="font-size:10px;color:var(--txtm)">${item.잔여일}일 후 삭제</span>`,
     item => `<div class="act-btn" onclick="휴지통_복구('${item.id}')" title="복구">↩</div>
              <div class="act-btn d" onclick="휴지통_영구삭제('${item.id}')" title="영구삭제">✕</div>`,
@@ -179,7 +179,7 @@ let 복습진행 = null;  // {목록, idx} — null이면 비진행
 
 function 복습시작(){
   if(복습데이터.대기열.length === 0){
-    showToastMsg('📥 복습할 항목이 없습니다');
+    showToastMsg('복습할 항목이 없습니다');
     return;
   }
   복습진행 = { 목록: [...복습데이터.대기열], idx: 0 };
@@ -200,7 +200,7 @@ function 복습_카드렌더(){
   const 진행률 = Math.round((복습진행.idx / 복습진행.목록.length) * 100);
   const 머리 = `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 8px">
-      <span style="font-size:13px;color:var(--txt2);font-weight:600">🔁 복습 ${복습진행.idx+1} / ${복습진행.목록.length}</span>
+      <span style="font-size:13px;color:var(--txt2);font-weight:600">복습 ${복습진행.idx+1} / ${복습진행.목록.length}</span>
     </div>
     <div class="exp-track" style="margin-bottom:14px"><div class="exp-fill instant" style="width:${진행률}%"></div></div>`;
 
@@ -313,7 +313,7 @@ function 복습_완료(){
     사용자데이터_저장({복습복구횟수:사용자.복습복구횟수, 복습복구날짜:사용자.복습복구날짜});
     토큰복구(30, `복습 완료 ${사용자.복습복구횟수}/3`);
   } else {
-    showToastMsg('🔁 복습 완료! (오늘 토큰 충전 한도 3회 소진)');
+    showToastMsg('복습 완료! (오늘 토큰 충전 한도 3회 소진)');
   }
   goNav('sr', null);   // 항목10: 전용 화면 → 복습 관리 화면으로 복귀
   renderReview();
@@ -351,7 +351,7 @@ function 대기열_즐겨찾기토글(id){
       복습데이터.즐겨찾기.push(신규);
       보관함_문서추가('즐겨찾기', 신규, {단어:item.단어, 뜻:item.뜻, 모드:item.모드});
     }
-    showToastMsg('⭐ 즐겨찾기에 추가됨');
+    showToastMsg('즐겨찾기에 추가됨');
   } else {
     // 즐겨찾기 목록에서 동일 단어 제거 (Firestore 문서 포함)
     복습데이터.즐겨찾기.filter(x=>x.단어===item.단어).forEach(x=> 보관함_문서삭제('즐겨찾기', x.id));
@@ -367,7 +367,7 @@ function 대기열_휴지통이동(id){
   const idx = 복습데이터.대기열.findIndex(x=>x.id===id);
   if(idx<0) return;
   대기열항목_휴지통으로(idx);
-  showToastMsg('🗑️ 휴지통으로 이동');
+  showToastMsg('휴지통으로 이동');
   renderReview();
 }
 
@@ -380,13 +380,13 @@ function 즐겨찾기_다시풀기(id){
 
 function 즐겨찾기_유사문제(id){
   if(!GROK_활성화){
-    showInfoModal('✨','유사 문제','AI가 비슷한 유형의 문제를 새로 만듭니다 (토큰 20 차감).<br><br>🔌 AI 연동 후 쓸 수 있습니다.');
+    showInfoModal('✨','유사 문제','AI가 비슷한 유형의 문제를 새로 만듭니다 (토큰 20 차감).<br><br>AI 연동 후 쓸 수 있습니다.');
     return;
   }
   // ── Grok 활성화 후 실행 경로 ──
   if(!토큰차감('유사문제', 20)) return;
   // grok호출('문제생성', {유사기준: 항목}) → 새 문제 렌더 (β1 연결 지점)
-  showToastMsg('✨ 유사 문제 생성 중...');
+  showToastMsg('유사 문제 생성 중...');
 }
 
 function 즐겨찾기_해제(id){
@@ -438,7 +438,7 @@ function 휴지통_복구(id){
   보관함_문서삭제('휴지통', item.id);
   복습데이터.휴지통.splice(idx,1);
 
-  showToastMsg('↩️ 대기열로 복구됨');
+  showToastMsg('대기열로 복구됨');
   renderReview();
 }
 
@@ -465,7 +465,7 @@ function 휴지통_전체비우기(){
   }
   복습데이터.휴지통.forEach(x=> 보관함_문서삭제('휴지통', x.id));
   복습데이터.휴지통 = [];
-  showToastMsg('🧹 휴지통을 비웠습니다');
+  showToastMsg('휴지통을 비웠습니다');
   업적_단발달성('clean');  // [환경미화원] 단발 +80 (KNOWLEDGE 14)
   renderReview();
 }

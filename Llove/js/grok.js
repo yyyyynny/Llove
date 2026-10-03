@@ -141,13 +141,13 @@ function 갱신_음성설정_UI(){
 const 실험실_목록 = [
   {아이콘:'🔗', 이름:'끝말잇기', 설명:'우리말샘 사전으로 판정하는 AI 단어 배틀', 상태:'가능', 열기:'잇는_포탈탭'},
   {아이콘:'🎙', 이름:'음성 생성', 설명:'단어를 캐릭터 목소리로 듣기', 상태:'실험', 열기:'음성설정_탭'},
-  {아이콘:'🤖', 이름:'AI 실시간 출제', 설명:'Grok이 매번 새로운 문제를 생성', 상태:'예정'},
+  {아이콘:'🤖', 이름:'AI 실시간 출제', 설명:'AI가 매번 새로운 문제를 만들어 냄', 상태:'예정'},
   {아이콘:'🧠', 이름:'사고전개 답변', 설명:'AI의 풀이 과정을 함께 보기', 상태:'예정'}
 ];
 function 실험실_열기(){
   const 목록 = 실험실_목록.map((it,i)=>
     `<div style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--bdr);cursor:pointer;text-align:left" onclick="실험실_항목탭(${i})">
-      <span style="font-size:20px">${it.아이콘}</span>
+      <span style="font-size:20px;display:flex;color:var(--acc)">${아이콘_HTML(it.아이콘)}</span>
       <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--txt)">${it.이름} <span style="font-size:10px;color:${it.상태==='가능'?'var(--ok)':it.상태==='실험'?'var(--warn)':'var(--txt2)'};border:1px solid var(--bdr);border-radius:5px;padding:1px 5px">${it.상태}</span></div>
       <div style="font-size:11px;color:var(--txt2);margin-top:2px">${it.설명}</div></div>
       <span style="color:var(--txtm)">›</span>
@@ -168,7 +168,7 @@ function 실험실_항목탭(i){
   }
   // 티저형 문구 (최고 관리자님 확정) — 예고 + 해금 조건 안내
   showInfoModal(it.아이콘, it.이름,
-    `🔒 준비 중인 기능입니다.<br>업데이트를 조금만 기다려 주세요!<br><br><span style="font-size:11px;color:var(--txt2)">개발자 모드에서는 먼저 체험할 수 있습니다.</span><br><br><button class="btn-g" style="width:100%;padding:9px" onclick="실험실_열기()">← 실험실 목록으로</button>`);
+    `준비 중인 기능입니다.<br>업데이트를 조금만 기다려 주세요!<br><br><span style="font-size:11px;color:var(--txt2)">개발자 모드에서는 먼저 체험할 수 있습니다.</span><br><br><button class="btn-g" style="width:100%;padding:9px" onclick="실험실_열기()">← 실험실 목록으로</button>`);
 }
 
 function 음성설정_탭(){
@@ -199,7 +199,7 @@ function 음성엔드포인트_저장(){
   사용자.음성엔드포인트 = 값;
   사용자데이터_저장({음성엔드포인트: 값});  // Firestore 동기화
   // 세션7 항목4: 저장/지우기 안내 분리 — 빈 값 저장은 "삭제"가 아니라 별도 안내
-  showToastMsg(값 ? '✅ 서버 주소 저장됨' : 'ℹ️ 입력된 주소가 없습니다');
+  showToastMsg(값 ? '✓ 서버 주소 저장됨' : 'ℹ️ 입력된 주소가 없습니다');
 }
 function 음성엔드포인트_지우기(){
   const inp = document.getElementById('음성엔드포인트입력');
@@ -208,7 +208,7 @@ function 음성엔드포인트_지우기(){
   try{ localStorage.setItem('plx_음성엔드포인트', ''); }catch(e){ /* 무시 */ }
   사용자.음성엔드포인트 = '';
   사용자데이터_저장({음성엔드포인트: ''});
-  showToastMsg('🗑️ 서버 주소 삭제됨');  // 세션7 항목4: 지우기 전용 문구
+  showToastMsg('서버 주소 삭제됨');  // 세션7 항목4: 지우기 전용 문구
 }
 // 테스트 벤치: 텍스트 → 생성 → 재생 (봉인 중엔 안내만)
 async function 음성_테스트생성(){
@@ -216,7 +216,7 @@ async function 음성_테스트생성(){
   const 텍스트 = (ta ? ta.value : '').trim();
   if(!텍스트){ showToastMsg('테스트 문장을 입력해 주세요'); return; }
   if(!음성생성_활성화){
-    showToastMsg('🔒 음성 생성은 서버 준비 후 활성화됩니다');
+    showToastMsg('음성 생성은 서버 준비 후 활성화됩니다');
     return;
   }
   if(!음성엔드포인트){ showToastMsg('서버 주소를 먼저 저장해 주세요'); return; }

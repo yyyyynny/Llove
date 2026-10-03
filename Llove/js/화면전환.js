@@ -316,9 +316,9 @@ function 랜덤학습(){
   // 가중치 추첨 — 0(제외)은 후보에서 빠짐
   const 풀 = [];
   랜덤학습_모드목록.forEach(m => { for(let i=0;i<랜덤_가중치(m[0]);i++) 풀.push(m); });
-  if(!풀.length){ showToastMsg('⚙ 모든 모드가 제외되어 있습니다 — 랜덤 설정을 확인하세요'); return; }
+  if(!풀.length){ showToastMsg('모든 모드가 제외되어 있습니다 — 랜덤 설정을 확인하세요'); return; }
   const [카테고리, 화면] = 풀[Math.floor(Math.random()*풀.length)];
-  showToastMsg('🎲 오늘의 랜덤: ' + 카테고리);
+  showToastMsg('오늘의 랜덤: ' + 카테고리);
   goLearn(카테고리, 화면, null);
   // 세션10-e 항목3: goLearn이 랜덤진입을 false로 초기화하므로, 반드시 그 뒤에 켠다
   랜덤진입 = true;

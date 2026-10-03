@@ -206,7 +206,7 @@ function 창조주종료(){
   if(curScreen==='ss') afterNav('ss');  // 빌드1: 소칭호·칭호 선택·주신 메시지 일괄 재렌더
   if(curScreen==='sse'){ 갱신_설정_개발자모드_UI(); 갱신_음성설정_UI(); }  // 추가기능: 음성 생성 행도 즉시 노출
 
-  showToastMsg('🔓 개발자 모드가 활성화됩니다.');
+  showToastMsg('개발자 모드가 활성화됩니다.');
 }
 
 /* 설정 화면 위험 구역의 개발자 모드 항목 표시 갱신 */
@@ -278,7 +278,7 @@ function 채팅기록_추가메시지(역할, 내용){
   진행중세션_저장();  // 세션10-d: 매 메시지마다 로컬 백업(강제 종료·크래시에도 최신 상태 보존)
   if(현재채팅세션.메시지.length >= 채팅세션_최대메시지){
     채팅세션_마감('상한 도달');
-    showToastMsg('💬 대화가 100개에 도달해 기록으로 보관하고 새 대화를 시작합니다');
+    showToastMsg('대화가 100개에 도달해 기록으로 보관하고 새 대화를 시작합니다');
   }
 }
 
@@ -340,10 +340,10 @@ function 채팅창_초기화(){
 function 새대화_시작(){
   if(현재채팅세션 && 현재채팅세션.메시지.length){
     채팅세션_마감('새 대화');
-    showToastMsg('🆕 이전 대화를 기록에 보관했습니다');
+    showToastMsg('이전 대화를 기록에 보관했습니다');
   } else {
     채팅창_초기화();
-    showToastMsg('🆕 새 대화를 시작합니다');
+    showToastMsg('새 대화를 시작합니다');
   }
 }
 
@@ -416,7 +416,7 @@ function 채팅내역_열기(){
     const 첫질문 = (s.메시지.find(m=>m.역할==='나')||{}).내용 || '(질문 없음)';
     const 일시 = s.시작시각 ? new Date(s.시작시각).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     return `<div style="padding:8px 2px;border-bottom:1px solid var(--bdr);cursor:pointer;text-align:left" onclick="채팅세션_보기(${실idx})">
-      <div style="font-size:12px;font-weight:700">${s.진행중?'🟢 ':''}${esc(s.카테고리||'일반')} <span style="font-weight:400;color:var(--txt2)">· ${일시} · ${s.메시지.length}개</span></div>
+      <div style="font-size:12px;font-weight:700">${esc(s.카테고리||'일반')}${s.진행중?' <span style="color:var(--ok);font-weight:500">· 진행 중</span>':''} <span style="font-weight:400;color:var(--txt2)">· ${일시} · ${s.메시지.length}개</span></div>
       <div style="font-size:11px;color:var(--txt2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(첫질문)}</div>
     </div>`;
   }).join('');
@@ -464,7 +464,7 @@ function AI지침_저장(){
   사용자데이터_저장({AI지침: 값});
   AI지침_상태갱신();
   closeInfoModal();
-  showToastMsg('🧭 AI 지침 저장 완료');
+  showToastMsg('AI 지침 저장 완료');
 }
 function AI지침_상태갱신(){
   const s = document.getElementById('ai지침상태');
@@ -486,13 +486,13 @@ function 사고전개_토글(){
   사고전개모드 = !사고전개모드;
   const b=document.getElementById('thinkToggle');
   if(b){
-    b.textContent = 사고전개모드 ? '🧠 사고전개 ON' : '🧠 사고전개 OFF';
+    b.textContent = 사고전개모드 ? '사고전개 ON' : '사고전개 OFF';
     b.style.color = 사고전개모드 ? 'var(--acc)' : '';
     b.style.borderColor = 사고전개모드 ? 'var(--acc)' : '';
   }
   showToastMsg(사고전개모드
-    ? '🧠 사고전개 ON — 시작 100토큰, 4턴부터 매 턴 +30'
-    : '🧠 사고전개 OFF');
+    ? '사고전개 ON — 시작 100토큰, 4턴부터 매 턴 +30'
+    : '사고전개 OFF');
 }
 
 function openAsk(){
@@ -501,7 +501,7 @@ function openAsk(){
   사고전개시작차감됨 = false;
   질문턴수 = 0;
   const b=document.getElementById('thinkToggle');
-  if(b){ b.textContent='🧠 사고전개 OFF'; b.style.color=''; b.style.borderColor=''; }
+  if(b){ b.textContent='사고전개 OFF'; b.style.color=''; b.style.borderColor=''; }
   토큰표시_갱신();
   // 패널 열 때마다 기본 모드로 리셋 — Grok 봉인 중엔 실제로 답하는 사전 모드가 기본(10-03, 관리자님 결정 4).
   // AI 탭은 그대로 있어 언제든 전환할 수 있다
@@ -611,8 +611,8 @@ function sendAsk(){
       a.className='ask-msg ai';
       // 세션6 항목2: 사고전개 ON 상태 안내 병기
       // 10-03: 내부 용어(Grok·API 크레딧) 대신 사용자 말로
-      const 안내 = '🔌 AI 답변은 연동 준비 중입니다.<br>연동되면 실제 답변이 제공됩니다. (토큰 차감 없음)'
-        + (사고전개모드 ? '<br><br>🧠 사고전개가 켜져 있습니다 — 활성화 후 답변과 함께 사고 과정이 표시됩니다.' : '');
+      const 안내 = 'AI 답변은 연동 준비 중입니다.<br>연동되면 실제 답변이 제공됩니다. (토큰 차감 없음)'
+        + (사고전개모드 ? '<br><br>사고전개가 켜져 있습니다 — 활성화 후 답변과 함께 사고 과정이 표시됩니다.' : '');
       a.innerHTML = 안내;
       body.appendChild(a);
       body.scrollTop=body.scrollHeight;
@@ -655,10 +655,10 @@ function sendAsk(){
     if(res && res.답변){
       // 세션6 항목2: 사고전개 블록 — 응답에 사고전개가 오면 답변 위에 접힌 형태로 표시 (기본 글자색으로 가독 확보)
       const 사고블록 = (사고전개모드 && res.사고전개)
-        ? `<div class="ask-think">🧠 <b>사고 전개</b><br>${res.사고전개}</div>`
+        ? `<div class="ask-think"><b>사고 전개</b><br>${res.사고전개}</div>`
         : '';
       // 이의있음! 버튼은 답변 생성 후에만 노출 (KNOWLEDGE 5 표시 조건)
-      a.innerHTML = 사고블록 + res.답변 + '<br><br><button class="ask-objection-btn" onclick="openObj()">⚖️ 이의있음!</button>';
+      a.innerHTML = 사고블록 + res.답변 + '<br><br><button class="ask-objection-btn" onclick="openObj()">이의있음!</button>';
       // 세션10-d 항목2: 가공 라벨 없이 순수 텍스트(사고전개 있으면 답변 위에 그대로) 저장
       if(!창조주시도중) 채팅기록_추가메시지('AI', (res.사고전개 ? res.사고전개 + '\n\n' : '') + res.답변);
     } else {
@@ -686,7 +686,7 @@ async function sendAsk_사전(){
   if(!국어원_활성화){
     const a=document.createElement('div');
     a.className='ask-msg dict';
-    a.innerHTML='📖 사전 연동 준비 중입니다.<br>국립국어원 API 준비가 끝나면 실제 뜻풀이가 표시됩니다.';
+    a.innerHTML='사전 연동 준비 중입니다.<br>국립국어원 API 준비가 끝나면 실제 뜻풀이가 표시됩니다.';
     body.appendChild(a);
     body.scrollTop=body.scrollHeight;
     return;
@@ -749,7 +749,7 @@ function openObj(컨텍스트){
   }
   // 토큰 소진 시 이의있음! 비활성화 (KNOWLEDGE 5 표시 조건)
   if(!사용자.개발자모드 && (사용자.보유토큰||0) <= 0){
-    showToastMsg('💎 토큰 소진 — 이의있음!은 충전 후 사용 가능합니다');
+    showToastMsg('토큰 소진 — 이의있음!은 충전 후 사용 가능합니다');
     return;
   }
   // 봉인 중엔 쓰기 전에 알 수 있게 제출 버튼부터 막아 둔다(종전: 다 쓰고 제출하면 글이 지워졌다)
@@ -776,7 +776,7 @@ function submitObj(){
   }
   if(!GROK_활성화){
     // 크레딧 미구매 단계: 가짜 판정 폐기 — 호출·차감 없이 안내만, 쓴 글은 지우지 않는다
-    showToastMsg('🔌 이의있음!은 AI 연동 후 사용할 수 있습니다 (토큰 차감 없음)');
+    showToastMsg('이의있음!은 AI 연동 후 사용할 수 있습니다 (토큰 차감 없음)');
     return;
   }
   // ── 이하 Grok 활성화 후 실행 경로 ──
@@ -788,5 +788,5 @@ function submitObj(){
   //   → 최종 판정 인정 시: 마스터리증가('반박성공횟수') + EXP획득(100, '반박 성공') (KNOWLEDGE 12)
   //   → 이의제기로그 서브컬렉션 기록 (KNOWLEDGE 13-1)
   closeObj();
-  showToastMsg('⚖️ 반박 제출 — AI 교차검증 중…');
+  showToastMsg('반박 제출 — AI 교차검증 중…');
 }

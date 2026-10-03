@@ -879,7 +879,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .vc-dot:nth-child(2){animation-delay:.2s}
 .vc-dot:nth-child(3){animation-delay:.4s}
 .vc-loading-txt{font-size:13px;color:var(--txt2);margin-left:4px}
-.modal-icon{font-size:35px;text-align:center;margin-bottom:8px}
+.modal-icon{font-size:35px;text-align:center;margin-bottom:8px;color:var(--acc)}
+.modal-icon .ic{font-size:30px;stroke-width:1.5}
 .modal-title{font-size:16px;font-weight:700;text-align:center;margin-bottom:8px}
 .modal-desc{font-size:13px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:16px}
 .modal-btns{display:flex;gap:8px}
