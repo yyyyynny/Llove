@@ -889,6 +889,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 /* 추가기능: 새 버전 배포 안내 배너 — 토스트(자동 소멸)와 달리 새로고침 전까지 유지 */
 .update-bar{position:fixed;top:0;left:0;right:0;z-index:250;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;background:var(--card);border-bottom:1px solid var(--bdrg);padding:10px 16px;font-size:13px;color:var(--txt);opacity:0;transform:translateY(-100%);pointer-events:none;transition:opacity .25s,transform .25s var(--ease-out);box-shadow:0 4px 20px rgba(0,0,0,.25)}
 .update-bar.show{opacity:1;transform:translateY(0);pointer-events:all}
+/* 숨겨진 새 버전 안내의 단추가 Tab 순서 맨 앞을 차지하던 문제 — 닫혀 있을 땐 visibility로 뺀다 */
+.update-bar:not(.show){visibility:hidden}
 .update-bar .btn-acc{padding:7px 16px;font-size:13px}
 /* padding 세로 4→6: 종전 높이 22px 로 터치 최소치(24px, WCAG 2.5.8 AA) 미달이었다(2026-08-22 실측) */
 .update-bar-x{background:transparent;border:none;color:var(--txt2);font-size:16px;cursor:pointer;padding:6px 8px;line-height:1}
