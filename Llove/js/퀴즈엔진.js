@@ -64,7 +64,7 @@ function 학습진행_다음(screenId){
 function 출제_분기(category){
   const 방식 = 출제방식_결정();
   if(방식 === 'ai' && !GROK_활성화 && !AI대체안내함){
-    showToastMsg('🤖 AI 출제 준비 중 — DB 문제로 대체합니다');
+    showToastMsg('AI 출제는 준비 중이라 기본 문제로 냅니다');
     AI대체안내함 = true;
   }
   // DB 풀: data/ JSON 문항 (미적재·로드 실패면 빈 배열 — 렌더 함수들이 빈 배열을 안전하게 처리)

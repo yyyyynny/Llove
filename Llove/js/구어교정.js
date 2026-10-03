@@ -145,7 +145,7 @@ function submitSpk(){
     document.getElementById('spkFixTxt').textContent = 구어교정현재.격식;
     document.getElementById('spkTipTxt').textContent = '💡 ' + (구어교정현재.포인트 || '');
   } else {
-    document.getElementById('spkFixTxt').textContent = '(Grok 연동 후 입력 문장에 맞춘 교정안이 제공됩니다)';
+    document.getElementById('spkFixTxt').textContent = '(AI 연동 후 입력 문장에 맞춘 교정안이 제공됩니다)';
     document.getElementById('spkTipTxt').textContent = '지금은 예문 모범답안 비교 모드로 동작합니다.';
   }
   document.getElementById('spkResult').classList.add('show');

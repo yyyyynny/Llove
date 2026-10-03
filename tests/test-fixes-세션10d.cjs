@@ -34,7 +34,7 @@ load((window) => {
     const s = ev("현재채팅세션");
     const aiMsg = s && s.메시지.find(m=>m.역할==='AI');
     assert('#2: 봉인 AI 응답 저장됨', !!aiMsg);
-    assert('#2: 요약 라벨 아닌 안내 전문 저장', !!aiMsg && aiMsg.내용.includes('Grok 연동 준비 중') && !aiMsg.내용.includes('<br>'));
+    assert('#2: 요약 라벨 아닌 안내 전문 저장', !!aiMsg && aiMsg.내용.includes('AI 답변은 연동 준비 중') && !aiMsg.내용.includes('<br>'));
 
     /* ── 항목3: 채팅 내역 큰 팝업(wide) ── */
     // 세션10-e 항목2: 560px 고정 → clamp(340px, 72vw, 680px) 반응형으로 갱신됨

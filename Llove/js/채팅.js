@@ -610,7 +610,8 @@ function sendAsk(){
       const a=document.createElement('div');
       a.className='ask-msg ai';
       // 세션6 항목2: 사고전개 ON 상태 안내 병기
-      const 안내 = '🔌 Grok 연동 준비 중입니다.<br>API 크레딧 구매 후 활성화되면 실제 답변이 제공됩니다. (토큰 차감 없음)'
+      // 10-03: 내부 용어(Grok·API 크레딧) 대신 사용자 말로
+      const 안내 = '🔌 AI 답변은 연동 준비 중입니다.<br>연동되면 실제 답변이 제공됩니다. (토큰 차감 없음)'
         + (사고전개모드 ? '<br><br>🧠 사고전개가 켜져 있습니다 — 활성화 후 답변과 함께 사고 과정이 표시됩니다.' : '');
       a.innerHTML = 안내;
       body.appendChild(a);
@@ -744,7 +745,7 @@ function openObj(컨텍스트){
     note.innerHTML = `<div class="obj-note-lbl">${UI_TEXT.이의있음.출제근거라벨}</div>` +
       (현재문제_reasoning_note
         ? 현재문제_reasoning_note
-        : '(이 문제는 출제 근거가 아직 등록되지 않았습니다 — Grok 연동 후 자동 생성됩니다)');
+        : '(이 문제는 출제 근거가 아직 등록되지 않았습니다 — AI 연동 후 자동 생성됩니다)');
   }
   // 토큰 소진 시 이의있음! 비활성화 (KNOWLEDGE 5 표시 조건)
   if(!사용자.개발자모드 && (사용자.보유토큰||0) <= 0){
@@ -754,7 +755,7 @@ function openObj(컨텍스트){
   // 봉인 중엔 쓰기 전에 알 수 있게 제출 버튼부터 막아 둔다(종전: 다 쓰고 제출하면 글이 지워졌다)
   const 제출 = document.getElementById('objSubmit');
   제출.disabled = !GROK_활성화;
-  제출.textContent = GROK_활성화 ? '반박 제출' : 'Grok 연동 후 제출 가능';
+  제출.textContent = GROK_활성화 ? '반박 제출' : 'AI 연동 후 제출 가능';
   document.getElementById('objBg').classList.add('show');
   setTimeout(()=>document.getElementById('objInp').focus(),300);
 }
@@ -775,7 +776,7 @@ function submitObj(){
   }
   if(!GROK_활성화){
     // 크레딧 미구매 단계: 가짜 판정 폐기 — 호출·차감 없이 안내만, 쓴 글은 지우지 않는다
-    showToastMsg('🔌 이의있음!은 Grok 연동 후 사용 가능합니다 (토큰 차감 없음)');
+    showToastMsg('🔌 이의있음!은 AI 연동 후 사용할 수 있습니다 (토큰 차감 없음)');
     return;
   }
   // ── 이하 Grok 활성화 후 실행 경로 ──
@@ -787,5 +788,5 @@ function submitObj(){
   //   → 최종 판정 인정 시: 마스터리증가('반박성공횟수') + EXP획득(100, '반박 성공') (KNOWLEDGE 12)
   //   → 이의제기로그 서브컬렉션 기록 (KNOWLEDGE 13-1)
   closeObj();
-  showToastMsg('⚖️ 반박 제출 — Grok 교차검증 중...');
+  showToastMsg('⚖️ 반박 제출 — AI 교차검증 중…');
 }

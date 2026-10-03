@@ -19,10 +19,10 @@ function 이의제기_컨텍스트_설정(컨텍스트){
       subEl.textContent   = '"제가 고른 게 이 맥락에선 더 적절한 것 같은데요?" — AI가 맥락 기반으로 재판정합니다.';
     } else if(컨텍스트 === 'speak'){
       titleEl.textContent = '이의있음! (구어 교정)';
-      subEl.textContent   = '교정안에 동의하지 않으시면 Grok 교차검증으로 재판정합니다.';
+      subEl.textContent   = '교정안에 동의하지 않으시면 AI 교차검증으로 재판정합니다.';
     } else {
       titleEl.textContent = '이의있음!';
-      subEl.textContent   = '답변에 동의하지 않으시면 Grok 교차검증으로 재판정합니다.';
+      subEl.textContent   = '답변에 동의하지 않으시면 AI 교차검증으로 재판정합니다.';
     }
   }
 }

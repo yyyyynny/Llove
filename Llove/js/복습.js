@@ -380,7 +380,7 @@ function 즐겨찾기_다시풀기(id){
 
 function 즐겨찾기_유사문제(id){
   if(!GROK_활성화){
-    showInfoModal('✨','유사 문제','Grok이 비슷한 유형의 문제를 새로 생성합니다 (토큰 20 차감).<br><br>🔌 Grok 연동(크레딧 구매) 후 활성화됩니다.');
+    showInfoModal('✨','유사 문제','AI가 비슷한 유형의 문제를 새로 만듭니다 (토큰 20 차감).<br><br>🔌 AI 연동 후 쓸 수 있습니다.');
     return;
   }
   // ── Grok 활성화 후 실행 경로 ──

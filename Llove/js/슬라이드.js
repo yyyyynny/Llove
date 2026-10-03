@@ -68,5 +68,5 @@ function quoteNext(ev){
 
 // 문장 내 학습 단어 탭 처리 — 플래시카드 DB 구축 후 해당 카드로 직행 연결 예정
 function 단어로이동(단어){
-  showToastMsg(`「${단어}」 플래시카드 연결은 단어 DB 구축 후 제공됩니다`);
+  showToastMsg(`「${단어}」 플래시카드 연결은 단어장을 채운 뒤 제공됩니다`);
 }
