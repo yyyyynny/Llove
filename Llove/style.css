@@ -609,7 +609,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 /* 업적 상세 모달 */
 .ach-detail-bg{position:fixed;inset:0;z-index:400;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
-.ach-detail{background:var(--card);border:1px solid var(--acc);border-radius:var(--r-l);padding:26px 22px;max-width:340px;width:100%;transform:scale(.85);transition:transform .4s var(--ease-out);max-height:85vh;overflow-y:auto}
+.ach-detail{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r-l);padding:24px 20px;max-width:340px;width:100%;transform:scale(.94);transition:transform .4s var(--ease-out);max-height:85vh;overflow-y:auto}
 .ach-d-icon{font-size:53px;text-align:center;margin-bottom:10px}
 .ach-d-name{font-size:18px;font-weight:900;color:var(--acc);text-align:center;margin-bottom:6px}
 .ach-d-cat{font-size:12px;color:var(--txt2);text-align:center;margin-bottom:14px}
@@ -819,7 +819,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ask-objection-btn:hover{background:color-mix(in srgb,var(--err) 10%,transparent)}
 
 .obj-bg{position:fixed;inset:0;z-index:500;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
-.obj-modal{background:var(--card);border:1px solid var(--err);border-radius:var(--r-l);padding:22px;max-width:320px;width:100%;transform:scale(.85);transition:transform .4s var(--ease-out)}
+.obj-modal{background:var(--card);border:1px solid var(--err);border-radius:var(--r-l);padding:24px 20px;max-width:320px;width:100%;transform:scale(.94);transition:transform .4s var(--ease-out)}
 .obj-icon{font-size:40px;text-align:center;margin-bottom:8px}
 .obj-title{font-size:18px;font-weight:900;color:var(--err);text-align:center;margin-bottom:6px}
 .obj-desc{font-size:13px;color:var(--txt2);text-align:center;line-height:1.6;margin-bottom:14px}
@@ -829,7 +829,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 /* ━━━ 업적 / 레벨업 팝업 ━━━ */
 .ov-bg{position:fixed;inset:0;z-index:400;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
-.ach-popup{background:var(--card);border:1px solid var(--acc);border-radius:var(--r-l);padding:28px 22px;text-align:center;max-width:295px;width:100%;box-shadow:0 0 36px color-mix(in srgb,var(--acc) 18%,transparent);transform:scale(.85);transition:transform .4s var(--ease-out)}
+.ach-popup{background:var(--card);border:1px solid var(--acc);border-radius:var(--r-l);padding:28px 22px;text-align:center;max-width:320px;width:100%;box-shadow:0 0 36px color-mix(in srgb,var(--acc) 18%,transparent);transform:scale(.94);transition:transform .4s var(--ease-out)}
 .pp-icon{font-size:55px;margin-bottom:10px}
 .pp-title{font-size:18px;font-weight:900;color:var(--acc);margin-bottom:5px}
 .pp-stage{font-size:14px;color:var(--accl);margin-bottom:5px;font-weight:700}
@@ -837,7 +837,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .pp-stars{font-size:26px;letter-spacing:4px;margin-bottom:13px;font-weight:700}
 .pp-exp{font-size:26px;font-weight:900;color:var(--accl);margin-bottom:18px}
 
-.lvup-popup{background:var(--card);border:1px solid var(--acc);border-radius:var(--r-l);padding:28px 22px;text-align:center;max-width:295px;width:100%;box-shadow:0 0 36px color-mix(in srgb,var(--acc) 18%,transparent);transform:scale(.85);transition:transform .4s var(--ease-out)}
+.lvup-popup{background:var(--card);border:1px solid var(--acc);border-radius:var(--r-l);padding:28px 22px;text-align:center;max-width:320px;width:100%;box-shadow:0 0 36px color-mix(in srgb,var(--acc) 18%,transparent);transform:scale(.94);transition:transform .4s var(--ease-out)}
 .lvup-burst{font-size:70px;animation:bounce 1s ease-in-out}
 .lvup-txt{font-family:'Nanum Myeongjo',serif;font-size:30px;font-weight:700;color:var(--accl);letter-spacing:2px;text-shadow:0 0 28px color-mix(in srgb,var(--acc) 70%,transparent)}
 .lvup-new{font-size:16px;color:var(--txt2);margin-top:6px}
@@ -858,7 +858,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ask-panel.show{visibility:visible;transition:transform .4s var(--ease-out)}
 /* 세션10-e 항목2: PC 등 큰 뷰포트에서 340px 고정폭이 여백만 남기던 문제 — 뷰포트 비례(clamp)로 반응형화.
    폰(46vw가 320 미만)에서는 하한 320px로 기존과 거의 동일, 데스크톱은 최대 520px까지 확장 */
-.modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r-l);padding:20px;max-width:clamp(320px, 46vw, 520px);width:100%;transform:scale(.85);transition:transform .4s var(--ease-out);max-height:80vh;overflow-y:auto}
+.modal-bx{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r-l);padding:20px;max-width:clamp(320px, 46vw, 520px);width:100%;transform:scale(.94);transition:transform .4s var(--ease-out);max-height:80vh;overflow-y:auto}
 /* 세션10-d 항목3: 채팅 내역 등 내용 많은 모달 — 더 넓게 / 세션10-e 항목2: 이것도 반응형 */
 .modal-bx.wide{max-width:clamp(340px, 72vw, 680px);max-height:88vh}
 /* 세션10-d 항목5 / 세션10-i 항목2: 이미지 크롭 뷰포트 — 배너는 표시 비율(700:320), 프로필은 정사각(.round)
@@ -869,7 +869,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 /* 프로필 크롭: 정사각 뷰포트 + 원형 마스크 오버레이(실제 저장 이미지는 정사각, 원형은 시각 안내용) */
 .crop-vp.round{aspect-ratio:1/1;max-width:280px;margin:0 auto}
 .crop-vp.round::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,.6);pointer-events:none}
-/* 오버레이가 열리면 안쪽 박스가 .85 → 1로 커진다(공통) */
+/* 오버레이가 열리면 안쪽 박스가 .94 → 1로 살짝 커진다(공통, 10-03: 종전 .85는 튀어나오는 느낌이 컸다) */
 .ach-detail-bg.show .ach-detail,.obj-bg.show .obj-modal,.ov-bg.show .ach-popup,.ov-bg.show .lvup-popup,.modal-bg.show .modal-bx{transform:scale(1)}
 /* 추가기능: 음성 생성(콜롬비나 TTS) 테스트 벤치 — 회전 금지(점 불투명도 펄스)·세로 전개만 */
 .vc-lbl{display:block;font-size:12px;color:var(--txt2);font-weight:700;margin-top:8px}
