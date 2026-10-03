@@ -365,7 +365,10 @@ html{scrollbar-gutter:stable}
 .aopt:active{transform:scale(.98)}
 .aopt.correct{border-color:var(--ok);animation:correctPop .45s ease both}
 .aopt.wrong{border-color:var(--err);animation:shakeLR .38s ease both}
-.aopt.disabled{pointer-events:none;opacity:.7}
+/* 10-03: 흐림은 정답·내 오답을 뺀 나머지 보기에만. 등장 애니메이션(fadeUp, fill both)이 opacity:1을 붙잡고 있어
+   종전엔 무관한 보기가 오히려 밝고 정답·오답만 흐렸다 — 채점된 나머지 보기는 애니메이션을 풀어 흐림이 먹게 한다. */
+.aopt.disabled{pointer-events:none}
+.aopt.disabled:not(.correct):not(.wrong){opacity:.5;animation:none}
 .onum{width:26px;height:26px;background:var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--txt2);flex-shrink:0;transition:background .2s,color .2s}
 .aopt.correct .onum{background:var(--ok);color:#fff}
 .aopt.wrong .onum{background:var(--err);color:#fff}
