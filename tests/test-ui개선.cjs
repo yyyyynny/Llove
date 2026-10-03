@@ -72,6 +72,8 @@ load((window) => {
   // U5: 예문형도 답 전엔 건너뛸 수 있다(종전엔 답하기 전 넘어갈 단추가 없었다)
   ev(`예문형_렌더('sq1Body', {예문:'[ ] 시험', correct:{w:'가'}, acceptable:[], wrong:[{w:'나'},{w:'다'},{w:'라'}]}, ()=>{}, null)`);
   assert('U5: 예문형 답 전 건너뛰기 단추', !!doc.querySelector('#sq1Body .q-skip-only'));
+  ev('독해_렌더(); 문장배열_렌더();');
+  assert('U5: 지문 독해·문장 배열도 답 전 건너뛰기', !!doc.querySelector('#sq6Body .q-skip-only') && !!doc.querySelector('#sq7Body .q-skip-only'));
 
   // U8: 선택형 채점 결과와 해설이 화면 안(보기 아래)에 보인다
   ev(`DB문제['상식·어원']=[{cat:'상식',q:'문제',opts:[{t:'가',c:true},{t:'나',c:false},{t:'다',c:false},{t:'라',c:false}],reasoning_note:'가인 까닭'}];`);

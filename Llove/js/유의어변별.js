@@ -237,6 +237,7 @@ function 독해_렌더(){
         <button class="btn-acc" onclick="독해_렌더()">다음 지문 →</button>
       </div>
     </div>
+    <button class="btn-g q-skip-only" onclick="독해_렌더()">건너뛰기</button>
   `;
 }
 function 독해_선택(btn){
@@ -337,6 +338,7 @@ function 문장배열_렌더(){
       <div class="syn-result" id="sq7Result"></div>
       <div class="syn-actions" id="sq7NextActions" style="display:none"><button class="btn-acc" onclick="문장배열_렌더()">다음 문제 →</button></div>
     </div>
+    <button class="btn-g q-skip-only" onclick="문장배열_렌더()">건너뛰기</button>
   `;
 }
 // 이미 순번이 매겨진 문장을 다시 탭하면 그 배치를 취소(splice)하고, 뒤 문장들의 순번을 당겨서 다시 매긴다.
