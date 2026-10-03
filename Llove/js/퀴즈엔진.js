@@ -49,7 +49,7 @@ let 학습진행수 = 0;
 // (2026-09-27: 종전엔 sq1·sq3·sq4 배지가 설정과 무관하게 고정 문구였다)
 function 배지_방식표시(배지id, 방식){
   const 배지 = document.getElementById(배지id);
-  if(배지 && 방식) 배지.textContent = 배지.textContent.split(' ')[0] + ' ' + 방식;
+  if(배지 && 방식) 배지.textContent = 방식;   // 머리 부제 — 제목이 모드를 말하므로 아이콘 없이 방식만
 }
 function 학습진행_다음(screenId){
   학습진행수++;
@@ -117,7 +117,6 @@ function renderQuiz(screenId, data){
       ${sq1 ? '' : `<div class="q-hint">${q.hint||''}</div>`}
     </div>
     ${답영역}
-    <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
     <button class="btn-acc" style="width:100%" onclick="다음문제()">다음 문제 →</button>
   `;
 }
@@ -265,7 +264,6 @@ function 퀴즈_역방향렌더(screenId, q, data){
       <div class="q-hint">위 정답에 해당하는 문제를 고르세요</div>
     </div>
     <div class="aopts">${optsHtml}</div>
-    <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
     <button class="btn-acc" style="width:100%" onclick="다음문제()">다음 문제 →</button>
   `;
 }

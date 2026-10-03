@@ -209,7 +209,7 @@ function goLearn(category, screenId, btn){
   // 화면 머리(제목·배지·설정 동기화)만 여기서 정하고, 실제 출제는 「넘어가기」와 같은 함수를 쓴다
   if(screenId==='sq1'){
     document.getElementById('sq1Title').textContent=category;
-    document.getElementById('sq1Mode').textContent = (category==='상식·어원' ? '🌍' : '🏛️') + ' ' + 학습설정.sq1;
+    document.getElementById('sq1Mode').textContent = 학습설정.sq1;
   }
   // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말 (저장된 학습설정.sq2 방식대로 출제)
   if(screenId==='sq2') document.getElementById('sq2Title').textContent=category;
@@ -220,11 +220,11 @@ function goLearn(category, screenId, btn){
   // 세션10-c: 지문 독해(sq6)·세션10-m: 문장 배열(sq7) — 방식 옵션 없는 문해력 2탄
   if(screenId==='sq6'){
     document.getElementById('sq6Title').textContent=category;
-    document.getElementById('sq6Mode').textContent='📖 지문 독해';
+
   }
   if(screenId==='sq7'){
     document.getElementById('sq7Title').textContent=category;
-    document.getElementById('sq7Mode').textContent='🧩 문장 배열';
+
   }
   현재모드_다음출제(screenId, category);
 }
@@ -260,8 +260,7 @@ function 랜덤_넘어가기(){
    재진입 시 4지선다로 리셋되던 문제를 해소한다. */
 function sq2_출제_렌더(category){
   const 방식 = 학습설정.sq2 || '4지선다';
-  const 배지아이콘 = category === '한자·우리말' ? '🈯' : '📜';
-  document.getElementById('sq2Mode').textContent = `${배지아이콘} ${방식}`;
+  document.getElementById('sq2Mode').textContent = 방식;
   // 설정 패널 버튼 활성 상태도 현재 방식과 동기화
   동기화_학습설정_버튼('sq2', 방식);
   // 근본 수정(2026-06-14): 기존엔 '유의어 변별' 외 4방식이 전부 renderFlashcard로 폴백되어

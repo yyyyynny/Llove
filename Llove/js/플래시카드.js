@@ -44,7 +44,6 @@ function sq2_선다렌더(category, 역방향){
       <div class="q-question">${문제}</div>
     </div>
     <div class="aopts">${optsHtml}</div>
-    <div class="exp-gain"><div class="egl">정답 시 획득</div><div class="egv">+20 EXP ✨</div></div>
     <button class="btn-acc" style="width:100%" onclick="sq2_출제_렌더(document.getElementById('sq2Title').textContent)">다음 문제 →</button>
   `;
 }

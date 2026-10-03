@@ -476,13 +476,10 @@
 
 <!-- ④-1 4지선다 (상식·어원, 세계사·신화 공용) -->
 <div id="sq1" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt" id="sq1Title">상식·어원</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq1Mode">🌍 4지선다</div><div class="qct">1문제째</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기">←</button>
+    <div class="q-head"><div class="tbt" id="sq1Title">상식·어원</div><div class="qmb" id="sq1Mode">4지선다</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span><button class="q-set" onclick="toggleLset('lsetSq1')" aria-label="학습 설정" aria-expanded="false">⚙</button></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
@@ -497,10 +494,6 @@
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) -->
   <div class="lset-panel" id="lsetSq1">
-    <div class="lset-hdr" onclick="toggleLset('lsetSq1')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">방식</span>
@@ -533,13 +526,10 @@
 
 <!-- ④-6 세션10-c: 지문 독해(문해력 모드) — 문장형 보기 전용 엔진, 방식 옵션 없어 설정 패널 생략 -->
 <div id="sq6" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt" id="sq6Title">지문 독해</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq6Mode">📖 지문 독해</div><div class="qct">1문제째</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기">←</button>
+    <div class="q-head"><div class="tbt" id="sq6Title">지문 독해</div><div class="qmb" id="sq6Mode">문해력</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
@@ -567,13 +557,10 @@
 
 <!-- ④-7 세션10-m: 문장 배열(문해력 2탄, D안) — 뒤섞인 문장을 탭한 순서대로 배치, 방식 옵션 없어 설정 패널 생략 -->
 <div id="sq7" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt" id="sq7Title">문장 배열</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq7Mode">🧩 문장 배열</div><div class="qct">1문제째</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기">←</button>
+    <div class="q-head"><div class="tbt" id="sq7Title">문장 배열</div><div class="qmb" id="sq7Mode">문해력</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
@@ -601,13 +588,10 @@
 
 <!-- ④-2 플래시카드 (고사성어, 한자우리말) -->
 <div id="sq2" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt" id="sq2Title">고사성어·속담</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq2Mode">📜 4지선다</div><div class="qct">1문제째</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기">←</button>
+    <div class="q-head"><div class="tbt" id="sq2Title">고사성어·속담</div><div class="qmb" id="sq2Mode">4지선다</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span><button class="q-set" onclick="toggleLset('lsetSq2')" aria-label="학습 설정" aria-expanded="false">⚙</button></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
@@ -622,10 +606,6 @@
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) — v3.7 항목3·4·5: 4지선다 기본 + 5방식 -->
   <div class="lset-panel" id="lsetSq2">
-    <div class="lset-hdr" onclick="toggleLset('lsetSq2')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">방식</span>
@@ -656,13 +636,10 @@
 
 <!-- ④-3 4지선다 (맞춤법) -->
 <div id="sq3" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt">맞춤법</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq3Mode">✏️ 4지선다</div><div class="qct">1문제째</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기">←</button>
+    <div class="q-head"><div class="tbt">맞춤법</div><div class="qmb" id="sq3Mode">4지선다</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span><button class="q-set" onclick="toggleLset('lsetSq3')" aria-label="학습 설정" aria-expanded="false">⚙</button></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
@@ -677,10 +654,6 @@
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) -->
   <div class="lset-panel" id="lsetSq3">
-    <div class="lset-hdr" onclick="toggleLset('lsetSq3')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">방식</span>
@@ -710,13 +683,10 @@
 
 <!-- ④-4 아재개그 -->
 <div id="sq4" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt">아재개그</div>
-    <div class="tag ta" id="sq4Exp">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq4Mode">😂 플래시카드</div><div class="qct">1문제째</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기">←</button>
+    <div class="q-head"><div class="tbt">아재개그</div><div class="qmb" id="sq4Mode">플래시카드</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta" id="sq4Exp">+20</span><button class="q-set" onclick="toggleLset('lsetSq4')" aria-label="학습 설정" aria-expanded="false">⚙</button></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
@@ -731,10 +701,6 @@
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) — v3.7 항목13: 입력 방식 행 추가 -->
   <div class="lset-panel" id="lsetSq4">
-    <div class="lset-hdr" onclick="toggleLset('lsetSq4')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">난이도</span>
@@ -771,10 +737,10 @@
 
 <!-- ④-5 구어 교정 -->
 <div id="sq5" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt">구어 교정</div>
-    <div class="tag ta">+60</div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기">←</button>
+    <div class="q-head"><div class="tbt">구어 교정</div></div>
+    <div class="q-meta"><span class="tag ta">+60</span></div>
   </div>
   <div class="spk-info">
     <div class="spk-info-text">일상에서 쓰는 말투를 직장·회의·고객 응대 상황에 맞는 격식 표현으로 다듬어 드립니다.</div>
@@ -855,17 +821,13 @@
 <!-- 항목10: 복습 '하기' 전용 화면 — 좁은 복습칸 인라인 진행으로 인한 시각 피로 해소.
      복습시작() 시 이 화면으로 이동해 카드 1장에 집중하도록 분리 (바텀 네비 숨김). -->
 <div id="srp" class="screen demo-offset">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="복습_중단()">← 복습 중단</button>
-    <div class="tbt">복습 진행</div>
-    <div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="복습_중단()" aria-label="복습 중단">←</button>
+    <div class="q-head"><div class="tbt">복습 진행</div></div>
+    <button class="q-set" onclick="toggleLset('lsetSrp')" aria-label="학습 설정" aria-expanded="false">⚙</button>
   </div>
   <!-- 세션7 항목5: 복습에도 학습 설정 — 복습 방식·순서 선택 (srpBody 형제 배치로 접힘 상태 보존) -->
   <div class="lset-panel" id="lsetSrp">
-    <div class="lset-hdr" onclick="toggleLset('lsetSrp')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">복습 방식</span>
@@ -932,10 +894,9 @@
 
 <!-- ⑦-1 성장 상세 화면 (sg) — 렌더는 js/성장상세.js -->
 <div id="sg" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('ss',null)">← 나가기</button>
-    <div class="tbt">성장 상세</div>
-    <div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('ss',null)" aria-label="나가기">←</button>
+    <div class="q-head"><div class="tbt">성장 상세</div></div>
   </div>
   <!-- β10: 성장 상세 — 소칭호 로드맵 + EXP 진행 바 + 획득 방법 안내 (KNOWLEDGE 17-1)
        afterNav('sg') → 렌더_성장상세()가 동적 생성 -->

@@ -51,7 +51,7 @@ load((window) => {
   assert('C1: sq1 진입 시 보기 4개', sq1.querySelectorAll('.aopt').length === 4);
   assert('C1: sq1은 파란 태그 + AI 출제 표시, 힌트 줄 없음',
     !!sq1.querySelector('.tag.tb') && !!sq1.querySelector('.tag-ai') && !sq1.querySelector('.q-hint'));
-  assert('C4: sq1 배지가 카테고리 아이콘으로', doc.getElementById('sq1Mode').textContent === '🌍 4지선다');
+  assert('C4: sq1 배지는 방식만(10-03: 제목과 겹치던 아이콘 제거)', doc.getElementById('sq1Mode').textContent === '4지선다');
 
   ev("goLearn('맞춤법','sq3',null);");
   const sq3 = doc.getElementById('sq3Body');
@@ -168,13 +168,13 @@ load((window) => {
   /* ── 학습 화면 배지가 실제 출제 방식을 따른다(종전 sq1·sq3·sq4 고정 문구) ── */
   const 배지 = id => doc.getElementById(id).textContent;
   ev("학습설정.sq1='직접입력'; goLearn('상식·어원','sq1',null);");
-  assert('배지: sq1 진입 시 설정 방식 표시', 배지('sq1Mode') === '🌍 직접입력', 배지('sq1Mode'));
+  assert('배지: sq1 진입 시 설정 방식 표시', 배지('sq1Mode') === '직접입력', 배지('sq1Mode'));
   ev("setLsetMode('sq1','역방향',doc_btn=document.querySelector(\"#lsetSq1 .lset-opt\"));");
-  assert('배지: sq1 설정을 바꾸면 즉시 반영', 배지('sq1Mode') === '🌍 역방향', 배지('sq1Mode'));
+  assert('배지: sq1 설정을 바꾸면 즉시 반영', 배지('sq1Mode') === '역방향', 배지('sq1Mode'));
   ev("학습설정.sq3='4지선다'; goLearn('맞춤법','sq3',null);");
-  assert('배지: sq3는 설정 방식(종전 고정 3지선다)', 배지('sq3Mode') === '✏️ 4지선다', 배지('sq3Mode'));
+  assert('배지: sq3는 설정 방식(종전 고정 3지선다)', 배지('sq3Mode') === '4지선다', 배지('sq3Mode'));
   ev("학습설정.sq4_input='직접입력'; goLearn('아재개그·넌센스','sq4',null);");
-  assert('배지: sq4는 입력 방식(종전 고정 탭→공개)', 배지('sq4Mode') === '😂 직접입력', 배지('sq4Mode'));
+  assert('배지: sq4는 입력 방식(종전 고정 탭→공개)', 배지('sq4Mode') === '직접입력', 배지('sq4Mode'));
   ev("학습설정.sq1='4지선다'; 학습설정.sq4_input='플래시카드';");
 
   /* ── sq2 플래시카드 방식에 '다음 카드' 버튼(종전엔 판정 후 넘어갈 방법이 없었다) ── */

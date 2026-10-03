@@ -37,9 +37,9 @@ function 학습설정_마이그레이션(){
 function toggleLset(id){
   const panel = document.getElementById(id);
   if(!panel) return;
-  panel.classList.toggle('open');
-  const t = panel.querySelector('.lset-toggle');
-  if(t) t.textContent = panel.classList.contains('open') ? '▲' : '▼';
+  const 열림 = panel.classList.toggle('open');
+  // 여닫는 단추는 화면 머리의 ⚙ — 열림 상태를 표시·낭독에 반영
+  document.querySelectorAll(`.q-set[onclick*="'${id}'"]`).forEach(b => { b.classList.toggle('on', 열림); b.setAttribute('aria-expanded', 열림); });
 }
 
 /* 세션5 버그7: 저장된 학습설정을 패널 버튼 활성 상태(.on)에 반영 (새로고침 복원 시) */

@@ -84,9 +84,11 @@ load((window) => {
   const 패널 = doc.querySelector('.lset-panel');
   ev(`toggleLset('${패널.id}')`);
   assert('버그8: 펼침 시 open 클래스', 패널.classList.contains('open'));
-  assert('버그8: 화살표 ▲ 교체', 패널.querySelector('.lset-toggle').textContent === '▲');
+  // 10-03: ▼/▲ 머리 줄 대신 화면 머리의 ⚙ 단추가 여닫고 열림 상태(aria-expanded)를 알린다
+  const 단추 = doc.querySelector(`.q-set[onclick*="'${패널.id}'"]`);
+  assert('버그8: 펼치면 ⚙ 단추가 열림 표시', 단추.getAttribute('aria-expanded') === 'true' && 단추.classList.contains('on'));
   ev(`toggleLset('${패널.id}')`);
-  assert('버그8: 접힘 시 ▼ 복귀', 패널.querySelector('.lset-toggle').textContent === '▼');
+  assert('버그8: 접으면 열림 표시 해제', 단추.getAttribute('aria-expanded') === 'false' && !단추.classList.contains('on'));
   assert('버그8: 회전(rotate) 규칙 위반 제거', !/lset-toggle\{[^}]*rotate/.test(css) && !/open \.lset-toggle\{[^}]*rotate/.test(css));
   assert('버그8: opacity 전환 추가', /\.lset-body\{[^}]*opacity:0/.test(css));
 
