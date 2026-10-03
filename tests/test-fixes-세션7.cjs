@@ -18,7 +18,8 @@ load((window) => {
 
   /* ── #3 전역 +10% (대표값) ── */
   assert('#3: .q-question 15→17px(글자배율 calc 기준값)', /\.q-question\{font-size:calc\(17px\*var\(--글자배율\)\)/.test(css));
-  assert('#3: 제외 목록 유지(.nv-btn 10px)', /\.nv-btn\{[^}]*font-size:10px/.test(css));
+  // 10-03: 글자 크기 7단(최소 11px)으로 정리하며 10px → 11px
+  assert('#3: 제외 목록 유지(.nv-btn 11px)', /\.nv-btn\{[^}]*font-size:11px/.test(css));
 
   /* ── #1 봉인 → 창조주 업적 완전 리셋 ── */
   ev("사용자.창조주달성=true; 사용자.개발자모드=true; 사용자.업적진행도=사용자.업적진행도||{}; 사용자.업적진행도['창조주']=1;");
