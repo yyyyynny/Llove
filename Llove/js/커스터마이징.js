@@ -87,10 +87,10 @@ function 프로필선택_열기(){
   showInfoModal('🖼️','프로필 선택',
     `<div style="text-align:left">
       <div style="font-size:11px;color:var(--txt2);margin-bottom:5px">기본 이모지 — 누구나 사용 가능</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${이모지들}</div>
-      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">이미지 프리셋 — 누구나 사용 가능</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${이미지들}</div>
-      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
+      <div class="pick-row">${이모지들}</div>
+      <div class="pick-lbl">이미지 프리셋 — 누구나 사용 가능</div>
+      <div class="pick-row">${이미지들}</div>
+      <div class="pick-lbl">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
       <button class="btn-g" style="width:100%;padding:9px" onclick="이미지_업로드시도('프로필')">📁 내 사진 선택…</button>
       <input type="file" id="프로필파일입력" accept="image/*" style="display:none" onchange="이미지_파일처리(this,'프로필')">
     </div>`);
@@ -133,17 +133,17 @@ function 배너선택_열기(){
     `<div style="width:72px;height:30px;border-radius:8px;border:1px solid var(--bdr);cursor:pointer;background:${g}" onclick="배너_적용선택('grad:${i}')"></div>`
   ).join('');
   const 이미지섹션 = 배너_이미지프리셋.length
-    ? `<div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">이미지 배너 — 누구나 사용 가능</div>
-       <div style="display:flex;flex-wrap:wrap;gap:6px">${배너_이미지프리셋.map(it=>
+    ? `<div class="pick-lbl">이미지 배너 — 누구나 사용 가능</div>
+       <div class="pick-row">${배너_이미지프리셋.map(it=>
          `<img src="assets/배너/${esc(it.파일)}" title="${esc(it.이름||'')}" style="width:110px;height:36px;border-radius:8px;object-fit:cover;cursor:pointer;border:1px solid var(--bdr)" onclick="배너_적용선택('assets/배너/${esc(it.파일)}')">`).join('')}</div>`
     : '';   // 관리 방법: assets/배너/ + 목록.json (출처.md 표기) — 운영자용 주석
   const 업로드가능 = 업로드_가능();
   showInfoModal('🖼️','배너 선택',
     `<div style="text-align:left">
       <div style="font-size:11px;color:var(--txt2);margin-bottom:5px">기본 배너 — 누구나 사용 가능</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${그라들}</div>
+      <div class="pick-row">${그라들}</div>
       ${이미지섹션}
-      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
+      <div class="pick-lbl">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
       <button class="btn-g" style="width:100%;padding:9px" onclick="이미지_업로드시도('배너')">📁 내 사진 선택…</button>
       <input type="file" id="배너파일입력" accept="image/*" style="display:none" onchange="이미지_파일처리(this,'배너')">
     </div>`);
