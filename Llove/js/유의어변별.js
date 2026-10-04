@@ -332,7 +332,7 @@ function 문장배열_렌더(){
         ${순서.map(원본idx=>`<div class="aopt" data-원본="${원본idx}" onclick="문장배열_탭(this)"><div class="onum"></div><div class="otxt">${항목.문장들[원본idx]}</div></div>`).join('')}
       </div>
       <div class="syn-actions" id="sq7Actions">
-        <button class="btn-g" style="flex:1" onclick="문장배열_초기화()">↺ 다시 배치</button>
+        <button class="btn-g grow" onclick="문장배열_초기화()">↺ 다시 배치</button>
         <button class="btn-acc dim" id="sq7SubmitBtn" style="flex:1" onclick="문장배열_제출()">제출하기</button>
       </div>
       <div class="syn-result" id="sq7Result"></div>

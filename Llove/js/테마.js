@@ -20,7 +20,7 @@ function showInfoModal(icon, title, desc, 와이드){
   // v3.7: 호출마다 「확인」 버튼으로 초기화 (개발자모드_탭 등 동적 버튼 잔재 방지)
   const btnArea = document.getElementById('infoBtns');
   if(btnArea){
-    btnArea.innerHTML = `<button class="btn-acc" style="flex:1" onclick="closeInfoModal()">확인</button>`;
+    btnArea.innerHTML = `<button class="btn-acc grow" onclick="closeInfoModal()">확인</button>`;
   }
   // 세션10-d 항목3: 채팅 내역처럼 내용이 많은 모달은 더 넓게(.modal-bx.wide) — 호출마다 토글
   const bx = document.querySelector('#infoBg .modal-bx');

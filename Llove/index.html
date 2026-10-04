@@ -194,7 +194,7 @@
     <div class="modal-title" id="infoTitle">안내</div>
     <div class="modal-desc" id="infoDesc">설명</div>
     <div class="modal-btns" id="infoBtns">
-      <button class="btn-acc" style="flex:1" onclick="closeInfoModal()">확인</button>
+      <button class="btn-acc grow" onclick="closeInfoModal()">확인</button>
     </div>
   </div>
 </div>
@@ -209,11 +209,11 @@
     </div>
     <div style="display:flex;align-items:center;gap:9px;margin-top:11px">
       <span style="font-size:16px;display:flex"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>
-      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" oninput="이미지크롭_줌(this.value)" style="flex:1" aria-label="확대 배율">
+      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" oninput="이미지크롭_줌(this.value)" class="grow" aria-label="확대 배율">
     </div>
     <div class="modal-btns" style="margin-top:13px">
-      <button class="btn-g" style="flex:1" onclick="이미지크롭_취소()">취소</button>
-      <button class="btn-acc" style="flex:1" onclick="이미지크롭_적용()">적용</button>
+      <button class="btn-g grow" onclick="이미지크롭_취소()">취소</button>
+      <button class="btn-acc grow" onclick="이미지크롭_적용()">적용</button>
     </div>
   </div>
 </div>
@@ -225,7 +225,7 @@
     <div class="modal-title">이름 변경</div>
     <input class="nm-inp" id="nmModalInp" aria-label="새 이름" placeholder="새 이름을 입력하세요" maxlength="12" style="margin:8px 0 16px">
     <div class="modal-btns">
-      <button class="btn-g" style="flex:1" onclick="closeNmModal()">취소</button>
+      <button class="btn-g grow" onclick="closeNmModal()">취소</button>
       <button class="btn-acc" style="flex:2" onclick="applyNmChange()">변경하기</button>
     </div>
   </div>
@@ -238,7 +238,7 @@
     <div class="modal-desc" id="selDesc"></div>
     <div class="select-modal-list" id="selList"></div>
     <div class="modal-btns" style="margin-top:14px">
-      <button class="btn-g" style="flex:1" onclick="closeSelect()">닫기</button>
+      <button class="btn-g grow" onclick="closeSelect()">닫기</button>
     </div>
   </div>
 </div>
@@ -261,7 +261,7 @@
 
     </div>
     <div class="modal-btns" style="margin-top:14px">
-      <button class="btn-g" style="flex:1" onclick="closeFont()">닫기</button>
+      <button class="btn-g grow" onclick="closeFont()">닫기</button>
     </div>
   </div>
 </div>
@@ -294,7 +294,7 @@
     <div class="ct-slots" id="ctSlots"></div>
     <button class="btn-g" style="width:100%;margin-top:8px" onclick="커스텀_슬롯_현재저장()">＋ 현재 색을 빈 슬롯에 저장</button>
     <div class="modal-btns" style="margin-top:12px">
-      <button class="btn-g" style="flex:1" onclick="closeCustomTheme()">닫기</button>
+      <button class="btn-g grow" onclick="closeCustomTheme()">닫기</button>
     </div>
   </div>
 </div>
@@ -314,8 +314,8 @@
     <label class="vc-lbl" for="음성엔드포인트입력">서버 엔드포인트 주소</label>
     <input class="nm-inp" id="음성엔드포인트입력" aria-label="음성 서버 주소" placeholder="https://... (로컬 터널 또는 클라우드 GPU)" style="width:100%;margin:4px 0 8px;box-sizing:border-box">
     <div style="display:flex;gap:8px;margin-bottom:6px">
-      <button class="btn-g" style="flex:1" onclick="음성엔드포인트_저장()">주소 저장</button>
-      <button class="btn-g" style="flex:1" onclick="음성엔드포인트_지우기()">주소 지우기</button>
+      <button class="btn-g grow" onclick="음성엔드포인트_저장()">주소 저장</button>
+      <button class="btn-g grow" onclick="음성엔드포인트_지우기()">주소 지우기</button>
     </div>
     <label class="vc-lbl" for="음성테스트입력">테스트 문장</label>
     <textarea id="음성테스트입력" aria-label="음성 테스트 문장" class="vc-ta" placeholder="예) 안녕하세요, 끝말잇기 시작할게요" maxlength="120"></textarea>
@@ -326,7 +326,7 @@
     </div>
     <button class="btn-acc" id="음성생성버튼" style="width:100%;margin-top:10px" onclick="음성_테스트생성()">음성 생성 · 재생</button>
     <div class="modal-btns" style="margin-top:12px">
-      <button class="btn-g" style="flex:1" onclick="음성생성패널_닫기()">닫기</button>
+      <button class="btn-g grow" onclick="음성생성패널_닫기()">닫기</button>
     </div>
   </div>
 </div>
@@ -382,7 +382,7 @@
     <div class="obj-desc obj-sub">정말로 이 답변이 틀렸다고 생각하십니까?<br>어디가 어떻게 왜 틀렸는지 구체적으로 적어주세요.<br><b>AI 교차검증 후 인정 시</b> [반박의 화신] 카운터가 올라갑니다.</div>
     <textarea class="obj-input" id="objInp" aria-label="반박 내용" placeholder="반박 내용을 입력하세요..."></textarea>
     <div class="obj-btns">
-      <button class="btn-g" style="flex:1" onclick="closeObj()">취소</button>
+      <button class="btn-g grow" onclick="closeObj()">취소</button>
       <button class="btn-acc" id="objSubmit" style="flex:2" onclick="submitObj()">반박 제출</button>
     </div>
   </div>
@@ -496,22 +496,22 @@
     <!-- 세션10-d 항목6·7: 카테고리 그룹으로 재편(교정 계열 맨 위) + 색맹 대비 그룹 라벨(색+두께+텍스트 3중 신호).
          색 그룹: 교정=g4(--acc) · 지식=g1(--inf) · 어휘=g2(--warn) · 문해=g3(--ok) · 재미=g5(--err) -->
     <div class="mc-glabel" style="--gl:var(--acc)">교정 · 실전</div>
-    <div class="mc fu s1 mc-g4" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s2 mc-g4" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s1 mc-g4" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></div><div class="grow"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s2 mc-g4" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></div><div class="grow"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
     <div class="mc-glabel" style="--gl:var(--inf)">지식</div>
-    <div class="mc fu s3 mc-g1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div><div style="flex:1"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s4 mc-g1" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-temple"/></svg></div><div style="flex:1"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s3 mc-g1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div><div class="grow"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s4 mc-g1" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-temple"/></svg></div><div class="grow"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
     <div class="mc-glabel" style="--gl:var(--warn)">어휘</div>
-    <div class="mc fu s5 mc-g2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-scroll"/></svg></div><div style="flex:1"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 예문형</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s6 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-hanja"/></svg></div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s5 mc-g2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-scroll"/></svg></div><div class="grow"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 예문형</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s6 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-hanja"/></svg></div><div class="grow"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
     <div class="mc-glabel" style="--gl:var(--cat-read)">문해</div>
-    <div class="mc fu s7 mc-g3" onclick="goLearn('지문 독해','sq6',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div><div style="flex:1"><div class="mc-name">지문 독해</div><div class="mc-desc">짧은 글 읽고 요지·추론 파악 · 문해력</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s7 mc-g3" onclick="goLearn('지문 독해','sq6',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div><div class="grow"><div class="mc-name">지문 독해</div><div class="mc-desc">짧은 글 읽고 요지·추론 파악 · 문해력</div></div><div class="mc-arrow">›</div></div>
     <!-- 세션10-m: 문해력 2탄(D안) — 뒤섞인 문장을 원래 순서대로 탭해 배치 -->
-    <div class="mc fu s8 mc-g3" onclick="goLearn('문장 배열','sq7',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-sort"/></svg></div><div style="flex:1"><div class="mc-name">문장 배열</div><div class="mc-desc">뒤섞인 문장을 순서대로 · 문해력</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s8 mc-g3" onclick="goLearn('문장 배열','sq7',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-sort"/></svg></div><div class="grow"><div class="mc-name">문장 배열</div><div class="mc-desc">뒤섞인 문장을 순서대로 · 문해력</div></div><div class="mc-arrow">›</div></div>
     <div class="mc-glabel" style="--gl:var(--cat-fun)">재미</div>
-    <div class="mc fu s9 mc-g5" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-smile"/></svg></div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s9 mc-g5" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-smile"/></svg></div><div class="grow"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
     <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 / 세션7 항목8: ⚙ = 모드별 확률·제외 설정 -->
-    <div class="mc fu s10" style="border-style:dashed;margin-top:12px" onclick="랜덤학습()"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-dice"/></svg></div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()" aria-label="랜덤 설정"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></span><div class="mc-arrow">›</div></div>
+    <div class="mc fu s10" style="border-style:dashed;margin-top:12px" onclick="랜덤학습()"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-dice"/></svg></div><div class="grow"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()" aria-label="랜덤 설정"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></span><div class="mc-arrow">›</div></div>
   </div>
 </div>
 
@@ -918,7 +918,7 @@
       <div class="banner-layer" id="statusBanner"></div>
       <!-- α9: 아바타 탭 → 고급 커스터마이징 -->
       <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="event.stopPropagation();프로필선택_열기()"></div>
-      <div class="prof-info" style="flex:1">
+      <div class="prof-info grow">
         <!-- v3.4: 하드코딩 제거. JS afterNav('ss')에서 사용자 객체로 주입 -->
         <div class="st-name" id="statusUser"></div>
         <div class="st-ttl"><span id="statusTitle"></span> &nbsp;<span id="statusSubTitle" class="status-sub-title"></span></div>
@@ -952,7 +952,7 @@
       <div class="banner-layer" id="settingsBanner"></div>
       <!-- α9: 아바타 탭 → 고급 커스터마이징 (초월자 {wait!} / 필멸자 [권한 부족]) -->
       <div class="set-av" id="settingsAvatar" style="cursor:pointer" onclick="event.stopPropagation();프로필선택_열기()"></div>
-      <div class="prof-info" style="flex:1">
+      <div class="prof-info grow">
         <!-- v3.4: 하드코딩 제거. JS afterNav('sse')에서 사용자 객체로 주입 -->
         <div class="set-nm" id="settingsUser"></div>
         <div class="set-ttl"><span id="settingsTitle"></span></div>
@@ -973,7 +973,7 @@
       </div>
       <div class="set-row" onclick="openFontSelect()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-font"/></svg></span>
-        <div style="flex:1"><div class="srl">글꼴</div><div class="srs" id="fontTxt">테마 기본</div></div>
+        <div class="grow"><div class="srl">글꼴</div><div class="srs" id="fontTxt">테마 기본</div></div>
         <span class="sra">›</span>
       </div>
       <!-- 세션5 버그1: 「화면 크기」(구 글자 크기) — 앱 전체 zoom 배율. 저장·재실행 유지 -->
@@ -981,7 +981,7 @@
         <div style="display:flex;align-items:center;gap:11px;width:100%">
           <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-screen"/></svg></span>
 
-          <div style="flex:1"><div class="srl">화면 크기</div><div class="srs" id="fontScaleTxt">100% — 화면 전체를 확대/축소</div></div>
+          <div class="grow"><div class="srl">화면 크기</div><div class="srs" id="fontScaleTxt">100% — 화면 전체를 확대/축소</div></div>
         </div>
         <div class="fs-opts" id="fontScaleOpts">
           <!-- 세션10-g: 최소 70%(항목3) / 최대 150%(항목2, 175·200 제거) -->
@@ -998,7 +998,7 @@
       <div class="set-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:9px">
         <div style="display:flex;align-items:center;gap:11px;width:100%">
           <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-textsize"/></svg></span>
-          <div style="flex:1"><div class="srl">글자 크기</div><div class="srs" id="textScaleTxt">100% — 문제·카드·채팅 글자만 확대</div></div>
+          <div class="grow"><div class="srl">글자 크기</div><div class="srs" id="textScaleTxt">100% — 문제·카드·채팅 글자만 확대</div></div>
           <!-- 세션7 항목10: 적용 범위 — 학습 콘텐츠만 / 앱 전체 -->
           <div style="display:flex;gap:5px">
             <button class="fs-opt on" id="글자범위학습" onclick="set글자범위('학습')">학습만</button>
@@ -1024,13 +1024,13 @@
       <div class="set-lbl">학습</div>
       <div class="set-row" onclick="openHistoryFilter()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span>
-        <div style="flex:1"><div class="srl">최근 출제 제외</div><div class="srs" id="histFilterTxt">사용 안함</div></div>
+        <div class="grow"><div class="srl">최근 출제 제외</div><div class="srs" id="histFilterTxt">사용 안함</div></div>
         <span class="sra">›</span>
       </div>
       <!-- '앱 안내 다시 보기' — 2026-06 제거했다가 2026-09-27 관리자님 지시로 복원(Q3) -->
       <div class="set-row" onclick="showOb()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span>
-        <div style="flex:1"><div class="srl">앱 안내 다시 보기</div></div>
+        <div class="grow"><div class="srl">앱 안내 다시 보기</div></div>
         <span class="sra">›</span>
       </div>
     </div>
@@ -1039,25 +1039,25 @@
       <div class="set-lbl">AI 기능</div>
       <div class="set-row" style="cursor:default">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></span>
-        <div style="flex:1"><div class="srl">AI 문제만 출제</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
+        <div class="grow"><div class="srl">AI 문제만 출제</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
         <div class="mtw"><label class="mt"><input type="checkbox" id="aiOnlyToggle" onchange="toggleAiOnly()" aria-label="AI 문제만 출제"><div class="mtt"><div class="mtth"></div></div></label></div>
       </div>
       <!-- 세션6 항목4: placeholder 「히스토리 확인」 → 실기능 「채팅 내역」으로 교체 -->
       <div class="set-row" onclick="채팅내역_열기()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></span>
-        <div style="flex:1"><div class="srl">채팅 내역</div><div class="srs">AI와의 최근 대화 30개 보기</div></div>
+        <div class="grow"><div class="srl">채팅 내역</div><div class="srs">AI와의 최근 대화 30개 보기</div></div>
         <span class="sra">›</span>
       </div>
       <!-- 세션6 항목5: AI 지침(통합 메모리) — 공백 포함 500자, AI 호출 시 항상 전달 -->
       <div class="set-row" onclick="AI지침_열기()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg></span>
-        <div style="flex:1"><div class="srl">AI 지침</div><div class="srs" id="ai지침상태">없음</div></div>
+        <div class="grow"><div class="srl">AI 지침</div><div class="srs" id="ai지침상태">없음</div></div>
         <span class="sra">›</span>
       </div>
       <!-- β2: 질문하기 일일 100회 행 폐기 → 토큰 행으로 교체 (KNOWLEDGE 22·32·35) -->
       <div class="set-row" onclick="토큰차감안내_모달()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg></span>
-        <div style="flex:1"><div class="srl">토큰</div><div class="srs" id="tokenSetTxt">1,500 / 1,500</div></div>
+        <div class="grow"><div class="srl">토큰</div><div class="srs" id="tokenSetTxt">1,500 / 1,500</div></div>
         <span class="sra">›</span>
       </div>
     </div>
@@ -1067,11 +1067,11 @@
       <!-- 표시 전용(누를 동작 없음) — 화살표·손가락 커서 제거(2026-09-27) -->
       <div class="set-row" style="cursor:default">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></span>
-        <div style="flex:1"><div class="srl">구글 계정</div><div class="srs" id="settingsEmail2"></div></div>
+        <div class="grow"><div class="srl">구글 계정</div><div class="srs" id="settingsEmail2"></div></div>
       </div>
       <div class="set-row" onclick="로그아웃()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-logout"/></svg></span>
-        <div style="flex:1"><div class="srl">로그아웃</div></div>
+        <div class="grow"><div class="srl">로그아웃</div></div>
         <span class="sra">›</span>
       </div>
     </div>
@@ -1081,13 +1081,13 @@
       <!-- 빌드1: 학습 데이터 초기화 실제 구현 (KNOWLEDGE 15 초기화 범위, 2중 확인) -->
       <div class="set-row" onclick="학습데이터초기화_1단계()">
         <span class="sri" style="color:var(--err)"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg></span>
-        <div style="flex:1"><div class="srl" style="color:var(--err)">학습 데이터 초기화</div><div class="srs">진행 상황을 모두 리셋합니다</div></div>
+        <div class="grow"><div class="srl" style="color:var(--err)">학습 데이터 초기화</div><div class="srs">진행 상황을 모두 리셋합니다</div></div>
         <span class="sra">›</span>
       </div>
       <!-- 버그6: 계정 삭제 (2중 확인 절차) — KNOWLEDGE 18섹션 -->
       <div class="set-row" onclick="계정삭제_1단계()">
         <span class="sri" style="color:var(--err)"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span>
-        <div style="flex:1"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 데이터를 영구 삭제</div></div>
+        <div class="grow"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 데이터를 영구 삭제</div></div>
         <span class="sra">›</span>
       </div>
     </div>
@@ -1096,20 +1096,20 @@
       <div class="set-lbl">기타</div>
       <div class="set-row" id="devModeRow" onclick="개발자모드_탭()">
         <span class="sri" id="devModeIcon"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg></span>
-        <div style="flex:1"><div class="srl" id="devModeLabel" style="color:var(--txtm)">개발자 모드</div><div class="srs" id="devModeDesc">[창조주] 달성 후 활성화</div></div>
+        <div class="grow"><div class="srl" id="devModeLabel" style="color:var(--txtm)">개발자 모드</div><div class="srs" id="devModeDesc">[창조주] 달성 후 활성화</div></div>
         <span class="sra" id="devModeArrow" style="color:var(--txtm)">›</span>
       </div>
       <!-- 추가기능: 음성 생성(콜롬비나 TTS) — 창조주 전용. 기본 숨김, 창조주 달성 시 갱신_음성설정_UI()로 노출 -->
       <div class="set-row" id="음성설정Row" onclick="음성설정_탭()" style="display:none">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></span>
-        <div style="flex:1"><div class="srl">음성 생성 (실험)</div><div class="srs">창조주 전용 · 외부 음성 서버 연결</div></div>
+        <div class="grow"><div class="srl">음성 생성 (실험)</div><div class="srs">창조주 전용 · 외부 음성 서버 연결</div></div>
         <span class="sra">›</span>
       </div>
       <!-- 세션7 항목2: 실험실 — 예정·실험 기능을 미리 보여주는 티저 공간 (전원 노출). 항상 보이는 행이라
            섹션 마지막에 둔다(.set-row:last-child 밑줄 제거가 숨김 행에 걸리지 않게) -->
       <div class="set-row" onclick="실험실_열기()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-flask"/></svg></span>
-        <div style="flex:1"><div class="srl">실험실</div><div class="srs">준비 중인 기능 미리 보기</div></div>
+        <div class="grow"><div class="srl">실험실</div><div class="srs">준비 중인 기능 미리 보기</div></div>
         <span class="sra">›</span>
       </div>
     </div>

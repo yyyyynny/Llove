@@ -160,7 +160,7 @@ function 복습탭_렌더(wrapId, 머리글, 목록, 빈안내, 메타, 액션, 
     : 목록.map((item,idx)=>`
       <div class="rv-item fu" style="animation-delay:${idx*0.04}s">
         <div class="rv-idx">${idx+1}</div>
-        <div style="flex:1">
+        <div class="grow">
           <div class="rv-word">${문자열_이스케이프(item.단어)}</div>
           <div class="rv-desc">${문자열_이스케이프(item.뜻)}</div>
           <div class="rv-meta"><span class="tag ${item.모드클래스}" style="font-size:9px">${item.모드}</span>${메타(item)}</div>
@@ -246,8 +246,8 @@ function 복습_카드렌더(){
     </div>
     <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:14px" onclick="복습_뜻공개()">뜻 보기</button>
     <div id="rvJudge" style="display:none;gap:8px;margin-top:12px">
-      <button class="btn-acc" style="flex:1" onclick="복습_판정(true)">기억남 ✓</button>
-      <button class="btn-g" style="flex:1" onclick="복습_판정(false)">까먹음 ✗</button>
+      <button class="btn-acc grow" onclick="복습_판정(true)">기억남 ✓</button>
+      <button class="btn-g grow" onclick="복습_판정(false)">까먹음 ✗</button>
     </div>
   `;
 }

@@ -319,7 +319,7 @@ function renderAchievements(){
       }
       html+=`<div class="ach-item ${unlClass}" style="animation-delay:${0.03*idx}s" onclick="openAchDetail('${a.key}')">
         <div class="ach-icon">${a.icon}</div>
-        <div style="flex:1">
+        <div class="grow">
           <div class="ach-nm">${a.name}</div>
           ${desc}
           ${stars}

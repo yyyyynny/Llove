@@ -433,7 +433,7 @@ function AI지침_열기(){
      <textarea id="ai지침입력" oninput="AI지침_카운터갱신()" placeholder="예: 답변은 존댓말로, 예시는 2개씩 들어줘" style="width:100%;min-height:110px;background:var(--elev);border:1px solid var(--bdr);border-radius:9px;padding:10px;color:var(--txt);font-family:var(--fn);font-size:12px;line-height:1.6;resize:vertical;outline:none">${esc(사용자.AI지침||'')}</textarea>
      <div id="ai지침카운터" style="text-align:right;font-size:11px;margin-top:4px;color:var(--txt2)"></div>`);
   const btns = document.getElementById('infoBtns');
-  if(btns) btns.innerHTML = `<button class="btn-g" style="flex:1" onclick="closeInfoModal()">닫기</button><button class="btn-acc" style="flex:1" onclick="AI지침_저장()">저장</button>`;
+  if(btns) btns.innerHTML = `<button class="btn-g grow" onclick="closeInfoModal()">닫기</button><button class="btn-acc grow" onclick="AI지침_저장()">저장</button>`;
   AI지침_카운터갱신();
 }
 function AI지침_카운터갱신(){

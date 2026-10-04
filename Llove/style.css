@@ -91,6 +91,7 @@
 
 /* 분류색(P3): 문해=정보·정답 사이 청록, 재미=오답·정보 사이 자주 — 피드백색(정답 초록·오답 빨강)과 겹치지 않게 */
 [data-theme]{--cat-read:color-mix(in srgb,var(--ok) 45%,var(--inf));--cat-fun:color-mix(in srgb,var(--err) 55%,var(--inf))}
+.grow{flex:1;min-width:0}  /* 남은 폭 채우기 — 종전 인라인 style="flex:1" 51곳(U23) */
 :root{--r-s:6px;--r-m:10px;--r-l:16px;--scrim:rgba(0,0,0,.62)}  /* 모서리 3단(10-03) — 그 밖엔 50%(원)·999px(알약)만 */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* U14: 키보드로 옮겨 다닐 때만 보이는 공통 초점 링(마우스·터치엔 안 보임). 맨 앞에 둬서

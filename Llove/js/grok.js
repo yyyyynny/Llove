@@ -148,7 +148,7 @@ function 실험실_열기(){
   const 목록 = 실험실_목록.map((it,i)=>
     `<div style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--bdr);cursor:pointer;text-align:left" onclick="실험실_항목탭(${i})">
       <span style="font-size:20px;display:flex;color:var(--acc)">${아이콘_HTML(it.아이콘)}</span>
-      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--txt)">${it.이름} <span style="font-size:10px;color:${it.상태==='가능'?'var(--ok)':it.상태==='실험'?'var(--warn)':'var(--txt2)'};border:1px solid var(--bdr);border-radius:5px;padding:1px 5px">${it.상태}</span></div>
+      <div class="grow"><div style="font-size:13px;font-weight:700;color:var(--txt)">${it.이름} <span style="font-size:10px;color:${it.상태==='가능'?'var(--ok)':it.상태==='실험'?'var(--warn)':'var(--txt2)'};border:1px solid var(--bdr);border-radius:5px;padding:1px 5px">${it.상태}</span></div>
       <div style="font-size:11px;color:var(--txt2);margin-top:2px">${it.설명}</div></div>
       <span style="color:var(--txtm)">›</span>
     </div>`).join('');
