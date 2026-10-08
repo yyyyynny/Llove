@@ -12,7 +12,7 @@ load((window) => {
   assert('.lg-content: min() 비례 상한', /\.lg-content\{[^}]*max-width:min\(400px, 100% - 40px\)/.test(css));
   assert('#sl: clamp() 좌우 패딩(+safe-area)', /#sl\{[^}]*padding:40px calc\(clamp\(20px, 6vw, 40px\) \+ env\(safe-area-inset-right\)\)/.test(css));
   assert('.ob-sub: min() 비례 상한', /\.ob-sub\{[^}]*max-width:min\(340px, 100% - 24px\)/.test(css));
-  assert('.ob-feats: min() 비례 상한', /\.ob-feats\{[^}]*max-width:min\(360px, 100% - 24px\)/.test(css));
+  assert('.ob-feats: min() 비례 상한(10-03 2열이라 400px)', /\.ob-feats\{[^}]*max-width:min\(400px, 100% - 24px\)/.test(css));
   assert('.ob-slide: safe-area 패딩', /\.ob-slide\{[^}]*calc\(28px \+ env\(safe-area-inset-right\)\)/.test(css));
   assert('.sn-content: 클래스로 통합(인라인 고정값 제거)', /\.sn-content\{[^}]*max-width:min\(400px, 100% - 40px\)/.test(css));
   assert('#sn 화면에 인라인 max-width:340px 잔존 없음', !doc.getElementById('sn').innerHTML.includes('max-width:340px'));

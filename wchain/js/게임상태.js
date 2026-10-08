@@ -1,13 +1,16 @@
-// '잇는' 게임 상태 — 파이썬 원본 GameState·Persona 클래스 이식 (Phase 3: 서바이벌 모드 한정).
+// '잇는' 게임 상태 — 파이썬 원본 GameState·Persona 클래스 이식 (서바이벌·아케이드).
 // Llove 관례를 따라 클래스 대신 "상태 객체 + 그 객체를 받는 함수들" 구조로 옮긴다(필드는 원본과 1:1).
-// 아케이드 전용 필드(층·저주·시련의 탑 등)는 Phase 4에서 실제로 쓰기 전까지 구조만 보존.
 // 클래식 스크립트, 사전.js·엔진.js 뒤에 로드.
 
 function 새게임상태(){
   return {
     game_state: 'INIT', game_mode: null, persona: null,
-    turn: 0, stage: 1, stage_turn: 0, stage_start_turn: 0,
-    score: 0, best: 0, hints: 3, hearts: 2, strikes: 0,
+    // strikes·last_log·stage_start_turn은 쓰기만 하고 읽는 곳이 없어 2026-09-27 삭제(Q5)
+    turn: 0, stage: 1, stage_turn: 0,
+    score: 0, best: 0, hints: 3, hearts: 2,
+    combo: 0, max_combo: 0, longest: '',   // 점수제(2026-09-27): 연속 정답·최고 콤보·가장 긴 단어
+    mission: null, mission_count: 0,        // 미션 글자(2026-09-27): 지금 미션·이번 판 달성 횟수
+    흐름: [], 이번턴_힌트: false,           // 결과 공유(2026-09-27): 턴마다 🟩정답·🟨힌트 쓴 정답·🟥목숨 잃음
     attack_streak: 0, yield_attempts: 0, dispute_attempts: 0, deal_offered: false,
     // 반박한단어(2026-08-22): '적절성 검증'이 적절로 나왔을 때 사용자가 반박할 수 있는데,
     // 같은 단어를 몇 번이고 다시 반박하면 "될 때까지 우기기"가 된다. 어떤 단어에 이미
@@ -19,14 +22,13 @@ function 새게임상태(){
     curse_time_floors: 0, curse_life_floors: 0, curse_dark_active: false, curse_dark_strikes: 0,
     trial_rejected_floor: -1, trial_attempts_this_floor: 0, trial_tower_entries: 0,
     user_title: null, history: [], ai_last_word: null, ai_last_char: null,
-    last_log: 'System ready.',
     god_mode_active: false, erosion_level: 0,
     // hanbang 기본값: 2026-07-27 관리자님 지시로 false → true. 종전 기본값(끄기)은 곧 "한방
     // 단어를 내면 제재"라는 뜻인데, 한방 판정이 로컬 280단어 기준이라 정상 단어의 24~44%가
     // 오판돼 기본 플레이가 사실상 즉사 모드였다. 판정 자체도 고쳤지만(한방_확정인가), 기본값은
     // 처음 들어온 사람이 규칙을 모른 채 벌을 받지 않는 쪽으로 둔다.
     diff: '격동', dict_mode: 'Integrated', hanbang: true, dueum: 'Flexible',
-    rev: false, pos: false, phrase: false, infinite: false,
+    rev: false, pos: false, phrase: false, infinite: false, timer: true,
   };
 }
 
@@ -39,7 +41,7 @@ function 새게임상태(){
 
    탐욕도 = "상대(사용자)에게 남는 선택지를 얼마나 줄이려 드는가".
    각 후보 단어에 대해 '그 단어를 내면 사용자가 이을 수 있는 후보가 몇 개인가'를 세고,
-   탐욕도가 높을수록 그 수가 적은 단어를 고른다. 로컬 사전만으로도 계산되므로
+   탐욕도가 높을수록 그 수가 적은 단어를 고른다. 이미 받아 둔 풀(세션 수집어 등)만으로도 계산되므로
    **온라인(우리말샘) 공급이 불안정해도 난이도가 성립한다** — 이 설계의 요점.
      · 음수(안온) = 오히려 선택지를 많이 남기는 쪽을 고른다(봐준다)
      · 0(격동)    = 균등 랜덤(원본 그대로)
@@ -48,11 +50,13 @@ function 새게임상태(){
 // 2026-07-29: 실수(strikes) 폐지로 **틀리면 곧바로 목숨 -1**이 되면서, 종전 목숨 값(2~3)이면
 // 두세 번 만에 끝나 버린다. 실효 기회 수를 유지하려고 종전 "목숨 × 실수 4회" 수준으로 올렸다
 // (안온 3×4=12 → 10, 격동 2×4=8 → 7 …). 난이도별 차등은 오히려 더 또렷해졌다.
+// 타이머(2026-09-27 관리자님 결정 — 난이도별로 다르게): [시작 초, 최소 초]. 5턴마다 1초씩 줄어든다.
+// 안온은 타이머 없음(null). 아케이드는 층이 오를수록 짧아진다(턴_제한초 참조).
 const 난이도표 = {
-  안온: { 턴:50,  목숨:10, 힌트:5, 탐욕도:-0.6, 공격확률:5  },
-  격동: { 턴:75,  목숨: 7, 힌트:3, 탐욕도: 0.0, 공격확률:15 },
-  초월: { 턴:140, 목숨: 5, 힌트:2, 탐욕도: 0.30, 공격확률:35 },
-  심연: { 턴:160, 목숨: 3, 힌트:1, 탐욕도: 1.0, 공격확률:50 },
+  안온: { 턴:50,  목숨:10, 힌트:5, 탐욕도:-0.6, 공격확률:5,  타이머:null },
+  격동: { 턴:75,  목숨: 7, 힌트:3, 탐욕도: 0.0, 공격확률:15, 타이머:[20, 8] },
+  초월: { 턴:140, 목숨: 5, 힌트:2, 탐욕도: 0.30, 공격확률:35, 타이머:[15, 6] },
+  심연: { 턴:160, 목숨: 3, 힌트:1, 탐욕도: 1.0, 공격확률:50, 타이머:[10, 4] },
 };
 const 난이도설정 = gs => 난이도표[gs.diff] ?? 난이도표.격동;
 
@@ -62,6 +66,14 @@ const 난이도설정 = gs => 난이도표[gs.diff] ?? 난이도표.격동;
 // 값을 흩뿌리지 않도록 여기 한 곳에 모아 둔다.
 const 실수환산 = 4;
 const 아케이드_목숨 = 2 * 실수환산;   // 원본 목숨 2개
+
+// 미션 글자(2026-09-27, 끄투 미션 참고) — 이 글자가 든 단어를 내면 그 턴 점수 +50%(글자가 여러 번이면
+// 그만큼). 달성하면 새 미션으로 바뀌고, 3번 달성할 때마다 목숨 +1(판 시작 목숨까지).
+const 미션_글자들 = ['가','나','다','라','마','바','사','아','자','차','카','타','파','하'];
+function 새미션(이전){
+  const 후보 = 미션_글자들.filter(c => c !== 이전);
+  return 후보[Math.floor(Math.random() * 후보.length)];
+}
 const 목숨보상 = 1 * 실수환산;        // 시련의 탑 계약 보상(원본 +1)
 
 function get_max_turns(gs){
@@ -83,13 +95,16 @@ function reset_game(gs){
   // 생기면서 "아케이드 7층에서 나갔다가 서바이벌 시작" 같은 경로가 열려 실제 결함이 된다
   // (stage>=13이면 3글자 족쇄가 서바이벌에도 걸린다).
   gs.stage = 1;
-  gs.turn = 0; gs.stage_turn = 0; gs.stage_start_turn = 0; gs.score = 0;
+  gs.turn = 0; gs.stage_turn = 0; gs.score = 0;
+  gs.combo = 0; gs.max_combo = 0; gs.longest = '';
+  gs.mission = 새미션(null); gs.mission_count = 0;
+  gs.흐름 = []; gs.이번턴_힌트 = false;
   // 목숨·힌트를 난이도표에서 읽는다(2026-07-29). 아케이드는 층 진행이 난이도 역할을 하므로
   // 원본대로 목숨(아케이드_목숨)·힌트 3 고정(아래 ARCADE 분기에서 다시 덮어쓴다).
   const 난 = 난이도설정(gs);
   gs.hints = gs.god_mode_active ? Infinity : 난.힌트;
   gs.hearts = gs.god_mode_active ? Infinity : 난.목숨;
-  gs.strikes = 0; gs.attack_streak = 0; gs.yield_attempts = 0; gs.dispute_attempts = 0;
+  gs.attack_streak = 0; gs.yield_attempts = 0; gs.dispute_attempts = 0;
   gs.반박한단어 = null;
   gs.deal_offered = false; gs.command_typo_strikes = 0;
   gs.curse_time_floors = 0; gs.curse_life_floors = 0; gs.curse_dark_active = false; gs.curse_dark_strikes = 0;
@@ -140,8 +155,3 @@ function react_ai_word(gs, word){
   // 위치형 {0}=단어, 이름형 {칭호} 둘 다 쓰이므로 두 키를 함께 넘긴다.
   return 대사_무작위(gs, 'react_ai_word', { 0: word, 칭호: title(gs) });
 }
-
-if (typeof module !== 'undefined') module.exports = {
-  난이도표, 난이도설정, 실수환산, 아케이드_목숨, 목숨보상, 새게임상태, get_max_turns, get_stage_target, used_words, reset_game, full_reset,
-  is_arrogant, say, title, react_correct, react_ai_word
-};

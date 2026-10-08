@@ -73,4 +73,19 @@ assert('sense가 배열이 아니라 단일 객체여도 동작', 후보_부적�
 assert('sense가 없으면 포함(판단 보류)', !후보_부적절한가({ word: 'x' }));
 assert('sense가 빈 배열이면 포함(판단 보류)', !후보_부적절한가({ word: 'x', sense: [] }));
 
-process.exit(finish() > 0 ? 1 : 0);
+// ── 후보 조회는 서버 필터(많이 찾은 순·명사·일반어)로 요청 (2026-09-28 — '면' 후보 0개 문제) ──
+(async () => {
+  const 요청들 = [];
+  const { 후보목록조회 } = new Function('fetch', `${함수부}\nreturn { 후보목록조회 };`)(async url => {
+    요청들.push(new URL(url).searchParams);
+    return { ok: true, text: async () => JSON.stringify({ channel: { item: [{ word: '면적', sense: [{ type: '일반어', pos: '명사' }] }] } }) };
+  });
+  const 결과 = await 후보목록조회({}, '면', 'start');
+  const p = 요청들[0];
+  assert('후보 요청: sort=popular', p.get('sort') === 'popular');
+  assert('후보 요청: 명사(pos=1)·일반어·일상어·단어·2음절 이상',
+    p.get('pos') === '1' && p.get('type3') === 'general' && p.get('type4') === 'general' && p.get('type1') === 'word' && p.get('letter_s') === '2');
+  assert('후보 요청: method=start 유지', p.get('method') === 'start');
+  assert('서버 응답 단어가 후보로 나온다', 결과.후보.includes('면적'));
+  process.exit(finish() > 0 ? 1 : 0);
+})();

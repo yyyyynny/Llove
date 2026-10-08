@@ -12,54 +12,40 @@ const ACH_DATA=[
      stage:'unl', progress:'+50 EXP', single:true},
     {key:'growth', name:'[성장의 기록]', icon:'📈', cat:'성장 계열 · 풀돌',
      desc:'레벨 달성 시 자동 발동',
-     stage:-1, current:'Lv.1 / Lv.5',
-     // α10: Lv.70 캡 확장 조건표 (KNOWLEDGE 14)
-     rows:[['명함','Lv.5'],['1돌','Lv.10'],['2돌','Lv.20'],['3돌','Lv.30'],['4돌','Lv.40'],['5돌','Lv.55'],['풀돌','Lv.70']]},
+     stage:-1, current:'Lv.1 / Lv.5'},
     {key:'steady', name:'[꾸준한 발걸음]', icon:'🔥', cat:'성장 계열 · 풀돌',
      desc:'연속 학습일 기준 자동 발동',
-     stage:1, current:'3일 / 5일',
-     // 세션10: 밸런스 디버프 ×1.45 (KNOWLEDGE 14)
-     rows:[['명함','3일'],['1돌','5일'],['2돌','7일'],['3돌','10일'],['4돌','15일'],['5돌','21일'],['풀돌','29일']]}
+     stage:1, current:'3일 / 5일'}
   ]},
   // 숙련
   {sec:'🎯 숙련', items:[
     {key:'perfect', name:'[완벽주의자]', icon:'🏅', cat:'숙련 계열 · 풀돌',
      desc:'세션 내 퀴즈 전부 정답 시 카운터 +1',
-     stage:0, current:'1회 / 3회',
-     // 세션10: 밸런스 디버프 ×1.45 (KNOWLEDGE 14)
-     rows:[['명함','1회'],['1돌','3회'],['2돌','6회'],['3돌','9회'],['4돌','13회'],['5돌','17회'],['풀돌','22회']]},
+     stage:0, current:'1회 / 3회'},
     {key:'speech', name:'[말의 품격]', icon:'🎙️', cat:'숙련 계열 · 풀돌',
      desc:'구어 교정 완료 시 카운터 +1',
-     stage:-1, current:'0회 / 3회',
-     rows:[['명함','3회'],['1돌','6회'],['2돌','9회'],['3돌','13회'],['4돌','17회'],['5돌','23회'],['풀돌','29회']]}
+     stage:-1, current:'0회 / 3회'}
   ]},
   // 탐구
   {sec:'📚 탐구', items:[
     {key:'know', name:'[상식의 탑]', icon:'🌍', cat:'탐구 계열 · 풀돌',
      desc:'상식·어원 모드 풀 때마다 +1',
-     stage:1, current:'8회 / 14회',
-     // 세션10: 밸런스 디버프 ×1.45 (KNOWLEDGE 14)
-     rows:[['명함','4회'],['1돌','7회'],['2돌','14회'],['3돌','29회'],['4돌','43회'],['5돌','65회'],['풀돌','87회']]},
+     stage:1, current:'8회 / 14회'},
     {key:'root', name:'[언어의 뿌리]', icon:'📜', cat:'탐구 계열 · 풀돌',
      desc:'고사성어·속담·한자·우리말 합산',
-     stage:2, current:'18회 / 22회',
-     rows:[['명함','4회'],['1돌','7회'],['2돌','22회'],['3돌','36회'],['4돌','58회'],['5돌','80회'],['풀돌','100회']]},
+     stage:2, current:'18회 / 22회'},
     {key:'history', name:'[역사 탐험가]', icon:'🏛️', cat:'탐구 계열 · 풀돌',
      desc:'세계사·신화 모드 풀 때마다 +1',
-     stage:-1, current:'0회 / 4회',
-     rows:[['명함','4회'],['1돌','7회'],['2돌','14회'],['3돌','29회'],['4돌','43회'],['5돌','65회'],['풀돌','87회']]},
+     stage:-1, current:'0회 / 4회'},
     {key:'spell', name:'[맞춤법 수호자]', icon:'✏️', cat:'탐구 계열 · 풀돌',
      desc:'맞춤법 모드 풀 때마다 +1',
-     stage:0, current:'4회 / 7회',
-     rows:[['명함','4회'],['1돌','7회'],['2돌','14회'],['3돌','29회'],['4돌','43회'],['5돌','65회'],['풀돌','87회']]},
+     stage:0, current:'4회 / 7회'},
     {key:'dad', name:'[아재력]', icon:'😂', cat:'탐구 계열 · 풀돌',
      desc:'아재개그 모드 풀 때마다 +1',
-     stage:-1, current:'1회 / 4회',
-     rows:[['명함','4회'],['1돌','7회'],['2돌','12회'],['3돌','17회'],['4돌','26회'],['5돌','35회'],['풀돌','43회']]},
+     stage:-1, current:'1회 / 4회'},
     {key:'vocab', name:'[어휘 대사전]', icon:'📖', cat:'탐구 계열 · 풀돌',
      desc:'총누적어휘수 카운터 기준 (졸업 후 감소 없음)',
-     stage:1, current:'142개 / 145개',
-     rows:[['명함','30개'],['1돌','75개'],['2돌','145개'],['3돌','220개'],['4돌','290개'],['5돌','435개'],['풀돌','580개']]}
+     stage:1, current:'142개 / 145개'}
   ]},
   // 관리
   {sec:'🗂 관리', items:[
@@ -71,17 +57,13 @@ const ACH_DATA=[
   {sec:'🔮 히든', items:[
     {key:'reb', name:'[반박의 화신]', icon:'⚡', cat:'히든 계열 · 풀돌',
      desc:'I̷̢͓͆̑͐s̵̛͍͊̈́̃s̵̢͊̈́̀͝ů̷̳͇̦̈́͘e̵̛̞͆̌̑͐̀̕ 반박 성공 시 카운터 +1', zalgo:true,
-     stage:-1, current:'0회 / 1회',
-     // 세션10: 밸런스 디버프 ×1.45 (KNOWLEDGE 14)
-     rows:[['명함','1회'],['1돌','3회'],['2돌','6회'],['3돌','9회'],['4돌','13회'],['5돌','17회'],['풀돌','22회']]},
+     stage:-1, current:'0회 / 1회'},
     {key:'night', name:'[밤의 사색가]', icon:'🌙', cat:'히든 계열 · 풀돌',
      desc:'Ň̴̡̛̑͐̕i̷̢͓͆̌̑͐̀̕g̸̢̛͊̈́͘͝ḣ̴̡̊̓̈́̑͘t̵̢̛̅̈́̃̌̀͝ 새벽 00:00~04:00 학습 시 +1', zalgo:true,
-     stage:-1, current:'0회 / 1회',
-     rows:[['명함','1회'],['1돌','3회'],['2돌','4회'],['3돌','7회'],['4돌','10회'],['5돌','13회'],['풀돌','15회']]},
+     stage:-1, current:'0회 / 1회'},
     {key:'asker', name:'[질문쟁이]', icon:'💬', cat:'히든 계열 · 풀돌',
      desc:'Ǎ̴̡̛̑͐̕s̸̢̛͊̈́͘͝k̵̛̞̅̈́̃̌͝ 질문하기 기능 사용 시 +1', zalgo:true,
-     stage:1, current:'4회 / 7회',
-     rows:[['명함','3회'],['1돌','7회'],['2돌','12회'],['3돌','17회'],['4돌','23회'],['5돌','28회'],['풀돌','33회']]},
+     stage:1, current:'4회 / 7회'},
     {key:'abyss', name:'[심연을 들여다보는 자]', icon:'👁️', cat:'히든 계열 · 단발',
      desc:'V̷̢͓̌̑͐̀̕o̷̢͊̈́̀͝ȋ̷̢͐̀̕ď̴̡̛̑͐̀̕ 자아·존재·너는 누구냐 키워드 감지 시', zalgo:true,
      stage:'lck', progress:'+150 EXP', single:true},
@@ -144,13 +126,21 @@ const 업적_단발조건 = {
   creator: ()=> !!사용자.창조주달성
 };
 
-function 업적_단계계산(key){  // 표시용 stage: -1(미획득) ~ 6(풀돌)
+function 업적_단계계산(key){  // 표시용 stage: -1(미획득) ~ 6(풀돌) — 임계는 오름차순
   const d = 업적_정의[key];
   if(!d) return -1;
   const v = d.값();
-  let s = -1;
-  d.임계.forEach((임계,i)=>{ if(v >= 임계) s = i; });
-  return s;
+  return d.임계.findLastIndex(임계 => v >= 임계);
+}
+// 임계·현재값 표기 — 'Lv.5'처럼 단위가 앞에 붙는 업적(growth)과 '5회'처럼 뒤에 붙는 업적
+const 업적_값표기 = (d, n) => d.앞단위 ? (d.단위 + n) : (n + d.단위);
+
+// 단발 업적 보상 — 팝업·업적로그·EXP (진행도 기록과 Firestore 저장 시점은 호출부가 정한다)
+function 업적_단발보상(key, 이름){
+  const exp = 업적_단발EXP[key] || 0;
+  업적_팝업표시(key, null, exp);
+  업적로그_기록(이름, '달성', exp);
+  if(exp > 0) EXP획득(exp, '업적: ' + 이름);
 }
 
 // 이벤트형 단발 업적 달성 (감지 즉시 1회)
@@ -161,29 +151,39 @@ function 업적_단발달성(key){
   if(사용자.업적진행도[이름]) return;
   사용자.업적진행도[이름] = 1;
   사용자데이터_저장({업적진행도: 사용자.업적진행도});
-  const exp = 업적_단발EXP[key] || 0;
-  업적_팝업표시(key, null, exp);
-  업적로그_기록(이름, '달성', exp);
-  if(exp > 0) EXP획득(exp, '업적: ' + 이름);
+  업적_단발보상(key, 이름);
 }
 
 // 업적 달성 팝업 (achOv 재사용) — 단계 null = 단발
 function 업적_팝업표시(key, 단계, exp){
   const 항목 = ACH_DATA.flatMap(s=>s.items).find(a=>a.key===key);
   if(!항목) return;
-  const ppIcon=document.getElementById('ppIcon'), ppTitle=document.getElementById('ppTitle'),
-        ppStage=document.getElementById('ppStage'), ppDesc=document.getElementById('ppDesc'),
-        ppStars=document.getElementById('ppStars'), ppExp=document.getElementById('ppExp');
-  if(!ppIcon) return;
-  ppIcon.textContent = 항목.icon;
-  ppTitle.textContent = 항목.name;
-  ppStage.textContent = (단계==null) ? '달성!' : stageLabel(단계) + ' 획득!';
-  ppDesc.textContent = 항목.zalgo ? '히든 업적' : (항목.cat || '');
-  ppStars.innerHTML = (단계==null)
-    ? '<span class="ach-star-filled" style="font-size:20px">☾</span>'
-    : buildStars(단계, false);
-  ppExp.textContent = '+' + exp + ' EXP';
-  document.getElementById('achOv').classList.add('show');
+  팝업_예약(()=>{
+    const ppIcon=document.getElementById('ppIcon'), ppTitle=document.getElementById('ppTitle'),
+          ppStage=document.getElementById('ppStage'), ppDesc=document.getElementById('ppDesc'),
+          ppStars=document.getElementById('ppStars'), ppExp=document.getElementById('ppExp');
+    if(!ppIcon) return;
+    ppIcon.textContent = 항목.icon;
+    ppTitle.textContent = 항목.name;
+    ppStage.textContent = (단계==null) ? '달성!' : stageLabel(단계) + ' 획득!';
+    ppDesc.textContent = 항목.zalgo ? '히든 업적' : (항목.cat || '');
+    ppStars.innerHTML = (단계==null)
+      ? '<span class="ach-star-filled" style="font-size:20px">☾</span>'
+      : buildStars(단계, false);
+    ppExp.textContent = '+' + exp + ' EXP';
+    document.getElementById('achOv').classList.add('show');
+  });
+}
+
+// 축하 팝업 대기열 — 업적·레벨업이 한꺼번에 와도 겹치거나 덮어쓰지 않고 하나씩 띄운다
+const 팝업대기열 = [];
+function 팝업_예약(보이기){
+  팝업대기열.push(보이기);
+  if(팝업대기열.length === 1) 보이기();
+}
+function 팝업_다음(){
+  팝업대기열.shift();
+  if(팝업대기열.length) 팝업대기열[0]();
 }
 
 // 업적로그 서브컬렉션 기록 (KNOWLEDGE 13-1)
@@ -226,10 +226,7 @@ function 업적_검사(){
         const 이름 = 업적_한글명[key];
         if(!사용자.업적진행도[이름] && 업적_단발조건[key]()){
           사용자.업적진행도[이름] = 1;
-          const exp = 업적_단발EXP[key] || 0;
-          업적_팝업표시(key, null, exp);
-          업적로그_기록(이름, '달성', exp);
-          if(exp > 0) EXP획득(exp, '업적: ' + 이름);
+          업적_단발보상(key, 이름);
           변동 = true; 저장필요 = true;
         }
       }
@@ -258,8 +255,7 @@ function 업적_표시동기화(){
     a.stage = 업적_단계계산(a.key);
     const v = d.값();
     const 다음 = d.임계[Math.min(a.stage+1, 6)];
-    const fmt = n => d.앞단위 ? (d.단위 + n) : (n + d.단위);
-    a.current = (a.stage >= 6) ? `${fmt(v)} (풀돌)` : `${fmt(v)} / ${fmt(다음)}`;
+    a.current = (a.stage >= 6) ? `${업적_값표기(d, v)} (풀돌)` : `${업적_값표기(d, v)} / ${업적_값표기(d, 다음)}`;
   }));
 }
 
@@ -281,7 +277,7 @@ function buildStars(stage, single){
 
   // 풀돌 업적 — 별 7개
   // 미획득 처리: -1 또는 잘못된 값
-  if(stage===-1 || stage==='lck' || typeof stage!=='number' || stage<0){
+  if(typeof stage!=='number' || stage<0){
     return '<span class="ach-star-empty">✧✧✧✧✧✧✧</span>';
   }
   let html='';
@@ -323,7 +319,7 @@ function renderAchievements(){
       }
       html+=`<div class="ach-item ${unlClass}" style="animation-delay:${0.03*idx}s" onclick="openAchDetail('${a.key}')">
         <div class="ach-icon">${a.icon}</div>
-        <div style="flex:1">
+        <div class="grow">
           <div class="ach-nm">${a.name}</div>
           ${desc}
           ${stars}
@@ -346,12 +342,7 @@ function stageLabel(stage){
 
 /* 업적 상세 */
 function openAchDetail(key){
-  let target=null;
-  ACH_DATA.forEach(sec=>{
-    sec.items.forEach(a=>{
-      if(a.key===key) target=a;
-    });
-  });
+  const target = ACH_DATA.flatMap(s=>s.items).find(a=>a.key===key);
   if(!target) return;
 
   document.getElementById('adIcon').textContent=target.icon;
@@ -366,7 +357,7 @@ function openAchDetail(key){
     descEl.classList.remove('zalgo');
   } else if(target.key==='creator' && target.stage==='unl'){
     // 달성 후에는 블러 없이 보이며 복사 가능
-    descEl.innerHTML=`<div style="white-space:pre-line;font-size:12px;line-height:1.8;color:var(--accl);user-select:text;-webkit-user-select:text;padding:10px;background:var(--bg);border-radius:8px">${target.blurText||''}</div><button style="width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">📋 키 문장 복사</button>`;
+    descEl.innerHTML=`<div style="white-space:pre-line;font-size:12px;line-height:1.8;color:var(--accl);user-select:text;-webkit-user-select:text;padding:10px;background:var(--bg);border-radius:8px">${target.blurText||''}</div><button style="width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">키 문장 복사</button>`;
     descEl.classList.remove('zalgo');
   } else {
     descEl.innerHTML=target.desc;
@@ -382,7 +373,9 @@ function openAchDetail(key){
   } else {
     let html=`<div class="ach-d-stars">${buildStars(target.stage, false)}</div>`;
     html+='<table class="ach-d-table"><tbody>';
-    target.rows.forEach((r,i)=>{
+    // 조건표는 업적_정의 임계에서 만든다(종전엔 ACH_DATA에 rows로 한 벌 더 적혀 있어 함께 고쳐야 했다)
+    const d = 업적_정의[target.key];
+    d.임계.map((n,i)=>[stageLabel(i), 업적_값표기(d, n)]).forEach((r,i)=>{
       // v3.6 수정: 미획득(-1) 상태에서 명함 행(i=0)이 '현재'로 표시되던 버그 제거
       // 이제 stage가 명시적으로 0~6 범위의 숫자일 때만 해당 단계 행이 강조됨
       const isCurrent = (typeof target.stage==='number' && target.stage>=0 && target.stage===i);
@@ -407,7 +400,7 @@ function revealBlur(){
     box.onclick=null;
     const hint=document.getElementById('blurHint');
     if(hint){
-      hint.innerHTML='<button style="margin-top:6px;padding:8px 16px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">📋 키 문장 복사</button>';
+      hint.innerHTML='<button style="margin-top:6px;padding:8px 16px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">키 문장 복사</button>';
       hint.style.color='';
     }
   }
@@ -415,16 +408,12 @@ function revealBlur(){
 
 /* 창조주 키 문장 클립보드 복사 */
 function 복사_창조주키(){
-  const 키문장 = `【부富와 권력權力. 승리勝利와 영광榮光.】
-【전지全知와 전능全能.】
-【실패하지 않을 것이요, 고꾸라지지 않을 것이다. 필멸자의 승리는 영원하지 않으나 네 것만은 영원하리라.】
-【원한다면 언제든 세계를 너의 발밑에.】
-【바란다면 죽음 또한 감히 그대를 삼키지 못할지니.】`;
+  const 키문장 = ACH_DATA.flatMap(s=>s.items).find(a=>a.key==='creator').blurText;
 
   // 모던 브라우저: navigator.clipboard
   if(navigator.clipboard && window.isSecureContext){
     navigator.clipboard.writeText(키문장).then(()=>{
-      showToastMsg('📋 클립보드에 복사됨');
+      showToastMsg('클립보드에 복사됨');
     }).catch(()=>{
       복사_폴백(키문장);
     });
@@ -441,12 +430,11 @@ function 복사_폴백(text){
   ta.style.left = '-9999px';
   document.body.appendChild(ta);
   ta.select();
-  try {
-    document.execCommand('copy');
-    showToastMsg('📋 클립보드에 복사됨');
-  } catch(e) {
-    showToastMsg('복사 실패 — 직접 선택해 주세요');
-  }
+  // execCommand는 실패해도 대개 예외 없이 false만 돌려준다 — 반환값으로 판정(2026-09-27 Q14:
+  // 종전엔 false여도 "복사됨"을 띄워, 실제로는 복사가 안 됐는데 성공으로 안내했다)
+  let 성공 = false;
+  try { 성공 = document.execCommand('copy'); } catch(e) {}
+  showToastMsg(성공 ? '클립보드에 복사됨' : '복사 실패 — 직접 선택해 주세요');
   document.body.removeChild(ta);
 }
 function closeAchDetail(){
@@ -509,5 +497,5 @@ function triggerLvUp(){
   const 캡 = 사용자.개발자모드 ? 120 : 최대레벨;  // 개발자 모드: Lv.120 확장 (KNOWLEDGE 14)
   레벨업팝업(Math.min(표시레벨() + 1, 캡));
 }
-function closeLvUp(){ document.getElementById('lvupOv').classList.remove('show'); }
-function closeAchOv(){ document.getElementById('achOv').classList.remove('show'); }
+function closeLvUp(){ document.getElementById('lvupOv').classList.remove('show'); 팝업_다음(); }
+function closeAchOv(){ document.getElementById('achOv').classList.remove('show'); 팝업_다음(); }

@@ -104,7 +104,7 @@ load((window) => {
   assert('#11: 이모지 적용·저장', ev('사용자.프로필이미지') === '🦉' && doc.getElementById('homeAvatar').textContent === '🦉');
   ev("프로필_적용선택('assets/프로필/테스트.jpg');");
   assert('#11: 이미지 값이면 <img> 렌더', !!doc.querySelector('#homeAvatar img'));
-  ev("사용자.개발자모드=false; curLv=1; 프로필_업로드시도();");
+  ev("사용자.개발자모드=false; curLv=1; 이미지_업로드시도('프로필');");
   assert('#11: 미달자 업로드 → 권한 부족 경고', doc.getElementById('infoDesc').innerHTML.includes('권한 부족'));
   ev("closeInfoModal(); 프로필_적용선택('⚔️');");
 

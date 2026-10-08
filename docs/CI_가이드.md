@@ -43,8 +43,8 @@ PR을 올리기 전에 로컬에서 먼저 돌려 보면 실패를 빠르게 막
 # 1) JavaScript 문법 검증
 node scripts/check-inline-js.mjs
 
-# 2) HTML 구조 검증 (htmlhint — 최초 1회 자동 다운로드)
-npx --yes htmlhint@1 --config .htmlhintrc index.html
+# 2) HTML 구조 검증 (htmlhint — package-lock.json에 고정된 버전, 먼저 npm ci)
+npm run check:html
 
 # 3) 배포 전 기본 점검
 node scripts/check-deploy.mjs

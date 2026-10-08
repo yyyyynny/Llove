@@ -5,24 +5,18 @@
    구어 교정
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function switchSpkMode(mode){
-  if(mode==='text'){
-    document.getElementById('spkMText').classList.add('on');
-    document.getElementById('spkMVoice').classList.remove('on');
-    document.getElementById('spkTextArea').style.display='block';
-    document.getElementById('spkVoiceArea').style.display='none';
-    음성인식_중지();  // 텍스트 탭으로 전환 시 진행 중 인식 정리
-  } else {
-    document.getElementById('spkMVoice').classList.add('on');
-    document.getElementById('spkMText').classList.remove('on');
-    document.getElementById('spkTextArea').style.display='none';
-    document.getElementById('spkVoiceArea').style.display='block';
-    // 항목8: 미지원 브라우저 안내 (Firefox 등 SpeechRecognition 미구현 환경)
-    if(!음성인식_지원()){
-      const st=document.getElementById('spkVoiceStatus');
-      const btn=document.getElementById('spkMicBtn');
-      if(st) st.textContent='이 브라우저는 음성 인식을 지원하지 않습니다. Chrome·Edge·Safari에서 사용하거나 텍스트 입력을 이용해 주세요.';
-      if(btn) btn.disabled=true;
-    }
+  const 텍스트 = mode === 'text';
+  document.getElementById('spkMText').classList.toggle('on', 텍스트);
+  document.getElementById('spkMVoice').classList.toggle('on', !텍스트);
+  document.getElementById('spkTextArea').style.display = 텍스트 ? 'block' : 'none';
+  document.getElementById('spkVoiceArea').style.display = 텍스트 ? 'none' : 'block';
+  if(텍스트){ 음성인식_중지(); return; }  // 텍스트 탭으로 전환 시 진행 중 인식 정리
+  // 항목8: 미지원 브라우저 안내 (Firefox 등 SpeechRecognition 미구현 환경)
+  if(!음성인식_지원()){
+    const st=document.getElementById('spkVoiceStatus');
+    const btn=document.getElementById('spkMicBtn');
+    if(st) st.textContent='이 브라우저는 음성 인식을 지원하지 않습니다. Chrome·Edge·Safari에서 사용하거나 텍스트 입력을 이용해 주세요.';
+    if(btn) btn.disabled=true;
   }
 }
 
@@ -70,7 +64,7 @@ function 음성인식_토글(){
     음성인식중 = true;
     음성인식_UI갱신();
     const st=document.getElementById('spkVoiceStatus');
-    if(st) st.textContent='🔴 듣고 있습니다… 말이 끝나면 자동으로 정리됩니다.';
+    if(st) st.textContent='듣고 있습니다… 말이 끝나면 자동으로 정리됩니다.';
   };
   음성인식객체.onresult = (e)=>{
     let interim = '';
@@ -149,9 +143,9 @@ function submitSpk(){
   // Grok 미연동 단계: 정령왕 예문의 모범답안·포인트와 비교하는 방식으로 동작
   if(구어교정현재){
     document.getElementById('spkFixTxt').textContent = 구어교정현재.격식;
-    document.getElementById('spkTipTxt').textContent = '💡 ' + (구어교정현재.포인트 || '');
+    document.getElementById('spkTipTxt').textContent = 구어교정현재.포인트 || '';
   } else {
-    document.getElementById('spkFixTxt').textContent = '(Grok 연동 후 입력 문장에 맞춘 교정안이 제공됩니다)';
+    document.getElementById('spkFixTxt').textContent = '(AI 연동 후 입력 문장에 맞춘 교정안이 제공됩니다)';
     document.getElementById('spkTipTxt').textContent = '지금은 예문 모범답안 비교 모드로 동작합니다.';
   }
   document.getElementById('spkResult').classList.add('show');

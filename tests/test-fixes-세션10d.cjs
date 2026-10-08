@@ -34,7 +34,7 @@ load((window) => {
     const s = ev("현재채팅세션");
     const aiMsg = s && s.메시지.find(m=>m.역할==='AI');
     assert('#2: 봉인 AI 응답 저장됨', !!aiMsg);
-    assert('#2: 요약 라벨 아닌 안내 전문 저장', !!aiMsg && aiMsg.내용.includes('Grok 연동 준비 중') && !aiMsg.내용.includes('<br>'));
+    assert('#2: 요약 라벨 아닌 안내 전문 저장', !!aiMsg && aiMsg.내용.includes('AI 답변은 연동 준비 중') && !aiMsg.내용.includes('<br>'));
 
     /* ── 항목3: 채팅 내역 큰 팝업(wide) ── */
     // 세션10-e 항목2: 560px 고정 → clamp(340px, 72vw, 680px) 반응형으로 갱신됨
@@ -70,7 +70,8 @@ load((window) => {
     const 카드들 = Array.from(doc.querySelectorAll('.hs .mc')).map(c=>(c.querySelector('.mc-name')||{}).textContent);
     assert('#6: 맞춤법이 학습 모드 첫 카드', 카드들[0] === '맞춤법');
     assert('#6: 구어 교정이 둘째 카드', 카드들[1] === '구어 교정');
-    assert('#6: mc-g4(교정)·mc-g5(재미) CSS 존재', /\.mc\.mc-g4\{/.test(css) && /\.mc\.mc-g5\{/.test(css));
+    // 10-03: 그룹 색은 테두리 대신 왼쪽 막대(::before)·아이콘 색으로 표시
+    assert('#6: mc-g4(교정)·mc-g5(재미) CSS 존재', /\.mc\.mc-g4::before\{/.test(css) && /\.mc\.mc-g5::before\{/.test(css));
     assert('#7: 색맹 그룹 라벨 존재', doc.querySelectorAll('.mc-glabel').length >= 4);
     assert('#7: 지문 독해 랜덤 목록 포함', ev("랜덤학습_모드목록.some(m=>m[0]==='지문 독해')") === true);
 

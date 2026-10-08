@@ -69,7 +69,8 @@ function 페이지열기({ 온라인 = '정상', 적절성게이트 = null } = {
         요청기록.push(payload);
         if(온라인 === '실패') throw new Error('네트워크 실패(스텁)');
         if(payload.단어 !== undefined){
-          return { ok: true, json: async () => ({ 존재: true }) };
+          // '뷁'이 든 단어만 사전에 없다고 답한다(오타 처리 검사용)
+          return { ok: true, json: async () => ({ 존재: !payload.단어.includes('뷁') }) };
         }
         // 후보 목록 — 실제 우리말샘은 글자당 10~수백 개를 준다. 하나만 주면 AI가 곧바로
         // 막혀(기권 = 사용자 승리) 테스트가 게임 흐름을 재현하지 못하므로, 서로 이어지는
@@ -131,7 +132,7 @@ function 적절성_스텁(win, 일차응답, 이차응답, 제외단어, 본문�
   win.__일차응답 = 일차응답 || null;
   win.__이차응답 = 이차응답 || null;
   win.__본문관찰 = 본문관찰 || null;
-  // 재출제 경로(AI단어_취소_재출제 → ai_generate_word_비동기)는 우리말샘 후보 조회를 탄다.
+  // 재출제 경로(AI단어_취소_재출제 → 온라인후보_가져오기)는 우리말샘 후보 조회를 탄다.
   const 원래fetch = win.fetch;
   win.fetch = async (url, opt) => {
     if(typeof url === 'string' && url.startsWith('data/')) return 원래fetch(url, opt);
@@ -163,10 +164,26 @@ async function main(){
     // 2026-07-29 실수 폐지 — 틀리면 곧바로 목숨 -1(격동 기본 7 → 6)
     확인('목숨이 1개 깎인다', 상태(win).hearts === 6, `hearts=${상태(win).hearts}`);
     확인('목숨 감소 안내가 화면에 나옴', 로그텍스트(win).includes('[목숨 -1]'));
-    확인('실수(strikes) 개념이 더는 쓰이지 않는다', 상태(win).strikes === 0);
+    확인('실수(strikes) 개념이 더는 쓰이지 않는다', !('strikes' in 상태(win)));
     // 2026-08-15 신설 — 목숨이 줄면 HUD가 흔들려서 알린다(종전엔 다른 갱신과 똑같이 조용했음)
     확인('목숨 감소 시 HUD가 흔들린다(.hit)',
          win.document.getElementById('hud-목숨').classList.contains('hit'));
+  }
+
+  /* ── 1-b. 아케이드: AI가 한방 단어를 내면 층 클리어 — "단어가 없다"와 모순되지 않게 ── */
+  console.log('\n[1-b] 아케이드 AI 한방 → 층 클리어 대사');
+  {
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    win.eval(`is_hanbang = () => true; 한방_판정가능인가 = () => true; ai_한방금지인가 = () => true;`);
+    const 전층 = 상태(win).stage;
+    await 단어넣기(win, '나무');
+    const 로그 = 로그텍스트(win);
+    확인('AI 한방으로 층이 올라감', 상태(win).stage === 전층 + 1, `stage=${상태(win).stage}`);
+    확인('한방 단어였다는 대사가 나옴', 로그.includes('한방 단어였어요'));
+    확인('"단어가 없네요"(기권 대사)는 나오지 않음', !로그.includes('단어가 없네요'));
+    확인('일반 층 클리어 대사가 나옴', 로그.includes(`[${전층}층 클리어!]`));
   }
 
   /* ── 2. 정상 단어는 한방으로 막히지 않는다 ──────────────────────────── */
@@ -176,7 +193,7 @@ async function main(){
     판시작(win, { hanbang: false });
     await 단어넣기(win, '사랑');   // 로컬 기준으론 한방 오판 대상
 
-    확인('실수가 매겨지지 않음', 상태(win).strikes === 0, `strikes=${상태(win).strikes}`);
+    확인('실수가 매겨지지 않음', !('strikes' in 상태(win)));
     확인('턴이 진행됨', 상태(win).turn === 1, `turn=${상태(win).turn}`);
     확인('게임오버 아님', !win.document.getElementById('s-오버').classList.contains('active'));
   }
@@ -191,6 +208,102 @@ async function main(){
     const 반응들 = ['좋아요! 잘하고 계십니다!', '정답입니다! 훌륭해요!', '멋진 단어 선택이에요!'];
     확인('맞는 단어에 정답 반응이 출력됨', 반응들.some(r => 로그.includes(r)),
          '호출부가 여전히 빠져 있음');
+  }
+
+  /* ── 3-b. 점수제·콤보·오타 벌칙 (2026-09-27 관리자님 결정) ────────── */
+  console.log('\n[3-b] 점수·콤보·오타');
+  {
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    const g = 상태(win);
+    win.국어원_단어조회_상세 = async w => ({ 존재: true, 뜻풀이그룹: [{ 뜻풀이: ['뜻:' + w] }] });
+    await 단어넣기(win, '나무');
+    await 잠깐(20);
+    const 내말 = win.document.querySelector('#로그 .line.bubble.me');
+    확인('단어 사슬: 내 단어가 오른쪽 말풍선, 뜻은 안쪽에', 내말 && 내말.querySelector('.bw').textContent === '나무'
+         && 내말.querySelector('.bmean').textContent === '뜻:나무', 내말?.textContent);
+    const ai말 = win.document.querySelector('#로그 .line.bubble.ai');
+    확인('단어 사슬: 상대 단어는 왼쪽 말풍선, 이어진 첫 글자 강조', ai말 && ai말.querySelector('.bw b')?.textContent === g.ai_last_word[0]
+         && ai말.querySelector('.bmean').textContent === '뜻:' + g.ai_last_word, ai말?.innerHTML);
+    확인('뜻 자동 표시: 상대 단어 뜻이 카드에', win.document.getElementById('ai-뜻').textContent === `뜻:${g.ai_last_word}`,
+         win.document.getElementById('ai-뜻').textContent);
+    // 동음이의어 묶음 중 뜻이 가장 많은 묶음(대개 흔한 단어)을 보인다 — 첫 묶음이 드문 단어여도
+    const 칸 = win.document.createElement('span'); 칸.className = 'bmean';
+    const 원상세 = win.국어원_단어조회_상세;
+    win.국어원_단어조회_상세 = async () => ({ 존재: true, 뜻풀이그룹: [{ 뜻풀이: ['그이의 아버지.'] }, { 뜻풀이: ['안쪽의 부분.', '조직의 안.'] }] });
+    await win.뜻_붙이기('내부', 칸);
+    확인('뜻: 동음이의어 중 뜻이 많은 묶음을 보인다', 칸.textContent === '안쪽의 부분.', 칸.textContent);
+    win.국어원_단어조회_상세 = async () => ({ 존재: true, 뜻풀이그룹: [
+      { 뜻풀이: ['시문 둘째 등급.', '국궁 두 번 맞힘.'], 일반수: 0 }, { 뜻풀이: ['두 겹.', '중간 음역.'], 일반수: 1 }] });
+    await win.뜻_붙이기('이중', 칸);
+    확인('뜻: 뜻 개수가 같으면 일반 뜻이 많은 묶음(이중→두 겹)', 칸.textContent === '두 겹.', 칸.textContent);
+    win.국어원_단어조회_상세 = 원상세;
+    확인('정답이면 점수가 오른다', g.score > 0, String(g.score));
+    확인('HUD에 점수 표시', win.document.getElementById('hud-점수').textContent === g.score.toLocaleString());
+    const 긴단어 = win.턴_점수('가나다라마', g), 짧은단어 = win.턴_점수('가나', g);
+    확인('긴 단어가 점수가 더 높다', 긴단어 > 짧은단어, 긴단어 + ' > ' + 짧은단어);
+    g.combo = 5; const 콤보 = win.턴_점수('가나', g); g.combo = 1;
+    확인('콤보가 쌓이면 점수 배율', 콤보 > 짧은단어, 콤보 + ' > ' + 짧은단어);
+    g.diff = '심연'; const 심연 = win.턴_점수('가나', g); g.diff = '격동';
+    확인('어려운 난이도일수록 점수 배율', 심연 > 짧은단어);
+    // 오타(사전에 없는 단어)는 목숨을 깎지 않고 콤보만 끊는다
+    const 목숨 = g.hearts, 점수 = g.score;
+    g.combo = 4;
+    const 이을 = g.ai_last_char;
+    await 단어넣기(win, 이을 + '뷁뷁');
+    확인('사전에 없는 단어는 목숨 그대로', g.hearts === 목숨, `${목숨} → ${g.hearts}`);
+    확인('받아들여지지 않은 단어 말풍선은 흐리게(bad)', [...win.document.querySelectorAll('#로그 .line.bubble.me')].pop().classList.contains('bad'));
+    확인('사전에 없는 단어는 콤보를 끊는다', g.combo === 0);
+    확인('오답이면 입력창이 흔들린다', win.document.getElementById('단어입력').classList.contains('hit'));
+    확인('다시 입력하라는 안내', 로그텍스트(win).includes('다시 입력해 보세요'));
+    확인('점수는 그대로', g.score === 점수);
+    // 미션 글자 — 든 글자 수만큼 +50%, 달성하면 바뀌고, 3번마다 목숨 +1(시작 목숨까지)
+    확인('미션: 판 시작 때 미션 글자가 정해진다', typeof g.mission === 'string' && g.mission.length === 1);
+    확인('미션: 카드에 미션 표시', win.document.getElementById('미션').textContent.includes(g.mission));
+    const 미션 = g.mission, 달성전 = g.mission_count;   // 앞 턴의 무작위 단어가 이미 미션을 채웠을 수 있다
+    확인('미션: 없는 단어면 보너스 0', win.미션_확인('뷁뷁', 100) === 0 && g.mission === 미션);
+    const 채움 = 미션 === '다' ? '나' : '다';   // 미션이 '다'로 뽑혀도 두 번만 들어가게(무작위 실패 방지)
+    확인('미션: 두 번 들어가면 +100%', win.미션_확인(미션 + 채움 + 미션, 100) === 100);
+    확인('미션: 달성하면 다른 글자로 바뀐다', g.mission !== 미션 && g.mission_count === 달성전 + 1);
+    g.hearts = 1; g.mission_count = 2;
+    win.미션_확인(g.mission, 10);
+    확인('미션: 3번째 달성에 목숨 +1', g.hearts === 2 && g.mission_count === 3);
+    g.hearts = 7; g.mission_count = 5;
+    win.미션_확인(g.mission, 10);
+    확인('미션: 시작 목숨(격동 7)보다 늘지 않는다', g.hearts === 7);
+
+    // 턴 타이머(난이도별) — 안온 없음, 격동 20초·초월 15초·심연 10초, 5턴마다 1초 감소, 끄면 없음
+    const 제한 = (diff, turn, timer = true) => { const s = { ...g, diff, turn, timer, god_mode_active: false }; return win.턴_제한초(s); };
+    확인('타이머: 안온은 없음', 제한('안온', 0) === null);
+    확인('타이머: 격동 20·초월 15·심연 10초에서 시작', 제한('격동', 0) === 20 && 제한('초월', 0) === 15 && 제한('심연', 0) === 10);
+    확인('타이머: 5턴마다 1초씩 줄고 최소치에서 멈춤', 제한('격동', 10) === 18 && 제한('심연', 100) === 4);
+    확인('타이머: 설정에서 끄면 없음', 제한('심연', 0, false) === null);
+    // 시간이 다 되면 목숨 -1, 사전 확인 중(비동기)에는 흐르지 않는다
+    const 목숨2 = g.hearts;
+    win.eval('게임_비동기처리중 = true'); win.타이머_진행(60000);
+    확인('타이머: 처리 중에는 시간이 흐르지 않는다', g.hearts === 목숨2);
+    win.eval('게임_비동기처리중 = false'); win.버튼_설명(); win.타이머_진행(60000);
+    확인('타이머: 규칙 설명 창이 떠 있는 동안 멈춘다', g.hearts === 목숨2);
+    win.버튼_설명닫기();
+    // 악마의 거래 선물 힌트는 콤보를 끊지 않는다(사용자가 쓴 힌트가 아님)
+    g.combo = 4; const 힌트전 = g.hints;
+    await win.힌트_본체(win.eval('게임_세대'), true);
+    확인('선물 힌트는 콤보를 끊지 않는다', g.combo === 4 && g.hints === 힌트전 - 1 && !g.이번턴_힌트, `combo=${g.combo} hints=${g.hints}`);
+    g.combo = 0;
+    win.eval('게임_비동기처리중 = false'); win.타이머_진행(1); win.타이머_진행(60000);
+    확인('타이머: 시간 초과면 목숨 -1', g.hearts === 목숨2 - 1, `${목숨2} → ${g.hearts}`);
+    확인('타이머: 시간 초과 안내', 로그텍스트(win).includes('시간 초과'));
+    win.타이머_진행(1);
+    확인('타이머: 초과 뒤 시간이 다시 채워진다', win.eval('타이머.남은') > 1000);
+
+    // 결과 화면에 점수와 최고 기록
+    win.eval('게임오버(false)');
+    const 통계 = win.document.getElementById('오버-통계').textContent;
+    const 공유 = win.결과_공유문();
+    확인('결과 공유: 흐름 이모지(정답🟩·목숨🟥)와 점수·주소', 공유.includes('🟩') && 공유.includes('🟥') && 공유.includes(g.score.toLocaleString()+'점') && 공유.includes('/wchain/'), 공유);
+    확인('결과 공유: 단어는 싣지 않는다', !공유.includes('나무'));
+    확인('결과 화면에 점수·최고 기록', 통계.includes(g.score.toLocaleString()) && /최고/.test(통계), 통계);
   }
 
   /* ── 4. 매 턴 입력창 포커스 유지 (결함 ④ — 어제 커밋 회귀) ──────────── */
@@ -300,20 +413,20 @@ async function main(){
     확인('로그 줄에 fu 진입 애니메이션', !!d.querySelector('#로그 .line.fu'));
 
     // HUD — 진행바가 HUD 밖으로 나가고 상태 배지는 턴 칸 안으로 들어갔다
-    확인('HUD가 3칸', d.querySelectorAll('.hud .hud-item').length === 3);
+    확인('HUD가 4칸(점수·턴·힌트·목숨)', d.querySelectorAll('.hud .hud-item').length === 4);
     확인('진행바가 HUD 밖에 있음', !d.querySelector('.hud .bar-track') && !!d.querySelector('.bar-track'));
     확인('상태 배지가 턴 칸 안에 있음', !!d.querySelector('.hud .hud-item #hud-상태'));
 
-    // 이의·허세 진행도 라벨(2026-08-19, 봉인 해제) — 아직 안 썼으면 (0/5)에 잠금 없음
+    // 이의 진행도 라벨(2026-08-19, 봉인 해제) — 아직 안 썼으면 (0/5)에 잠금 없음
     확인('이의 버튼에 진행도(0/5) 표시', d.getElementById('btn-이의').textContent.includes('(0/5)'));
-    확인('허세 버튼도 같은 진행도(0/5) 표시', d.getElementById('btn-허세').textContent.includes('(0/5)'));
+    확인('허세·상태 버튼은 없다(Q9, 2026-09-27)', !d.getElementById('btn-허세')
+         && !d.body.innerHTML.includes('버튼_상태') && typeof win.버튼_허세 === 'undefined');
     확인('소진 전에는 locked 클래스가 없음', !d.getElementById('btn-이의').classList.contains('locked'));
     // 5회 다 쓰면(가상으로 상태만 채움) 라벨이 (5/5)로 바뀌고 잠금 스타일이 붙는다
     상태(win).dispute_attempts = 5;
     win.eval('프롬프트_갱신()');
     확인('소진 후 (5/5) 표시', d.getElementById('btn-이의').textContent.includes('(5/5)'));
-    확인('소진 후 locked 클래스', d.getElementById('btn-이의').classList.contains('locked')
-         && d.getElementById('btn-허세').classList.contains('locked'));
+    확인('소진 후 locked 클래스', d.getElementById('btn-이의').classList.contains('locked'));
 
     // 앞말잇기는 안내 문구가 뒤집힌다
     const { win: w2 } = 페이지열기();
@@ -353,8 +466,8 @@ async function main(){
     const 난이도행 = [...d.querySelectorAll('#설정-규칙 .set-row')][0];
     확인('srs가 선택 값 설명으로 갱신됨', 난이도행.textContent.includes('160턴'));
 
-    // 토글 항목 3개(.mt 스위치), 사전 행은 잠금(🔒) 표시
-    확인('토글 항목 3개(한방·무한·구)', d.querySelectorAll('#설정-토글 .mt input').length === 3);
+    // 토글 항목 4개(.mt 스위치), 사전 행은 잠금(🔒) 표시
+    확인('토글 항목 4개(한방·무한·타이머·구)', d.querySelectorAll('#설정-토글 .mt input').length === 4);
     확인('사전 행은 잠금 표시', d.getElementById('설정-사전').textContent.includes('🔒'));
   }
 
@@ -403,7 +516,7 @@ async function main(){
     const { win } = 페이지열기();
     win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
     상태(win).stage = 7;                       // 아케이드 7층까지 올라간 상태를 흉내
-    win.버튼_리셋();                           // 전체 리셋 → 페르소나
+    win.전체리셋();                             // 전체 리셋 → 페르소나
     win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL'); win.게임_시작();
     확인('서바이벌로 넘어오면 층이 1로 초기화', 상태(win).stage === 1, `stage=${상태(win).stage}`);
 
@@ -443,7 +556,8 @@ async function main(){
     // 코드가 참조하는 키가 전부 JSON에 있는지 (오타·누락 방지)
     const 고정키 = new Set(), 조립접두 = new Set(무작위접두);
     for(const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']){
-      const src = fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8');
+      // 주석 속 옛 코드의 참조는 세지 않는다(죽은 키가 "참조됨"으로 가려지지 않게)
+      const src = fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
       for(const m of src.matchAll(/대사\(gs,\s*'([^']+)'(\s*\+)?/g)){
         if(m[2]) 조립접두.add(m[1]); else 고정키.add(m[1]);
       }
@@ -614,9 +728,6 @@ async function main(){
     // 10번 — 삭제가 로컬 흔적까지 지우고, 온보딩을 건너뛴 홈으로 보낸다
     const 연동 = fs.readFileSync(path.join(WCHAIN, 'js/연동.js'), 'utf8');
     확인('삭제가 잇는 로컬 캐시도 지운다', 연동.includes('잇는_로컬삭제'));
-    확인('캐시 키 3종을 지운다',
-         연동.includes('plx_잇는_국어원캐시_v2') && 연동.includes('plx_잇는_국어원후보캐시_v2')
-         && 연동.includes('plx_잇는_테마연동'));
     // 버전 접미사를 올릴 때마다 목록을 늘리는 대신 접두사로 쓸어 담는다 — 구버전 키가 남지 않게
     확인('plx_잇는_ 접두사 키를 전부 쓸어 담는다',
          연동.includes('잇는_로컬접두') && 연동.includes('startsWith(잇는_로컬접두)'));
@@ -630,11 +741,13 @@ async function main(){
     const { win } = 페이지열기();
     win.localStorage.setItem('plx_잇는_국어원캐시_v2', '{"가":true}');
     win.localStorage.setItem('plx_잇는_국어원후보캐시', '{"start:가":[]}');
+    win.localStorage.setItem('plx_잇는_테마연동', 'navy');
     win.localStorage.setItem('plx_테마', 'navy');          // Llove 것 — 건드리면 안 된다
     win.잇는_로컬삭제();
     확인('삭제 후 잇는 캐시가 비워진다',
          !win.localStorage.getItem('plx_잇는_국어원캐시_v2')
-         && !win.localStorage.getItem('plx_잇는_국어원후보캐시'));
+         && !win.localStorage.getItem('plx_잇는_국어원후보캐시')
+         && !win.localStorage.getItem('plx_잇는_테마연동'));
     확인('Llove의 localStorage는 건드리지 않는다',
          win.localStorage.getItem('plx_테마') === 'navy');
 
@@ -678,12 +791,11 @@ async function main(){
     확인('계속 후에도 이어야 할 글자가 유지됨', g.ai_last_char !== null);
   }
 
-  /* ── 17. 우리말샘 붙임표(-) 폴백 (2026-07-29 제보 2) ──────────────── */
-  console.log('\n[17] 합성어 붙임표 폴백');
+  /* ── 17. 단어 조회는 1회 왕복 (Q7 — 2026-09-27 클라이언트 붙임표 폴백 삭제) ── */
+  console.log('\n[17] 단어 조회 왕복 수');
   {
-    // 실측: 우리말샘 표제어는 합성어에 붙임표가 들어간다(가마솥 → `가마-솥`).
-    // Worker가 붙임표를 지우지 않고 정확 비교해서 합성어가 전부 "사전에 없는 단어"가 됐다.
-    // 그 상황을 그대로 흉내 내는 스텁: 붙임표가 든 형태만 존재한다고 답한다.
+    // 합성어 붙임표(`가마-솥`)는 Worker가 처리한다. 클라이언트는 붙여 쓴 형태로 한 번만 묻고,
+    // 없는 단어라고 붙임표 변형을 끼워 다시 묻지 않는다(종전엔 최대 5회 추가 왕복).
     let html = fs.readFileSync(path.join(WCHAIN, 'index.html'), 'utf8');
     const 순서 = [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map(m => m[1]);
     html = html.replace(/<script src="https:\/\/[^"]+"><\/script>/g, '');
@@ -702,9 +814,7 @@ async function main(){
           const p = JSON.parse(opt.body);
           if(p.단어 !== undefined){
             물어본단어.push(p.단어);
-            // 우리말샘 실제 표제어와 같은 집합 — 붙여 쓴 형태는 없다
-            const 등재 = ['가마-솥', '뽕-나무', '눈-사람'];
-            return { ok: true, json: async () => ({ 존재: 등재.includes(p.단어) }) };
+            return { ok: true, json: async () => ({ 존재: p.단어 === '가마솥' }) };  // Worker가 정규화해 준 결과
           }
           return { ok: true, json: async () => ({ 후보: [] }) };
         };
@@ -712,20 +822,37 @@ async function main(){
     });
     const w = dom.window;
 
-    확인('붙여 쓴 형태로는 못 찾는다(제보 상황 재현)',
-         (await w.국어원_POST({ 단어: '가마솥' }, 1000)).존재 === false);
-    확인('붙임표를 끼워 재시도해 찾아낸다', (await w.국어원_단어조회('가마솥')) === true);
-    확인('실제로 붙임표 변형을 물어봤다', 물어본단어.includes('가마-솥'), 물어본단어.join(','));
-    확인('뽕나무도 통과', (await w.국어원_단어조회('뽕나무')) === true);
-    확인('눈사람도 통과', (await w.국어원_단어조회('눈사람')) === true);
-    확인('진짜 없는 단어는 그대로 없음', (await w.국어원_단어조회('없는말말')) === false);
+    확인('있는 단어는 true', (await w.국어원_단어조회('가마솥')) === true);
+    확인('없는 단어는 false', (await w.국어원_단어조회('없는말말')) === false);
+    확인('단어마다 한 번씩만 물었다(붙임표 재조회 없음)',
+         물어본단어.join(',') === '가마솥,없는말말', 물어본단어.join(','));
+    확인('캐시된 단어는 다시 묻지 않는다',
+         (await w.국어원_단어조회('없는말말')) === false && 물어본단어.length === 2);
+    확인('클라이언트 붙임표_변형은 삭제됨', typeof w.붙임표_변형 === 'undefined');
 
-    // 변형 생성 규칙
-    확인('2~6글자 한글만 변형을 만든다',
-         w.붙임표_변형('가마솥').length === 2 && w.붙임표_변형('가').length === 0
-         && w.붙임표_변형('두 단어').length === 0);
-    확인('변형은 가능한 모든 위치',
-         w.붙임표_변형('가마솥').join(',') === '가-마솥,가마-솥');
+    // 속도(2026-09-27): 이번 판에서 이미 받은 단어는 다시 묻지 않고, 같은 글자 후보는 동시에 두 번 묻지 않는다
+    w.eval("세션_수집(['구름다리']);");
+    const 전 = 물어본단어.length;
+    확인('세션 수집어는 사전 확인 없이 통과',
+         w.eval("validate_word('구름다리', gs)[0] === true || !validate_word('구름다리', gs)[1].includes('사전에 없는')")
+         && 물어본단어.length === 전);
+    let 글자요청 = 0;
+    const 원fetch = w.fetch;
+    w.fetch = async (url, opt) => { if(JSON.parse(opt.body).글자 !== undefined) 글자요청++; await new Promise(r => setTimeout(r, 20)); return 원fetch(url, opt); };
+    await Promise.all([w.국어원_후보목록조회('타', 'start'), w.국어원_후보목록조회('타', 'start')]);
+    확인('같은 글자 후보를 동시에 물으면 요청은 한 번', 글자요청 === 1, String(글자요청));
+    // 타이핑이 멈추면 끝 글자 후보를 미리 받는다(판 진행 중일 때만)
+    글자요청 = 0;
+    w.eval("gs.game_state='PLAYING';");
+    const 입력 = w.document.getElementById('단어입력');
+    입력.value = '바다'; 입력.dispatchEvent(new w.Event('input'));
+    입력.value = '바다표'; 입력.dispatchEvent(new w.Event('input'));
+    await new Promise(r => setTimeout(r, 700));
+    확인('타이핑이 멈춘 뒤 마지막 입력 기준으로 한 번만 선조회', 글자요청 === 1, String(글자요청));
+    확인('타이핑이 멈추면 단어 존재도 미리 확인(제출 때는 캐시)', 물어본단어.includes('바다표') && !물어본단어.includes('바다'),
+         물어본단어.join(','));
+    입력.value = '';
+    w.fetch = 원fetch;
   }
 
   /* ── 18. Llove 복귀 시 온보딩 (제보 1) ───────────────────────────── */
@@ -743,6 +870,21 @@ async function main(){
     확인('해시는 1회용으로 지운다', fb.includes('history.replaceState'));
     확인('DB 미초기화 경로에서도 온보딩을 걷는다',
          /db 미초기화[\s\S]{0,120}온보딩_걷기\(\)/.test(fb));
+  }
+
+  /* ── 포니테일 C31·C35: 층 상승 공용(층_올리기) — 20층이면 소프트락 이스터에그 ─── */
+  {
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    상태(win).stage = 5;
+    win.층_올리기(true);
+    확인('층_올리기: 한 층 오르고 게임은 계속', 상태(win).stage === 6 && 상태(win).game_state === 'PLAYING');
+    상태(win).stage = 19;
+    win.층_올리기(false);
+    const 부패 = win.document.getElementById('소프트락-텍스트').textContent;
+    확인('20층 진입 → 소프트락(결합 부호로 부패한 텍스트)',
+         상태(win).game_state === 'SOFTLOCKED' && /[̀-ͯ]/.test(부패) && 부패.includes('ERROR: MEMORY_LEAK'));
   }
 
   /* ── 19. 실수 폐지 잔여 환산 · 후보 풀 확장 (2026-07-29 2차 점검) ─── */
@@ -765,6 +907,16 @@ async function main(){
     상태(win).hearts = 5;
     win.시련_응답(3);                                   // 어둠의 계약 — 원본 +1
     확인('어둠의 계약 보상도 환산(+4)', 상태(win).hearts === 5 + 값(win, '목숨보상'));
+
+    // (포니테일 C29) 시련 선택박스 공용 함수 — 상세/요약 문구만 다르고 계약 버튼 4개는 같다
+    win.시련_선택박스(true);
+    const 상자 = win.document.getElementById('선택박스');
+    확인('시련 선택박스: 계약 버튼 4개 + 상세 설명(목숨 보상 수치)',
+         상자.querySelectorAll('button').length === 4 && 상자.textContent.includes(`목숨+${값(win, '목숨보상')}`));
+    win.시련_선택박스(false);
+    확인('시련 선택박스: 요약 문구로도 같은 버튼 4개',
+         상자.querySelectorAll('button').length === 4 && 상자.textContent.includes('[1] 시간의 계약  [2]'));
+    win.선택박스_숨기기();
 
     상태(win).stage = 13;
     win.탑승리_응답(true);                              // 14층 무한 등반 진입
@@ -799,13 +951,13 @@ async function main(){
     // (4) 후보 캐시 — 버전 접미사가 붙고, 빈 목록은 저장하지 않는다.
     //     빈 목록이 영구히 박히면 Worker를 고쳐도 그 기기에서는 계속 막다른 길이 된다.
     const 국어원 = fs.readFileSync(path.join(WCHAIN, 'js/국어원.js'), 'utf8');
-    확인('후보 캐시 키에 버전이 붙었다', 국어원.includes("'plx_잇는_국어원후보캐시_v3'"));
+    확인('후보 캐시 키에 버전이 붙었다', 국어원.includes("'plx_잇는_국어원후보캐시_v4'"));
 
     const { win } = 페이지열기({ 온라인: '없음' });     // 후보 0건을 돌려주는 스텁
     await 대사대기(win);
     판시작(win);
     await 단어넣기(win, '사슴');
-    const 캐시 = JSON.parse(win.localStorage.getItem('plx_잇는_국어원후보캐시_v3') || '{}');
+    const 캐시 = JSON.parse(win.localStorage.getItem('plx_잇는_국어원후보캐시_v4') || '{}');
     확인('빈 후보 목록은 캐시에 남지 않는다', Object.keys(캐시).length === 0,
          JSON.stringify(캐시));
   }
@@ -827,12 +979,15 @@ async function main(){
     판시작(w2);
     await 단어넣기(w2, '사슴');
     확인('후보가 넉넉하면 경고하지 않는다', !로그텍스트(w2).includes('곧 막힐 수 있습니다'));
+    확인('후보가 넉넉하면 개수 안내도 하지 않는다(내부 사정 노출 제거)', !/후보 \d+개를 사용/.test(로그텍스트(w2)));
   }
   {
     // (2) 막다른길_확인 — 이을 단어를 못 찾으면 미리 알리고, 있으면 조용하다
     const { win } = 페이지열기({ 온라인: '없음' });
     await 대사대기(win);
     판시작(win);
+    for(let i = 0; i < 100 && !win.eval('빈도_단어들.length'); i++) await 잠깐(10);   // 비동기 적재가 끝난 뒤 비운다
+    win.eval('빈도_단어들 = []');   // 빈도 목록(흔한 말)도 비워야 '정말 이을 단어가 없는' 국면이 된다
     상태(win).ai_last_char = '가';
     await win.막다른길_확인(값(win, '게임_세대'), '가');
     확인('이을 단어가 없으면 미리 알린다', 로그텍스트(win).includes('찾지 못했습니다'));
@@ -867,6 +1022,37 @@ async function main(){
     확인('힌트 소진 상태에서는 후보를 조회하지 않는다', 이후 === 이전, `${이전} → ${이후}`);
     확인('대신 악마의 거래가 열린다', 상태(win).game_state === 'DEVIL_WAIT',
          상태(win).game_state);
+
+    // 거래 수락 → 일반 힌트 경로로 즉시 힌트 1회(+3 -1)
+    win.악마거래_응답(true);
+    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
+    await 잠깐(5);
+    확인('거래 수락 즉시 힌트 1개가 쓰인다(0 +3 -1 = 2)', 상태(win).hints === 2, `hints=${상태(win).hints}`);
+    확인('거래 힌트도 초성을 알려 준다', 로그텍스트(win).includes('초성'));
+  }
+  {
+    // (3-1) 힌트 조회 도중 판이 리셋되면 새 판의 힌트를 깎지 않는다(세대 확인)
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win, { diff: '격동' });
+    await 단어넣기(win, '사슴');
+    const 옛글자 = 상태(win).ai_last_char;
+    // AI 턴에서 이미 받아 둔 글자면 캐시로 즉시 끝나 경합이 안 생긴다 — 후보 캐시를 비워 반드시 조회하게 한다
+    win.localStorage.removeItem(값(win, '국어원_후보캐시_KEY'));
+    const 원래fetch = win.fetch, 대기열 = [];
+    win.fetch = (url, opt) => new Promise(res => 대기열.push(() => res(원래fetch(url, opt))));
+    win.버튼_힌트();                                   // 후보 조회가 대기 상태로 멈춘다
+    await 잠깐(5);
+    win.전체리셋();
+    win.fetch = 원래fetch;
+    판시작(win, { diff: '격동' });
+    상태(win).ai_last_char = 옛글자;   // 새 판도 같은 글자에서 진행 중 — 옛 조회 결과가 "쓸 만해" 보이는 최악의 경우
+    const 새판힌트 = 상태(win).hints;
+    대기열.forEach(풀기 => 풀기());                      // 이제서야 옛 판의 조회가 끝난다
+    await 잠깐(30);
+    확인('조회가 실제로 대기 상태였다(경합 재현)', 대기열.length > 0, `대기 ${대기열.length}건`);
+    확인('조회 중 리셋되면 새 판의 힌트를 건드리지 않는다', 상태(win).hints === 새판힌트,
+         `${새판힌트} → ${상태(win).hints}`);
   }
   {
     // (4) 난이도 설명의 숫자가 난이도표와 어긋나지 않는다(종전엔 손으로 적어 둬 실제로 어긋났다)
@@ -880,9 +1066,7 @@ async function main(){
          설명.map(x => x[2]).join(' | '));
 
     // (5) 층 재시작 폐지로 호출부가 사라진 함수가 남아 있지 않다
-    확인('arcade_restart_floor가 봉인됐다', typeof win.arcade_restart_floor === 'undefined');
-    const 규칙 = fs.readFileSync(path.join(WCHAIN, 'js/게임규칙.js'), 'utf8');
-    확인('봉인 근거가 주석으로 남아 있다', 규칙.includes('봉인 (2026-07-29) — 아케이드'));
+    확인('arcade_restart_floor가 남아 있지 않다', typeof win.arcade_restart_floor === 'undefined');
   }
 
   /* ── 21. '이의 있음'·'그 단어 없어!' 재설계 (2026-08-19, 봉인 해제) ─── */
@@ -924,6 +1108,8 @@ async function main(){
     확인('AI가 새 단어를 낸다', g.ai_last_word !== 가짜단어 && g.ai_last_word !== null,
          `ai_last_word=${g.ai_last_word}`);
     확인('취소 로그가 남는다', 로그텍스트(win).includes('취소'));
+    확인('재출제한 단어도 왼쪽 말풍선으로 기록된다(2026-09-27 버그 점검)',
+         [...win.document.querySelectorAll('#로그 .line.bubble.ai .bw')].pop()?.textContent === g.ai_last_word);
     확인('시도 횟수가 1로 기록됨', g.dispute_attempts === 1, `dispute_attempts=${g.dispute_attempts}`);
   }
   {
@@ -990,11 +1176,6 @@ async function main(){
     확인('소진되면 조회 자체를 하지 않는다', 호출됨 === false);
     확인('소진 안내 로그가 남는다',
          로그텍스트(win).includes('다 써버렸다') || 로그텍스트(win).includes('모두 사용'));
-  }
-  {
-    // (e) '그 단어 없어!'는 '이의 있음'과 동일한 실조회를 탄다(더 이상 no-op이 아니다)
-    const { win } = 페이지열기();
-    확인('버튼_허세가 버튼_이의와 동일한 함수(더 이상 no-op이 아님)', 값(win, '버튼_허세 === 버튼_이의'));
   }
 
   /* ── 22. '뜻 보기' · '적절성 검증' 버튼 배선 (2026-08-22 신설) ─────────── */
@@ -1073,13 +1254,12 @@ async function main(){
     const { win } = 페이지열기({ 적절성게이트: false });
     await 대사대기(win);
     판시작(win);
-    확인('첫 턴(AI 단어 없음)엔 뜻보기 버튼이 숨겨져 있다',
-         win.document.getElementById('btn-뜻보기').style.display === 'none');
+    확인('뜻 보기 버튼은 없어지고 상대 단어 카드의 뜻 칸이 대신한다(2026-09-27)',
+         !win.document.getElementById('btn-뜻보기') && !!win.document.getElementById('ai-뜻'));
     확인('첫 턴(AI 단어 없음)엔 적절성검증 버튼이 숨겨져 있다',
          win.document.getElementById('btn-적절성검증').style.display === 'none');
     await 단어넣기(win, '나무');
-    확인('AI가 단어를 낸 뒤엔 뜻보기 버튼이 보인다',
-         win.document.getElementById('btn-뜻보기').style.display === '');
+    확인('카드의 뜻 칸을 누르면 뜻 전체 보기', win.document.getElementById('ai-뜻').getAttribute('onclick') === '버튼_뜻보기()');
     const 적절성btn = win.document.getElementById('btn-적절성검증');
     확인('AI가 단어를 낸 뒤엔 적절성검증 버튼이 보인다', 적절성btn.style.display === '');
     확인('적절성검증 버튼은 게이트가 꺼진 동안 잠금 표시(🔒)를 보여준다',
@@ -1274,34 +1454,6 @@ async function main(){
     확인('반박사유 코드가 기타로 실린다', 보낸본문 && 보낸본문.반박사유 === '기타');
   }
   {
-    // (g--1) '상태' 버튼이 선택박스를 지워 버리던 문제 — 2026-08-22 실측으로 발견한 기존 버그.
-    //  버튼_상태()가 무조건 프롬프트_갱신()을 불렀고, 그 안의 선택박스_숨기기()가 선택지를
-    //  통째로 지워 응답할 방법이 사라졌다. 악마의 거래·시련의 계약 등 기존 선택박스 9곳이
-    //  전부 이 상태였고, 반박 대기에서는 게임_비동기처리중까지 걸린 채라 소프트락이 됐다.
-    const { win } = 페이지열기({ 적절성게이트: true });
-    await 대사대기(win);
-    판시작(win);
-    await 단어넣기(win, '나무');
-    적절성_스텁(win, { 적절: true }, { 적절: true });
-    await win.버튼_적절성검증();
-    for(let i = 0; i < 60 && 값(win, '게임_비동기처리중'); i++) await 잠깐(5);
-    win.버튼_상태();
-    확인('반박 대기 중 상태 버튼을 눌러도 선택박스가 남는다',
-         win.document.getElementById('선택박스').style.display === '');
-    확인('반박 대기 상태가 유지된다', 상태(win).game_state === 'REBUT_WAIT');
-    // 기존 선택박스(악마의 거래 형태)에서도 같은 보호가 걸리는지
-    win.eval(`gs.game_state='DEVIL_WAIT'; 선택박스_보이기('<button class="btn sm acc">수락</button>');`);
-    win.버튼_상태();
-    확인('기존 선택박스(거래·계약 등)도 상태 버튼에 안 지워진다',
-         win.document.getElementById('선택박스').style.display === '');
-    // 평소(PLAYING)엔 상태 버튼이 원래대로 프롬프트를 다시 그려야 한다
-    win.eval(`gs.game_state='PLAYING';`);
-    win.버튼_상태();
-    확인('평소엔 상태 버튼이 원래대로 입력폼을 복원한다',
-         win.document.getElementById('선택박스').style.display === 'none'
-         && win.document.getElementById('입력폼').style.display === '');
-  }
-  {
     // (g-0) 선택박스 안 강조 버튼이 보이는가 — 2026-08-22에 발견한 기존 CSS 버그 회귀 가드.
     //  `.choice-box .btn{background:var(--card)}` 가 `.btn.acc` 의 그라디언트 배경을 덮어써
     //  (명시도 동률 + 소스 순서가 뒤라 이김) 어두운 글자색만 남았고, 카드 배경과 거의 같은
@@ -1353,10 +1505,10 @@ async function main(){
     // 끝내지 않는다 — 저장 함수 내부에서 안 부르면 위 단위 테스트는 통과해도 실효가 없다)
     win.eval(`
       window.__c4 = ${JSON.stringify(큰캐시())};
-      국어원_후보캐시_저장(window.__c4);
+      캐시_저장(국어원_후보캐시_KEY, window.__c4, 국어원_후보캐시_최대개수);
     `);
     const 저장된 = 값(win, `Object.keys(JSON.parse(localStorage.getItem(국어원_후보캐시_KEY))).length`);
-    확인('국어원_후보캐시_저장()이 저장 전 상한을 실제로 적용한다', 저장된 === 300, `개수=${저장된}`);
+    확인('후보 캐시 저장(캐시_저장)이 저장 전 상한을 실제로 적용한다', 저장된 === 300, `개수=${저장된}`);
   }
 
   /* ── 25. 취소된 단어를 AI가 그대로 재출제하지 않는다 (2026-08-30 실기기 버그 수정) ── */

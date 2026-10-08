@@ -28,20 +28,13 @@ function setObSlide(i){
   // 자리(칸)는 남아 버튼이 두 겹으로 보이던 문제 — "슬라이드해도 아래 칸이 안 사라짐")
   const nav = document.querySelector('.ob-nav');
   if(nav) nav.style.display = (i === OB_TOTAL - 1) ? 'none' : 'flex';
-  // 버튼 상태
+  // 버튼 상태 — '다음'은 마지막 슬라이드에서 nav째 숨겨지므로 따로 숨길 필요 없음
   document.getElementById('obPrev').classList.toggle('inv', i===0);
-  const next=document.getElementById('obNext');
-  if(i===OB_TOTAL-1){
-    next.classList.add('inv');
-  } else {
-    next.classList.remove('inv');
-  }
 }
 function obNext(){ if(obIdx<OB_TOTAL-1) setObSlide(obIdx+1); }
 function obPrev(){ if(obIdx>0) setObSlide(obIdx-1); }
-function skipOb(){ finishOb(); }
 function finishOb(){
-  document.getElementById('onboarding').classList.add('gone');
+  온보딩_걷기();
   // 로그인 화면 fadeUp 애니메이션 재실행
   const sl=document.getElementById('sl');
   sl.querySelectorAll('.fu').forEach(e=>{

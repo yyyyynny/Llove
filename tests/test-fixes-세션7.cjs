@@ -17,9 +17,9 @@ load((window) => {
   ]}];`);
 
   /* ── #3 전역 +10% (대표값) ── */
-  assert('#3: .q-question 15→17px', /\.q-question\{font-size:17px/.test(css));
-  assert('#3: calc 기준값도 상향(17px)', /\.q-question\{font-size:calc\(17px\*var\(--글자배율\)\)\}/.test(css));
-  assert('#3: 제외 목록 유지(.nv-btn 10px)', /\.nv-btn\{[^}]*font-size:10px/.test(css));
+  assert('#3: .q-question 15→17px(글자배율 calc 기준값)', /\.q-question\{font-size:calc\(17px\*var\(--글자배율\)\)/.test(css));
+  // 10-03: 글자 크기 7단(최소 11px)으로 정리하며 10px → 11px
+  assert('#3: 제외 목록 유지(.nv-btn 11px)', /\.nv-btn\{[^}]*font-size:11px/.test(css));
 
   /* ── #1 봉인 → 창조주 업적 완전 리셋 ── */
   ev("사용자.창조주달성=true; 사용자.개발자모드=true; 사용자.업적진행도=사용자.업적진행도||{}; 사용자.업적진행도['창조주']=1;");
@@ -56,7 +56,7 @@ load((window) => {
   ev("복습데이터.대기열=[{id:'로컬a',단어:'복습어',뜻:'복습 뜻',모드:'상식·어원',모드클래스:'tb',연속정답수:0,즐겨찾기:false},{id:'로컬b',단어:'딴어',뜻:'다른 뜻',모드:'맞춤법',모드클래스:'tg',연속정답수:0,즐겨찾기:false}];");
   ev("복습대기열_정답처리('복습어');");
   assert('#5: 정답 1회로 즉시 졸업', ev("복습데이터.대기열.some(x=>x.단어==='복습어')") === false);
-  assert('#5: srp에 학습 설정 패널', !!doc.querySelector('#lsetSrp .lset-hdr'));
+  assert('#5: srp에 학습 설정 패널(10-03: 머리의 ⚙가 연다)', !!doc.getElementById('lsetSrp') && !!doc.querySelector('#srp .q-set'));
   ev("학습설정.srp='4지선다'; 복습진행={목록:[...복습데이터.대기열], idx:0}; 복습_카드렌더();");
   assert('#5: 복습 4지선다 — 후보 부족 시 카드 폴백(대기열 1개)', !!doc.querySelector('#srpBody') );
   ev("복습데이터.대기열.push({id:'로컬c',단어:'셋째어',뜻:'셋째 뜻',모드:'맞춤법',모드클래스:'tg',연속정답수:0});");
@@ -82,7 +82,7 @@ load((window) => {
   ev("학습설정.sq1='선택지'; 학습설정.sq4_input='선택지'; 학습설정_마이그레이션();");
   assert('#7: 구 저장값 마이그레이션', ev('학습설정.sq1') === '4지선다' && ev('학습설정.sq4_input') === '플래시카드');
   assert('#7: 맞춤법 보기 4개', ev('__TEST_SPELL__[0].opts.length') === 4);
-  ev("학습설정.sq1='플래시카드'; renderQuiz4(__TEST_QUIZ__);");
+  ev("학습설정.sq1='플래시카드'; renderQuiz('sq1', __TEST_QUIZ__);");
   assert('#7: sq1 플래시카드 렌더', !!doc.getElementById('sq1FlashBtn'));
   const fExp0 = ev('사용자.총누적EXP||0');
   ev("퀴즈_플래시공개('sq1');");
@@ -90,9 +90,9 @@ load((window) => {
   ev("퀴즈_플래시공개('sq1');");
   assert('#7: 플래시 공개 중복 차단', ev('사용자.총누적EXP||0') === ev('사용자.총누적EXP||0') && true);
   // 역방향은 문항 2개 이상 필요 — __TEST_QUIZ__은 1건이라 테스트용 2건 풀 사용
-  ev("학습설정.sq1='역방향'; renderQuiz4([{cat:'상식',q:'테스트 문제 A',opts:[{t:'답A',c:true},{t:'오답',c:false}]},{cat:'상식',q:'테스트 문제 B',opts:[{t:'답B',c:true},{t:'오답',c:false}]}]);");
+  ev("학습설정.sq1='역방향'; renderQuiz('sq1', [{cat:'상식',q:'테스트 문제 A',opts:[{t:'답A',c:true},{t:'오답',c:false}]},{cat:'상식',q:'테스트 문제 B',opts:[{t:'답B',c:true},{t:'오답',c:false}]}]);");
   assert('#7: sq1 역방향 — 정답 제시+문항 보기', doc.querySelectorAll('#sq1Body .aopt').length >= 2 && doc.getElementById('sq1Body').innerHTML.includes('역방향'));
-  ev("renderQuiz4(__TEST_QUIZ__);");
+  ev("renderQuiz('sq1', __TEST_QUIZ__);");
   assert('#7: 역방향 문항 부족 시 4지선다 폴백', doc.getElementById('toast').textContent.includes('부족') && doc.querySelectorAll('#sq1Body .aopt').length === 4);
   ev("학습설정.sq4_input='4지선다'; renderDad(DAD_GAGS_BY_DIFFICULTY['아↗그거!']);");
   assert('#7: 아재 4지선다 보기 4개', doc.querySelectorAll('#sq4Body .aopt').length === 4);
@@ -112,7 +112,8 @@ load((window) => {
   ev("랜덤학습_모드목록.forEach(m=>{랜덤설정.가중치[m[0]]=1;});");
 
   /* ── #9 학습 설정 강조 ── */
-  assert('#9: lset-hdr 강조(액센트 바)', /\.lset-hdr\{[^}]*border-left:3px solid var\(--acc\)/.test(css));
+  // 10-03: 학습 설정 머리 줄(왼쪽 강조선)은 화면 머리의 ⚙ 단추로 대체 — 열면 단추가 강조된다
+  assert('#9: 학습 설정 ⚙ 단추가 열림 상태를 표시', /\.q-set\.on\{[^}]*color:var\(--acc\)/.test(css));
 
   /* ── #10 글자범위 토글 ── */
   ev("set글자범위('전체');");
@@ -135,7 +136,7 @@ load((window) => {
   assert('#12: 그라디언트 배너 적용·저장', ev('사용자.배너이미지') === 'grad:1' && (doc.getElementById('statusBanner').style.background||'').includes('linear-gradient'));
   ev("배너_적용선택('assets/배너/테스트.jpg');");
   assert('#12: 이미지 배너 <img> 렌더', !!doc.querySelector('#statusBanner img'));
-  ev("사용자.개발자모드=false; curLv=1; 배너_업로드시도();");
+  ev("사용자.개발자모드=false; curLv=1; 이미지_업로드시도('배너');");
   assert('#12: 미달자 업로드 경고', doc.getElementById('infoDesc').innerHTML.includes('권한 부족'));
   ev("closeInfoModal(); 배너_적용선택('');");
 

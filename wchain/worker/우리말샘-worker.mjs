@@ -80,7 +80,7 @@ const 정규화 = w => String(w).replace(/[-^]/g, '').trim();
 // 상세 배경은 파일 상단 헤더 참조. 여기서는 진입점(fetch)에서만 쓰고, 단어존재조회()·
 // 후보목록조회() 등 순수 함수는 건드리지 않는다 — 그래서 테스트(caches 전역이 없는
 // Node/jsdom 환경, tests/test-worker-*.cjs)는 이 함수들과 무관하게 그대로 통과한다.
-const 캐시_버전 = 'v2'; // 2026-08-30: 동사·형용사 후보 필터 신설로 올림. 필터·그룹화 로직을 바꾸면 이 값을 올릴 것(안 올리면 예전 로직으로
+const 캐시_버전 = 'v3'; // 2026-09-28: 후보 서버필터(많이 찾은 순 등)로 올림. 2026-08-30: 동사·형용사 후보 필터 신설로 올림. 필터·그룹화 로직을 바꾸면 이 값을 올릴 것(안 올리면 예전 로직으로
                         // 만든 캐시 응답이 TTL 끝날 때까지 계속 나간다).
 const 캐시_TTL초 = 60 * 60 * 24 * 3; // 3일 — 사전 데이터는 그새 바뀔 일이 거의 없다.
 
@@ -113,8 +113,8 @@ function 캐시_저장(ctx, kind, parts, 결과){
 }
 
 // word 문자열 중간에 가능한 모든 위치에 붙임표를 끼운 변형 목록(2~6글자 한글만).
-// Worker가 대신 하면 왕복이 1홉(Worker→오픈API)으로 줄어든다. 클라이언트(국어원.js)의
-// 붙임표_변형 폴백은 이중 안전망으로 남겨 둔다.
+// Worker가 대신 하면 왕복이 1홉(Worker→오픈API)으로 줄어든다. 클라이언트(국어원.js)에 있던
+// 같은 폴백은 2026-09-27 삭제 — 이제 이 함수가 유일한 붙임표 처리다.
 function 붙임표_변형(word){
   if(!/^[가-힣]{2,6}$/.test(word)) return [];
   const 변형 = [];
@@ -127,32 +127,34 @@ function 붙임표_변형(word){
 const 다듬기 = v => String(v || '').trim();
 
 // ── 오픈API 호출 ───────────────────────────────────────────────────────
-// key·certkey_no 둘 다 필수. num은 최솟값 제약이 있어(실측: num=1은 "Invalid num value"로
-// 거부, num=20/100은 정상) 호출부가 항상 유효한 범위의 값을 넘긴다.
-async function 오픈API_검색(env, { q, advanced, target, method, start = 1, num = 10 }){
-  const url = new URL(국어원_API_기준주소);
+// 공통 요청 — 인증키 두 개(key·certkey_no 둘 다 필수)를 붙여 호출하고 JSON으로 풀어 돌려준다.
+// 이 API는 실패해도 HTTP 200을 주고 본문에 {error:{...}}를 담는 경우가 있다(관공서 API 흔한
+// 패턴) — HTTP 상태만 보면 이 실패를 놓친다.
+async function 오픈API_요청(env, 주소, 파라미터, 이름){
+  const url = new URL(주소);
   url.searchParams.set('certkey_no', 다듬기(env.URIMALSAEM_CERTKEY_NO));
   url.searchParams.set('key', 다듬기(env.URIMALSAEM_KEY));
-  url.searchParams.set('target_type', 'search');
   url.searchParams.set('req_type', 'json');
-  url.searchParams.set('part', 'word');
-  url.searchParams.set('sort', 'dict');
-  if(advanced) url.searchParams.set('advanced', 'y');
-  if(target) url.searchParams.set('target', String(target));
-  if(method) url.searchParams.set('method', method);   // exact | include | start | end
-  url.searchParams.set('start', String(start));
-  url.searchParams.set('num', String(num));
-  url.searchParams.set('q', q);
+  for(const [k, v] of Object.entries(파라미터)) url.searchParams.set(k, String(v));
 
   const res = await fetch(url.toString(), { headers: 공통_HEADERS });
-  if(!res.ok) throw new Error('오픈API HTTP ' + res.status);
+  if(!res.ok) throw new Error(`${이름} HTTP ${res.status}`);
   const 원문 = await res.text();
   let data;
   try{ data = JSON.parse(원문); }
-  catch(e){ throw new Error('오픈API JSON 파싱 실패'); }
-  // 이 API는 실패해도 HTTP 200을 주고 본문에 {error:{...}}를 담는 경우가 있다(관공서 API 흔한
-  // 패턴) — HTTP 상태만 보면 이 실패를 놓친다.
-  if(data && data.error) throw new Error('오픈API 에러: ' + JSON.stringify(data.error));
+  catch(e){ throw new Error(`${이름} JSON 파싱 실패`); }
+  if(data && data.error) throw new Error(`${이름} 에러: ${JSON.stringify(data.error)}`);
+  return data;
+}
+
+// 고급 검색(advanced=y, target=1=표제어) — method는 exact | start | end.
+// num은 최솟값 제약이 있어(실측: num=1은 "Invalid num value"로 거부, num=20/100은 정상)
+// 호출부가 항상 유효한 범위의 값을 넘긴다.
+async function 오픈API_검색(env, { q, method, start = 1, num, 추가 = {} }){
+  const data = await 오픈API_요청(env, 국어원_API_기준주소, {
+    target_type: 'search', part: 'word', sort: 'dict',
+    advanced: 'y', target: 1, method, start, num, q, ...추가,
+  }, '오픈API');
   const channel = data && data.channel;
   const items = (channel && Array.isArray(channel.item)) ? channel.item : [];
   return { items };
@@ -161,20 +163,7 @@ async function 오픈API_검색(env, { q, advanced, target, method, start = 1, n
 // view API — target_code 하나를 상세조회해 group_code(다의어 번호 — 동음이의어를 구분하는
 // 진짜 고유 키, search API 응답엔 없음)를 얻는다. 아래 뜻풀이_그룹화_비동기()에서만 쓴다.
 async function 오픈API_뷰(env, target_code){
-  const url = new URL(국어원_API_뷰주소);
-  url.searchParams.set('certkey_no', 다듬기(env.URIMALSAEM_CERTKEY_NO));
-  url.searchParams.set('key', 다듬기(env.URIMALSAEM_KEY));
-  url.searchParams.set('req_type', 'json');
-  url.searchParams.set('method', 'target_code');
-  url.searchParams.set('q', String(target_code));
-
-  const res = await fetch(url.toString(), { headers: 공통_HEADERS });
-  if(!res.ok) throw new Error('오픈API(view) HTTP ' + res.status);
-  const 원문 = await res.text();
-  let data;
-  try{ data = JSON.parse(원문); }
-  catch(e){ throw new Error('오픈API(view) JSON 파싱 실패'); }
-  if(data && data.error) throw new Error('오픈API(view) 에러: ' + JSON.stringify(data.error));
+  const data = await 오픈API_요청(env, 국어원_API_뷰주소, { method: 'target_code', q: target_code }, '오픈API(view)');
   const item = data && data.channel && data.channel.item;
   return Array.isArray(item) ? (item[0] || null) : (item || null);   // view는 원래 단일 객체
 }
@@ -207,7 +196,11 @@ const 뷰_추가조회_최대 = 30;
 
 async function 뜻풀이_그룹화_비동기(env, items){
   const 어원있음 = new Map();   // 'origin:필드값' → 뜻풀이[]
-  const 어원없음 = [];          // { definition, target_code, word } — 순서 보존
+  const 어원없음 = [];          // { definition, target_code, word, 일반 } — 순서 보존
+  // 2026-09-28: 묶음별 '일반 뜻'(전문 분야 cat 없음·일반어) 개수 — 클라이언트 대표뜻()이 흔한 묶음을 고르는 기준.
+  // '이중'은 묶음마다 뜻이 2개씩이라 개수로는 못 가려 옛 등급(二中)이 대표 뜻으로 떴다.
+  const 일반수 = new Map();
+  const 일반인가 = s => !s.cat && (!s.type || s.type === '일반어');
 
   for(const it of items){
     if(!it) continue;
@@ -218,8 +211,9 @@ async function 뜻풀이_그룹화_비동기(env, items){
         const 키 = 'origin:' + s.origin;
         if(!어원있음.has(키)) 어원있음.set(키, []);
         어원있음.get(키).push(String(s.definition));
+        일반수.set(키, (일반수.get(키) || 0) + (일반인가(s) ? 1 : 0));
       } else {
-        어원없음.push({ definition: String(s.definition), target_code: s.target_code, word: it.word });
+        어원없음.push({ definition: String(s.definition), target_code: s.target_code, word: it.word, 일반: 일반인가(s) });
       }
     }
   }
@@ -239,14 +233,16 @@ async function 뜻풀이_그룹화_비동기(env, items){
       const 키 = 그룹코드 != null ? ('group:' + 그룹코드) : ('tc:' + s.target_code);
       if(!어원없음그룹.has(키)) 어원없음그룹.set(키, []);
       어원없음그룹.get(키).push(s.definition);
+      일반수.set(키, (일반수.get(키) || 0) + (s.일반 ? 1 : 0));
     }
   } else if(어원없음.length){
     // 뜻이 1개뿐이거나 target_code가 없거나 상한을 넘음 — 안전하게 표제어 하나로 합친다.
     어원없음그룹.set('word:' + 어원없음[0].word, 어원없음.map(s => s.definition));
+    일반수.set('word:' + 어원없음[0].word, 어원없음.filter(s => s.일반).length);
   }
 
   // 등장 순서(= opendict가 준 순서, 대개 흔한 뜻부터) 그대로 번호만 매긴다.
-  return [...어원있음.values(), ...어원없음그룹.values()].map((뜻풀이, i) => ({ 번호: i + 1, 뜻풀이 }));
+  return [...어원있음.entries(), ...어원없음그룹.entries()].map(([키, 뜻풀이], i) => ({ 번호: i + 1, 뜻풀이, 일반수: 일반수.get(키) || 0 }));
 }
 
 // ── ① 단어 존재 여부 + 뜻풀이 ──────────────────────────────────────────
@@ -271,7 +267,7 @@ async function 뜻풀이_그룹화_비동기(env, items){
 async function 단어존재조회(env, word, 진단 = false, 뜻풀이필요 = false){
   const 시도할것 = [word, ...붙임표_변형(word)];
   const 결과들 = await Promise.all(
-    시도할것.map(w => 오픈API_검색(env, { q: w, advanced: true, target: 1, method: 'exact', num: 20 })
+    시도할것.map(w => 오픈API_검색(env, { q: w, method: 'exact', num: 20 })
       .catch(() => ({ items: [] }))));   // 개별 실패는 "없음"으로 취급, 전체는 아래서 판단
 
   for(const { items } of 결과들){
@@ -319,12 +315,16 @@ function 후보_부적절한가(it){
 // 페이지당 개수 + 필요하면 다음 페이지까지 병렬로 받는다. 붙임표 든 표제어는 버리지 않고
 // 정규화해서 포함한다(위 "정규화" 주석).
 //
-// 2026-08-22 실측(_num실험ms 진단) — num을 줄이면 opendict 응답 자체가 확실히 빨라진다:
+// 2026-08-22 실측(num 비교 진단, 결론 반영 후 계측 삭제) — num을 줄이면 opendict 응답 자체가 확실히 빨라진다:
 //   num=10→517ms, num=30→1829ms, num=50→1623ms, num=100→3640ms(같은 글자, 같은 페이지).
 // 100→30으로 낮춘다. "초"처럼 흔한 글자도 원래 매칭이 46개뿐이라 30×3페이지(최대 90개)면
 // 다 담기고, 후보 품질 필터를 거치면 어차피 10~20개 안팎으로 줄어드니 실질 손해는 적다.
 const 후보_페이지당개수 = 30;
 const 후보_최대페이지 = 3;   // 최대 90개. 페이지 수를 늘리면 후보는 늘지만 왕복도 늘어난다.
+// 2026-09-28 실사전 점검: 우리말샘순(가나다) 앞 90개만 받으면 '면'은 면각·면간 같은 전문어뿐이라
+// 필터 후 0개('셈'도 0개)였다. 공식 요청 변수(opendict 오픈API 안내)로 서버에서 먼저 거른다 —
+// 많이 찾은 순, 단어·일반어·일상어·명사, 2음절 이상. 아래 후보_부적절한가()는 안전망으로 유지.
+const 후보_서버필터 = { sort: 'popular', type1: 'word', type3: 'general', type4: 'general', pos: 1, letter_s: 2 };
 
 // 2026-08-22 — 후보 조회가 curl 실측 8.8초로 나와 무엇이 느린지(페이지 개수 자체 vs 페이지당
 // 요청 하나의 원래 속도) 확인이 필요했다. 진단 모드일 때 페이지별 왕복 시간을 재서 같이
@@ -338,28 +338,14 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
       .map(async i => {
         const t0 = Date.now();
         const 결과 = await 오픈API_검색(env, {
-          q: 글자, advanced: true, target: 1, method,
-          start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수,
+          q: 글자, method,
+          start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수, 추가: 후보_서버필터,
         }).catch(() => ({ items: [] }));
         결과._ms = Date.now() - t0;
         return 결과;
       })
   );
   const 전체ms = Date.now() - 페이지시작;
-
-  // 진단 모드일 때만 — 1페이지(start=1)만 유독 느린 게 실측됐다(9.8초 vs 다른 페이지 3.4초).
-  // num(페이지당 개수)을 줄이면 그 1페이지가 빨라지는지 재배포 한 번으로 한꺼번에 확인한다
-  // (10/30/50/100 네 값을 병렬로 같이 쏴서 비교 — 정식 응답에는 영향 없는 별도 호출).
-  let num실험ms = null;
-  if(진단){
-    const 실험값들 = [10, 30, 50, 100];
-    const 실험결과 = await Promise.all(실험값들.map(async n => {
-      const t0 = Date.now();
-      await 오픈API_검색(env, { q: 글자, advanced: true, target: 1, method, start: 1, num: n }).catch(() => null);
-      return Date.now() - t0;
-    }));
-    num실험ms = Object.fromEntries(실험값들.map((n, i) => [n, 실험결과[i]]));
-  }
 
   const 후보 = [];
   const 본것 = new Set();
@@ -388,7 +374,7 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
     }
   }
   return 진단
-    ? { 후보, _걸러진표본: 걸러진표본, _페이지별ms: 페이지들.map(p => p._ms), _전체ms: 전체ms, _num실험ms: num실험ms }
+    ? { 후보, _걸러진표본: 걸러진표본, _페이지별ms: 페이지들.map(p => p._ms), _전체ms: 전체ms }
     : { 후보 };
 }
 

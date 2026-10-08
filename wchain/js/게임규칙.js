@@ -1,5 +1,5 @@
 // '잇는' 게임 규칙 — 파이썬 원본 validate_word·ai_generate_word·user_defeat·check_title 이식
-// (Phase 3: 서바이벌 모드 한정 경로만 실제로 타짐. 아케이드 분기는 원본과 동일하게 구조만 보존).
+// (서바이벌·아케이드 두 모드 모두 실제로 탄다.)
 // 로그 출력은 원본의 print()를 그대로 옮긴 것 — 전역 로그_추가(text)는 서바이벌.js(UI 레이어)가 정의.
 // 클래식 스크립트, 사전.js·엔진.js·게임상태.js 뒤에 로드.
 
@@ -43,7 +43,10 @@ function validate_word(word, gs){
   // 사전 판정 기준은 우리말샘이다(2026-07-29). 여기서는 보조 사전(유행어·줄임말)만 즉시 통과시키고,
   // 나머지는 "사전에 없는 단어" 사유로 넘겨 UI 레이어가 우리말샘에 물어보게 한다.
   // 반환 형태·사유 문자열은 그대로라 호출부(사유로 분기하는 원본 관례)가 영향받지 않는다.
-  if(!추가사전.includes(word)) return [false, `『${word}』은(는) 사전에 없는 단어입니다.`];
+  // 이번 판에서 우리말샘이 이미 준 단어(세션 수집어 — 후보 목록·확인된 단어)는 등재가 확인된
+  // 것이므로 즉시 통과시킨다(2026-09-27: 종전엔 AI 턴 뒤 미리 받아 둔 후보에 있는 단어도 매번
+  // 우리말샘에 다시 물어 턴마다 1~4초를 기다렸다).
+  if(!추가사전.includes(word) && !세션_수집어.includes(word)) return [false, `『${word}』은(는) 사전에 없는 단어입니다.`];
   if(is_hanbang(word, used_words(gs), gs.rev, gs.dueum, gs.stage)){
     if(gs.game_mode === 'ARCADE') return [false, `『${word}』은(는) 한방 단어입니다. (아케이드에서 사용 불가)`];
     else if(!gs.hanbang) return [false, `『${word}』은(는) 한방 단어입니다. (일반 모드에서 사용 불가)`];
@@ -53,20 +56,39 @@ function validate_word(word, gs){
 
 // AI 상대 단어 생성 — 랜덤 선택 자체는 파이썬 random과 1:1 재현 불가(다른 PRNG)라 대조 대상이
 // 아니며, 후보 풀 구성 로직(필터·공격 모드 확률표)만 원본과 동일하게 이식.
-// 추가후보(2번째 인자): 국어원 API가 온라인으로 찾아준 후보 단어들(있으면). 로컬 사전과 합쳐서
-// 같은 필터·선택 로직을 그대로 태운다 — attack_mode/safe_filter 등 기존 검증된 로직은 전혀
+// 추가후보(2번째 인자): 국어원 API가 온라인으로 찾아준 후보 단어들(있으면). 세션 수집어·보조 사전과
+// 합쳐서(ai_후보사전) 같은 필터·선택 로직을 그대로 태운다 — attack_mode/safe_filter 등 기존 검증된 로직은 전혀
 // 손대지 않고 "입력 풀만 넓히는" 방식이라 회귀 위험이 적다.
 // AI가 이번 턴에 실제로 고를 수 있는 단어 풀. 후보 선택과 **한방 판정**이 같은 사전을 봐야
 // 정합적이므로(2026-07-27), 종전에 ai_generate_word 안에만 있던 계산을 밖으로 꺼내 공유한다.
 // 2026-07-29 전환: **온라인(우리말샘) 후보가 기본이고, 보조 사전을 그 위에 얹는다.**
 // 종전과 정반대 — 종전에는 로컬 280단어가 기본이고 온라인이 "추가"였다.
 // 세션_수집어는 이번 판에서 이미 받아 둔 단어들로, 네트워크가 끊겨도 AI가 계속 둘 수 있게 하는 안전망.
+// 2026-09-27 실사전 자동 플레이로 확인: 우리말샘 후보는 가나다순 앞쪽 일부('무가…'·'구급…')뿐이라
+// 흔한 말이 풀에 아예 없었다 — 안온에서도 희귀어가 나오고, '길'처럼 흔한 글자에서 AI가 기권했다.
+// 빈도 목록(흔한 명사 약 2.3만)을 풀에 더해 메운다. 빈도 목록에서만 온 단어는 내기 전에 우리말샘으로
+// 확인하고(AI단어_고르기 — 3단계만), 없다고 나온 단어는 이 기기에서 다시 후보로 쓰지 않는다.
+const 빈도_불인정 = new Set();
 function ai_후보사전(gs, 추가후보 = []){
-  return [...new Set([...추가후보, ...세션_수집어, ...추가사전])];
+  return [...new Set([...추가후보, ...세션_수집어, ...추가사전, ...빈도_단어들.filter(w => !빈도_불인정.has(w))])];
+}
+async function AI단어_고르기(gs, 추가후보){
+  let 단어 = ai_generate_word(gs, 추가후보);
+  for(let i = 0; i < 3 && 단어; i++){
+    if(추가후보.includes(단어) || 세션_수집어.includes(단어) || 추가사전.includes(단어)) return 단어;
+    // 1~2단계(말뭉치 8회 이상의 흔한 명사)는 사전에 없을 일이 사실상 없어 확인을 건너뛴다 — 확인 왕복이
+    // AI 턴마다 1~2초를 더했다(실측). 드문 3단계만 확인하고, 혹시 틀려도 이의 있음으로 바로잡는다.
+    if(흔함단계(단어) <= 2) return 단어;
+    const 있음 = await 국어원_단어조회(단어);
+    if(있음 !== false){ if(있음) 세션_수집(단어); return 단어; }   // 확인 불가(null)면 그대로 — 이의로 바로잡을 수 있다
+    빈도_불인정.add(단어);
+    단어 = ai_generate_word(gs, 추가후보);
+  }
+  return 단어;
 }
 
 // AI가 한방 단어를 내면 안 되는 국면인지. 아케이드는 validate_word가 사용자의 한방 단어를 항상
-// 거부하므로(45행), AI에게만 허용하면 일방적으로 불리해진다 — hanbang 설정과 무관하게 항상 금지.
+// 거부하므로(validate_word 참조), AI에게만 허용하면 일방적으로 불리해진다 — hanbang 설정과 무관하게 항상 금지.
 // (2026-07-27 hanbang 기본값을 true로 올리면서 드러난 문제 — 종전엔 기본값이 false라 가려져 있었다.)
 function ai_한방금지인가(gs){ return !gs.hanbang || gs.game_mode === 'ARCADE'; }
 
@@ -77,40 +99,39 @@ function ai_generate_word(gs, 추가후보 = []){
 
   const current_dict = ai_후보사전(gs, 추가후보);
 
-  const min_len = gs.stage >= 13 ? 3 : 0;
+  const min_len = 족쇄_최소길이(gs.stage);
 
   // ⚠️ 2026-07-27: 판정 사전을 current_dict로 넘긴다. 종전에는 후보 풀에 온라인 희귀어를 넣어
   // 놓고 한방 판정만 로컬 DICTIONARY(280개)로 해서, 온라인 후보가 거의 전부 "한방"으로 탈락했다
   // — 난이도 계층화(초월/심연에서 희귀어 사용)가 6초 네트워크만 쓰고 결과는 버리는 상태였다.
   // 다음 글자를 아직 물어본 적 없으면 한방인지 알 수 없다 → 거르지 않는다(위 조회글자 주석 참조).
+  // 2026-09-28 실사전 아케이드 점검: '뭄'처럼 이을 말이 사실상 없는 글자로 끝나는 단어를 AI가 냈다
+  // (아직 물어보지 않은 글자는 "모름"으로 통과시켰기 때문). 이제 풀에 흔한 말 약 2.3만이 있으므로
+  // ① 풀 안에서 이어질 단어가 있는 것을 먼저 쓰고, ② 없으면 종전처럼 "모름"까지, ③ 그래도 없으면 전부.
   function safe_filter(candidates){
     if(!ai_한방금지인가(gs)) return candidates;
-    const safe = candidates.filter(
-      w => !한방_판정가능인가(w, gs)
-        || !is_hanbang(w, [...used, w], gs.rev, ai_dueum, gs.stage, current_dict));
+    const 이어짐 = w => !is_hanbang(w, [...used, w], gs.rev, ai_dueum, gs.stage, current_dict);
+    const 확실 = candidates.filter(이어짐);
+    if(확실.length) return 확실;
+    const safe = candidates.filter(w => !한방_판정가능인가(w, gs) || 이어짐(w));
     return safe.length ? safe : candidates;
   }
 
   let attack_mode = false;
+  // 공격(한방 노림)은 서바이벌 전용 — 아케이드는 이 조건에서 이미 빠진다(원본의 층별 확률 사다리는 도달 불가라 삭제)
   if(gs.hanbang && gs.game_mode !== 'ARCADE' && gs.attack_streak === 0){
-    let chance;
-    if(gs.game_mode === 'SURVIVAL') chance = 난이도설정(gs).공격확률;
-    else if(gs.stage <= 4) chance = 10;
-    else if(gs.stage <= 8) chance = 30;
-    else if(gs.stage <= 12) chance = 50;
-    else chance = 70;
-    if(Math.floor(Math.random() * 100) < chance) attack_mode = true;
+    if(Math.floor(Math.random() * 100) < 난이도설정(gs).공격확률) attack_mode = true;
   }
 
   if(attack_mode){
     const attack_cands = [];
     for(const w of find_words(search_char, used, gs.rev, ai_dueum, 0, min_len, current_dict)){
-      const last = !gs.rev ? w[w.length - 1] : w[0];
+      const last = 이을글자(w, gs.rev);
       if(['ㄴ','ㄹ','ㅁ','ㅇ'].includes(extract_chosung(last))) attack_cands.push(w);
     }
     if(attack_cands.length){
       gs.attack_streak = 1;
-      return 탐욕_선택(gs, attack_cands, used, current_dict);
+      return 탐욕_선택(gs, 흔함_거르기(gs, attack_cands), used, current_dict);
     }
   }
 
@@ -118,7 +139,7 @@ function ai_generate_word(gs, 추가후보 = []){
   const safe = safe_filter(cands);
   if(safe.length){
     gs.attack_streak = 0;
-    return 탐욕_선택(gs, safe, used, current_dict);
+    return 탐욕_선택(gs, 흔함_거르기(gs, safe), used, current_dict);
   }
   return null;
 }
@@ -134,7 +155,7 @@ function 탐욕_선택(gs, 후보들, used, 사전){
   const 탐욕도 = 난이도설정(gs).탐욕도;
   if(!탐욕도 || 후보들.length < 2) return 후보들[Math.floor(Math.random() * 후보들.length)];
 
-  const min_len = gs.stage >= 13 ? 3 : 0;
+  const min_len = 족쇄_최소길이(gs.stage);
   // 후보 수 계산은 후보마다 사전을 훑으므로, 후보가 아주 많으면 비용이 커진다.
   // 무작위로 40개만 표본으로 뽑아 그 안에서 고른다(체감 차이는 유지되고 비용은 상한이 걸린다).
   const 표본 = 후보들.length > 40
@@ -146,7 +167,7 @@ function 탐욕_선택(gs, 후보들, used, 사전){
   // "모름"으로 보고 정렬에서 뺀다. 판이 진행되며 조회한 글자가 늘수록 난이도가 또렷해진다
   // (추가 네트워크 호출 0건).
   const 점수 = 표본.map(w => {
-    const 남는수 = find_words(!gs.rev ? w[w.length - 1] : w[0], [...used, w],
+    const 남는수 = find_words(이을글자(w, gs.rev), [...used, w],
                              gs.rev, gs.dueum, 0, min_len, 사전).length;
     if(남는수 === 0 && !한방_판정가능인가(w, gs)) return null;   // 모름
     return { 단어: w, 남는수 };
@@ -171,7 +192,7 @@ function 탐욕_선택(gs, 후보들, used, 사전){
    우리말샘 후보 조회 (2026-07-29 전면 전환 — 관리자님 "90 정도를 온라인에 초점을 둔다")
    ────────────────────────────────────────────────────────────────
    종전의 `희귀어_난이도인가`(초월·심연/11층+만 온라인 조회)는 **삭제**했다. 이제 전 난이도가
-   우리말샘을 탄다. 난이도는 후보의 "출처"가 아니라 `난이도_슬라이스`(어느 구간을 쓰나)와
+   우리말샘을 탄다. 난이도는 후보의 "출처"가 아니라 `흔함_거르기`(얼마나 흔한 말까지 쓰나, 빈도 자료)와
    `탐욕_선택`(그중 무엇을 고르나)이 만든다.
 
    ⚠️ 로컬 사전이 없어졌으므로 네트워크 실패 = 게임 정지가 될 수 있다. 안전망 두 겹을 둔다.
@@ -193,10 +214,9 @@ function 세션_수집(단어들){
 // 한방으로 오판돼 매 턴 사용자가 이겨 버린다(실측으로 확인).
 // → **물어본 적 있는 글자에 대해서만 한방을 판정한다.**
 let 세션_조회글자 = new Set();
-function 조회한_글자인가(글자, rev){ return 세션_조회글자.has((rev ? 'end:' : 'start:') + 글자); }
 function 한방_판정가능인가(word, gs){
-  const 다음 = !gs.rev ? word[word.length - 1] : word[0];
-  return 조회한_글자인가(다음, gs.rev);
+  const 다음 = 이을글자(word, gs.rev);
+  return 세션_조회글자.has((gs.rev ? 'end:' : 'start:') + 다음);
 }
 
 // 안전망 ② — 연속 실패가 쌓이면 조용히 이상하게 돌지 말고 호출부가 명시적으로 알리게 한다.
@@ -206,13 +226,21 @@ function 우리말샘_불통인가(){ return 연속_조회실패 >= 조회실패
 
 function 세션_비우기(){ 세션_수집어 = []; 세션_조회글자 = new Set(); 연속_조회실패 = 0; }
 
-// 난이도별 후보 구간 — 우리말샘은 표제어 순으로 오므로 앞쪽이 상대적으로 흔한 말이고 뒤로 갈수록
-// 희귀어다. 종전에 "로컬(자연스러운 말)이냐 온라인(희귀어)이냐"로 나누던 품질 축을 이걸로 대체한다.
-function 난이도_슬라이스(gs, 목록){
-  if(!목록.length || gs.game_mode === 'ARCADE') return 목록;
-  const 비율 = { 안온:0.4, 격동:0.7, 초월:1.0, 심연:1.0 }[gs.diff] ?? 1.0;
-  if(비율 >= 1) return 목록;
-  return 목록.slice(0, Math.max(1, Math.round(목록.length * 비율)));
+// 난이도별로 AI가 낼 단어의 흔함 상한(2026-09-27, 빈도 자료 — 사전.js 흔함단계). 종전엔 우리말샘
+// 표제어 순서로 앞쪽만 잘라 썼는데, 그 순서는 흔함과 무관해 AI가 '각심소위'·'가곽' 같은 희귀어만 냈다.
+//   안온 1(아주 흔한 말) · 격동 2 · 초월 3(말뭉치에 나온 말) · 심연 4(희귀어 포함 전부)
+//   아케이드: 1~4층 2 · 5~9층 3 · 10층부터 4
+// 상한 안에 후보가 없으면 한 단계씩 넓힌다(판이 막히지 않게).
+function 흔함_상한(gs){
+  if(gs.game_mode === 'ARCADE') return gs.stage >= 10 ? 4 : gs.stage >= 5 ? 3 : 2;
+  return { 안온:1, 격동:2, 초월:3, 심연:4 }[gs.diff] ?? 2;
+}
+function 흔함_거르기(gs, 후보들){
+  for(let 상한 = 흔함_상한(gs); 상한 < 4; 상한++){
+    const 남음 = 후보들.filter(w => 흔함단계(w) <= 상한);
+    if(남음.length) return 남음;
+  }
+  return 후보들;
 }
 
 // 마지막 온라인 후보 조회의 결과 — UI가 화면에 상태를 설명하는 데 쓴다.
@@ -228,15 +256,41 @@ let 마지막_온라인조회 = { 상태:'미시도', 개수:0 };
 // **"AI는 못 찾는데 한방은 아니다"** 라는 어긋난 상태가 만들어졌다. 두 곳의 기준을 맞춘다.
 // 부수 효과로 후보 풀이 두세 배 넓어져, Worker가 후보를 적게 주는 현 상황(Worker_수정요청.md ②)의
 // 완화책도 된다. 앞말잇기(rev)는 "그 글자로 끝나는 단어"라 변형이 없다 — 종전과 동일하게 1회 호출.
+// 이 글자로 이을 수 있는 단어를 우리말샘에 일괄 조회한다 — 끝말잇기는 두음 변형 글자까지 한꺼번에
+// (직렬로 돌면 변형 수만큼 왕복이 쌓인다, 최대 6초 × 3). 앞말잇기는 "그 글자로 끝나는 단어"라 변형 없음.
+// 반환: 결과들(글자별 목록, 실패는 null)과 기록() — 실패로 볼 기준·기록 시점(세대 확인 전후)이
+// 호출부마다 달라서, 판정은 호출부가 하고 성공분을 세션에 남길 때 기록()을 부른다.
+async function 이을단어_조회(글자, gs){
+  const 방향 = gs.rev ? 'end' : 'start';
+  const 글자들 = gs.rev ? [글자] : get_valid_start_chars(글자, gs.dueum);
+  const 결과들 = await Promise.all(글자들.map(c => 국어원_후보목록조회(c, 방향)));
+  // 성공한 글자만 "물어본 글자"로(한방 판정의 전제), 받은 단어는 세션 수집어로(안전망 ①) 남기고 합본을 돌려준다
+  const 기록 = () => {
+    const 합본 = [];
+    결과들.forEach((r, i) => {
+      if(r === null) return;
+      세션_조회글자.add(방향 + ':' + 글자들[i]);
+      for(const w of r) if(!합본.includes(w)) 합본.push(w);
+    });
+    세션_수집(합본);
+    return 합본;
+  };
+  return { 결과들, 기록 };
+}
+
 async function 온라인후보_가져오기(gs){
   마지막_온라인조회 = { 상태:'미시도', 개수:0 };
   if(!국어원_활성화 || !gs.ai_last_char) return [];
 
-  const 방향 = gs.rev ? 'end' : 'start';
-  const 조회할글자 = gs.rev ? [gs.ai_last_char]
-                           : get_valid_start_chars(gs.ai_last_char, gs.dueum);
-  const 결과들 = await Promise.all(조회할글자.map(c => 국어원_후보목록조회(c, 방향)));
-
+  // 2026-09-29 실측: 우리말샘이 느린 순간 한 턴이 15초까지 멈췄다. 흔한 말 풀에 이을 말이 이미 있으면
+  // Worker는 1초까지만 기다린다 — 늦게 온 결과는 기기 캐시에 남아 다음 조회에 쓰인다.
+  // ponytail: 고정 1초 — 느린 날 희귀어 후보가 줄어든다. 문제되면 난이도별 대기시간으로
+  const 조회 = 이을단어_조회(gs.ai_last_char, gs);
+  const 풀에있음 = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, 0,
+                            족쇄_최소길이(gs.stage), ai_후보사전(gs)).length > 0;
+  const 받음 = 풀에있음 ? await Promise.race([조회, new Promise(r => setTimeout(r, 1000, null))]) : await 조회;
+  if(!받음) return [];   // 기다리지 않고 풀로 진행(상태 '미시도' — 안내 없음)
+  const { 결과들, 기록 } = 받음;
   // 전부 실패했을 때만 실패로 본다 — 하나라도 받아 왔으면 그걸로 진행하는 편이 낫다.
   if(결과들.every(r => r === null)){
     연속_조회실패 += 1;
@@ -244,18 +298,9 @@ async function 온라인후보_가져오기(gs){
     return [];
   }
   연속_조회실패 = 0;
-
-  const 목록 = [];
-  결과들.forEach((r, i) => {
-    if(r === null) return;
-    // 실제로 응답을 받은 글자만 "물어본 글자"로 기록한다(한방 판정의 전제).
-    세션_조회글자.add(방향 + ':' + 조회할글자[i]);
-    for(const w of r) if(!목록.includes(w)) 목록.push(w);
-  });
-  세션_수집(목록);                       // 받은 건 전부 세션에 쌓아 둔다(안전망 ①)
-  const 슬라이스 = 난이도_슬라이스(gs, 목록);
-  마지막_온라인조회 = { 상태: 슬라이스.length ? '성공' : '없음', 개수: 슬라이스.length };
-  return 슬라이스;
+  const 목록 = 기록();
+  마지막_온라인조회 = { 상태: 목록.length ? '성공' : '없음', 개수: 목록.length };
+  return 목록;
 }
 
 // 이 단어가 **정말** 한방 단어인지 확정 (2026-07-27 신설 — 관리자님 "바로 패배" 제보의 핵심 수정).
@@ -271,40 +316,24 @@ async function 온라인후보_가져오기(gs){
 //                                          사용자에게 불이익을 주지 않는다(국어원 실패 공정성).
 //   4. 온라인 후보에 이을 단어가 있음    → 한방 아님
 //   5. 온라인으로도 0개임을 확인         → 한방 확정
+// 2026-09-28 실사전 아케이드 점검: Worker 후보는 글자당 몇 개뿐이고 '면'은 0개라 『화면』이 한방으로
+// 확정돼 목숨을 잃었다. 1·4단계에 AI와 같은 후보 풀(빈도 목록의 흔한 말 포함)을 쓴다.
 async function 한방_확정인가(word, gs){
   const used = used_words(gs);
-  if(!is_hanbang(word, used, gs.rev, gs.dueum, gs.stage)) return false;   // 1
+  if(!is_hanbang(word, used, gs.rev, gs.dueum, gs.stage, ai_후보사전(gs))) return false;   // 1
   if(!국어원_활성화) return true;                                          // 2
 
-  const 다음글자 = !gs.rev ? word[word.length - 1] : word[0];
-  const 방향 = gs.rev ? 'end' : 'start';
+  const 다음글자 = 이을글자(word, gs.rev);
   // 끝말잇기는 두음법칙 변환형으로도 이을 수 있으므로 그 글자들까지 전부 확인한다
-  // (앞말잇기는 "그 글자로 끝나는 단어"라 변환형이 없다 — find_words의 reverse 분기와 동일).
-  const 조회할글자 = gs.rev ? [다음글자] : get_valid_start_chars(다음글자, gs.dueum);
-  // 직렬로 돌면 변형 수만큼 왕복이 쌓인다(최대 6초 × 3). 한꺼번에 물어본다.
-  const 결과들 = await Promise.all(조회할글자.map(c => 국어원_후보목록조회(c, 방향)));
+  const { 결과들, 기록 } = await 이을단어_조회(다음글자, gs);
   if(결과들.some(r => r === null)) return false;                           // 3
-
-  const 목록 = [];
-  결과들.forEach((r, i) => {
-    // 이미 값을 치른 조회다 — 세션 사전·조회글자에 반드시 반영한다. 종전에는 여기서 받은
-    // 목록을 판정에만 쓰고 버려서, 같은 글자를 AI 턴에 또 물어보고 안전망에도 안 쌓였다.
-    세션_조회글자.add(방향 + ':' + 조회할글자[i]);
-    for(const w of r) if(!목록.includes(w)) 목록.push(w);
-  });
-  세션_수집(목록);
+  // 이미 값을 치른 조회다 — 세션 사전·조회글자에 반드시 반영한다(종전엔 판정에만 쓰고 버려서
+  // 같은 글자를 AI 턴에 또 물어보고 안전망에도 안 쌓였다).
+  const 목록 = 기록();
   // 이미 쓴 단어·자기 자신을 빼고, 그 층의 길이 제약을 통과하는 후보가 하나라도 남는지 본다.
   if(find_words(다음글자, [...used, word], gs.rev, gs.dueum, 0,
-                gs.stage >= 13 ? 3 : 0, 목록).length) return false;        // 4
+                족쇄_최소길이(gs.stage), ai_후보사전(gs, 목록)).length) return false;   // 4
   return true;                                                             // 5
-}
-
-// 온라인 후보까지 포함해 AI 단어를 고르는 비동기 래퍼(2026-07-24 신설, 관리자님 지시).
-// 게이트 off·API 실패(네트워크 오류 등)면 빈 배열로 강등돼 기존 ai_generate_word(gs)와 동일하게
-// 로컬 사전만으로 동작한다(하이브리드: 실패 시 로컬 폴백). 어떤 풀을 쓸지는 위 난이도 규칙이 결정.
-async function ai_generate_word_비동기(gs){
-  const 추가후보 = await 온라인후보_가져오기(gs);
-  return ai_generate_word(gs, 추가후보);
 }
 
 // 칭호 체크 — 서바이벌 턴 마일스톤(95/100/200/30배수) + 아케이드(Phase 4) 자리 보존
@@ -332,7 +361,27 @@ function check_title(gs){
 
 // 패배 처리(틀리면 목숨 -1) — 원본 100턴/95턴 직전 탈락 특수 대사 포함.
 // 2026-07-29: 원본의 '실수(strikes) 4회 = 목숨 1개' 2단 구조를 폐지하고 목숨 하나로 통일했다.
+// 턴 점수(2026-09-27 관리자님 결정) — 끄투 getPreScore 공식을 참고해 새로 구현(코드 복사 아님).
+// 긴 단어일수록·판이 길어질수록·빨리 낼수록 높고, 난이도와 콤보(3연속부터 +10%씩, 최대 +50%)를 곱한다.
+// 속도비율: 턴 타이머의 남은 시간 비율(0~1). 타이머가 없는 판은 0.75(보통 속도)로 친다.
+const 난이도_점수배율 = { 안온: 0.8, 격동: 1.0, 초월: 1.25, 심연: 1.5 };
+function 턴_점수(word, gs, 속도비율 = 0.75){
+  const 기본 = 2 * (Math.pow(5 + 7 * word.length, 0.74) + 0.88 * gs.history.length) * (0.5 + 0.5 * 속도비율);
+  const 난이도 = gs.game_mode === 'ARCADE' ? 1 + 0.05 * gs.stage : (난이도_점수배율[gs.diff] ?? 1);
+  const 콤보 = 1 + 0.1 * Math.min(Math.max(gs.combo - 2, 0), 5);
+  return Math.round(기본 * 난이도 * 콤보);
+}
+
+// 이번 턴의 제한 시간(초). null = 타이머 없음(설정에서 끔·안온·GOD MODE).
+function 턴_제한초(gs){
+  if(!gs.timer || gs.god_mode_active) return null;
+  const [시작, 최소] = gs.game_mode === 'ARCADE' ? [Math.max(8, 21 - gs.stage), 7] : (난이도설정(gs).타이머 || []);
+  if(시작 == null) return null;
+  return Math.max(최소, 시작 - Math.floor(gs.turn / 5));
+}
+
 function user_defeat(gs){
+  gs.흐름?.push('🟥');   // 결과 공유 요약 — 목숨을 잃은 턴
   if(gs.game_mode === 'SURVIVAL'){
     if(['안온','격동'].includes(gs.diff) && gs.turn >= 90 && gs.turn <= 99){
       로그_추가(대사(gs, 'user_defeat_4'));
@@ -381,7 +430,7 @@ function 붕괴확률(attempts){
 // 층 클리어 → 다음 층 진입. ai_defeated=true면 AI가 단어를 못 찾아 클리어된 경우.
 function arcade_floor_up(gs, ai_defeated){
   const cleared = gs.stage;
-  gs.stage += 1; gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
+  gs.stage += 1; gs.stage_turn = 0;
 
   if(gs.stage === 9) gs.erosion_level = 1;
   if(gs.stage === 20){ gs.game_state = 'SOFTLOCKED'; return; }
@@ -392,7 +441,7 @@ function arcade_floor_up(gs, ai_defeated){
   gs.trial_rejected_floor = -1; gs.trial_attempts_this_floor = 0;
 
   if(cleared % 2 === 0){
-    if(gs.hints !== Infinity) gs.hints += 1;
+    gs.hints += 1;
     로그_추가(`💡 [${cleared}층 보상] 힌트 +1 획득. 남은 힌트: ${표시무한(gs.hints)}`, 'ok');
   }
 
@@ -411,23 +460,5 @@ function arcade_floor_up(gs, ai_defeated){
   gs.ai_last_char = null; gs.ai_last_word = null;
 }
 
-/* ⚠️ 봉인 (2026-07-29) — 아케이드 '층 재시작'
-   원본에서 이 함수는 "실수 4회로 목숨 1개를 잃으면 그 대가로 층을 처음부터 다시"라는 뜻이었다.
-   실수(strikes)를 폐지하고 목숨 하나로 통일하면서 그 대가 관계 자체가 사라져 호출부가 없어졌다
-   (이제 두 모드 모두 목숨이 0이 될 때까지 그 자리에서 계속 이어간다 — user_defeat 참조).
-   되살릴 근거를 남겨 두려고 지우지 않고 주석으로 보존한다(이의/허세 봉인과 같은 관례).
-
-function arcade_restart_floor(gs){
-  gs.stage_turn = 0; gs.curse_dark_strikes = 0;
-  gs.ai_last_char = null; gs.ai_last_word = null;
-}
-*/
-
-if (typeof module !== 'undefined') module.exports = {
-  validate_word, ai_generate_word, ai_generate_word_비동기, check_title, user_defeat,
-  붕괴확률, arcade_floor_up,   // arcade_restart_floor는 봉인(위 주석)
-  온라인후보_가져오기, 세션_수집, 세션_비우기, 우리말샘_불통인가, 난이도_슬라이스,
-  조회한_글자인가, 한방_판정가능인가,
-  get 세션_수집어(){ return 세션_수집어; }, ai_후보사전, ai_한방금지인가, 한방_확정인가, 탐욕_선택,
-  get 마지막_온라인조회(){ return 마지막_온라인조회; }
-};
+// 원본의 arcade_restart_floor(실수 4회 → 층 재시작)는 실수 폐지(2026-07-29)로 호출부가 사라져 삭제했다 —
+// 이제 두 모드 모두 목숨이 0이 될 때까지 그 자리에서 이어간다(user_defeat 참조).

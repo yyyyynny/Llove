@@ -49,6 +49,9 @@ function 배경클릭_닫기(ev, 닫기fn){
   닫기fn();
 }
 
+// U12(10-03): 순차 등장(.fu)은 화면마다 첫 방문에만. display:none→표시 때 CSS 애니메이션이 매번 다시
+// 돌아, 종전엔 홈으로 돌아올 때마다 카드 10장이 다시 올라왔다(반복되면 기다림·거슬림)
+const 본화면 = new Set();
 function goNav(id, btn){
   if(id===curScreen) return;
   const prev=document.getElementById(curScreen);
@@ -63,13 +66,17 @@ function goNav(id, btn){
     setTimeout(()=>{prev.classList.remove('leaving')},280);
   }
 
+  const 첫방문 = !본화면.has(id);
+  본화면.add(id);
+  // 다시 오는 화면은 표시되기 전에 멈춰 둬야 첫 프레임부터 깜빡이지 않는다
+  if(!첫방문) next.querySelectorAll('.fu').forEach(e=>{ e.style.animation='none'; });
   next.classList.add('active');
   // v3.7 항목18: 화면 전환 시 scrollTop 초기화 (이전 화면의 스크롤 잔재 방지)
   next.scrollTop=0;
   next.querySelectorAll('.qbody, .ach-list, .set-body, .seg-content').forEach(el=>{ el.scrollTop=0; });
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     next.classList.add('entering');
-    next.querySelectorAll('.fu').forEach(e=>{e.style.animation='none';void e.offsetWidth;e.style.animation='';});
+    if(첫방문) next.querySelectorAll('.fu').forEach(e=>{e.style.animation='none';void e.offsetWidth;e.style.animation='';});
     setTimeout(()=>next.classList.remove('entering'),400);
   }));
 
@@ -81,14 +88,14 @@ function goNav(id, btn){
   //        "뒤로가기를 수십 번 눌러야 나가지는" 문제 방지
   if(!뒤로가기_이동중){
     try{
-      const 네비간이동 = SHOW_NAV.includes(id) && SHOW_NAV.includes(이전화면ID);
+      const 네비간이동 = Object.hasOwn(NAV_MAP, id) && Object.hasOwn(NAV_MAP, 이전화면ID);
       if(네비간이동) history.replaceState({화면:id}, '', '');
       else history.pushState({화면:id}, '', '');
     }catch(e){ /* file:// 등 미지원 환경 무시 */ }
   }
 
   const bnav=document.getElementById('g-bnav');
-  if(SHOW_NAV.includes(id)){
+  if(Object.hasOwn(NAV_MAP, id)){
     bnav.classList.remove('hidden');
     document.querySelectorAll('.nv-btn').forEach(b=>b.classList.remove('on'));
     const activeId=NAV_MAP[id];
@@ -119,9 +126,9 @@ function afterNav(id){
     document.getElementById('homeRank').textContent=등급.등급;
     document.getElementById('homeTitle').textContent='· '+등급.세부;
     document.getElementById('homeExpTxt').textContent=`${표시Exp} / ${표시Max} EXP`;
-    document.getElementById('homeStreak').textContent='🔥 '+사용자.연속학습일;
-    document.getElementById('homeVocab').textContent='📚 '+표시마스터리('총누적어휘수');
-    document.getElementById('homeReview').textContent='📝 '+사용자.복습대기열수;
+    document.getElementById('homeStreak').textContent=사용자.연속학습일;
+    document.getElementById('homeVocab').textContent=표시마스터리('총누적어휘수');
+    document.getElementById('homeReview').textContent=사용자.복습대기열수;
 
     // EXP 바 애니메이션 (transition:none → rAF 두 번 → transition 복구)
     const bar=document.getElementById('homeExp');
@@ -163,10 +170,7 @@ function afterNav(id){
     // β10: 성장 상세 화면 렌더
     렌더_성장상세();
   }
-  // 학습 화면 진입 시 토큰 바 갱신 (β5) — 세션10-p: sq6·sq7(지문 독해·문장 배열) 누락 발견, 추가
-  if(['sq1','sq2','sq3','sq4','sq5','sq6','sq7'].includes(id)){
-    토큰표시_갱신();
-  }
+  // (학습 화면 토큰 바 갱신은 goLearn이 진입마다 수행 — 학습 화면은 항상 goLearn을 거친다)
   if(id==='sse'){
     // 설정: 사용자 객체 기반
     const 등급 = 등급정보(curLv);
@@ -188,13 +192,6 @@ function afterNav(id){
     // v3.5: 복습 화면 진입 시 동적 렌더링
     renderReview();
   }
-  // 학습 모드 진입 시 항상 초기화
-  if(id==='sq2'){
-    setTimeout(initFlashcard,50);
-  }
-  if(id==='sq4'){
-    setTimeout(initDad,50);
-  }
 }
 
 /* 학습 모드 진입 — 카테고리별 화면/렌더 분기 */
@@ -214,68 +211,42 @@ function goLearn(category, screenId, btn){
   // 세션5: 매핑 실패 시 마스터리가 조용히 누락되는 문제 — 콘솔 경고로 표면화
   if(!현재학습모드필드) console.warn('[마스터리] 모드 매핑 없음 — 학습 수가 집계되지 않습니다:', category);
   퀴즈세션 = {수:0, 오답:0};  // 퍼펙트 세션 카운터 — 모드 진입마다 초기화
+  학습진행수 = 0;              // 상단 진행 표시("n문제째") — 모드 진입마다 1부터
   토큰표시_갱신();
-  // 4지선다 화면(sq1) — 상식·어원 / 세계사·신화 분기 (β9: 출제_분기 경유)
+  // 화면 머리(제목·배지·설정 동기화)만 여기서 정하고, 실제 출제는 「넘어가기」와 같은 함수를 쓴다
   if(screenId==='sq1'){
     document.getElementById('sq1Title').textContent=category;
-    if(category==='상식·어원'){
-      document.getElementById('sq1Mode').textContent='🌍 4지선다';
-      renderQuiz4(출제_분기(category, []));
-    } else {
-      document.getElementById('sq1Mode').textContent='🏛️ 4지선다';
-      renderQuiz4(출제_분기(category, []));
-    }
+    document.getElementById('sq1Mode').textContent = 학습설정.sq1;
   }
-  // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말
-  // 버그2·9 수정: 4지선다 하드코딩 제거 → 저장된 학습설정.sq2 방식대로 출제 (진입·재진입 공통)
-  if(screenId==='sq2'){
-    document.getElementById('sq2Title').textContent=category;
-    sq2_출제_렌더(category);
-  }
-  if(screenId==='sq3'){
-    renderQuiz3(출제_분기('맞춤법', []));
-  }
-  if(screenId==='sq4'){
-    // v3.6: 초기 진입 시 학습설정.sq4 값 기반으로 데이터 선택 + 패널 버튼 상태 동기화
-    const 현재난이도 = 학습설정.sq4 || '아↗그거!';
-    renderDad(아재풀_구성(현재난이도));
-    동기화_학습설정_버튼('sq4', 현재난이도);
-  }
-  // 버그 수정(2026-06-14): 구어 교정(sq5) 진입 분기 누락 — 화면만 전환되고 예문이 출제되지 않던 문제.
-  //   기존엔 페이지 최초 로드/「다음 예문」 버튼으로만 출제돼, 모드 진입 시 빈 화면처럼 보였다.
-  if(screenId==='sq5'){
-    switchSpkMode('text');     // 진입 시 텍스트 입력 탭을 기본으로 초기화
-    구어교정_예문표시();        // 정령왕 JSON 구어_교정 풀에서 예문 즉시 출제
-  }
-  // 세션10-c: 지문 독해(sq6) — 방식 옵션 없음, 요지/추론/세부 문장형 보기 전용 엔진
+  // 플래시카드 화면(sq2) — 고사성어·속담 / 한자·우리말 (저장된 학습설정.sq2 방식대로 출제)
+  if(screenId==='sq2') document.getElementById('sq2Title').textContent=category;
+  // v3.6: 아재개그 진입 시 학습설정.sq4 값으로 패널 버튼 상태 동기화
+  if(screenId==='sq4') 동기화_학습설정_버튼('sq4', 학습설정.sq4 || '아↗그거!');
+  // 구어 교정(sq5): 진입 시 텍스트 입력 탭을 기본으로 (2026-06-14 진입 분기 누락 수정의 연장)
+  if(screenId==='sq5') switchSpkMode('text');
+  // 세션10-c: 지문 독해(sq6)·세션10-m: 문장 배열(sq7) — 방식 옵션 없는 문해력 2탄
   if(screenId==='sq6'){
     document.getElementById('sq6Title').textContent=category;
-    document.getElementById('sq6Mode').textContent='📖 지문 독해';
-    독해_렌더();
+
   }
-  // 세션10-m: 문장 배열(sq7) — 문해력 2탄(D안), 방식 옵션 없음
   if(screenId==='sq7'){
     document.getElementById('sq7Title').textContent=category;
-    document.getElementById('sq7Mode').textContent='🧩 문장 배열';
-    문장배열_렌더();
+
   }
+  현재모드_다음출제(screenId, category);
 }
 
-// 세션10-e 항목3: 랜덤 「넘어가기」 — 화면 전환·타이틀·세션 리셋 없이 같은 모드에서 문제만 다시 뽑는다.
-// goLearn의 출제 분기와 동일 로직이라 중복이지만, 모드 진입 부작용(채팅 마감·popstate 기록 등)을 피하려고
-// 별도 함수로 둔다. goLearn의 sq1~sq6 분기가 바뀌면 이쪽도 함께 맞춰야 한다.
-function 현재모드_다음출제(){
-  const 카테고리 = 현재학습모드, 화면 = curScreen;
+// 학습 화면별 출제 — goLearn(진입)과 랜덤 「넘어가기」(세션10-e 항목3: 화면 전환·타이틀·세션 리셋 없이
+// 같은 모드에서 문제만 다시 뽑기)가 함께 쓰는 단일 경로. 새 학습 화면은 여기에만 분기를 추가하면 된다.
+function 현재모드_다음출제(화면 = curScreen, 카테고리 = 현재학습모드){
   if(화면==='sq1'){
-    renderQuiz4(출제_분기(카테고리, []));
+    renderQuiz('sq1', 출제_분기(카테고리));
   } else if(화면==='sq2'){
     sq2_출제_렌더(카테고리);
   } else if(화면==='sq3'){
-    renderQuiz3(출제_분기('맞춤법', []));
+    renderQuiz('sq3', 출제_분기('맞춤법'));
   } else if(화면==='sq4'){
-    const 현재난이도 = 학습설정.sq4 || '아↗그거!';
-    renderDad(아재풀_구성(현재난이도));
-    setTimeout(initDad,30);
+    renderDad(아재풀_구성(학습설정.sq4 || '아↗그거!'));
   } else if(화면==='sq5'){
     구어교정_예문표시();
   } else if(화면==='sq6'){
@@ -296,8 +267,7 @@ function 랜덤_넘어가기(){
    재진입 시 4지선다로 리셋되던 문제를 해소한다. */
 function sq2_출제_렌더(category){
   const 방식 = 학습설정.sq2 || '4지선다';
-  const 배지아이콘 = category === '한자·우리말' ? '🈯' : '📜';
-  document.getElementById('sq2Mode').textContent = `${배지아이콘} ${방식}`;
+  document.getElementById('sq2Mode').textContent = 방식;
   // 설정 패널 버튼 활성 상태도 현재 방식과 동기화
   동기화_학습설정_버튼('sq2', 방식);
   // 근본 수정(2026-06-14): 기존엔 '유의어 변별' 외 4방식이 전부 renderFlashcard로 폴백되어
@@ -305,15 +275,13 @@ function sq2_출제_렌더(category){
   //   이제 선택한 방식대로 실제 출제 화면을 분기한다.
   if(방식 === '예문형'){
     유의어변별_렌더();
-  } else if(방식 === '4지선다'){
-    sq2_사지선다_렌더(category);
-  } else if(방식 === '역방향'){
-    sq2_역방향_렌더(category);
+  } else if(방식 === '4지선다' || 방식 === '역방향'){
+    sq2_선다렌더(category, 방식 === '역방향');
   } else if(방식 === '뜻 직접 서술'){
     sq2_뜻서술_렌더(category);
   } else {
     // 플래시카드(명시 선택) — data/ JSON이 채워지면 출제_분기가 그 풀을 자동 사용
-    renderFlashcard(출제_분기(category, []));
+    renderFlashcard(출제_분기(category));
   }
 }
 
@@ -348,9 +316,9 @@ function 랜덤학습(){
   // 가중치 추첨 — 0(제외)은 후보에서 빠짐
   const 풀 = [];
   랜덤학습_모드목록.forEach(m => { for(let i=0;i<랜덤_가중치(m[0]);i++) 풀.push(m); });
-  if(!풀.length){ showToastMsg('⚙ 모든 모드가 제외되어 있습니다 — 랜덤 설정을 확인하세요'); return; }
+  if(!풀.length){ showToastMsg('모든 모드가 제외되어 있습니다 — 랜덤 설정을 확인하세요'); return; }
   const [카테고리, 화면] = 풀[Math.floor(Math.random()*풀.length)];
-  showToastMsg('🎲 오늘의 랜덤: ' + 카테고리);
+  showToastMsg('오늘의 랜덤: ' + 카테고리);
   goLearn(카테고리, 화면, null);
   // 세션10-e 항목3: goLearn이 랜덤진입을 false로 초기화하므로, 반드시 그 뒤에 켠다
   랜덤진입 = true;
@@ -431,6 +399,16 @@ function 키보드접근_시작(){
     try{ if(getComputedStyle(el).pointerEvents === 'none') return; }catch(err){ /* 계산 실패 시 통과 */ }
     e.preventDefault();   // Space로 페이지가 스크롤되지 않게
     el.click();
+  });
+
+  // Esc → 맨 위에 열린 오버레이의 배경을 누른 것과 같게 닫는다(배경 탭을 막아 둔 경우는 Esc로도 안 닫힌다)
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Escape') return;
+    const 열린 = [...document.querySelectorAll(키보드_배경선택자)].filter(el => el.classList.contains('show')).reverse();
+    const 맨위 = 열린.sort((a, b) => (parseInt(getComputedStyle(b).zIndex) || 0) - (parseInt(getComputedStyle(a).zIndex) || 0))[0];
+    if(!맨위) return;
+    마지막포인터다운타깃 = null;   // 직전 클릭 위치가 안쪽이었어도 배경 클릭으로 인정되게
+    맨위.click();
   });
 
   키보드접근_보강(document);

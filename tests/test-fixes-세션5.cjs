@@ -7,7 +7,7 @@ load((window) => {
   const ev = (code) => window.eval(code);
 
   // 재구조화 이후: __TEST_QUIZ__(정적 폴백)이 data/상식어원.json으로 이전되고 코드에서 삭제됨.
-  // renderQuiz4()는 데이터를 인자로 직접 받으므로, 테스트는 자체 픽스처를 window에 심어 재사용한다.
+  // renderQuiz()는 데이터를 인자로 직접 받으므로, 테스트는 자체 픽스처를 window에 심어 재사용한다.
   ev(`window.__TEST_QUIZ__=[{ai:true, cat:'상식', q:'테스트 문제?', opts:[
     {t:'오답A', c:false}, {t:'정답', c:true}, {t:'오답B', c:false}, {t:'오답C', c:false}
   ]}];`);
@@ -22,9 +22,9 @@ load((window) => {
 
   /* ── 버그2: 커스텀 테마 이름 → 테마 칩 라벨 반영 ── */
   ev("커스텀이름='새벽바다'; 커스텀_저장persist();");
-  assert('버그2: 이름 지정 시 칩 라벨 변경', doc.querySelector('#th-custom .tnm').textContent === '🎨 새벽바다');
+  assert('버그2: 이름 지정 시 칩 라벨 변경', doc.querySelector('#th-custom .tnm').textContent === '새벽바다');
   ev("커스텀이름=''; 커스텀_저장persist();");
-  assert('버그2: 이름 없으면 「커스텀」 유지', doc.querySelector('#th-custom .tnm').textContent === '🎨 커스텀');
+  assert('버그2: 이름 없으면 「커스텀」 유지', doc.querySelector('#th-custom .tnm').textContent === '커스텀');
 
   /* ── 버그5: 성장 상세에도 등급 표시 (현황과 통일) ── */
   ev('curLv=70; 렌더_성장상세();');
@@ -43,26 +43,26 @@ load((window) => {
   assert('버그7: UI동기화로 버튼 on 반영', sq3직접버튼.classList.contains('on'));
 
   /* ── 버그7: 직접입력 실구현 — 렌더·정답·오답·1회 잠금 ── */
-  ev("학습설정.sq1='직접입력'; renderQuiz4(__TEST_QUIZ__);");
+  ev("학습설정.sq1='직접입력'; renderQuiz('sq1', __TEST_QUIZ__);");
   assert('직접입력: 입력칸 렌더', !!doc.getElementById('sq1DirectInp'));
   assert('직접입력: 선택지 없음', !doc.querySelector('#sq1Body .aopt'));
   const 정답 = ev("현재퀴즈문제.opts.find(o=>o.c).t");
   doc.getElementById('sq1DirectInp').value = 정답;
   const exp이전 = ev('사용자.총누적EXP||0');
   ev("직접입력_제출('sq1');");
-  assert('직접입력: 정답 판정 표시', doc.getElementById('sq1DirectResult').innerHTML.includes('정답입니다'));
+  assert('직접입력: 정답 판정 표시', doc.getElementById('sq1DirectResult').innerHTML.includes('✓ 정답'));
   assert('직접입력: 정답 시 EXP 획득', ev('사용자.총누적EXP||0') > exp이전);
   const exp1회 = ev('사용자.총누적EXP||0');
   ev("직접입력_제출('sq1');");
   assert('직접입력: 재제출 잠금(EXP 불변)', ev('사용자.총누적EXP||0') === exp1회);
   // 오답 경로
-  ev("renderQuiz4(__TEST_QUIZ__);");
+  ev("renderQuiz('sq1', __TEST_QUIZ__);");
   doc.getElementById('sq1DirectInp').value = '완전히틀린답XYZ';
   const 대기열이전 = ev('복습데이터.대기열.length');
   ev("직접입력_제출('sq1');");
   assert('직접입력: 오답 판정 + 정답 공개', doc.getElementById('sq1DirectResult').innerHTML.includes('오답'));
   assert('직접입력: 오답 → 복습 대기열 추가', ev('복습데이터.대기열.length') === 대기열이전 + 1);
-  ev("학습설정.sq1='선택지'; renderQuiz4(__TEST_QUIZ__);");
+  ev("학습설정.sq1='선택지'; renderQuiz('sq1', __TEST_QUIZ__);");
   assert('직접입력: 선택지 복귀 시 보기 렌더', !!doc.querySelector('#sq1Body .aopt'));
 
   /* ── 버그7+추가: 아재개그 직접입력 + revealDad 중복 EXP 차단 ── */
@@ -84,9 +84,11 @@ load((window) => {
   const 패널 = doc.querySelector('.lset-panel');
   ev(`toggleLset('${패널.id}')`);
   assert('버그8: 펼침 시 open 클래스', 패널.classList.contains('open'));
-  assert('버그8: 화살표 ▲ 교체', 패널.querySelector('.lset-toggle').textContent === '▲');
+  // 10-03: ▼/▲ 머리 줄 대신 화면 머리의 ⚙ 단추가 여닫고 열림 상태(aria-expanded)를 알린다
+  const 단추 = doc.querySelector(`.q-set[onclick*="'${패널.id}'"]`);
+  assert('버그8: 펼치면 ⚙ 단추가 열림 표시', 단추.getAttribute('aria-expanded') === 'true' && 단추.classList.contains('on'));
   ev(`toggleLset('${패널.id}')`);
-  assert('버그8: 접힘 시 ▼ 복귀', 패널.querySelector('.lset-toggle').textContent === '▼');
+  assert('버그8: 접으면 열림 표시 해제', 단추.getAttribute('aria-expanded') === 'false' && !단추.classList.contains('on'));
   assert('버그8: 회전(rotate) 규칙 위반 제거', !/lset-toggle\{[^}]*rotate/.test(css) && !/open \.lset-toggle\{[^}]*rotate/.test(css));
   assert('버그8: opacity 전환 추가', /\.lset-body\{[^}]*opacity:0/.test(css));
 
@@ -102,9 +104,10 @@ load((window) => {
   ev('closeInfoModal(); 사용자.창조주달성=false;');
 
   /* ── 추가: 플래시카드 판정 잠금 해제 ── */
+  // (옛 initFlashcard가 하던 잠금 해제는 이제 카드를 새로 그리는 것만으로 보장된다)
   doc.getElementById('sq2Body').innerHTML = '<div class="fc-judge" data-판정완료="1"></div>';
-  ev('initFlashcard();');
-  assert('추가: 카드 초기화 시 판정 잠금 해제', !doc.querySelector('#sq2Body .fc-judge').hasAttribute('data-판정완료'));
+  ev("renderFlashcard([{cat:'고사성어',word:'가',mark:'',reading:'가',meaning:'뜻',hanja:[['家','집 가']],direct:'',example:'',mnemonic:''}]);");
+  assert('추가: 새 카드는 판정 잠금 없이 그려진다', !doc.querySelector('#sq2Body .fc-judge').hasAttribute('data-판정완료'));
 
   /* ── 추가: 게스트 보관함 localStorage 폴백 ── */
   ev("현재UID=null; 복습데이터.대기열=[{id:'로컬9',단어:'유실방지어',뜻:'테스트',모드:'상식·어원',연속정답수:0}]; 게스트보관함_저장();");
@@ -118,7 +121,8 @@ load((window) => {
 
   /* ── 추가: 토스트 줄바꿈 / 바텀 여백 ── */
   assert('추가: 토스트 넘침 방지(max-width)', /\.toast\{[^}]*max-width/.test(css));
-  assert('추가: 바텀 네비 여백 확대(96px)', /\.has-bnav\{padding-bottom:96px\}/.test(css));
+  // 10-03: 홈 표시줄 기기용 안전 영역(safe-area-inset-bottom)을 더한다
+  assert('추가: 바텀 네비 여백 확대(96px + 안전 영역)', /\.has-bnav\{padding-bottom:calc\(96px \+ env\(safe-area-inset-bottom/.test(css));
 
   let fail = 0;
   console.log('\n=== 세션5 실사용 검토 수정 테스트 ===');

@@ -50,8 +50,8 @@ function 개발자패널_열기(){
   const btnArea = document.getElementById('infoBtns');
   if(btnArea){
     btnArea.innerHTML = `
-      <button class="btn-g" style="flex:1" onclick="closeInfoModal()">닫기</button>
-      <button class="btn-acc" style="flex:1.4;background:linear-gradient(135deg,#5030a0,#8060c0);border-color:#8060c0" onclick="개발자모드_봉인_실행()">🔒 봉인하기</button>
+      <button class="btn-g grow" onclick="closeInfoModal()">닫기</button>
+      <button class="btn-acc" style="flex:1.4;background:linear-gradient(135deg,#5030a0,#8060c0);border-color:#8060c0" onclick="개발자모드_봉인_실행()">봉인하기</button>
     `;
   }
 }
@@ -122,14 +122,4 @@ function 개발자모드_봉인_실행(){
       `재활성화하려면 [창조주] 달성 흐름을 처음부터 진행해야 합니다.`
     );
   }, 300);
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   (구) 음성 입력 차단 — 항목8에서 정책 변경: 음성 입력을 허용한다.
-   실제 음성 인식은 switchSpkMode/음성인식_토글(Web Speech API)에서 처리한다.
-   아래 함수는 호출 위치 호환을 위해 남겨두되 동작은 비활성화한다.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function 음성입력_차단_부착(){
-  // 항목8: 음성 입력을 허용하도록 정책 변경 — 더 이상 텍스트 필드의 받아쓰기를 차단하지 않는다.
-  //   (호출 위치는 그대로 두고 동작만 무력화. 이전 차단 로직은 git 이력에서 확인 가능)
 }

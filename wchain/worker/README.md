@@ -140,6 +140,16 @@ Worker 전체 코드입니다. 이 폴더는 참고·배포용이며, `wchain/js
 | ④ 난이도 낮은데도 북한어·옛말·방언·전문용어·고유명사가 섞여 나옴 | `type`/`cat` 필드로 후보 단계에서 걸러냄(4차 수정, 위 표 참조) |
 | ⑤ AI가 활용형 동사·형용사를 냄(예: 사나워지다) | `pos` 필드로 후보 단계에서 걸러냄(2026-08-30 수정, 위 "동사·형용사 제외" 참조) |
 
+**✅ 2026-09-26 정리(임시 계측 _num실험ms 삭제·요청 코드 통합) 재배포 완료** — 국어원으로 나가는 요청은
+옛/새 동일(9건 대조), 실배포 응답 정상 확인.
+
+### Cloudflare의 Worker 3개 — 헷갈리지 않게
+| 이름 | 용도 | 코드 | 상태 |
+|---|---|---|---|
+| `urimalsaem-llove` | 우리말샘 사전 조회(이 폴더의 우리말샘-worker.mjs) | Llove 사전.js · wchain 국어원.js | 실사용 |
+| `itneun-word-appropriateness` | 끝말잇기 '적절성' AI 판정(단어적절성판정-worker.mjs) | wchain 적절성판정.js | 실사용(08-30 개방) |
+| `xai-api-llove` | Grok 호출 | Llove grok.js | 봉인(GROK_활성화=false) — 지우지 말 것 |
+
 ## 배포 방법 (Cloudflare 대시보드)
 
 1. Cloudflare 대시보드 → Workers & Pages → 기존 `urimalsaem-llove` Worker 선택.
@@ -218,8 +228,8 @@ time curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
 #    ✅ 2026-08-22 실측: [9798, 3444, 3417] / 전체 9798 — 병렬 자체는 정상(합이 아니라
 #    최댓값과 일치). 그런데 1페이지(start=1)만 유독 3배 느리다. 코드가 항상 1페이지부터
 #    받으므로 페이지 수를 3→1로 줄여도 남는 게 하필 그 느린 페이지라 별 효과가 없을 것으로
-#    보인다 — 그래서 _num실험ms(아래)로 다른 가설(num을 줄이면 1페이지 자체가 빨라지는지)을
-#    추가로 확인한다.
+#    보인다 — 그래서 _num실험ms로 다른 가설(num을 줄이면 1페이지 자체가 빨라지는지)을
+#    확인했고(결론: num 100→30, 위 ⑤), 그 임시 계측은 2026-09-26에 삭제했다.
 curl -s -X POST https://urimalsaem-llove.hypoqwer.workers.dev/ \
   -H 'Content-Type: application/json' -H 'Origin: https://yyyyynny.github.io' \
   -d '{"글자":"교","방향":"start","디버그":true}' | python3 -c "
@@ -228,7 +238,6 @@ d = json.load(sys.stdin)
 print('후보 개수:', len(d.get('후보', [])))
 print('페이지별 ms:', d.get('_페이지별ms'))
 print('전체 ms:', d.get('_전체ms'))
-print('num별 1페이지 ms(10/30/50/100):', d.get('_num실험ms'))
 "
 ```
 
@@ -263,8 +272,8 @@ done
 
 ## 클라이언트 쪽 후속 정리 (선택)
 
-- `wchain/js/국어원.js`의 `붙임표_변형()` 클라이언트 재시도 폴백은 이 Worker가 같은 일을
-  이미 대신하므로 이중 안전망일 뿐입니다. 걷어내도 되고, 안전망으로 남겨 둬도 무방합니다.
+- ~~`wchain/js/국어원.js`의 `붙임표_변형()` 클라이언트 재시도 폴백~~ → 2026-09-27 삭제
+  (없는 단어마다 왕복이 최대 5회 늘던 것). 붙임표 처리는 이제 이 Worker만 한다.
 - 후보 캐시 키를 `plx_잇는_국어원후보캐시_v3`로 올렸습니다(2026-08-20, 후보 필터 추가로
   v2에 남아 있던 필터 전 결과를 무시시키기 위함). Worker 응답 형태를 또 바꾸면 그때 버전을
   한 번 더 올리세요.

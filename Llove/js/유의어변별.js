@@ -3,11 +3,9 @@
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    v3.7 B안: 유의어 변별 출제 (KNOWLEDGE 3-2섹션 + 5섹션 이의있음! 확장)
-   - 정적 데이터(유의어변별데이터)로 데모용 출제 1회 시연
+   - 정령왕 JSON(유의어_변별) 풀에서 랜덤 출제, 로드 실패 시 폴백 표본
    - correct(초록) / acceptable(노랑+이유) / wrong(빨강) 3단계 분기
-   - TODO Claude Code: 실제로 동작 — 출제 풀 확장, 4방식 분기, 실사용자 댓글 예문 결합
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-let 유의어현재 = null;
 
 /* ━━━ 세션9: 맥락형(예문 빈칸) 퀴즈 공용 엔진 — 원래 유의어 변별 전용이던 로직을 일반화해
    다른 화면(상식·어원/세계사·신화의 신규 「예문형」)에도 재사용한다. 판정 규칙(정답·근사·오답
@@ -24,10 +22,7 @@ function 예문형_렌더(bodyId, item, 다음fn, 이의컨텍스트){
     ...item.acceptable.map(a=>({w:a.w, kind:'acceptable'})),
     ...item.wrong.map(w=>({w:w.w, kind:'wrong'}))
   ].slice(0,4);
-  for(let k=보기풀.length-1; k>0; k--){
-    const j = Math.floor(Math.random()*(k+1));
-    [보기풀[k], 보기풀[j]] = [보기풀[j], 보기풀[k]];
-  }
+  셔플(보기풀);
 
   // 예문 빈칸 표시 — 공백 개수 변형에 견디도록 정규식 사용
   const 예문html = item.예문.replace(/\[\s*\]/, '<span class="syn-blank">?</span>');
@@ -40,10 +35,11 @@ function 예문형_렌더(bodyId, item, 다음fn, 이의컨텍스트){
       </div>
       <div class="syn-result" id="${bodyId}SynResult"></div>
       <div class="syn-actions" id="${bodyId}SynActions" style="display:none">
-        ${이의컨텍스트 ? `<button class="btn-g" onclick="openObj('${이의컨텍스트}')">⚖️ 이의있음!</button>` : ''}
+        ${이의컨텍스트 ? `<button class="btn-g" onclick="openObj('${이의컨텍스트}')">이의있음!</button>` : ''}
         <button class="btn-acc" onclick="예문형_다음('${bodyId}')">다음 문제 →</button>
       </div>
     </div>
+    <button class="btn-g q-skip-only" onclick="예문형_다음('${bodyId}')">건너뛰기</button>
   `;
 }
 
@@ -70,7 +66,7 @@ function 예문형_선택(bodyId, btn){
 
   // 사용자 선택 결과 헤더
   const 헤더 =
-    선택kind === 'correct'    ? `<div class="syn-result-title ok">✅ 정답 — 「${선택word}」를 선택했습니다</div>` :
+    선택kind === 'correct'    ? `<div class="syn-result-title ok">✓ 정답 — 「${선택word}」를 선택했습니다</div>` :
     선택kind === 'acceptable' ? `<div class="syn-result-title warn">△ 근사 정답 — 「${선택word}」를 선택했습니다</div>` :
                                 `<div class="syn-result-title err">✗ 오답 — 「${선택word}」를 선택했습니다</div>`;
 
@@ -81,7 +77,7 @@ function 예문형_선택(bodyId, btn){
     const 선택됨 = (w === 선택word);
     let badge='', cls='', def='', reason='';
     if(k === 'correct'){
-      badge='✅ 정답'; cls='ok'; def=item.correct.def;
+      badge='✓ 정답'; cls='ok'; def=item.correct.def;
     } else if(k === 'acceptable'){
       const a = item.acceptable.find(x=>x.w === w);
       badge='△ 근사'; cls='warn'; def=a?.def ?? ''; reason=a?.reason ?? '';
@@ -100,7 +96,7 @@ function 예문형_선택(bodyId, btn){
   // 세션10-c 항목1: 근사(acceptable) 판정 순간에만 지문 독해로 유도하는 넛지 — 데이터·판정 로직은
   // 그대로 두고(근사=EXP 없음 정책 유지) 더 넓은 맥락으로 변별하는 다른 모드를 안내만 한다.
   const 넛지 = 선택kind === 'acceptable'
-    ? `<div class="syn-nudge">🔍 이 문항이 애매하셨나요? 더 넓은 맥락으로 판단하는 <b>지문 독해</b>를 추천합니다.
+    ? `<div class="syn-nudge">이 문항이 애매하셨나요? 더 넓은 맥락으로 판단하는 <b>지문 독해</b>를 추천합니다.
        <button class="btn-g" onclick="goLearn('지문 독해','sq6',null)">지문 독해로 가기</button></div>`
     : '';
 
@@ -110,32 +106,20 @@ function 예문형_선택(bodyId, btn){
   document.getElementById(bodyId+'SynActions').style.display = 'flex';
 
   // 빌드1: 실제 EXP·마스터리 반영 — 정답 +20, 근사 정답은 EXP 없음 (KNOWLEDGE 3-2)
-  if(선택kind === 'correct'){
-    EXP획득(20, '예문형 정답');
-    연속정답처리(true);
-    복습대기열_정답처리(item.correct.w);
-  } else {
-    연속정답처리(false);
-    // 오답·근사 → 정답 단어를 복습 대기열에 (예문 맥락 포함)
-    복습대기열_추가(item.correct.w, `${item.correct.def} — 예문: ${item.예문}`, '예문형');
-  }
-  if(현재학습모드필드) 마스터리증가(현재학습모드필드);
-  마스터리증가('총누적어휘수');
-  세션결과_기록(선택kind === 'correct');
+  // 오답·근사 → 정답 단어를 복습 대기열에 (예문 맥락 포함)
+  if(선택kind === 'correct') EXP획득(20, '예문형 정답');
+  채점_기록(선택kind === 'correct', item.correct.w, `${item.correct.def} — 예문: ${item.예문}`, '예문형');
 }
 function 예문형_다음(bodyId){
   const state = 예문형_상태[bodyId];
   if(state && state.다음fn) state.다음fn();
 }
 
-function 유의어변별_렌더(인덱스){
-  // β8: 정령왕 JSON 18건 풀에서 출제 (로드 실패 시 폴백 2건)
-  const i = 인덱스 ?? Math.floor(Math.random() * 유의어출제풀.length);
-  유의어현재 = 유의어출제풀[i];
-  예문형_렌더('sq2Body', 유의어현재, 유의어변별_다음, 'synonym');
-}
-function 유의어변별_다음(){
-  유의어변별_렌더();  // 다음 문제 랜덤
+function 유의어변별_렌더(){
+  // β8: 정령왕 JSON 18건 풀에서 랜덤 출제 (로드 실패 시 폴백 2건) — '다음'도 같은 함수로 재출제
+  const 항목 = 유의어출제풀[Math.floor(Math.random() * 유의어출제풀.length)];
+  학습진행_다음('sq2');
+  예문형_렌더('sq2Body', 항목, 유의어변별_렌더, 'synonym');
 }
 
 /* 세션9: 상식·어원 / 세계사·신화 「예문형」 임시 표본 —
@@ -172,7 +156,7 @@ const 예문형_세계사신화 = [
 /* 세션10-c: 문해력 2탄 — 지문 독해(sq6). "빈칸 채우기는 지문이 길어도 결국 단어 고르기일 뿐"이라는
    지적을 받아들여, 예문형 엔진(단어 4개 중 선택)을 버리고 지문+질문+문장형 보기(4개, 정답 1개)로
    교체 — 인지 과제 자체가 다르므로(요지 파악·추론·세부 일치 확인) 신규 엔진(독해_렌더/독해_선택).
-   data/지문독해.json이 채워지면 그 풀로 교체 예정(예문형_상식어원과 동일 관리 방침). */
+   data/정령왕_통합_v2.json에 `지문_독해` 키가 채워지면 예문데이터_로드()가 이 풀을 교체한다. */
 let 지문독해풀 = [
   {
     지문: '동생은 며칠째 방에서 나오지 않았다. 밥도 거의 먹지 않았고, 누가 말을 걸어도 대꾸조차 없었다. 예전엔 작은 일에도 깔깔대며 웃던 아이였는데, 요즘은 표정에 생기가 없었다. 가족들은 그런 동생의 모습에 걱정이 깊어갔지만, 정작 무슨 일이 있었는지는 아무도 알지 못했다.',
@@ -236,10 +220,10 @@ function 독해_렌더(){
   if(!지문독해풀.length) return;
   const body = document.getElementById('sq6Body');
   if(!body) return;
+  학습진행_다음('sq6');
   const 항목 = 지문독해풀[Math.floor(Math.random()*지문독해풀.length)];
   독해_상태.item = 항목;
-  const 순서 = 항목.보기.map((_,i)=>i);
-  for(let k=순서.length-1;k>0;k--){ const j=Math.floor(Math.random()*(k+1)); [순서[k],순서[j]]=[순서[j],순서[k]]; }
+  const 순서 = 셔플(항목.보기.map((_,i)=>i));
   body.innerHTML = `
     <div class="syn-card">
       <div class="rc-tag">${항목.유형}</div>
@@ -253,6 +237,7 @@ function 독해_렌더(){
         <button class="btn-acc" onclick="독해_렌더()">다음 지문 →</button>
       </div>
     </div>
+    <button class="btn-g q-skip-only" onclick="독해_렌더()">건너뛰기</button>
   `;
 }
 function 독해_선택(btn){
@@ -270,13 +255,13 @@ function 독해_선택(btn){
   btn.classList.remove('dim');
 
   const 헤더 = 정답여부
-    ? `<div class="syn-result-title ok">✅ 정답입니다</div>`
+    ? `<div class="syn-result-title ok">✓ 정답입니다</div>`
     : `<div class="syn-result-title err">✗ 오답입니다</div>`;
   const 항목들 = item.보기.map((b,i)=>{
     const 선택됨 = i === 선택idx;
     return `
       <div class="syn-result-item${선택됨 ? ' picked' : ''}">
-        <div class="syn-ri-head ${b.정답 ? 'ok' : 'err'}">${b.정답 ? '✅ 정답' : '✗ 오답'}${선택됨 ? ' <span class="syn-ri-pick">← 내 선택</span>' : ''}</div>
+        <div class="syn-ri-head ${b.정답 ? 'ok' : 'err'}">${b.정답 ? '✓ 정답' : '✗ 오답'}${선택됨 ? ' <span class="syn-ri-pick">← 내 선택</span>' : ''}</div>
         <div class="syn-result-def">${b.문장}</div>
         <div class="syn-result-reason">${b.해설}</div>
       </div>`;
@@ -296,7 +281,7 @@ function 독해_선택(btn){
 /* 세션10-m: 문해력 2탄 — 문장 배열(D안). 뒤섞인 문장을 탭한 순서대로 배치해 원래(정답) 순서를 맞춘다.
    드래그 대신 "순서대로 탭 → 번호 배지" 방식(.aopt/.onum 재사용) — 모바일 안정성 우선.
    문장들은 정답 순서로 저장하고 화면에서만 셔플 — 탭한 원본 인덱스열이 [0..N-1]이면 정답.
-   data/문장배열.json이 채워지면 그 풀로 교체 예정(지문독해풀과 동일 관리 방침). */
+   data/정령왕_통합_v2.json에 `문장_배열` 키가 채워지면 예문데이터_로드()가 이 풀을 교체한다. */
 let 문장배열풀 = [
   {
     문장들: [
@@ -332,10 +317,11 @@ function 문장배열_렌더(){
   if(!문장배열풀.length) return;
   const body = document.getElementById('sq7Body');
   if(!body) return;
+  학습진행_다음('sq7');
   const 항목 = 문장배열풀[Math.floor(Math.random()*문장배열풀.length)];
   let 순서 = 항목.문장들.map((_,i)=>i);
   do{ // 셔플이 우연히 정답 순서와 같으면 재셔플(4문장 기준이라 드물지 않아 방지)
-    for(let k=순서.length-1;k>0;k--){ const j=Math.floor(Math.random()*(k+1)); [순서[k],순서[j]]=[순서[j],순서[k]]; }
+    셔플(순서);
   }while(순서.every((v,i)=>v===i));
   문장배열_상태 = {item:항목, 표시순서:순서, 탭순서:[]};
   body.innerHTML = `
@@ -346,12 +332,13 @@ function 문장배열_렌더(){
         ${순서.map(원본idx=>`<div class="aopt" data-원본="${원본idx}" onclick="문장배열_탭(this)"><div class="onum"></div><div class="otxt">${항목.문장들[원본idx]}</div></div>`).join('')}
       </div>
       <div class="syn-actions" id="sq7Actions">
-        <button class="btn-g" style="flex:1" onclick="문장배열_초기화()">↺ 다시 배치</button>
+        <button class="btn-g grow" onclick="문장배열_초기화()">↺ 다시 배치</button>
         <button class="btn-acc dim" id="sq7SubmitBtn" style="flex:1" onclick="문장배열_제출()">제출하기</button>
       </div>
       <div class="syn-result" id="sq7Result"></div>
       <div class="syn-actions" id="sq7NextActions" style="display:none"><button class="btn-acc" onclick="문장배열_렌더()">다음 문제 →</button></div>
     </div>
+    <button class="btn-g q-skip-only" onclick="문장배열_렌더()">건너뛰기</button>
   `;
 }
 // 이미 순번이 매겨진 문장을 다시 탭하면 그 배치를 취소(splice)하고, 뒤 문장들의 순번을 당겨서 다시 매긴다.
@@ -411,7 +398,7 @@ function 문장배열_판정(){
     el.classList.add(사용자위치 === 원본idx ? 'correct' : 'wrong');
   });
   const 헤더 = 전체정답
-    ? `<div class="syn-result-title ok">✅ 정답입니다</div>`
+    ? `<div class="syn-result-title ok">✓ 정답입니다</div>`
     : `<div class="syn-result-title err">✗ 순서가 틀렸습니다</div>`;
   const 정답나열 = item.문장들.map((s,i)=>`${i+1}. ${s}`).join('<br>');
   const resultEl = document.getElementById('sq7Result');
@@ -427,13 +414,6 @@ function 문장배열_판정(){
   세션결과_기록(전체정답);
 }
 
-function initFlashcard(){
-  document.getElementById('fcBack')?.classList.remove('show');
-  document.getElementById('fcMore')?.classList.remove('show');
-  document.getElementById('fcMoreBtn')?.classList.remove('opened');
-  // 세션5: 이전 카드의 판정 1회 잠금 해제 — 미해제 시 다음 카드에서 판정 버튼이 먹통이 됨
-  document.querySelector('#sq2Body .fc-judge')?.removeAttribute('data-판정완료');
-}
 /* 플래시카드 앞면 → 뒷면 공개 (① 읽기, ② 뜻) */
 function flipCard(){
   document.getElementById('fcBack').classList.add('show');
@@ -451,12 +431,10 @@ function judgeCard(type){
     if(판정영역.dataset.판정완료) return;
     판정영역.dataset.판정완료 = '1';
   }
-  const messages={
-    'know':'알았다 — 복습 대기열 졸업 카운트 +1',
-    'confused':'헷갈린다 — 복습 대기열 유지',
-    'unknown':'몰랐다 — 복습 대기열 카운트 초기화'
-  };
-  showToastMsg('✓ ' + messages[type]);
+  // 고른 평가는 단추에 남기고(나머지는 흐리게), 복습에 들어가는지만 짧게 알린다.
+  // 종전 토스트("졸업 카운트 +1")는 내부 용어였고, 실제로는 정답 1회에 바로 졸업이라 사실과도 달랐다
+  document.querySelector(`#sq2Body .fc-jbtn.j-${type}`)?.classList.add('on');
+  if(type !== 'know') showToastMsg('복습 목록에 넣었습니다');
   // 복습 대기열 연동 — 카드 정보 (읽기 (한자) 형식)
   const 카드단어 = 현재플래시카드 ? `${현재플래시카드.reading} (${현재플래시카드.word})` : '';
   const 카드뜻 = 현재플래시카드?.meaning || '';

@@ -3,7 +3,9 @@
 > Claude Code가 이 저장소에서 작업 시 반드시 먼저 읽는 파일.
 > KNOWLEDGE v5.0 / SYSTEM v5.0과 함께 사용. 세션 인계는 `작업인계_노트.md` 참조.
 > 최고 관리자: 성재훈
-> 최종 업데이트: 2026년 9월 26일
+> ⚠️ 공통 행동 규칙(호칭 · 한 줄 진행 알림 · 표로만 보고 · 포니테일 최소 코드)은 `~/.claude/CLAUDE.md` —
+> 이 프로젝트에서도 매 응답 그대로 적용한다. 대화 압축 뒤에도 예외 없음.
+> 최종 업데이트: 2026년 10월 3일
 
 ---
 
@@ -41,9 +43,9 @@ wchain/       ← '잇는'(임시 이름) — 끝말잇기 이세계. 서바이�
 
 **Llove/ 내부 ('잇는' 포탈 추가 반영 실측)**
 ```
-index.html    ← 화면 구조(마크업)만, 1,192줄 — style.css·js/*.js 참조
-style.css     ← 전체 스타일 997줄 (테마 변수·컴포넌트·애니메이션)
-js/           ← 로직 25개 파일, 합계 6,485줄 (아래 "JS 분할 구조 원칙" 필독)
+index.html    ← 화면 구조(마크업)만, 1,194줄 — 맨 앞에 단색 SVG 아이콘 묶음(symbol) — style.css·js/*.js 참조
+style.css     ← 전체 스타일 1,009줄 (테마 변수·컴포넌트·애니메이션)
+js/           ← 로직 25개 파일, 합계 6,109줄 (아래 "JS 분할 구조 원칙" 필독)
 ├── 상태.js          # 사용자 런타임 상태·보관함 미러·상태 변수·폰트 목록
 ├── 데이터로드.js     # data/ JSON fetch (정령왕 통합 + 모드 DB 6종)
 ├── 화면전환.js       # slideIn/slideOut·네비 (goNav·goLearn·afterNav)
@@ -89,7 +91,9 @@ README.md                 # 저장소 개요
 언어_SYSTEM_v5.md          # Claude 행동 지침
 작업인계_노트.md            # 세션 간 인계 노트 (다음 세션 필독)
 wchain/시스템.md           # '잇는' 게임 전용 시스템 문서 (이식 규칙·게이트 정책)
-wchain/data/대사.json      # 페르소나 대사 68건 (2026-07-29 코드에서 분리 — 문구 수정은 여기서만)
+wchain/개편계획.md         # '잇는' 개편 계획 — 끄투 3·단어 게임 조사, 실측 평가, 관리자님 결정 대기 항목
+wchain/data/대사.json      # 페르소나 대사 67건 (2026-07-29 코드에서 분리 — 문구 수정은 여기서만)
+wchain/data/빈도.json      # 명사 흔함 3단계(국립국어원 현대 국어 사용 빈도 조사 2002, 출처표시) — AI 단어·힌트 선택용
 wchain/data/사전.json      # 보조 사전 — 우리말샘에 없는 유행어·줄임말만. 비어 있는 것이 정상
                           #   ⚠️ 게임의 사전 기준은 우리말샘. 내부 사전은 2026-07-29 폐지됨
 tests/fixtures/원본사전.cjs # 파이썬 대조 전용 고정 사전 360단어(게임에는 안 쓰임 — 손대지 말 것)
@@ -153,11 +157,18 @@ wchain/worker/            # Cloudflare Worker 소스 2개(레포와 별도로 Cl
 --fn          /* 본문 폰트 */
 --mono        /* 고정폭 폰트 */
 --exp         /* EXP 바 그라디언트 */
+--ease-out    /* 공용 감속 곡선 */
+--글자배율     /* 학습 콘텐츠 글자 배율(설정 「글자 크기」) — calc(14px*var(--글자배율)) 식으로 */
+/* ↓ 2026-10-03 UI 개선(인계 노트 13절)에서 추가 — 테마와 무관한 단계 토큰은 :root 한 곳 */
+--r-s --r-m --r-l   /* 모서리 3단 6/10/16px. 그 밖엔 50%(원)·999px(알약)만 */
+--scrim       /* 모달 뒤 어둡게(4계열 공용). 질문 시트 배경(.ask-bg)만 기능상 더 옅음 */
+--cat-read --cat-fun  /* 모드 분류색(문해·재미) — [data-theme]에서 --ok/--err와 --inf를 섞어 파생,
+                         정답·오답 피드백색과 겹치지 않게 */
 ```
-> 참고: `--c-bg`/`--c-card`/`--c-acc`/`--c-txt`/`--c-fn` 5개는 커스텀 테마 에디터가 런타임에
+> 참고: `--c-bg`/`--c-card`/`--c-acc`/`--c-txt` 4개는 커스텀 테마 에디터가 런타임에
 > 덮어쓰는 **raw 입력값**이고(`document.documentElement.style.setProperty('--c-bg', ...)` 형태),
 > 위 파생 토큰들이 `var(--bg, var(--c-bg, ...))` 식으로 이를 참조한다. **컴포넌트 CSS는 항상 위
-> 파생 토큰(`--bg`, `--acc` 등)을 쓰고, `--c-*` 5개를 직접 참조하지 않는다.**
+> 파생 토큰(`--bg`, `--acc` 등)을 쓰고, `--c-*` 4개를 직접 참조하지 않는다.**
 
 **기존 컴포넌트 클래스 예시** (새 UI는 이런 기존 클래스와 나란히 놓아도 이질감 없어야 함):
 ```
@@ -168,9 +179,18 @@ wchain/worker/            # Cloudflare Worker 소스 2개(레포와 별도로 Cl
 .fs-opt                        — 단계형 선택 버튼(화면/글자 크기 등)
 .aopt, .onum                   — 번호 배지가 붙은 탭-선택 옵션
 .syn-card, .syn-opt, .syn-result, .syn-actions  — 예문형/판정 결과 카드류
-.mc, .mc-g1~.mc-g5, .mc-glabel — 홈 학습 모드 카드·색 그룹
+.mc, .mc-g1~.mc-g5, .mc-glabel — 홈 학습 모드 카드·색 그룹(홈에선 2열)
+.ic + <use href="#i-이름">      — 단색 SVG 아이콘(index.html 맨 앞 묶음, currentColor·1em). 이모지 아이콘 새로 쓰지 말 것
+.q-bar .q-exit .q-head .q-meta .q-set — 학습 화면 한 줄 머리(나가기·제목/방식·진행·보상·⚙), 진행선은 아래 가장자리
+.q-next(.q-skip/.q-go)         — 답 전엔 「건너뛰기」, 답한 뒤 강조된 「다음 →」(본문의 채점 표지로 CSS :has 판단)
+.btn-danger, .btn-g.danger     — 되돌릴 수 없는 동작(showConfirmModal 6번째 인자 true)
+.ask-entry, .random-skip       — 학습 화면 공용 질문 입구·랜덤 넘어가기
 ```
-border-radius·padding·transition 속도도 기존 패턴을 따를 것. 다크/라이트(테마 5종 + 커스텀) 전부
+> 2026-10-03 원칙(UI 개선): **테두리는 입력·선택 요소에만**, 내용 면은 배경 톤으로 구분. 135deg 그라디언트·
+> 바깥 발광·한글 uppercase는 쓰지 않는다(업적·레벨업·잇 포탈 같은 드문 순간의 발광만 예외). 순차 등장(.fu)은
+> 화면 첫 방문에만. 상세는 `docs/UI감사_2026-10-03.md`.
+
+모서리는 --r-s/m/l, 글자 크기는 11/12/13/14/16/18/22 7단, transition은 .15s/.25s/.4s 3단을 따를 것. 다크/라이트(테마 5종 + 커스텀) 전부
 정상 동작 확인 필수.
 
 ---
@@ -238,3 +258,23 @@ border-radius·padding·transition 속도도 기존 패턴을 따를 것. 다크
 - KNOWLEDGE v5.0: `언어_KNOWLEDGE_v5.md`
 - SYSTEM v5.0: `언어_SYSTEM_v5.md`
 - 세션 인계: `작업인계_노트.md` (다음 세션은 이 파일부터 읽을 것)
+- 디자인·애니메이션 스킬: `.agents/skills/<이름>/SKILL.md` (29개). 관리자님이 자연어로 요청하면
+  맞는 스킬을 **알아서 골라 직접 읽고** 따른다(설치·슬래시 명령 불필요). `.claude/skills/`는 이 폴더를
+  가리키는 심볼릭 링크라 Windows(core.symlinks=false)에선 경로 텍스트 파일로 풀려 있으니 무시.
+  주로 쓸 것: animate · apple-design · review-animations · improve-animations ·
+  find-animation-opportunities · redesign-existing-projects · frontend-design · web-design-guidelines
+- 디자인 개편 착수 시: 모달·접이식·클릭 div를 dialog/details/button으로(Q13, 인계 노트 12번)
+
+## 최종 검수 체크리스트 (배포·PR 전 반드시 전부 확인 — 기억에 의존하지 말고 이 목록으로)
+
+> 새로 발견한 "나중에 봐야 할 것"은 대화에만 두지 말고 즉시 여기에 한 줄 추가한다.
+
+- [ ] **Worker 출처(origin) 검사는 브라우저 밖 스크립트가 속일 수 있음**(2026-09-29 확인) — 적절성 판정
+      Worker는 AI 비용이 나가므로 Cloudflare Rate limiting 규칙(IP당 분당 제한)·AI 제공사 월 한도 설정 여부 확인
+- [ ] 게임 주소가 바뀌면 Worker 2개의 `허용_ORIGIN` 갱신 + 재배포(안 하면 403)
+- [ ] API 키가 코드·git 기록에 없는지(`git log -p`로 키 형태 검색), 시크릿은 Cloudflare에만
+- [ ] `GROK_활성화`·`음성생성_활성화` 플래그가 승인 없이 바뀌지 않았는지
+- [ ] `npm test`·`check:js`·`check:deploy`·`check:html` 전부 통과
+- [ ] Worker 소스를 고쳤다면 재배포했는지(레포 커밋만으로는 적용 안 됨)
+- [ ] 보안 점검 스킬(`/security-review`)로 한 번 더 훑기 — D: 드라이브는 소유권 기록이 없어 git 전역 safe.directory 설정 없이는 스킬이 실패함(09-30).
+      그땐 수동 점검: 변경분의 innerHTML·insertAdjacentHTML에 외부·사용자 문자열이 이스케이프 없이 들어가는지

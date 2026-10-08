@@ -91,9 +91,11 @@ function 학습일갱신(){
 // 레벨업 팝업 — 도달한 레벨 기준 표시
 function 레벨업팝업(레벨){
   const 등급 = 등급정보(레벨);
-  document.getElementById('lvupLvText').textContent='Lv.'+레벨;
-  document.getElementById('lvupRankText').textContent=등급.등급+' · '+등급.세부;
-  document.getElementById('lvupOv').classList.add('show');
+  팝업_예약(()=>{
+    document.getElementById('lvupLvText').textContent='Lv.'+레벨;
+    document.getElementById('lvupRankText').textContent=등급.등급+' · '+등급.세부;
+    document.getElementById('lvupOv').classList.add('show');
+  });
 }
 
 // 10연속 정답 → 토큰 +10 복구 (KNOWLEDGE 32 복구 시스템, 무제한)
@@ -117,14 +119,11 @@ function 학습데이터초기화_1단계(){
 function 학습데이터초기화_2단계(){
   showConfirmModal('🗑️','학습 데이터 초기화 (2/2)',
     '<b>마지막 확인</b>입니다. 정말로 학습 데이터를 초기화하시겠습니까?<br><br>이 작업은 되돌릴 수 없습니다.',
-    '초기화', 학습데이터초기화_실행);
+    '초기화', 학습데이터초기화_실행, true);
 }
 function 학습데이터초기화_실행(){
   const 리셋 = {
-    레벨:1, 현재EXP:0, 총누적EXP:0, 연속학습일:0, 총학습일:0, 마지막학습일:'',
-    상식어원학습수:0, 언어의뿌리학습수:0, 세계사신화학습수:0, 아재개그학습수:0,
-    맞춤법학습수:0, 구어교정횟수:0, 문해력학습수:0, 이의제기횟수:0, 반박성공횟수:0, 퍼펙트세션수:0, 총누적어휘수:0,
-    보유토큰:1500, 토큰소진시각:null, 토큰락해제시각:null, 총소비토큰:0,
+    ...학습기록_기본값,   // 성장·마스터리·토큰 (상태.js)
     업적진행도:{}, 창조주달성:false, 개발자모드:false, 선택칭호:'', 오늘질문횟수:0, 질문날짜:'',
     밤학습수:0, 마지막밤기록일:'', 복습복구횟수:0, 복습복구날짜:'', 총질문수:0,
     // 세션10-f: 배너·프로필이 리셋 객체에 빠져 있어 초기화해도 그대로 남아있던 버그
@@ -160,5 +159,5 @@ function 학습데이터초기화_실행(){
   // 세션10-e 항목1: afterNav(curScreen)는 설정 화면 등에서 재렌더 분기가 없어 "초기화 안 됨"으로 보이던 원인
   // 중 하나 — 확실히 재렌더되는 홈 화면으로 이동해 반영을 눈으로 확인시킨다.
   goNav('sh', null);
-  showToastMsg('⚠️ 학습 데이터가 초기화되었습니다');
+  showToastMsg('학습 데이터가 초기화되었습니다');
 }

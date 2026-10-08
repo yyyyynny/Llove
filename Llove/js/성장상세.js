@@ -19,14 +19,9 @@ function 렌더_성장상세(){
     if(l < 표시Lv) 누적 += expForLevel(l);
   }
   const 전체진행 = Math.min(100, ((누적 + 표시Exp) / 총필요) * 100);
+  // 소칭호표(상태.js)에서 구간을 만든다 — 다음 칭호 최소 레벨 직전까지, 마지막은 최대 레벨까지
   const 로드맵=[
-    {t:'필멸자',  r:'Lv.1~15',  min:1},
-    {t:'초월자',  r:'Lv.16~25', min:16},
-    {t:'시련',    r:'Lv.26~35', min:26},
-    {t:'하급신',  r:'Lv.36~46', min:36},
-    {t:'중급신',  r:'Lv.47~57', min:47},
-    {t:'최고신',  r:'Lv.58~68', min:58},
-    {t:'주҉신҉',  r:'Lv.69~70', min:69},
+    ...소칭호표.map(([t,min],i)=>({t, min, r:`Lv.${min}~${i<소칭호표.length-1 ? 소칭호표[i+1][1]-1 : 최대레벨}`})),
     {t:'폐하',    r:'창조주 달성', min:Infinity}
   ];
   const 색상키 = t => (t==='주҉신҉') ? '주신' : t;
@@ -34,7 +29,7 @@ function 렌더_성장상세(){
     <div class="sg-sec fu">
       <div class="sg-sec-t">현재 상태</div>
       <div style="font-size:15px;font-weight:700">${userName} <span style="font-size:12px;color:${소칭호색상표[색상키(칭호)]||'var(--accl)'};text-shadow:0 1px 3px rgba(0,0,0,.38)">(${칭호})</span></div>
-      <div style="font-size:12px;color:var(--txt);margin-top:4px">🏷️ 등급: <b>${등급.등급}</b>${등급.세부!==등급.등급?` · ${등급.세부}`:''}</div>
+      <div style="font-size:12px;color:var(--txt);margin-top:4px">등급: <b>${등급.등급}</b>${등급.세부!==등급.등급?` · ${등급.세부}`:''}</div>
       <div style="font-size:12px;color:var(--txt2);margin-top:4px">Lv.${표시Lv} — EXP ${표시Exp} / ${표시Max} · 총누적 ${(사용자.총누적EXP||0).toLocaleString('ko-KR')}</div>
     </div>
     <div class="sg-sec fu s1">

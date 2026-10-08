@@ -61,10 +61,6 @@ function 모드DB_로드(){
   });
 }
 
-/* 바텀 네비 */
-/* 바텀 네비 표시 화면 목록 */
-const SHOW_NAV=['sh','sq1','sq2','sq3','sq4','sq5','sq6','sq7','sr','sa','ss','sse','sg'];
-/* 바텀 네비 활성 매핑 (학습 모드는 모두 '홈' 강조, sg는 현황 탭 강조) */
+/* 바텀 네비 활성 매핑 (학습 모드는 모두 '홈' 강조, sg는 현황 탭 강조)
+   — 여기 키로 있는 화면이 곧 바텀 네비를 표시하는 화면이다 */
 const NAV_MAP={'sh':'nb-sh','sr':'nb-sr','sa':'nb-sa','ss':'nb-ss','sse':'nb-sse','sg':'nb-ss','sq1':'nb-sh','sq2':'nb-sh','sq3':'nb-sh','sq4':'nb-sh','sq5':'nb-sh','sq6':'nb-sh','sq7':'nb-sh'};
-/* (v3.4 미사용) FAB 표시 대상 학습 화면 — FAB 제거됐으나 호환용 보존 */
-const ASK_FAB_SCREENS=['sq1','sq2','sq3','sq4','sq5'];

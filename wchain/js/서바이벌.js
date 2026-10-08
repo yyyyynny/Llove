@@ -1,16 +1,15 @@
 // '잇는' UI 레이어 — 파이썬 원본의 상태 머신(WordChainGame)·HUD·힌트/거래/이의/양보 로직을
-// 브라우저 이벤트 기반으로 이식 (Phase 3: 서바이벌 모드 한정, 아케이드는 Phase 4).
+// 브라우저 이벤트 기반으로 이식 (서바이벌·아케이드).
 //
 // 웹 적응 결정 사항(원본 대비 의도적 변경 — 규칙 자체는 안 바꿈, 입력 방식만 웹에 맞춤):
 //  1. 원본의 "!힌트 !설명 !리셋 !상태" 같은 타이핑 명령어를 전부 버튼으로 교체했다.
 //     → 노션 10번("명령어 오타 시 하트 대신 실수 누적")이 **아예 무의미해짐**: 타이핑 명령어 자체가
 //       사라졌으니 "명령어 오타"라는 상황이 발생할 수 없다. 버튼 UI가 오타 문제의 근본 해결책.
-//  2. "너 먼저"/"이의 있음"/"그거 없어" 같은 자유 텍스트 키워드 매칭도 전용 버튼(먼저 해·이의 있음·
-//     그 단어 없어!)으로 교체 — 오탐 없이 데스크톱·모바일 모두 동일하게 동작.
+//  2. "너 먼저"/"이의 있음"/"그거 없어" 같은 자유 텍스트 키워드 매칭도 전용 버튼(먼저 해·이의 있음)으로
+//     교체 — 오탐 없이 데스크톱·모바일 모두 동일하게 동작("그거 없어"는 이의 있음과 같은 주장이라 합침).
 //  3. "오타/잘못했다" 관용구 프리비 반응(원본, 아무 효과 없는 위로 메시지)은 타이핑 입력이 없어져
 //     대상이 사라져 이식하지 않음.
-//  4. 노션 11번(한방 단어 기본 모드 즉시 패배) 반영: validate_word가 한방 단어를 걸러낼 때
-//     기본 모드(비아케이드)+한방모드 OFF 조합이면, 원본처럼 실수 1회로 넘어가지 않고 **즉시 패배**.
+//  (노션 11번 "한방 단어 즉시 패배"는 한때 반영했다가 2026-07-27 철회 — 단어_처리() 참조.)
 //
 // 클래식 스크립트, 사전.js·엔진.js·게임상태.js·게임규칙.js 뒤에 로드.
 
@@ -25,6 +24,91 @@ function 화면(id){
   document.body.classList.toggle('playing', id === '플레이');
 }
 
+/* ── 점수·콤보 (2026-09-27) ── */
+/* ── 턴 타이머 (2026-09-27, 난이도별) ──
+   내 차례일 때만 흐른다 — 사전 확인·AI 차례·선택지(거래·계약 등)·다른 화면에서는 멈춘다(100ms 틱이
+   조건을 보고 스스로 멈추므로 곳곳에서 정지·재개를 부를 필요가 없다). 오타로 다시 입력할 때는 이어서
+   흐르고, 새 차례가 되면(턴·상대 단어가 바뀌면) 새로 채운다. 시간이 다 되면 목숨 -1 후 다시 채운다. */
+const 타이머 = { 키: null, 총: 0, 남은: 0, 제출비율: 0.75, 시각: 0 };
+function 타이머_차례키(){ return gs.turn + ':' + (gs.ai_last_word || '') + ':' + gs.hearts; }
+function 타이머_진행(dt){
+  const 제한 = 턴_제한초(gs);
+  // 다른 앱·탭으로 가 있는 동안(document.hidden)도 멈춘다 — 돌아오자마자 시간 초과가 나지 않게.
+  // 규칙 설명·관리자·삭제 확인 같은 모달이 떠 있는 동안도 멈춘다(2026-09-27 버그 점검 — 설명을 읽는
+  // 사이 뒤에서 시간 초과로 목숨이 깎였다).
+  const 켬 = 제한 !== null && gs.game_state === 'PLAYING' && !document.hidden
+    && !document.querySelector('.modal-bg.show')
+    && document.getElementById('s-플레이')?.classList.contains('active');
+  const 칸 = document.getElementById('타이머');
+  if(칸) 칸.style.display = 제한 !== null ? '' : 'none';
+  if(!켬) return;
+  const 키 = 타이머_차례키();
+  if(타이머.키 !== 키){ 타이머.키 = 키; 타이머.총 = 제한 * 1000; 타이머.남은 = 타이머.총; }
+  if(!게임_비동기처리중) 타이머.남은 -= dt;
+  타이머_그리기();
+  if(타이머.남은 <= 0) 시간초과();
+}
+function 타이머_그리기(){
+  const 바 = document.getElementById('타이머-바'), 초 = document.getElementById('타이머-초');
+  if(!바 || !타이머.총) return;
+  const 비율 = Math.max(0, 타이머.남은 / 타이머.총);
+  바.style.width = (비율 * 100) + '%';
+  바.className = 'timer-fill' + (비율 <= 0.25 ? ' danger' : 비율 <= 0.5 ? ' warn' : '');
+  초.textContent = Math.max(0, 타이머.남은 / 1000).toFixed(1) + '초';
+}
+function 시간초과(){
+  콤보_끊기();
+  로그_추가('⏰ 시간 초과!', 'err');   // 목숨 안내는 user_defeat 대사가 이어서 한다
+  const result = user_defeat(gs);   // 목숨이 줄어 차례키가 바뀌므로 다음 틱에 시간이 새로 채워진다
+  타이머.키 = null;
+  if(result === 'game_over'){ 게임오버(false); return; }
+  플레이_HUD갱신(); 프롬프트_갱신();
+}
+setInterval(() => { const 지금 = performance.now(); 타이머_진행(지금 - (타이머.시각 || 지금)); 타이머.시각 = 지금; }, 100);
+// 점수의 속도 배율 — 제출하는 순간의 남은 시간 비율(타이머 없는 판은 보통 속도 0.75)
+function 타이머_속도비율(){ return 타이머.제출비율; }
+function 콤보_끊기(){ gs.combo = 0; }
+// 미션 글자가 들어 있으면 보너스 점수를 돌려주고 새 미션으로 바꾼다(3번마다 목숨 +1, 시작 목숨까지)
+function 미션_확인(word, 기본점수){
+  if(!gs.mission) return 0;
+  const 개수 = [...word].filter(c => c === gs.mission).length;
+  if(!개수) return 0;
+  const 보너스 = Math.round(기본점수 * 0.5 * 개수);
+  로그_추가(`🎯 미션 달성! 『${gs.mission}』 +${보너스}점`, 'ok');
+  gs.mission_count += 1;
+  const 시작목숨 = gs.game_mode === 'ARCADE' ? 아케이드_목숨 : 난이도설정(gs).목숨;
+  if(gs.mission_count % 3 === 0 && gs.hearts < 시작목숨){
+    gs.hearts += 1;
+    로그_추가('❤️ 미션 3번 달성 — 목숨 +1', 'ok');
+  }
+  gs.mission = 새미션(gs.mission);
+  return 보너스;
+}
+// 점수가 오를 때 점수 칸 위로 "+N"이 떠올랐다 사라진다(자주 일어나는 순간이라 짧게 — 700ms).
+function 점수_연출(n){
+  const 칸 = document.getElementById('hud-점수칸');
+  if(!칸 || !n) return;
+  const 뜸 = document.createElement('span');
+  뜸.className = 'score-pop';
+  뜸.textContent = '+' + n;
+  칸.appendChild(뜸);
+  setTimeout(() => 뜸.remove(), 750);
+}
+const 최고점수_KEY = 'plx_잇는_최고점수_v1';
+const 최고점수_키 = () => gs.game_mode === 'ARCADE' ? 'ARCADE' : 'SURVIVAL:' + gs.diff + (gs.infinite ? ':무한' : '');
+// 판이 끝날 때 최고 점수를 갱신하고 [이전 최고, 신기록 여부]를 돌려준다(저장 실패는 조용히 무시).
+function 최고점수_갱신(){
+  let 표 = {};
+  try{ 표 = JSON.parse(localStorage.getItem(최고점수_KEY) || '{}') || {}; }catch(e){}
+  const 이전 = 표[최고점수_키()] || 0;
+  const 신기록 = gs.score > 이전 && !gs.god_mode_active;
+  if(신기록){
+    표[최고점수_키()] = gs.score;
+    try{ localStorage.setItem(최고점수_KEY, JSON.stringify(표)); }catch(e){}
+  }
+  return [이전, 신기록];
+}
+
 /* ── 로그 ── */
 function 로그_추가(text, cls){
   const log = document.getElementById('로그');
@@ -35,6 +119,41 @@ function 로그_추가(text, cls){
   line.textContent = text;
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
+  return line;
+}
+
+// 단어 말풍선(2026-09-27 단어 사슬) — 내 단어는 오른쪽, 상대 단어는 왼쪽. 앞 단어와 이어지는 글자
+// (끝말잇기는 첫 글자, 앞말잇기는 끝 글자)를 강조하고, 뜻은 말풍선 안 .bmean에 도착하면 채운다.
+// 로그 줄(.line)이라 스크롤·진입 애니메이션은 다른 줄과 같다.
+function 단어_말풍선(word, 누구, 이음있음){
+  const 줄 = 로그_추가('', 누구 + ' bubble');
+  const 글자 = [...word], 이음 = gs.rev ? 글자.length - 1 : 0;
+  const 조각 = 글자.map((c, i) => i === 이음 && 이음있음 ? `<b>${HTML막기(c)}</b>` : HTML막기(c)).join('');
+  줄.innerHTML = `<span class="bw">${조각}</span><span class="bmean"></span>`;
+  return 줄;
+}
+let 마지막_내말풍선 = null;
+
+// 상대가 낸 단어를 화면에 올린다 — 페르소나 반응 + 왼쪽 말풍선 + 뜻(말풍선·카드). 일반 턴과 이의 인정
+// 뒤 재출제가 함께 쓴다(2026-09-27 버그 점검: 재출제 경로엔 말풍선·카드 뜻이 빠져 있었다).
+// 뜻은 비동기로 채워지므로, 호출부가 바로 뒤에 HUD를 갱신해 카드 뜻 칸을 비워도 나중에 다시 채워진다.
+function AI단어_보이기(ai_word){
+  로그_추가(react_ai_word(gs, ai_word));
+  const 말풍선 = 단어_말풍선(ai_word, 'ai', true);
+  뜻_붙이기(ai_word, 말풍선.querySelector('.bmean'));
+  const 뜻칸 = document.getElementById('ai-뜻');
+  if(뜻칸) 뜻_붙이기(ai_word, 뜻칸, () => gs.ai_last_word === ai_word);
+}
+
+// 뜻 자동 표시(2026-09-27 관리자님 결정 — 끄투처럼 단어마다 뜻 한 줄). 자리를 먼저 두고 뜻은 도착하면
+// 채운다(턴 진행을 기다리게 하지 않음). 조회 실패·뜻 없음이면 자리를 조용히 치운다.
+// 아직유효: 도착 시점에도 그 자리에 뜻을 써도 되는지(AI 카드는 이미 다음 단어로 바뀌었을 수 있다).
+async function 뜻_붙이기(word, 자리, 아직유효 = () => true){
+  const 결과 = await 국어원_단어조회_상세(word).catch(() => null);
+  const 첫뜻 = 대표뜻(결과);   // 동음이의어 중 흔한 쪽(국어원.js 참조)
+  if(!아직유효()) return;
+  if(!첫뜻){ if(자리.classList.contains('bmean')) 자리.remove(); return; }   // 카드 칸은 비워 둔 채로 둔다
+  자리.textContent = 첫뜻.length > 80 ? 첫뜻.slice(0, 80) + '…' : 첫뜻;
 }
 function 로그_비우기(){ const l = document.getElementById('로그'); if(l) l.innerHTML = ''; }
 
@@ -99,7 +218,12 @@ function 뒤로_모드(){
 // 난이도 칩의 설명 한 줄 — 숫자는 전부 난이도표에서 읽어 온다(값이 두 곳에 적히지 않게).
 function 난이도설명(이름, 성향){
   const d = 난이도표[이름];
-  return `${d.턴}턴 · 목숨${d.목숨} 힌트${d.힌트} — ${성향}`;
+  return `${d.턴}턴 · 목숨${d.목숨} 힌트${d.힌트}${d.타이머 ? ` · ⏱${d.타이머[0]}초` : ''} — ${성향}`;
+}
+// 악마의 거래가 올려 줄 다음 난이도 — 난이도표의 키 순서(안온→격동→초월→심연)를 따르고 심연에서 멈춘다.
+function 다음난이도(diff){
+  const 순서 = Object.keys(난이도표);
+  return 순서[Math.min(순서.indexOf(diff) + 1, 순서.length - 1)];
 }
 
 const 설정_항목 = [
@@ -125,6 +249,9 @@ const 설정_항목 = [
   { 키:'infinite', 종류:'토글', 아이콘:'🔄', 라벨:'무한 모드', 모드:['SURVIVAL'],
     켬설명:'턴 제한 없이 계속 이어갑니다',
     끔설명:'난이도별 목표 턴까지 생존하면 승리합니다' },
+  { 키:'timer', 종류:'토글', 아이콘:'⏱', 라벨:'턴 타이머',
+    켬설명:'격동 20초·초월 15초·심연 10초에서 시작해 점점 짧아집니다 (안온은 없음)',
+    끔설명:'시간 제한 없이 생각할 수 있습니다' },
   { 키:'phrase', 종류:'토글', 아이콘:'✂️', 라벨:'구 허용',
     켬설명:'띄어쓰기 한 번(두 단어)까지 한 단어로 인정합니다',
     끔설명:'붙여 쓴 한 단어만 인정합니다' },
@@ -184,15 +311,6 @@ function 설정_렌더(){
       + `onchange="설정_테마연동(this.checked)"><span class="mtt"><span class="mtth"></span></span></span></span></label>`;
   }
 
-  // 사전 모드(dict_mode)는 Worker가 아직 우리말샘 한 곳만 서빙해서 실제 판정에 영향이 없다.
-  // 동작하는 것처럼 보여주면 거짓이 되므로 준비 중임을 명시한다(이의/허세 봉인과 같은 🔒 관례).
-  const 사전줄 = document.getElementById('설정-사전');
-  if(사전줄){
-    사전줄.innerHTML = `<span class="sri">📚</span>`
-      + `<div style="flex:1"><div class="srl">사전 모드</div>`
-      + `<div class="srs">우리말샘(통합)만 사용합니다 — 표준국어대사전은 인증키가 준비되면 열립니다.</div></div>`
-      + `<span class="sra">🔒</span>`;
-  }
 
   // rev + 두음법칙 조합 안내 — 원본 규칙상 앞말잇기에선 두음법칙이 자동으로 꺼진다.
   // 종전엔 시작 버튼을 눌러야 조용히 바뀌어서 사용자가 이유를 알 수 없었다.
@@ -225,7 +343,7 @@ function 게임_시작(){
   reset_game(gs);
   세션_비우기();   // 이전 판에서 모은 단어·실패 카운터를 새 판으로 들고 가지 않는다
   _이전힌트 = null; _이전목숨 = null;   // 새 판 시작값을 "감소"로 오탐하지 않게 추적값도 초기화
-  if(gs.rev && gs.dueum !== 'OFF'){ gs.dueum = 'OFF'; }   // 원본: 앞말잇기는 두음법칙 자동 OFF
+  if(gs.rev) gs.dueum = 'OFF';   // 원본: 앞말잇기는 두음법칙 자동 OFF
   gs.game_state = 'PLAYING';
   로그_비우기();
 
@@ -253,7 +371,6 @@ function 게임_시작(){
    HUD (원본 show_survival_hud) + 프롬프트(원본 prompt_next)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function get_status(current, total){
-  if(total === 0) return '🟢';
   const pct = current / total;
   return pct <= 0.33 ? '🟢' : (pct <= 0.66 ? '🟡' : '🔴');
 }
@@ -262,7 +379,7 @@ function 플레이_HUD갱신(){
   const 턴라벨 = document.getElementById('hud-턴라벨');
   if(gs.game_mode === 'ARCADE'){
     const target = get_stage_target(gs);
-    const pct = target ? Math.min(100, Math.round(gs.stage_turn / target * 100)) : 0;
+    const pct = Math.min(100, Math.round(gs.stage_turn / target * 100));
     턴라벨.textContent = '🗼 층 ' + gs.stage;
     document.getElementById('hud-턴').textContent = `${gs.stage_turn} / ${target}`;
     document.getElementById('hud-바').style.width = pct + '%';
@@ -273,7 +390,7 @@ function 플레이_HUD갱신(){
     const max_t = gs.infinite ? 0 : get_max_turns(gs);
     턴라벨.textContent = '⏳ 턴';
     document.getElementById('hud-턴').textContent = gs.infinite ? `${gs.turn} / ∞` : `${gs.turn} / ${max_t}`;
-    document.getElementById('hud-바').style.width = ((!gs.infinite && max_t) ? Math.min(100, Math.round(gs.turn / max_t * 100)) : 0) + '%';
+    document.getElementById('hud-바').style.width = (!gs.infinite ? Math.min(100, Math.round(gs.turn / max_t * 100)) : 0) + '%';
     const st = document.getElementById('hud-상태');
     const status = gs.infinite ? '🟢' : get_status(gs.turn, max_t);
     st.textContent = status; st.className = 'status-' + status;
@@ -282,17 +399,26 @@ function 플레이_HUD갱신(){
   // 조용히 숫자만 바뀌어서 목숨을 잃어도 체감이 안 됐다. 텍스트를 덮어쓰기 전에 비교한다.
   const 힌트요소 = document.getElementById('hud-힌트');
   const 목숨요소 = document.getElementById('hud-목숨');
-  if(_이전힌트 !== null && typeof gs.hints === 'number' && gs.hints < _이전힌트) 흔들기(힌트요소);
-  if(_이전목숨 !== null && typeof gs.hearts === 'number' && gs.hearts < _이전목숨) 흔들기(목숨요소);
+  if(_이전힌트 !== null && gs.hints < _이전힌트) 흔들기(힌트요소);
+  if(_이전목숨 !== null && gs.hearts < _이전목숨) 흔들기(목숨요소);
   _이전힌트 = gs.hints; _이전목숨 = gs.hearts;
 
   힌트요소.textContent = 표시무한(gs.hints) + '개';
+  document.getElementById('hud-점수').textContent = gs.score.toLocaleString();
+  const 콤보요소 = document.getElementById('hud-콤보');
+  const 새콤보 = gs.combo >= 3 ? `🔥${gs.combo}` : '';
+  if(새콤보 && 콤보요소.textContent !== 새콤보){ 콤보요소.classList.remove('pop'); void 콤보요소.offsetWidth; 콤보요소.classList.add('pop'); }
+  콤보요소.textContent = 새콤보;
   // 실수(strikes) 폐지(2026-07-29)로 이 칸은 목숨 하나만 보여준다 — 종전 "목숨 · 실수" 2단 표기 삭제.
   목숨요소.textContent = `${표시무한(gs.hearts)}개`;
   // '상대의 단어' 라벨이 붙었으므로 『』 겹장식을 뺀다 — 단어 자체가 더 크게 읽힌다.
-  document.getElementById('ai-단어').textContent = gs.ai_last_word || '─';
-  const 라벨 = document.getElementById('ai-라벨');
-  if(라벨) 라벨.textContent = '상대의 단어';
+  const 단어칸 = document.getElementById('ai-단어'), 뜻칸 = document.getElementById('ai-뜻');
+  const 새단어 = gs.ai_last_word || '─';
+  if(단어칸.textContent !== 새단어){
+    if(뜻칸) 뜻칸.textContent = '';   // 단어가 바뀌면 옛 뜻을 지운다
+    // 상대가 단어를 낼 때 글자가 하나씩 나타난다(끄투 참고, 2026-09-27) — 매 턴 일어나는 순간이라 글자당 60ms로 짧게
+    단어칸.innerHTML = [...새단어].map((c, i) => `<span class="type-in" style="animation-delay:${i * 60}ms">${HTML막기(c)}</span>`).join('');
+  }
   // 첫 턴엔 상대 단어가 없으므로 카드를 안내문 한 줄로 접는다(CSS .ai-word.empty)
   document.querySelector('.ai-word')?.classList.toggle('empty', !gs.ai_last_word);
   설정요약_갱신();
@@ -330,12 +456,13 @@ function 설정요약_갱신(){
   칩.push(`📏 두음 ${({OFF:'끄기', Flexible:'유연', Strict:'엄격'})[gs.dueum] ?? gs.dueum}`);
   if(gs.hanbang) 칩.push('⚔ 한방 허용');
   if(gs.phrase) 칩.push('✂ 구 허용');
+  if(턴_제한초(gs) !== null) 칩.push('⏱ 타이머');
   if(gs.god_mode_active) 칩.push('🔓 GOD MODE');
   통.innerHTML = 칩.map(t => `<span class="cfg-chip">${t}</span>`).join('');
 }
 
 // 온라인 조회처럼 시간이 걸리는 동안 진행 중임을 보여준다(2026-07-26 신설).
-// 종전엔 로그 한 줄("확인하는 중...")뿐이라 멈춘 것처럼 보였다.
+// 종전엔 로그 한 줄("확인하는 중…")뿐이라 멈춘 것처럼 보였다.
 // 점 세 개 점멸만 사용 — 기존 화면 톤과 맞는 절제된 표시(2026-08-15부터 애니메이션 규칙이
 // 방식 제한 대신 "통일성·불쾌감 없음" 기준으로 바뀌었지만, 이 선택 자체는 그대로 유효하다).
 //
@@ -346,7 +473,7 @@ function 설정요약_갱신(){
 // 포함), input을 잠그는 건 필수가 아니라 "처리 중" 시각 피드백용이었을 뿐이다. 버튼(btn)만
 // 계속 잠가서 연타로 인한 중복 제출은 그대로 막는다. placeholder 전환은 disabled 여부와
 // 무관하게 계속 동작하므로 그대로 유지.
-function 입력_대기표시(켜기, 문구 = '확인 중'){
+function 입력_대기표시(켜기, 문구){
   const inp = document.getElementById('단어입력');
   const btn = document.querySelector('#입력폼 button[type=submit]');
   if(!inp || !btn) return;
@@ -388,9 +515,8 @@ function 온라인조회_보고(){
     // 왜 갑자기 끝나는지 모른다 — 지금 Worker가 후보를 적게 주는 탓임을 미리 알린다
     // (근본 원인·수정 방법은 wchain/Worker_수정요청.md ②).
     로그_추가(`🌐 우리말샘 후보가 ${r.개수}개뿐입니다 — 이 글자는 곧 막힐 수 있습니다.`, 'warn');
-  } else {
-    로그_추가(`🌐 우리말샘 후보 ${r.개수}개를 사용합니다.`, 'sys');
   }
+  // 후보가 넉넉할 때는 알리지 않는다(2026-09-27 — "후보 N개를 사용합니다"는 내부 사정이라 잡음이었다)
 }
 
 // AI가 단어를 낸 뒤, **사용자가 이을 수 있는 단어가 정말 있는지** 미리 확인해 알린다.
@@ -401,21 +527,13 @@ function 온라인조회_보고(){
 async function 막다른길_확인(내세대, 기준글자){
   if(!국어원_활성화 || !기준글자) return;
   try{
-    const 방향 = gs.rev ? 'end' : 'start';
-    const 글자들 = gs.rev ? [기준글자] : get_valid_start_chars(기준글자, gs.dueum);
-    const 결과들 = await Promise.all(글자들.map(c => 국어원_후보목록조회(c, 방향)));
-    if(내세대 !== 게임_세대) return;                      // 리셋·재도전으로 판이 바뀜
+    const { 결과들, 기록 } = await 이을단어_조회(기준글자, gs);
+    if(내세대 !== 게임_세대) return;                      // 리셋·재도전으로 판이 바뀜(새 판 세션에 기록하지 않음)
     if(gs.ai_last_char !== 기준글자) return;              // 이미 다음 턴으로 넘어감
     if(결과들.some(r => r === null)) return;              // 확인을 못 했으면 말하지 않는다
-
-    const 합본 = [];
-    결과들.forEach((r, i) => {
-      세션_조회글자.add(방향 + ':' + 글자들[i]);
-      for(const w of r) if(!합본.includes(w)) 합본.push(w);
-    });
-    세션_수집(합본);
+    const 합본 = 기록();
     const 이을수있음 = find_words(기준글자, used_words(gs), gs.rev, gs.dueum, 0,
-                                 gs.stage >= 13 ? 3 : 0, 합본);
+                                 족쇄_최소길이(gs.stage), ai_후보사전(gs, 합본));   // 빈도 목록의 흔한 말도 포함
     if(!이을수있음.length){
       로그_추가(`⚠️ 『${기준글자}』(으)로 ${gs.rev ? '끝나는' : '시작하는'} 단어를 우리말샘에서 `
               + '찾지 못했습니다. 아는 단어가 있으면 그대로 입력해 보세요 — 우리말샘에 있으면 인정됩니다.',
@@ -428,26 +546,22 @@ function 프롬프트_갱신(){
   const 안내 = document.getElementById('prompt-안내');
   // 이어야 할 글자는 이 화면에서 제일 중요한 정보인데 종전엔 작은 회색 안내문에 묻혀 있었다 —
   // 배지로 띄워 한눈에 들어오게 한다(2026-07-28). 방향에 따라 '시작/끝'도 정확히 구분한다.
+  const 미션칸 = document.getElementById('미션');
+  if(미션칸) 미션칸.innerHTML = gs.mission
+    ? `🎯 미션 <b>${HTML막기(gs.mission)}</b> 넣기 · 점수 +50%${gs.mission_count ? ` <span>(${gs.mission_count}회 달성)</span>` : ''}` : '';
   안내.innerHTML = gs.ai_last_char
     ? `<span class="need">${HTML막기(gs.ai_last_char)}</span>(으)로 `
       + `${gs.rev ? '끝나는' : '시작하는'} 단어`
     : '첫 단어를 자유롭게 입력하세요';
   document.getElementById('btn-먼저').style.display = (gs.ai_last_char === null) ? '' : 'none';
-  // 이의·허세 진행도 표시(2026-08-19, 봉인 해제) — "몇 번째인지 안 보여서 아무 일도 안 일어난다고
+  // 이의 진행도 표시(2026-08-19, 봉인 해제) — "몇 번째인지 안 보여서 아무 일도 안 일어난다고
   // 느낀다"는 옛 봉인 사유를 라벨에 잔여 횟수를 노출해 없앤다. 다 쓰면 눌러도 되지만(버튼_이의가
   // 즉시 안내하고 끝냄) 시각적으로도 소진을 알 수 있게 잠금 스타일을 재사용한다.
-  for(const [id, 라벨] of [['btn-이의','이의 있음'], ['btn-허세','그 단어 없어!']]){
-    const el = document.getElementById(id);
-    el.style.display = gs.ai_last_word ? '' : 'none';
-    const 소진 = gs.dispute_attempts >= 이의_최대횟수;
-    el.textContent = `${라벨} (${gs.dispute_attempts}/${이의_최대횟수})`;
-    el.classList.toggle('locked', 소진);   // 활성 버튼과 같은 비중으로 보이지 않게
-  }
-  // '뜻 보기'(2026-08-22 신설) — 판정·소모가 없으니 진행도 라벨도 잠금도 없다. AI가 단어를
-  // 낸 뒤에만 노출(볼 뜻이 없으면 의미 없는 버튼).
-  const 뜻보기btn = document.getElementById('btn-뜻보기');
-  if(뜻보기btn) 뜻보기btn.style.display = gs.ai_last_word ? '' : 'none';
-  // '적절성 검증'(2026-08-22 신설) — 이의있음·허세와 같은 예산(dispute_attempts)을 공유하므로
+  const 이의btn = document.getElementById('btn-이의');
+  이의btn.style.display = gs.ai_last_word ? '' : 'none';
+  이의btn.textContent = `이의 있음 (${gs.dispute_attempts}/${이의_최대횟수})`;
+  이의btn.classList.toggle('locked', gs.dispute_attempts >= 이의_최대횟수);   // 활성 버튼과 같은 비중으로 보이지 않게
+  // '적절성 검증'(2026-08-22 신설) — 이의있음과 같은 예산(dispute_attempts)을 공유하므로
   // 진행도 라벨도 같은 값을 보여준다. 적절성검증 게이트가 꺼져 있는 동안은 항상 잠금 스타일만
   // 표시(버튼_적절성검증이 클릭 시 안내로 처리 — 여기서 숨기지 않는 이유는 존재를 미리
   // 알려서 다음 업데이트를 기대하게 하기 위함, Llove 실험실 티저와 같은 취지).
@@ -484,10 +598,8 @@ function 선택박스_숨기기(){ document.getElementById('선택박스').style
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    단어 제출 (원본 _handle_playing 핵심 경로)
-   Phase 5: 로컬 사전에 없는 단어는(게이트가 켜져 있을 때만) 우리말샘 API로 한 번 더
-   확인한다 — validate_word 자체는 순수·동기 함수로 그대로 두고(파이썬 대조 500/500 유지),
-   비동기 온라인 조회는 이 UI 레이어에서만 감싼다. 게이트 기본값이 false라 지금은 항상
-   기존과 동일하게 로컬 사전 판정만 탄다(행동 변화 없음).
+   보조 사전(추가사전)에 없는 단어는 우리말샘 API로 확인한다 — validate_word 자체는 순수·동기
+   함수로 그대로 두고(파이썬 대조 500/500 유지), 비동기 온라인 조회는 이 UI 레이어에서만 감싼다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 // 재진입 가드 — 국어원 게이트가 켜진 뒤로 단어 검증(온라인 존재 조회)·AI 턴(온라인 후보 조회)이
 // 비동기가 되면서, 그 대기(최대 1.5초) 동안 사용자가 빠르게 재입력하면 gs.history 이중 push·turn
@@ -499,6 +611,21 @@ let 게임_비동기처리중 = false;
 // 삭제를 누르면 gs가 통째로 초기화되는데, 종전에는 진행 중이던 단어_처리 IIFE가 그대로 이어져
 // 새 판에 history를 push하고 게임오버까지 띄웠다. 되돌아온 결과의 세대가 다르면 폐기한다.
 let 게임_세대 = 0;
+// 비동기 처리 공통 가드 — 재진입을 막고 입력 대기 표시를 켠 뒤 본체(내세대)를 실행하고, 끝나면
+// (그사이 판이 바뀌지 않았을 때만) 해제한다. 본체는 await 뒤마다 내세대 === 게임_세대를 확인해
+// 대기 중 리셋·재도전이 있었으면 결과를 버려야 한다.
+async function 비동기_가드(대기문구, 본체){
+  게임_비동기처리중 = true;
+  입력_대기표시(true, 대기문구);
+  const 내세대 = 게임_세대;
+  try{ await 본체(내세대); }
+  finally{
+    if(내세대 === 게임_세대){
+      게임_비동기처리중 = false;
+      입력_대기표시(false);
+    }
+  }
+}
 function 게임_세대올리기(){ 게임_세대 += 1; 게임_비동기처리중 = false; 강제_AI단어 = null; }
 
 function 단어_제출(){
@@ -514,81 +641,83 @@ function 단어_제출(){
   if(raw === 'yyyyynny'){ 갓모드_활성화(); return false; }
 
   // 폼 기본 제출(새로고침)을 막기 위해 이 함수는 동기적으로 false를 반환하고, 비동기 흐름은
-  // 가드로 감싼 IIFE 안에서 처리한다(끝나면 finally로 반드시 가드 해제).
-  게임_비동기처리중 = true;
-  입력_대기표시(true, '처리 중');
-  const 내세대 = 게임_세대;
-  (async () => {
-    try{
-      로그_추가('▶ ' + raw, 'me');
-      let [valid, reason] = validate_word(raw, gs);
+  // 비동기_가드 안에서 처리한다(끝나면 반드시 가드 해제).
+  타이머.제출비율 = 턴_제한초(gs) !== null && 타이머.총 ? Math.max(0, 타이머.남은 / 타이머.총) : 0.75;
+  비동기_가드('처리 중', async 내세대 => {
+    마지막_내말풍선 = 단어_말풍선(raw, 'me', gs.ai_last_char !== null);
+    let [valid, reason] = validate_word(raw, gs);
 
-      // 로컬 사전에 없어서만 실패했고 국어원 게이트가 켜져 있으면 온라인 조회로 재확인.
-      if(!valid && 국어원_활성화 && reason.endsWith('사전에 없는 단어입니다.')){
-        로그_추가('🔎 우리말샘에서 찾아보는 중...', 'sys');
-        const 존재함 = await 국어원_단어조회(raw);
-        // null = 네트워크 실패/시간초과로 "확인 자체를 못 함" — 진짜로 사전에 없는 것과 달리
-        // 사용자 잘못이 아니므로 실수(user_defeat)를 매기지 않고 그대로 재시도할 수 있게 둔다.
-        if(존재함 === null){
-          로그_추가('⚠️ 우리말샘 확인에 실패했습니다(네트워크 문제로 추정). 같은 단어를 다시 입력해 보세요.', 'warn');
-          return;
-        }
-        if(존재함){
-          // API로 사전 등재가 확인된 단어 — validate_word의 다음 단계(한방 판정)를 동일하게 재현
-          // (사전 소속 여부만 API가 대신했을 뿐, 그 이후 규칙은 로컬 판정과 완전히 같아야 한다)
-          세션_수집(raw);   // 확인된 단어는 세션 사전에 쌓는다(네트워크가 끊겨도 판이 이어지게)
-          valid = true; reason = '';
-          if(gs.game_mode === 'ARCADE' && await 한방_확정인가(raw, gs)){
-            valid = false; reason = `『${raw}』은(는) 한방 단어입니다. (아케이드에서 사용 불가)`;
-          } else if(gs.game_mode !== 'ARCADE' && !gs.hanbang && await 한방_확정인가(raw, gs)){
-            valid = false; reason = `『${raw}』은(는) 한방 단어입니다. (일반 모드에서 사용 불가)`;
-          }
-        }
-        // 존재함 === false면 valid/reason을 그대로 둔다(진짜로 사전에 없는 단어).
+    // 보조 사전에 없어서만 실패했고 국어원 게이트가 켜져 있으면 온라인 조회로 재확인.
+    if(!valid && 국어원_활성화 && reason.endsWith('사전에 없는 단어입니다.')){
+      로그_추가('🔎 우리말샘에서 찾아보는 중…', 'sys');
+      // 확인을 기다리는 동안 AI가 이어야 할 글자의 후보를 나란히 받아 둔다(결과는 캐시로 공유 —
+      // 종전엔 확인이 끝난 뒤에야 후보를 물어 두 왕복이 차례로 쌓였다). 실패해도 AI 턴이 다시 묻는다.
+      이을단어_조회(이을글자(raw, gs.rev), gs).catch(() => {});
+      const 존재함 = await 국어원_단어조회(raw);
+      // null = 네트워크 실패/시간초과로 "확인 자체를 못 함" — 진짜로 사전에 없는 것과 달리
+      // 사용자 잘못이 아니므로 실수(user_defeat)를 매기지 않고 그대로 재시도할 수 있게 둔다.
+      if(존재함 === null){
+        로그_추가('⚠️ 우리말샘 확인에 실패했습니다(네트워크 문제로 추정). 같은 단어를 다시 입력해 보세요.', 'warn');
+        return;
       }
-      // 로컬 사전 판정이 "한방 단어"로 막은 경우 — 280단어 기준이라 오판일 수 있으므로
-      // 온라인으로 실제 이을 단어가 있는지 확인해 판정을 뒤집는다(2026-07-27, 즉사 버그 수정).
-      else if(!valid && reason.includes('한방 단어입니다.') && !(await 한방_확정인가(raw, gs))){
+      if(존재함){
+        // API로 사전 등재가 확인된 단어 — validate_word의 다음 단계(한방 판정)를 동일하게 재현
+        // (사전 소속 여부만 API가 대신했을 뿐, 그 이후 규칙은 로컬 판정과 완전히 같아야 한다)
+        세션_수집(raw);   // 확인된 단어는 세션 사전에 쌓는다(네트워크가 끊겨도 판이 이어지게)
         valid = true; reason = '';
+        // 한방 금지 국면(아케이드 또는 한방모드 OFF) — 사유 문자열은 validate_word와 같아야 한다
+        if(ai_한방금지인가(gs) && await 한방_확정인가(raw, gs)){
+          valid = false;
+          reason = `『${raw}』은(는) 한방 단어입니다. (${gs.game_mode === 'ARCADE' ? '아케이드' : '일반 모드'}에서 사용 불가)`;
+        }
       }
-
-      // 조회를 기다리는 사이 리셋·재도전·데이터 삭제가 일어났으면 이 턴의 결과를 버린다
-      // (새 판의 상태를 오염시키지 않기 위해 — 아래 finally도 세대를 확인한다).
-      if(내세대 !== 게임_세대) return;
-      await 단어_처리(raw, valid, reason);
-    } finally {
-      if(내세대 === 게임_세대){
-        게임_비동기처리중 = false;
-        입력_대기표시(false);
-      }
+      // 존재함 === false면 valid/reason을 그대로 둔다(진짜로 사전에 없는 단어).
     }
-  })();
+    // 동기 판정(보조 사전 기준)이 "한방 단어"로 막은 경우 — 온라인 전체를 안 본 판정이라 오판일 수 있으므로
+    // 온라인으로 실제 이을 단어가 있는지 확인해 판정을 뒤집는다(2026-07-27, 즉사 버그 수정).
+    else if(!valid && reason.includes('한방 단어입니다.') && !(await 한방_확정인가(raw, gs))){
+      valid = true; reason = '';
+    }
+
+    // 조회를 기다리는 사이 리셋·재도전·데이터 삭제가 일어났으면 이 턴의 결과를 버린다
+    // (새 판의 상태를 오염시키지 않기 위해 — 비동기_가드도 끝날 때 세대를 확인한다).
+    if(내세대 !== 게임_세대) return;
+    await 단어_처리(raw, valid, reason);
+  });
   return false;
+}
+
+// 타이핑이 0.5초 멈추면 ① 그 단어가 사전에 있는지와 ② 끝 글자로 AI가 이을 후보를 미리 받아 둔다
+// (2026-09-27). 제출 뒤에는 둘 다 캐시에서 바로 나온다 — 기록()은 부르지 않아 아직 내지 않은
+// 단어가 판정(세션 조회글자·수집어)에 섞이지 않는다. 존재 확인은 받아 둔 단어면 건너뛴다.
+let 선조회_타이머 = null;
+function 입력중_선조회(){
+  clearTimeout(선조회_타이머);
+  선조회_타이머 = setTimeout(() => {
+    const w = document.getElementById('단어입력').value.trim();
+    if(gs.game_state !== 'PLAYING' || !/^[가-힣]{2,}$/.test(w)) return;
+    if(!세션_수집어.includes(w)) 국어원_단어조회(w).catch(() => {});
+    이을단어_조회(이을글자(w, gs.rev), gs).catch(() => {});
+  }, 500);
 }
 
 async function 단어_처리(raw, valid, reason){
   if(!valid){
-    /* ⚠️ 노션 11번(한방 단어 즉시 패배) 철회 — 2026-07-27, 관리자님 지시.
-       ────────────────────────────────────────────────────────────────────
-       Phase 3에서 "원본은 한방 단어도 실수 1회로 넘어가는 결함"이라 보고 즉시 패배로 강화했는데,
-       실플레이에서 이 규칙이 치명적으로 작용했다("바로 패배를 해버림" / "2번째 턴에 강제로
-       패배 — 실수나 목숨 없이"). 원인은 두 가지가 겹친 것:
-         · 한방 판정이 로컬 280단어 기준이라 정상 단어의 24~44%를 한방으로 오판(실측)
-         · 그 오판이 실수 1회가 아니라 목숨도 안 깎고 바로 게임오버로 직결
-       판정 오판은 한방_확정인가()로 따로 고쳤지만, "한 수 잘못 두면 경고 없이 판이 끝난다"는
-       규칙 자체가 게임을 못 하게 만든다는 판단으로 **원본 파이썬대로 실수 1회 누적**으로 되돌린다.
-       (되돌릴 근거를 남겨두기 위해 삭제하지 않고 여기 기록 — 이의/허세 봉인과 같은 관례.)
-
-       철회된 구현:
-         if(gs.game_mode !== 'ARCADE' && !gs.hanbang && !gs.god_mode_active
-            && reason.endsWith('한방 단어입니다. (일반 모드에서 사용 불가)')){
-           ... 로그 2줄 ...
-           if(gs.turn > gs.best) gs.best = gs.turn;
-           게임오버(false);
-           return false;
-         }
-    */
+    // 노션 11번(한방 단어 즉시 패배)은 2026-07-27 철회 — "한 수 잘못 두면 경고 없이 판이 끝나는"
+    // 규칙이 게임을 못 하게 만들어, 부적합 단어는 다른 오답처럼 목숨 1개 차감으로 처리한다
+    // (경위: wchain/시스템.md 노션 11번 항목, 철회 전 구현은 git 이력).
+    마지막_내말풍선?.classList.add('bad');   // 받아들여지지 않은 단어는 흐리게·취소선
+    흔들기(document.getElementById('단어입력'));   // 오답 피드백(개편계획 4번)
     로그_추가(대사(gs, '단어_처리_8', [reason]), 'err');
+    // 사전에 없는 단어(대개 오타)는 목숨을 깎지 않고 다시 입력하게 한다(2026-09-27 관리자님 결정 —
+    // 끄투 방식. 타이머를 켠 판에서는 흘러간 시간이 곧 벌칙이다). 규칙 위반(한방·중복·글자)은 그대로 차감.
+    if(reason.endsWith('사전에 없는 단어입니다.')){
+      콤보_끊기();
+      로그_추가('↩ 목숨은 그대로예요. 다시 입력해 보세요.', 'sys');
+      플레이_HUD갱신(); 프롬프트_갱신();
+      return false;
+    }
+    콤보_끊기();
     const result = user_defeat(gs);
     if(result === 'game_over'){ 게임오버(false); return false; }
     플레이_HUD갱신(); 프롬프트_갱신();
@@ -598,6 +727,18 @@ async function 단어_처리(raw, valid, reason){
   // 원본의 정답 반응(react_correct) — 이식 때 호출부가 통째로 빠져 있어서 맞는 단어를 내도
   // 화면에 아무 반응이 없었다(2026-07-27 복원). AI 단어 반응(react_ai_word)만 살아 있었다.
   로그_추가(react_correct(gs), 'ok');
+
+  const 내뜻 = 마지막_내말풍선?.querySelector('.bmean');
+  if(내뜻) 뜻_붙이기(raw, 내뜻);
+  gs.흐름.push(gs.이번턴_힌트 ? '🟨' : '🟩'); gs.이번턴_힌트 = false;
+  // 점수·콤보(2026-09-27) — history에 넣기 전에 계산한다(이어진 단어 수 = 지금까지의 사슬 길이)
+  gs.combo += 1;
+  gs.max_combo = Math.max(gs.max_combo, gs.combo);
+  if(raw.length > gs.longest.length) gs.longest = raw;
+  let 얻은점수 = 턴_점수(raw, gs, 타이머_속도비율());
+  얻은점수 += 미션_확인(raw, 얻은점수);
+  gs.score += 얻은점수;
+  점수_연출(얻은점수);
 
   gs.history.push({ word: raw, turn: gs.turn });
   gs.turn += 1;
@@ -618,9 +759,7 @@ async function 단어_처리(raw, valid, reason){
           <button class="btn sm" onclick="탑승리_응답(false)">종료</button>`);
         return false;
       }
-      arcade_floor_up(gs, false);
-      if(gs.game_state === 'SOFTLOCKED'){ 소프트락_진입(); return false; }
-      플레이_HUD갱신(); 프롬프트_갱신();
+      층_올리기(false);
       return false;
     }
   }
@@ -630,7 +769,7 @@ async function 단어_처리(raw, valid, reason){
   // AI가 고른 것과 **같은 사전**으로 판정해야 하기 때문(2026-07-27). 종전에는 AI는 온라인 풀에서
   // 고르고 검사는 로컬 280단어로 해서, 정상적인 온라인 단어가 한방으로 오판돼 판이 갑자기
   // "사용자 승리"로 끝나는 일이 있었다.
-  gs.ai_last_char = !gs.rev ? raw[raw.length - 1] : raw[0];
+  gs.ai_last_char = 이을글자(raw, gs.rev);
   // 관리자 패널에서 다음 상대 단어를 지정해 뒀으면 그것을 먼저 쓴다(1회 소비).
   // 잇기 규칙에 맞지 않으면 예약을 버리고 평소대로 진행한다 — 판이 깨지지 않게.
   let 추가후보 = [], ai_판정사전 = null, ai_word = null;
@@ -644,12 +783,12 @@ async function 단어_처리(raw, valid, reason){
       ai_판정사전 = ai_후보사전(gs, [예약]);
       로그_추가(`🔓 [관리자] 지정 단어 『${예약}』를 사용합니다.`, 'sys');
     } else {
-      로그_추가(`🔓 [관리자] 『${예약}』는 지금 이을 수 없어 예약을 버립니다.`, 'warn');
+      로그_추가(`🔓 [관리자] 『${예약}』은(는) 지금 이을 수 없어 예약을 버립니다.`, 'warn');
     }
   }
   if(ai_word === null){
     추가후보 = await 온라인후보_가져오기(gs);
-    ai_word = ai_generate_word(gs, 추가후보);
+    ai_word = await AI단어_고르기(gs, 추가후보);
     ai_판정사전 = ai_후보사전(gs, 추가후보);
     온라인조회_보고();   // 희귀어를 실제로 받아 썼는지 / 못 받았는지를 화면에 남긴다
   }
@@ -668,11 +807,8 @@ async function 단어_처리(raw, valid, reason){
       게임오버(true);
       return false;
     }
-    // 아케이드: AI 기권 = 그 층 클리어(런 종료 아님)
-    로그_추가(대사(gs, '단어_처리_3'), 'ok');
-    arcade_floor_up(gs, true);
-    if(gs.game_state === 'SOFTLOCKED'){ 소프트락_진입(); return false; }
-    플레이_HUD갱신(); 프롬프트_갱신();
+    // 아케이드: AI 기권 = 그 층 클리어(런 종료 아님) — "단어가 없다" 대사는 arcade_floor_up이 찍는다
+    층_올리기(true);
     return false;
   }
 
@@ -681,7 +817,7 @@ async function 단어_처리(raw, valid, reason){
   if(ai_한방금지인가(gs) && 한방_판정가능인가(ai_word, gs)
      && is_hanbang(ai_word, used_words(gs), gs.rev, gs.dueum, gs.stage, ai_판정사전)){
     if(gs.god_mode_active){
-      로그_추가(`💀 [AI 자폭] 『${ai_word}』는 한방 단어입니다.`, 'sys');
+      로그_추가(`💀 [AI 자폭] 『${ai_word}』은(는) 한방 단어입니다.`, 'sys');
       로그_추가('🔓 [GOD MODE] 자유 입력권 발동.', 'sys');
       gs.history.push({ word: ai_word, turn: gs.turn }); gs.ai_last_word = ai_word; gs.ai_last_char = null;
       플레이_HUD갱신(); 프롬프트_갱신();
@@ -693,18 +829,17 @@ async function 단어_처리(raw, valid, reason){
       게임오버(true);
       return false;
     }
-    // 아케이드: AI가 한방 단어를 냄 = 실수, 그 층 클리어(런 종료 아님)
+    // 아케이드: AI가 한방 단어를 냄 = 실수, 그 층 클리어(런 종료 아님). 기권(true)이 아니라
+    // 일반 클리어로 올린다 — 기권 대사 "단어가 없다"가 방금 낸 한방 단어와 모순되기 때문(09-27).
     로그_추가(대사(gs, '단어_처리_1', [ai_word]), 'warn');
-    arcade_floor_up(gs, true);
-    if(gs.game_state === 'SOFTLOCKED'){ 소프트락_진입(); return false; }
-    플레이_HUD갱신(); 프롬프트_갱신();
+    층_올리기(false);
     return false;
   }
 
   gs.history.push({ word: ai_word, turn: gs.turn });
-  gs.ai_last_char = !gs.rev ? ai_word[ai_word.length - 1] : ai_word[0];
+  gs.ai_last_char = 이을글자(ai_word, gs.rev);
   gs.ai_last_word = ai_word;
-  로그_추가(react_ai_word(gs, ai_word));
+  AI단어_보이기(ai_word);
   플레이_HUD갱신(); 프롬프트_갱신();
 
   // ⚠️ 2026-07-29: 50턴 딜·목표 달성 제안을 **AI 턴 뒤로** 옮겼다.
@@ -754,12 +889,12 @@ function 서바이벌_제안_확인(){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   양보(원본 _handle_yield) · 이의(원본 _handle_dispute) · 허세(원본 bluff_kw)
+   양보(원본 _handle_yield) · 이의(원본 _handle_dispute)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function 버튼_양보(){
   if(gs.ai_last_char !== null) return;
   // 앞 입력의 온라인 조회·AI 턴이 도는 중에 누르면 user_defeat이 겹쳐 목숨이 이중으로 깎인다
-  // (단어_제출·힌트_실행과 같은 재진입 가드를 공유한다). 조용히 무시하지 않고 이유를 알린다.
+  // (단어_제출·버튼_힌트와 같은 재진입 가드를 공유한다). 조용히 무시하지 않고 이유를 알린다.
   if(게임_비동기처리중){ 로그_추가('⏳ 앞의 처리가 끝난 뒤에 다시 눌러 주세요.', 'sys'); return; }
   if(gs.game_state !== 'PLAYING') return;
   gs.yield_attempts += 1;
@@ -778,37 +913,21 @@ function 버튼_양보(){
   플레이_HUD갱신(); 프롬프트_갱신();
 }
 
-/* ⚠️ 봉인 (2026-07-26, 관리자님 지시) — '이의 있음'·'그 단어 없어!' 두 버튼
-   ────────────────────────────────────────────────────────────────────────
-   관리자님 실플레이 피드백: "이럴 거면 왜 이의 있음을 만든 거야?"
-   현 구현(원본 파이썬 _handle_dispute / bluff_kw 그대로)의 문제:
-     · 사전을 실제로 확인하지 않고 미리 정해둔 조롱 대사만 출력한다.
-     · 5번 연속 눌러야 겨우 취소되고, 심연 난이도면 그마저 기각된다.
-     · 몇 번째인지 화면에 안 보여서 사용자는 "아무 일도 안 일어난다"고 느낀다.
-     · '그 단어 없어!'는 아예 대사 한 줄뿐인 no-op.
-   → 어설프게 남겨두느니 '준비 중'으로 막고, 다음 차수에 제대로 재설계하기로 확정.
-
-   재설계 방향(다음 차수): 국어원 API로 AI 단어를 실제 조회해서 없는 단어면 즉시
-   취소·사과하고 AI가 다시 내게 하고, 있는 단어면 뜻풀이를 근거로 제시한다. 진행도도 표시.
-
-   기존 구현은 지우지 않고 아래 주석 블록에 보존한다(Llove의 봉인 골격 관례와 동일 —
-   재설계 시 원본 대조용으로 씀). */
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   봉인 해제 (2026-08-19) — 재설계 반영
+   '이의 있음' — 2026-08-19 재설계(07-26 봉인을 해제하며)
    ────────────────────────────────────────────────────────────────────────
-   위 봉인 사유 4가지를 그대로 고쳤다:
+   원본 파이썬(_handle_dispute / bluff_kw) 구현은 사전을 확인하지 않고 정해 둔 조롱 대사만 냈다
+   (관리자님: "이럴 거면 왜 이의 있음을 만든 거야?"). 그 문제 4가지를 고쳤다:
      · 사전을 실제로 확인 → wchain/js/국어원.js의 국어원_단어조회_상세()로 매 클릭마다 실조회
        (뜻풀이는 트랙 A에서 확장한 Worker 계약, wchain/worker/우리말샘-worker.mjs 참조).
      · 5번 눌러야 취소되던 것 → 첫 클릭부터 즉시 판정(사전에 없으면 그 자리에서 취소).
      · 몇 번째인지 안 보이던 것 → 버튼 라벨에 "(n/5)" 진행도 노출(프롬프트_갱신).
-     · '그 단어 없어!'가 대사 한 줄짜리 no-op이던 것 → '이의 있음'과 동일한 실조회를 태운다
-       (AI는 항상 검증된 단어만 내므로 두 버튼이 주장하는 내용이 사실상 같다 — 아래 참조).
+     · '그 단어 없어!'(원본 허세 버튼)는 이의 있음과 같은 주장이라 한때 같은 함수로 묶었다가
+       2026-09-27 버튼째 뺐다(관리자님 결정, Q9 — 같은 동작 버튼 두 개는 혼란만 준다).
    이의 제기는 판(게임)당 최대 5회로 제한한다(성공·실패 모두 소모 — 기존 상수 재사용,
    확인 자체가 실패한 시도는 소모하지 않음). 원본에 있던 "심연 난이도는 무조건 기각" 특례는
    두지 않는다 — 실제로 확인해서 판정한다는 이번 재설계 취지와 맞지 않기 때문이다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const 이의허세_봉인 = false;
 const 이의_최대횟수 = 5;
 
 // 이의있음이든(사전 존재 확인) 적절성 검증이든(심판 판단, 아래 버튼_적절성검증) '이 단어는
@@ -822,24 +941,24 @@ async function AI단어_취소_재출제(disputed, 내세대){
   // (세션_수집어)엔 여전히 남아 있어서 — 여기서 먼저 지워버리면 "이미 쓴 단어" 목록에서
   // disputed가 빠져 AI가 방금 취소된 바로 그 단어를 그대로 다시 낼 수 있었다(실측 재현).
   // 그래서 다음 시작 글자 계산용 필터링 결과는 로컬 변수(이전항목들)로만 만들고, 실제
-  // gs.history 교체는 ai_generate_word_비동기 호출이 끝난 뒤로 미룬다 — 생성 도중에는
+  // gs.history 교체는 AI 재출제(온라인 후보 조회 포함)가 끝난 뒤로 미룬다 — 생성 도중에는
   // disputed가 history에 그대로 남아 있어 자연히 재선택이 막힌다.
   const 이전항목들 = gs.history.filter(h => h.word !== disputed);
   if(이전항목들.length){
     const prev = 이전항목들[이전항목들.length - 1].word;
-    gs.ai_last_char = !gs.rev ? prev[prev.length - 1] : prev[0];
+    gs.ai_last_char = 이을글자(prev, gs.rev);
   } else {
     gs.ai_last_char = null;
   }
   gs.ai_last_word = null;
-  const new_ai = await ai_generate_word_비동기(gs);   // gs.history엔 아직 disputed가 남아 있음
+  const new_ai = await AI단어_고르기(gs, await 온라인후보_가져오기(gs));   // gs.history엔 아직 disputed가 남아 있음
   gs.history = 이전항목들;   // 이제서야 실제로 뺀다(성공·실패 여부와 무관하게)
   if(내세대 !== 게임_세대) return false;   // 대기 중 리셋·재도전이 있었다 — 더 진행하면 안 됨
   if(new_ai){
     gs.history.push({ word: new_ai, turn: gs.turn });
-    gs.ai_last_char = !gs.rev ? new_ai[new_ai.length - 1] : new_ai[0];
+    gs.ai_last_char = 이을글자(new_ai, gs.rev);
     gs.ai_last_word = new_ai;
-    로그_추가(react_ai_word(gs, new_ai));
+    AI단어_보이기(new_ai);
     return true;
   }
   로그_추가(대사(gs, '버튼_이의_원본_1', [title(gs)]), 'ok');
@@ -856,13 +975,10 @@ async function 버튼_이의(){
     로그_추가(대사(gs, '버튼_이의_소진'), 'err');
     return;
   }
-  게임_비동기처리중 = true;
-  입력_대기표시(true, '이의 확인 중');
-  const 내세대 = 게임_세대;
-  try{
+  return 비동기_가드('이의 확인 중', async 내세대 => {
     gs.dispute_attempts += 1;
     const disputed = gs.ai_last_word;
-    로그_추가('🔎 우리말샘에서 확인하는 중...', 'sys');
+    로그_추가('🔎 우리말샘에서 확인하는 중…', 'sys');
     플레이_HUD갱신(); 프롬프트_갱신();   // 진행도 라벨(n/5)을 즉시 반영
 
     const 결과 = await 국어원_단어조회_상세(disputed);
@@ -880,23 +996,12 @@ async function 버튼_이의(){
       if(!await AI단어_취소_재출제(disputed, 내세대)) return;
     } else {
       // 실제로 있는 단어 — 뜻풀이를 근거로 이의 기각.
-      const 첫뜻 = (결과.뜻풀이그룹[0] && 결과.뜻풀이그룹[0].뜻풀이[0]) || '(뜻풀이를 불러오지 못했습니다)';
+      const 첫뜻 = 대표뜻(결과) || '(뜻풀이를 불러오지 못했습니다)';
       로그_추가(대사(gs, '버튼_이의_기각', [disputed, 첫뜻]), 'err');
     }
     플레이_HUD갱신(); 프롬프트_갱신();
-  } finally {
-    if(내세대 === 게임_세대){
-      게임_비동기처리중 = false;
-      입력_대기표시(false);
-    }
-  }
+  });
 }
-
-// '그 단어 없어!'는 '이의 있음'과 주장하는 내용이 완전히 같다(AI가 낸 단어가 사전에 없다는
-// 의심) — AI는 항상 검증된 단어만 내므로(ai_generate_word가 HARD_DICT/DICTIONARY/온라인
-// 후보에서만 고름) 별도 판정 로직을 둘 이유가 없다. 종전엔 이쪽만 대사 한 줄짜리 no-op이었던
-// 것을 없애고 같은 실조회를 태운다(대사표의 버튼_허세_원본_1은 옛 구현 대조용으로 남겨 둔다).
-const 버튼_허세 = 버튼_이의;
 
 // '뜻 보기' — 이의있음·적절성검증과 달리 판정도 소모도 없다. 그냥 지금 AI가 낸 단어의 뜻을
 // 보여준다(2026-08-22 신설). 우리말샘 조회만 하므로 국어원_단어조회_상세()를 그대로
@@ -904,12 +1009,9 @@ const 버튼_허세 = 버튼_이의;
 async function 버튼_뜻보기(){
   if(게임_비동기처리중) return;
   if(!gs.ai_last_word) return;
-  게임_비동기처리중 = true;
-  입력_대기표시(true, '뜻 확인 중');
-  const 내세대 = 게임_세대;
-  try{
+  return 비동기_가드('뜻 확인 중', async 내세대 => {
     const word = gs.ai_last_word;
-    로그_추가('📖 우리말샘에서 뜻을 찾는 중...', 'sys');
+    로그_추가('📖 우리말샘에서 뜻을 찾는 중…', 'sys');
     const 결과 = await 국어원_단어조회_상세(word);
     if(내세대 !== 게임_세대) return;
     // 실패 원인을 뭉뚱그리지 않는다 — 셋은 사용자가 할 일이 서로 다르다(2026-08-22).
@@ -932,21 +1034,16 @@ async function 버튼_뜻보기(){
     }
     로그_추가(`📖 『${word}』`, 'sys');
     for(const 줄 of 줄들) 로그_추가(줄, 'sys');
-  } finally {
-    if(내세대 === 게임_세대){
-      게임_비동기처리중 = false;
-      입력_대기표시(false);
-    }
-  }
+  });
 }
 
 // '적절성 검증' — 이의있음(사전 존재 확인)과 역할이 다르다: 사전엔 있지만 이 판에서 쓰기엔
 // 부당한 단어인지(희귀 전문용어·옛말·지명·인명류 등, 후보 필터가 못 거른 경계 케이스)를
 // AI에게 판단시킨다(2026-08-22 신설). wchain/js/적절성판정.js·wchain/worker/단어적절성판정
-// -worker.mjs 참조. 아직 게이트 봉인 상태(적절성검증_활성화=false, 제공사 미확정·Worker
-// 미배포)라 지금은 '준비 중' 안내만 뜨고 dispute_attempts를 소모하지 않는다.
+// -worker.mjs 참조. 2026-08-30 개방(적절성검증_활성화=true) — 게이트를 다시 잠그면 '준비 중'
+// 안내만 뜨고 dispute_attempts를 소모하지 않는다.
 // 이의있음과 같은 예산(gs.dispute_attempts/이의_최대횟수)을 공유한다 — 판당 이의제기 총량이
-// 버튼 3개(이의있음·허세·적절성검증)로 쪼개져 늘어나지 않게 하기 위함.
+// 버튼 2개(이의있음·적절성검증)로 쪼개져 늘어나지 않게 하기 위함.
 //
 // 판정이 '적절'로 나오면 반박(2차 교차검증)을 제안한다 — 아래 반박_제안()·반박_응답() 참조.
 // 반박은 예산을 **추가로 쓰지 않는다**(같은 검증의 연장이라 이미 1회 차감했음).
@@ -971,7 +1068,7 @@ async function 버튼_적절성검증(){
   try{
     gs.dispute_attempts += 1;
     const disputed = gs.ai_last_word;
-    로그_추가('🤖 심판에게 판단을 묻는 중...', 'sys');
+    로그_추가('🤖 심판에게 판단을 묻는 중…', 'sys');
     플레이_HUD갱신(); 프롬프트_갱신();
 
     const 결과 = await 적절성_검증(disputed, gs.ai_last_char);
@@ -983,12 +1080,13 @@ async function 버튼_적절성검증(){
       return;
     }
 
+    const 이유 = 결과.이유 ? ' — ' + 결과.이유.replace(/[.。]+$/, '') : '';   // AI 이유가 마침표로 끝나 ".."가 되던 것
     if(!결과.적절){
       // 부당하다고 판단됨 — 이의있음의 '없는 단어' 분기와 동일하게 취소·재출제.
-      로그_추가(`🤖 인정합니다, 『${disputed}』는 부당한 단어였습니다${결과.이유 ? ' — ' + 결과.이유 : ''}. 취소하겠습니다.`, 'ok');
+      로그_추가(`🤖 인정합니다, 『${disputed}』은(는) 부당한 단어였습니다${이유}. 취소하겠습니다.`, 'ok');
       if(!await AI단어_취소_재출제(disputed, 내세대)) return;
     } else {
-      로그_추가(`🤖 『${disputed}』는 적절한 단어입니다${결과.이유 ? ' — ' + 결과.이유 : ''}.`, 'err');
+      로그_추가(`🤖 『${disputed}』은(는) 적절한 단어입니다${이유}.`, 'err');
       // 판정이 '적절'이면 여기서 끝내지 않고 반박 기회를 준다. 반대(부당) 판정에는 반박을
       // 안 붙이는 이유: 그건 사용자가 원한 결과라 뒤집을 동기가 없다.
       반박대기로_넘김 = 반박_제안(disputed);
@@ -1134,66 +1232,6 @@ async function 반박_응답(사유코드, 보충){
   }
 }
 
-/* ── 봉인 해제 전 구현(대조용, 참고 목적으로 보존) ─────────────────────────
-async function 버튼_이의_원본(){
-  if(게임_비동기처리중) return;   // 앞 처리(온라인 조회·AI 턴) 진행 중이면 무시(재진입 방지)
-  게임_비동기처리중 = true;
-  try{
-    gs.dispute_attempts += 1;
-    const disputed = gs.ai_last_word || '?';
-    if(gs.dispute_attempts === 1){
-      로그_추가(대사(gs, '버튼_이의_원본_7', [disputed]));
-    } else if(gs.dispute_attempts === 2){
-      로그_추가(대사(gs, '버튼_이의_원본_6'));
-    } else if(gs.dispute_attempts === 3){
-      로그_추가(대사(gs, '버튼_이의_원본_5'));
-    } else if(gs.dispute_attempts === 4){
-      로그_추가(대사(gs, '버튼_이의_원본_4', [disputed]));
-    } else {
-      if(gs.diff === '심연'){
-        로그_추가(대사(gs, '버튼_이의_원본_3'), 'err');
-        gs.dispute_attempts = 0;
-      } else {
-        로그_추가(대사(gs, '버튼_이의_원본_2', [disputed]), 'ok');
-        gs.dispute_attempts = 0;
-        gs.history = gs.history.filter(h => h.word !== disputed);
-        if(gs.history.length){
-          const prev = gs.history[gs.history.length - 1].word;
-          gs.ai_last_char = !gs.rev ? prev[prev.length - 1] : prev[0];
-        } else {
-          gs.ai_last_char = null;
-        }
-        gs.ai_last_word = null;
-        const new_ai = await ai_generate_word_비동기(gs);
-        if(new_ai){
-          gs.history.push({ word: new_ai, turn: gs.turn });
-          gs.ai_last_char = !gs.rev ? new_ai[new_ai.length - 1] : new_ai[0];
-          gs.ai_last_word = new_ai;
-          로그_추가(react_ai_word(gs, new_ai));
-        } else {
-          로그_추가(대사(gs, '버튼_이의_원본_1', [title(gs)]), 'ok');
-          // 원본과 동일: 이의제기로 인한 승리는 서바이벌만 best(턴) 갱신 — 아케이드는 갱신 안 함(원본 그대로)
-          if(gs.game_mode === 'SURVIVAL' && gs.turn > gs.best) gs.best = gs.turn;
-          게임오버(true);
-          return;
-        }
-      }
-    }
-    플레이_HUD갱신(); 프롬프트_갱신();
-  } finally {
-    게임_비동기처리중 = false;
-  }
-}
-
-// 원본 bluff_kw 분기 — AI는 항상 사전에 있는 단어만 내므로(ai_generate_word가 DICTIONARY/HARD_DICT에서만
-// 고름) 실질적으로 항상 "허세 부리는 건가?" 조롱만 나온다(원본에서도 else 분기는 사실상 도달 불가).
-function 버튼_허세_원본(){
-  if(!gs.ai_last_word) return;
-  로그_추가(대사(gs, '버튼_허세_원본_1', [gs.ai_last_word]));
-  플레이_HUD갱신(); 프롬프트_갱신();
-}
-──────────────────────────────────────────────────────────────────────── */
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    힌트 (원본 handle_hint/deliver_hint — 서바이벌 경로만)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -1206,14 +1244,14 @@ function 버튼_허세_원본(){
 // 공간이 어긋나므로(힌트 불가가 잘못 뜸), 같은 풀을 공유하도록 추가후보를 함께 넘긴다.
 function 힌트_후보(gs, 추가후보 = []){
   const dark_filter = (gs.game_mode === 'ARCADE' && gs.curse_dark_active) ? 2 : 0;
-  const min_len = (gs.game_mode === 'ARCADE' && gs.stage >= 13) ? 3 : 0;
+  const min_len = gs.game_mode === 'ARCADE' ? 족쇄_최소길이(gs.stage) : 0;
   const 사전 = ai_후보사전(gs, 추가후보);   // AI 턴과 같은 풀(우리말샘 + 세션 + 보조 사전)
   const 후보 = find_words(gs.ai_last_char, used_words(gs), gs.rev, gs.dueum, dark_filter, min_len, 사전);
 
   // 한방 단어 제외 — 원본을 넘어서는 보정(의도적). 원본 deliver_hint는 한방 여부를 안 보는데,
   // 우리 규칙에선 그렇게 뽑힌 힌트가 "내면 반드시 지는 단어"가 된다:
-  //   · 아케이드    → validate_word가 한방 단어를 무조건 거부(실수 누적)
-  //   · 서바이벌+한방모드 OFF → 노션 11번 반영으로 제출 즉시 패배
+  //   · 아케이드    → validate_word가 한방 단어를 무조건 거부(목숨 차감)
+  //   · 서바이벌+한방모드 OFF → 부적합 단어로 거부(목숨 차감)
   // 힌트를 따랐다가 죽는 건 힌트의 존재 이유에 정면으로 어긋나므로 여기서 걸러낸다.
   // (한방모드 ON인 서바이벌에선 한방 단어가 합법이라 그대로 둔다 — AI의 safe_filter와 같은 기준.)
   const 한방_위험 = ai_한방금지인가(gs);
@@ -1227,30 +1265,19 @@ function 힌트_후보(gs, 추가후보 = []){
   return 후보.filter(w => !is_hanbang(w, [...used_words(gs), w], gs.rev, gs.dueum, gs.stage, 사전));
 }
 
-// onclick에서 await 없이 불리므로(fire-and-forget) 내부에서 예외가 새어나가지 않게 감싼다.
-function 버튼_힌트(){ 힌트_실행().catch(e => console.error('[힌트] 처리 실패', e)); }
-
-async function 힌트_실행(){
+// 선물: 악마의 거래가 계약 즉시 주는 힌트 — 사용자가 쓴 힌트가 아니므로 콤보를 끊거나 🟨으로 남기지 않는다.
+function 버튼_힌트(선물 = false){
   if(gs.game_state !== 'PLAYING') return;
   if(gs.ai_last_char === null){ 로그_추가('ℹ️ 첫 단어는 자유롭게 입력하세요. 힌트가 필요하지 않습니다.', 'sys'); return; }
   // 힌트도 온라인 후보를 조회할 수 있게 되면서(높은 난이도) 비동기 창이 생겼다 —
   // 단어 제출과 같은 재진입 가드를 공유해 연타로 힌트가 이중 차감되지 않게 한다.
   // 조용히 return하면 "버튼이 안 먹는다"로 보이므로 이유를 알려준다(2026-07-27).
   if(게임_비동기처리중){ 로그_추가('⏳ 앞의 처리가 끝난 뒤에 다시 눌러 주세요.', 'sys'); return; }
-  게임_비동기처리중 = true;
-  입력_대기표시(true, '힌트 찾는 중');
-  const 내세대 = 게임_세대;
-  try{
-    await 힌트_본체();
-  } finally {
-    if(내세대 === 게임_세대){
-      게임_비동기처리중 = false;
-      입력_대기표시(false);
-    }
-  }
+  // onclick에서 await 없이 불리므로(fire-and-forget) 내부에서 예외가 새어나가지 않게 받는다.
+  비동기_가드('힌트 찾는 중', 내세대 => 힌트_본체(내세대, 선물)).catch(e => console.error('[힌트] 처리 실패', e));
 }
 
-async function 힌트_본체(){
+async function 힌트_본체(내세대, 선물 = false){
 
   // 13층 이상 + 힌트 소진 = 시련의 탑 대신 바로 비상 탈출구
   if(gs.game_mode === 'ARCADE' && gs.stage >= 13 && gs.hints <= 0){
@@ -1267,7 +1294,7 @@ async function 힌트_본체(){
   // 종전에는 먼저 조회했는데, 힌트가 0이면 그 결과를 아예 쓰지 않고 악마의 거래·시련의 탑으로
   // 빠진다 — 최대 6초짜리 왕복을 매번 버리고 있었다. 게다가 그 조회가 마지막_온라인조회를
   // 덮어써서 다음 AI 턴의 로그가 엉뚱한 값으로 보고됐다.
-  if(gs.hints !== Infinity && gs.hints <= 0){
+  if(gs.hints <= 0){
     if(gs.game_mode === 'ARCADE'){
       gs.trial_tower_entries += 1;
       if(gs.trial_tower_entries === 2){
@@ -1291,14 +1318,7 @@ async function 힌트_본체(){
       } else {
         gs.game_state = 'TRIAL_WAIT';
         로그_추가('░▒▓ [시련의 탑] ▓▒░', 'sys');
-        선택박스_보이기(`
-          <div class="q">[1] 시간의 계약 — 이번 층 즉시 클리어 / 다음 1층 목표 턴 ×1.3<br>
-          [2] 생명의 계약 — 목숨+${목숨보상}·힌트+1 / 다음 2층 두음법칙 OFF<br>
-          [3] 어둠의 계약 — 목숨+${목숨보상}·힌트+3 / 이번 층 2글자 단어만 허용</div>
-          <button class="btn sm acc" onclick="시련_응답(1)">시간의 계약</button>
-          <button class="btn sm acc" onclick="시련_응답(2)">생명의 계약</button>
-          <button class="btn sm acc" onclick="시련_응답(3)">어둠의 계약</button>
-          <button class="btn sm" onclick="시련_응답(0)">거절</button>`);
+        시련_선택박스(true);
       }
       return;
     }
@@ -1306,8 +1326,7 @@ async function 힌트_본체(){
       if(gs.diff === '심연'){ 로그_추가(대사(gs, '힌트_본체_4'), 'sys'); return; }
       gs.deal_offered = true;
       gs.game_state = 'DEVIL_WAIT';
-      const diff_next = { 안온:'격동', 격동:'초월', 초월:'심연' }[gs.diff] ?? gs.diff;
-      로그_추가(대사(gs, '힌트_본체_3', [gs.diff, diff_next]), 'sys');
+      로그_추가(대사(gs, '힌트_본체_3', [gs.diff, 다음난이도(gs.diff)]), 'sys');
       선택박스_보이기(`
         <button class="btn sm acc" onclick="악마거래_응답(true)">수락</button>
         <button class="btn sm" onclick="악마거래_응답(false)">거절</button>`);
@@ -1318,6 +1337,7 @@ async function 힌트_본체(){
   }
 
   const cands = 힌트_후보(gs, await 온라인후보_가져오기(gs));
+  if(내세대 !== 게임_세대) return;   // 조회 중 리셋·재도전 — 새 판의 힌트를 건드리지 않는다
   if(!cands.length){
     // 관리자님 제보: "힌트 불가라고 뜨면 내가 진 건가?" — 아니다. 힌트로 **안전하게** 안내할
     // 단어를 못 찾았을 뿐 판은 그대로 진행된다. 오해하지 않게 명시하고 힌트도 차감하지 않는다.
@@ -1332,8 +1352,12 @@ async function 힌트_본체(){
     return;
   }
 
-  if(gs.hints !== Infinity) gs.hints -= 1;
-  const hint_word = cands[Math.floor(Math.random() * cands.length)];
+  gs.hints -= 1;
+  if(!선물){ gs.이번턴_힌트 = true; 콤보_끊기(); }   // 힌트를 쓴 턴은 연속 정답으로 치지 않는다
+  // 힌트는 난이도와 무관하게 가장 흔한 말부터(초성만 보고도 떠올릴 수 있어야 힌트다)
+  const 흔한것 = Math.min(...cands.map(흔함단계));
+  const 고를것 = cands.filter(w => 흔함단계(w) === 흔한것);
+  const hint_word = 고를것[Math.floor(Math.random() * 고를것.length)];
   로그_추가(대사(gs, '힌트_본체_1', [표시무한(gs.hints)]));
   로그_추가(`   🔤 초성 : ${extract_chosung(hint_word)}`);
   // 원본 deliver_hint(game.py:1071-1072)의 어둠의 계약 안내 — 이식 때 누락됐던 것 복원
@@ -1345,30 +1369,16 @@ async function 힌트_본체(){
 
 function 악마거래_응답(수락){
   if(수락){
-    const order = ['안온','격동','초월','심연'];
-    const idx = order.indexOf(gs.diff); const old = gs.diff;
-    gs.diff = order[Math.min(idx + 1, 3)];
-    if(gs.hints !== Infinity) gs.hints += 3;
+    const old = gs.diff;
+    gs.diff = 다음난이도(gs.diff);
+    gs.hints += 3;
     gs.game_state = 'PLAYING';
     로그_추가(대사(gs, '악마거래_응답_2', [old, gs.diff]), 'ok');
-    // 원본: 계약 즉시 힌트 1회를 바로 제공 (힌트_후보로 통일 — 어둠의 계약·13층 족쇄 필터 반영).
-    // ⚠️ 2026-07-29: 종전에는 온라인 후보 없이 힌트_후보(gs)만 불렀다. 내부 사전을 폐지한 지금
-    // 그 풀은 "이번 판에서 이미 받아 둔 단어"뿐이라 대개 비고, 그러면 계약을 맺었는데 약속한
-    // 힌트가 조용히 안 나온다. AI 턴과 같은 풀을 쓰도록 온라인 조회를 태우고, 그래도 못 찾으면
-    // 침묵하지 말고 이유를 알린다. onclick에서 불리므로 결과를 기다리지 않는다.
-    (async () => {
-      try{
-        const cands = 힌트_후보(gs, await 온라인후보_가져오기(gs));
-        if(cands.length){
-          if(gs.hints !== Infinity) gs.hints -= 1;
-          const hint_word = cands[Math.floor(Math.random() * cands.length)];
-          로그_추가(`   🔤 초성 : ${extract_chosung(hint_word)}`);
-          플레이_HUD갱신();
-        } else {
-          로그_추가('   ❌ 계약의 힌트를 만들 단어를 찾지 못했습니다(힌트는 차감되지 않았습니다).', 'sys');
-        }
-      }catch(e){ console.error('[악마의 거래] 즉시 힌트 실패', e); }
-    })();
+    // 원본: 계약 즉시 힌트 1회를 바로 제공. 일반 힌트와 같은 경로(버튼_힌트)를 태운다 —
+    // 온라인 후보 조회·어둠의 계약·13층 족쇄 필터·못 찾았을 때의 안내가 같고, 재진입 가드와
+    // 세대 확인도 함께 받는다(2026-09-26: 종전 복제본엔 둘 다 없어 조회 중 리셋 시 새 판의
+    // 힌트를 깎을 수 있었다). onclick에서 불리므로 결과를 기다리지 않는다.
+    버튼_힌트(true);
   } else {
     gs.game_state = 'PLAYING';
     로그_추가(대사(gs, '악마거래_응답_1'));
@@ -1379,7 +1389,7 @@ function 악마거래_응답(수락){
 function 딜_응답(수락){
   if(수락){
     gs.infinite = true;
-    if(gs.hints !== Infinity) gs.hints += 1;
+    gs.hints += 1;
     gs.game_state = 'PLAYING';
     로그_추가(`✅ [무한 모드 진입] 끝은 없다. 한계를 시험하라, ${title(gs)}.`, 'ok');
   } else {
@@ -1417,7 +1427,7 @@ function 시련_응답(선택){
     // 실수 4회를 품고 있었으므로 +1 그대로 두면 계약의 가치가 4분의 1로 쪼그라든다.
     // 난이도표를 4배로 올린 것과 같은 기준으로 여기도 함께 환산한다(목숨보상 = 4).
     gs.hearts += 목숨보상;
-    if(gs.hints !== Infinity) gs.hints += 1;
+    gs.hints += 1;
     gs.curse_life_floors = 2;
     gs.game_state = 'PLAYING';
     const h = 표시무한(gs.hearts);
@@ -1425,7 +1435,7 @@ function 시련_응답(선택){
     플레이_HUD갱신(); 프롬프트_갱신();
   } else if(선택 === 3){
     gs.hearts += 목숨보상;   // 위 생명의 계약과 같은 환산
-    if(gs.hints !== Infinity) gs.hints += 3;
+    gs.hints += 3;
     gs.curse_dark_active = true;
     gs.game_state = 'PLAYING';
     const h = 표시무한(gs.hearts);
@@ -1443,7 +1453,7 @@ function 붕괴_응답(입장){
   if(입장){
     const prob = 붕괴확률(gs.trial_attempts_this_floor);
     const roll = 1 + Math.floor(Math.random() * 100);
-    if(prob >= 100 || roll <= prob){
+    if(roll <= prob){   // roll은 1~100 — prob가 100 이상이면 항상 참
       로그_추가('▓▒░ 탑이 무너진다. 대지가 갈라진다. ░▒▓', 'err');
       로그_추가(대사(gs, '붕괴_응답_3', [title(gs)]), 'err');
       로그_추가(`💀 [탑 붕괴 엔딩] ${gs.stage}층에서 소멸.`, 'err');
@@ -1452,12 +1462,7 @@ function 붕괴_응답(입장){
     } else {
       로그_추가(대사(gs, '붕괴_응답_2'), 'ok');
       gs.game_state = 'TRIAL_WAIT';
-      선택박스_보이기(`
-        <div class="q">[1] 시간의 계약  [2] 생명의 계약  [3] 어둠의 계약</div>
-        <button class="btn sm acc" onclick="시련_응답(1)">시간의 계약</button>
-        <button class="btn sm acc" onclick="시련_응답(2)">생명의 계약</button>
-        <button class="btn sm acc" onclick="시련_응답(3)">어둠의 계약</button>
-        <button class="btn sm" onclick="시련_응답(0)">거절</button>`);
+      시련_선택박스(false);
     }
   } else {
     gs.game_state = 'PLAYING';
@@ -1482,7 +1487,7 @@ function 탈출_응답(도망){
 
 function 탑승리_응답(계속){
   if(계속){
-    gs.stage = 14; gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
+    gs.stage = 14; gs.stage_turn = 0;
     // 원본은 2였는데, 실수 폐지 뒤로 그건 "두 번 틀리면 끝"이라는 뜻이 됐다(종전 실효 8회).
     // 아케이드 시작값(아케이드_목숨=8)과 같은 기준으로 맞춘다 — 14층부터는 무한 등반이라
     // 시작보다 각박할 이유가 없다.
@@ -1497,14 +1502,35 @@ function 탑승리_응답(계속){
   }
 }
 
+// 시련의 탑 계약 선택박스 — 처음 제시(상세 설명)와 붕괴 모면 뒤 재제시(한 줄 요약)만 문구가 다르다
+function 시련_선택박스(상세){
+  const 설명 = 상세
+    ? `[1] 시간의 계약 — 이번 층 즉시 클리어 / 다음 1층 목표 턴 ×1.3<br>
+      [2] 생명의 계약 — 목숨+${목숨보상}·힌트+1 / 다음 2층 두음법칙 OFF<br>
+      [3] 어둠의 계약 — 목숨+${목숨보상}·힌트+3 / 이번 층 2글자 단어만 허용`
+    : '[1] 시간의 계약  [2] 생명의 계약  [3] 어둠의 계약';
+  선택박스_보이기(`
+    <div class="q">${설명}</div>
+    <button class="btn sm acc" onclick="시련_응답(1)">시간의 계약</button>
+    <button class="btn sm acc" onclick="시련_응답(2)">생명의 계약</button>
+    <button class="btn sm acc" onclick="시련_응답(3)">어둠의 계약</button>
+    <button class="btn sm" onclick="시련_응답(0)">거절</button>`);
+}
+
+// 아케이드 층 클리어 → 다음 층(20층이면 소프트락 이스터에그) + 화면 갱신
+function 층_올리기(ai_기권){
+  arcade_floor_up(gs, ai_기권);
+  if(gs.game_state === 'SOFTLOCKED'){ 소프트락_진입(); return; }
+  플레이_HUD갱신(); 프롬프트_갱신();
+}
+
 // 20층 소프트락 이스터에그 — 원본 _handle_softlock(좀비 텍스트 부패 연출, 리셋 외 탈출 불가)
 function 소프트락_진입(){
-  const zalgo = [...Array(700)].map(() => 0x0300 + Math.floor(Math.random() * 0x70));
-  let base = 'SYSTEM_CORRUPTION';
+  // 글자마다 결합 부호(U+0300~U+036F) 5개를 무작위로 얹는다
   let text = '';
-  for(const c of base){
+  for(const c of 'SYSTEM_CORRUPTION'){
     text += c;
-    for(let k=0;k<5;k++) text += String.fromCodePoint(zalgo[Math.floor(Math.random()*zalgo.length)]);
+    for(let k=0;k<5;k++) text += String.fromCodePoint(0x0300 + Math.floor(Math.random() * 0x70));
   }
   document.getElementById('소프트락-텍스트').textContent = `${text} ERROR: MEMORY_LEAK_AT_0xDEADBEEF ${text}`;
   화면('소프트락');
@@ -1516,6 +1542,7 @@ function 소프트락_진입(){
 function 게임오버(victory){
   gs.game_state = 'GAME_OVER';
   화면('오버');
+  document.getElementById('공유-알림').textContent = '';
   document.getElementById('오버-이모지').textContent = victory ? '🏆' : '💀';
 
   if(gs.game_mode === 'SURVIVAL'){
@@ -1523,14 +1550,53 @@ function 게임오버(victory){
       ? 대사(gs, '게임오버_생존승리', {칭호: title(gs)})
       : 대사(gs, '게임오버_생존패배', {칭호: title(gs)});
     document.getElementById('오버-메시지').textContent = (victory ? '🏆 [SURVIVAL 클리어] ' : '💀 [GAME OVER] ') + msg;
-    document.getElementById('오버-통계').textContent = `최종 턴: ${gs.turn}  |  최고 기록: ${gs.best}`;
+    결과_통계(`턴 ${gs.turn}`);
   } else {
     const msg = victory
       ? 대사(gs, '게임오버_1', [title(gs)])
       : 대사(gs, '게임오버_탑패배', {층: gs.stage, 칭호: title(gs)});
     document.getElementById('오버-메시지').textContent = (victory ? '🏆 [13층 클리어] ' : '💀 [GAME OVER] ') + msg;
-    document.getElementById('오버-통계').textContent = `최종 층: ${gs.stage}  |  최고 기록: ${gs.best}층`;
+    결과_통계(`${gs.stage}층`);
   }
+}
+
+// 결과 화면 통계(2026-09-27 점수제) — 점수를 크게, 나머지는 한 줄씩
+function 결과_통계(진행){
+  const [이전, 신기록] = 최고점수_갱신();
+  document.getElementById('오버-통계').innerHTML =
+    `<div class="over-score">${gs.score.toLocaleString()}<small>점</small></div>`
+    + `<div class="over-best">${신기록 ? '🎉 최고 기록!' : `최고 ${(gs.god_mode_active ? 이전 : Math.max(이전, gs.score)).toLocaleString()}점`}</div>`
+    + `<div class="over-rows"><span>${진행}</span><span>최고 콤보 ${gs.max_combo}</span>`
+    + (gs.longest ? `<span>가장 긴 단어 『${HTML막기(gs.longest)}』</span>` : '') + '</div>';
+  if(gs.흐름.length) document.getElementById('오버-통계').insertAdjacentHTML('beforeend',
+    `<div class="over-flow">${gs.흐름.slice(-40).join('')}</div>`);   // 공유문과 같은 흐름(최근 40턴)
+}
+
+// 결과 공유(2026-09-27, Wordle식) — 단어는 빼고 흐름만 이모지로(최근 40턴, 10개씩 줄바꿈).
+// 휴대폰은 공유 시트, 안 되면 클립보드, 그마저 막히면 복사 실패를 솔직히 알린다(창조주 키 복사와 같은 원칙).
+function 결과_공유문(){
+  const 모드 = gs.game_mode === 'ARCADE' ? `아케이드 ${gs.stage}층` : `서바이벌 ${gs.diff}${gs.infinite ? '·무한' : ''}`;
+  const 흐름 = gs.흐름.slice(-40);
+  const 줄들 = []; for(let i = 0; i < 흐름.length; i += 10) 줄들.push(흐름.slice(i, i + 10).join(''));
+  return [`잇는 끝말잇기 · ${모드}`,
+    `⭐ ${gs.score.toLocaleString()}점 · 🔥최고 ${gs.max_combo}콤보 · ${gs.turn}턴 · 🎯미션 ${gs.mission_count}`,
+    ...줄들, location.href.split('#')[0].split('?')[0]].join('\n');
+}
+async function 결과_공유(){
+  const 글 = 결과_공유문();
+  const 알림 = document.getElementById('공유-알림');
+  const 알려 = m => { if(알림) 알림.textContent = m; };
+  try{
+    if(navigator.share){ await navigator.share({ text: 글 }); 알려('공유했습니다'); return; }
+  }catch(e){ if(e && e.name === 'AbortError') return; }   // 사용자가 공유 창을 닫음
+  try{
+    if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(글); 알려('📋 결과를 복사했습니다'); return; }
+  }catch(e){}
+  const ta = document.createElement('textarea'); ta.value = 글; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta); ta.select();
+  let 성공 = false; try{ 성공 = document.execCommand('copy'); }catch(e){}
+  ta.remove();
+  알려(성공 ? '📋 결과를 복사했습니다' : '복사하지 못했습니다');
 }
 
 function 다시시작(){
@@ -1552,22 +1618,12 @@ function 전체리셋(){
   로그_비우기();
   화면('페르소나');
 }
-function 버튼_리셋(){ 전체리셋(); }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   설명서 · 상태 다시 표시 · GOD MODE 백도어
+   설명서 · GOD MODE 백도어
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function 버튼_설명(){ document.getElementById('설명Bg').classList.add('show'); }
 function 버튼_설명닫기(){ document.getElementById('설명Bg').classList.remove('show'); }
-function 버튼_상태(){
-  플레이_HUD갱신();
-  // ⚠️ 선택박스가 떠 있는 대기 상태(악마의 거래·시련의 계약·탑 붕괴·반박 등)에서는
-  //    프롬프트_갱신()을 부르면 안 된다 — 그 안의 선택박스_숨기기()가 선택지를 통째로
-  //    지워 버려 응답할 방법이 사라진다(2026-08-22 실측으로 확인. 반박 대기에서는
-  //    게임_비동기처리중까지 걸린 채라 아예 소프트락이 됐다).
-  //    HUD 갱신은 어느 상태에서든 무해하므로 위에서 먼저 하고, 입력폼·버튼 복원만 건너뛴다.
-  if(gs.game_state === 'PLAYING') 프롬프트_갱신();
-}
 
 function 갓모드_활성화(){
   gs.god_mode_active = true;
@@ -1667,7 +1723,7 @@ function 관리자_턴이동(){
   if(gs.game_mode === 'ARCADE'){
     gs.stage = v;
     // 층을 건너뛰면 그 층의 진행도·시작 턴도 함께 맞춰야 목표 달성 판정이 어긋나지 않는다
-    gs.stage_turn = 0; gs.stage_start_turn = gs.turn;
+    gs.stage_turn = 0;
     gs.curse_dark_active = false; gs.curse_dark_strikes = 0;
     gs.trial_rejected_floor = -1; gs.trial_attempts_this_floor = 0;
     gs.ai_last_char = null; gs.ai_last_word = null;
@@ -1713,14 +1769,7 @@ function 관리자_강제(무엇){
     }
     gs.game_state = 'TRIAL_WAIT';
     로그_추가('░▒▓ [시련의 탑] ▓▒░ (관리자 호출)', 'sys');
-    선택박스_보이기(`
-      <div class="q">[1] 시간의 계약 — 이번 층 즉시 클리어 / 다음 1층 목표 턴 ×1.3<br>
-      [2] 생명의 계약 — 목숨+${목숨보상}·힌트+1 / 다음 2층 두음법칙 OFF<br>
-      [3] 어둠의 계약 — 목숨+${목숨보상}·힌트+3 / 이번 층 2글자 단어만 허용</div>
-      <button class="btn sm acc" onclick="시련_응답(1)">시간의 계약</button>
-      <button class="btn sm acc" onclick="시련_응답(2)">생명의 계약</button>
-      <button class="btn sm acc" onclick="시련_응답(3)">어둠의 계약</button>
-      <button class="btn sm" onclick="시련_응답(0)">거절</button>`);
+    시련_선택박스(true);
     return;
   }
   if(무엇 === '소프트락'){
@@ -1728,5 +1777,3 @@ function 관리자_강제(무엇){
     소프트락_진입();
   }
 }
-
-if (typeof module !== 'undefined') module.exports = { gs, get_status };

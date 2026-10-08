@@ -13,24 +13,17 @@ function 주신의경지_탭(){
 // α5: 창조주 달성 후 칭호 선택 — 「폐하」 ↔ 글리치 없는 깨끗한 「주신」 (KNOWLEDGE 11)
 function 칭호선택_모달(){
   if(!사용자.창조주달성) return;
-  document.getElementById('selTitle').textContent='👑 칭호 선택';
-  document.getElementById('selDesc').textContent='창조주 달성자는 칭호를 선택할 수 있습니다.';
-  const list=document.getElementById('selList');
-  list.innerHTML='';
-  [{v:'폐하', d:' (기본)'},{v:'주신', d:' (글리치 없는 깨끗한 주신)'}].forEach(o=>{
-    const div=document.createElement('div');
-    div.className='select-opt'+((사용자.선택칭호||'폐하')===o.v?' on':'');
-    div.onclick=()=>{
-      사용자.선택칭호=o.v;
-      사용자데이터_저장({선택칭호:o.v});  // 신규 필드 — KNOWLEDGE 13-1 규칙에 따라 한글 변수명, 추가 보고됨
-      closeSelect();
-      if(curScreen==='ss') afterNav('ss');
-      showToastMsg('칭호 변경: '+o.v);
-    };
-    div.innerHTML=`<span>${o.v}${o.d}</span><span class="select-opt-ck">✓</span>`;
-    list.appendChild(div);
-  });
-  document.getElementById('selBg').classList.add('show');
+  선택모달_열기('👑 칭호 선택', '창조주 달성자는 칭호를 선택할 수 있습니다.',
+    [{v:'폐하', d:' (기본)'},{v:'주신', d:' (글리치 없는 깨끗한 주신)'}].map(o=>({
+      라벨: o.v + o.d, 켜짐: (사용자.선택칭호||'폐하')===o.v,
+      클릭: ()=>{
+        사용자.선택칭호=o.v;
+        사용자데이터_저장({선택칭호:o.v});  // 신규 필드 — KNOWLEDGE 13-1 규칙에 따라 한글 변수명, 추가 보고됨
+        closeSelect();
+        if(curScreen==='ss') afterNav('ss');
+        showToastMsg('칭호 변경: '+o.v);
+      }
+    })));
 }
 
 /* ━━━ 세션6 항목11: 프로필 커스터마이징 개방 (최고 관리자님 확정 사양)
@@ -40,11 +33,31 @@ function 칭호선택_모달(){
      출처 표기·삭제 정책은 assets/프로필/출처.md 참조. ━━━ */
 const 프로필_이모지프리셋 = ['⚔️','📚','🦉','🌙','🔥','🌊','🌸','⭐','🎯','🐺','🐱','🐰'];
 let 프로필_이미지프리셋 = [];   // [{파일, 이름, 출처}] — 목록.json에서 로드
-function 프로필프리셋_로드(){
-  fetch('assets/프로필/목록.json')
+// assets/{폴더}/목록.json의 items를 받아 넘긴다 — 폴더 없음/오프라인이면 조용히 무시(기본 프리셋만 노출)
+function 프리셋_로드(폴더, 받기){
+  fetch(`assets/${폴더}/목록.json`)
     .then(r => r.ok ? r.json() : null)
-    .then(d => { if(d && Array.isArray(d.items)) 프로필_이미지프리셋 = d.items; })
-    .catch(()=>{ /* 폴더 없음/오프라인 — 이모지 프리셋만 노출 */ });
+    .then(d => { if(d && Array.isArray(d.items)) 받기(d.items); })
+    .catch(()=>{ /* 폴더 없음/오프라인 */ });
+}
+// 확정 사양: 프리셋은 전원 자유, 직접 업로드만 초월자(Lv.16)·개발자 모드
+const 업로드_가능 = () => 사용자.개발자모드 || curLv >= 16;
+function 이미지_업로드시도(대상){
+  if(!업로드_가능()){
+    showInfoModal('🔒','고급 커스터마이징','[권한 부족]<br><br>직접 업로드는 초월자(Lv.16) 달성 시 해금됩니다.<br>'
+      + (대상 === '프로필' ? '기본 이모지·이미지 프리셋은' : '기본 배너는') + ' 지금도 자유롭게 사용할 수 있습니다.');
+    return;
+  }
+  document.getElementById(대상 + '파일입력')?.click();
+}
+// 고른 파일을 크롭 모달(드래그+확대)로 넘긴다 — 세션10-d 항목5(배너)·세션10-i 항목2(프로필): 강제 중앙 크롭 폐지
+function 이미지_파일처리(inp, 대상){
+  const f = inp.files && inp.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => 이미지크롭_열기(rd.result, 대상);
+  rd.readAsDataURL(f);
+  inp.value = '';
 }
 
 // 아바타 렌더 — 값이 이미지(assets/·data:·http)면 <img>, 아니면 이모지 텍스트
@@ -70,16 +83,16 @@ function 프로필선택_열기(){
     // 세션7 항목11: 관리 방법(폴더 경로·목록.json)은 사용자 노출 문구에서 제거 — 운영자용 안내는 이 주석으로만.
     //   등록 방법: assets/프로필/ 폴더에 이미지 추가 + 목록.json items에 {파일,이름,출처} 등록 (출처.md 표기 필수)
     : `<div style="font-size:11px;color:var(--txt2)">등록된 이미지가 아직 없습니다. 업데이트를 기다려 주세요!</div>`;
-  const 업로드가능 = 사용자.개발자모드 || curLv >= 16;
+  const 업로드가능 = 업로드_가능();
   showInfoModal('🖼️','프로필 선택',
     `<div style="text-align:left">
       <div style="font-size:11px;color:var(--txt2);margin-bottom:5px">기본 이모지 — 누구나 사용 가능</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${이모지들}</div>
-      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">이미지 프리셋 — 누구나 사용 가능</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${이미지들}</div>
-      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '🔒 초월자(Lv.16) 해금'}</div>
-      <button class="btn-g" style="width:100%;padding:9px" onclick="프로필_업로드시도()">📁 내 사진 선택…</button>
-      <input type="file" id="프로필파일입력" accept="image/*" style="display:none" onchange="프로필_파일처리(this)">
+      <div class="pick-row">${이모지들}</div>
+      <div class="pick-lbl">이미지 프리셋 — 누구나 사용 가능</div>
+      <div class="pick-row">${이미지들}</div>
+      <div class="pick-lbl">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
+      <button class="btn-g" style="width:100%;padding:9px" onclick="이미지_업로드시도('프로필')">📁 내 사진 선택…</button>
+      <input type="file" id="프로필파일입력" accept="image/*" style="display:none" onchange="이미지_파일처리(this,'프로필')">
     </div>`);
 }
 function 프로필_적용선택(v){
@@ -89,26 +102,6 @@ function 프로필_적용선택(v){
   closeInfoModal();
   showToastMsg('프로필 변경 완료');
 }
-function 프로필_업로드시도(){
-  // 확정 사양: 직접 업로드만 고급 게이트 — 미달자는 경고 팝업
-  if(!(사용자.개발자모드 || curLv >= 16)){
-    showInfoModal('🔒','고급 커스터마이징','[권한 부족]<br><br>직접 업로드는 초월자(Lv.16) 달성 시 해금됩니다.<br>기본 이모지·이미지 프리셋은 지금도 자유롭게 사용할 수 있습니다.');
-    return;
-  }
-  document.getElementById('프로필파일입력')?.click();
-}
-function 프로필_파일처리(inp){
-  const f = inp.files && inp.files[0];
-  if(!f) return;
-  const rd = new FileReader();
-  // 세션10-i 항목2: 무조건 중앙 정사각 크롭이었던 것을 폐지 → 배너와 동일한 크롭 모달(드래그+확대)로 위임.
-  rd.onload = () => 이미지크롭_열기(rd.result, '프로필');
-  rd.readAsDataURL(f);
-  inp.value = '';
-}
-
-// α9 호환: 기존 진입점은 프로필 선택으로 위임 (개방 정책 반영)
-function 고급커스터마이징_탭(){ 프로필선택_열기(); }
 
 /* ━━━ 세션7 항목12: 현황 배너 — 그라디언트 프리셋(전원) + 이미지 프리셋(전원) + 업로드(Lv.16) ━━━ */
 const 배너_그라프리셋 = [
@@ -120,12 +113,6 @@ const 배너_그라프리셋 = [
   'linear-gradient(135deg,#141e30,#243b55)'
 ];
 let 배너_이미지프리셋 = [];   // assets/배너/목록.json — {파일,이름,출처}
-function 배너프리셋_로드(){
-  fetch('assets/배너/목록.json')
-    .then(r => r.ok ? r.json() : null)
-    .then(d => { if(d && Array.isArray(d.items)) 배너_이미지프리셋 = d.items; })
-    .catch(()=>{ /* 폴더 없음/오프라인 — 그라디언트만 노출 */ });
-}
 function 배너_적용(el, v){
   if(!el) return;
   if(v && /^(assets\/|data:|https?:)/.test(v)){
@@ -146,19 +133,19 @@ function 배너선택_열기(){
     `<div style="width:72px;height:30px;border-radius:8px;border:1px solid var(--bdr);cursor:pointer;background:${g}" onclick="배너_적용선택('grad:${i}')"></div>`
   ).join('');
   const 이미지섹션 = 배너_이미지프리셋.length
-    ? `<div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">이미지 배너 — 누구나 사용 가능</div>
-       <div style="display:flex;flex-wrap:wrap;gap:6px">${배너_이미지프리셋.map(it=>
+    ? `<div class="pick-lbl">이미지 배너 — 누구나 사용 가능</div>
+       <div class="pick-row">${배너_이미지프리셋.map(it=>
          `<img src="assets/배너/${esc(it.파일)}" title="${esc(it.이름||'')}" style="width:110px;height:36px;border-radius:8px;object-fit:cover;cursor:pointer;border:1px solid var(--bdr)" onclick="배너_적용선택('assets/배너/${esc(it.파일)}')">`).join('')}</div>`
     : '';   // 관리 방법: assets/배너/ + 목록.json (출처.md 표기) — 운영자용 주석
-  const 업로드가능 = 사용자.개발자모드 || curLv >= 16;
+  const 업로드가능 = 업로드_가능();
   showInfoModal('🖼️','배너 선택',
     `<div style="text-align:left">
       <div style="font-size:11px;color:var(--txt2);margin-bottom:5px">기본 배너 — 누구나 사용 가능</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${그라들}</div>
+      <div class="pick-row">${그라들}</div>
       ${이미지섹션}
-      <div style="font-size:11px;color:var(--txt2);margin:10px 0 5px">직접 업로드 ${업로드가능 ? '' : '🔒 초월자(Lv.16) 해금'}</div>
-      <button class="btn-g" style="width:100%;padding:9px" onclick="배너_업로드시도()">📁 내 사진 선택…</button>
-      <input type="file" id="배너파일입력" accept="image/*" style="display:none" onchange="배너_파일처리(this)">
+      <div class="pick-lbl">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
+      <button class="btn-g" style="width:100%;padding:9px" onclick="이미지_업로드시도('배너')">📁 내 사진 선택…</button>
+      <input type="file" id="배너파일입력" accept="image/*" style="display:none" onchange="이미지_파일처리(this,'배너')">
     </div>`);
 }
 function 배너_적용선택(v){
@@ -169,22 +156,6 @@ function 배너_적용선택(v){
   배너_적용(document.getElementById('settingsBanner'), v);
   closeInfoModal();
   showToastMsg('배너 변경 완료');
-}
-function 배너_업로드시도(){
-  if(!(사용자.개발자모드 || curLv >= 16)){
-    showInfoModal('🔒','고급 커스터마이징','[권한 부족]<br><br>직접 업로드는 초월자(Lv.16) 달성 시 해금됩니다.<br>기본 배너는 지금도 자유롭게 사용할 수 있습니다.');
-    return;
-  }
-  document.getElementById('배너파일입력')?.click();
-}
-function 배너_파일처리(inp){
-  const f = inp.files && inp.files[0];
-  if(!f) return;
-  const rd = new FileReader();
-  // 세션10-d 항목5: 무조건 중앙 크롭하던 것을 폐지 → 크롭 모달로 넘겨 사용자가 위치·확대를 직접 정한다.
-  rd.onload = () => 이미지크롭_열기(rd.result, '배너');
-  rd.readAsDataURL(f);
-  inp.value = '';
 }
 
 /* ━━━ 세션10-d 항목5 / 세션10-i 항목2: 이미지 크롭 UI — 배너·프로필 공용(드래그 이동 + 확대) ━━━
@@ -271,7 +242,7 @@ function 이미지크롭_취소(){ document.getElementById('cropBg')?.classList.
 function 이미지크롭_적용(){
   const st = 이미지크롭_상태, img = document.getElementById('이미지크롭이미지');
   if(!img || !st.Wv){ 이미지크롭_취소(); return; }
-  const out = 이미지크롭_출력[st.대상] || 이미지크롭_출력.배너;
+  const out = 이미지크롭_출력[st.대상];
   const c = document.createElement('canvas'); c.width = out.w; c.height = out.h;
   const ctx = c.getContext('2d');
   if(!ctx){ 이미지크롭_취소(); return; }  // jsdom/캔버스 미지원 안전

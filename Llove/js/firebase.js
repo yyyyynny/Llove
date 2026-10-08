@@ -19,7 +19,7 @@ const firebaseConfig = {
   measurementId: "G-7W3G1T7ZY2"
 };
 
-let fbApp = null, fbAuth = null, fbDb = null;
+let fbAuth = null, fbDb = null;
 let 현재UID = null;
 
 function Firebase초기화(){
@@ -28,11 +28,7 @@ function Firebase초기화(){
       console.error('[Firebase] SDK가 로드되지 않았습니다.');
       return;
     }
-    if(!firebaseConfig.apiKey){
-      console.error('[Firebase] config 미설정 — 구글 로그인/동기화 비활성. firebaseConfig 값을 입력하세요.');
-      return;
-    }
-    fbApp  = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     fbAuth = firebase.auth();
     fbDb   = firebase.firestore();
     // 로그인 상태 변화 감지 (재방문 시 자동 로그인 포함)
@@ -90,7 +86,10 @@ function 로그아웃실행(){
 // 인증 상태 변경 — 로그인 성공 시 Firestore 사용자 문서 로드(기존) 또는 이름 입력(신규)
 // 온보딩(#onboarding)은 position:fixed·z-index:9999로 기본 표시라, 걷어내지 않으면 그 아래 화면이
 // 무엇이든 가려진다. 인증이 끝난 사용자에게 남아 있으면 안 되므로 한 곳으로 모아 둔다.
-function 온보딩_걷기(){ document.getElementById('onboarding')?.classList.add('gone'); }
+function 온보딩_걷기(){
+  document.getElementById('onboarding')?.classList.add('gone');
+  try{ localStorage.setItem('plx_온보딩봄', '1'); }catch(e){ /* localStorage 차단 환경 무시 */ }
+}
 
 function 인증상태_변경(user){
   if(!user){ 현재UID = null; return; }
@@ -147,11 +146,8 @@ function 사용자데이터_적용(data, authUser){
   if(data.커스텀슬롯 && Array.isArray(data.커스텀슬롯)) 커스텀슬롯 = data.커스텀슬롯.filter(Boolean).slice(0,10);
   if(data.커스텀테마) 커스텀_복원(data.커스텀테마);
   if(data.테마) setTheme(data.테마, true);
-  // 세션5: Firestore 화면 크기 복원 / 세션10-g 항목1: 저장된 값이 없으면(=아직 설정을 만진 적 없음)
-  // 설정 화면의 기본 선택칩·문구는 "100%"로 그대로 두고, 실제 zoom만 조용히 0.9로 적용한다.
-  // setFontScale()을 그대로 쓰면 칩·문구도 "90%"로 바뀌어버려 표기가 달라지므로 여기선 zoom만 직접 설정.
+  // 세션5: Firestore 화면 크기 복원. 저장값이 없으면 기본 100%(10-03: 표기 100%·실제 0.9 불일치 폐기)
   if(data.화면배율) setFontScale(data.화면배율, true);
-  else document.documentElement.style.zoom = '0.9';
   if(data.글자배율) set글자크기(data.글자배율, true);   // 세션5: Firestore 글자 크기 복원(텍스트 전용)
   if(data.폰트) applyFont(data.폰트, true);
   // 추가기능: 음성 생성 서버 주소 복원 (창조주 전용, 코드 비저장)
@@ -195,18 +191,11 @@ function 신규사용자_생성(){
     이메일: 사용자.이메일,
     프로필이미지: 사용자.프로필이미지 || '⚔️',
     가입일: firebase.firestore.FieldValue.serverTimestamp(),
-    // 성장 데이터
-    레벨: 1, 현재EXP: 0, 총누적EXP: 0,
-    연속학습일: 0, 총학습일: 0, 마지막학습일: '',
-    // 마스터리 (KNOWLEDGE 13)
-    상식어원학습수: 0, 언어의뿌리학습수: 0, 세계사신화학습수: 0,
-    아재개그학습수: 0, 맞춤법학습수: 0, 구어교정횟수: 0, 문해력학습수: 0,
-    이의제기횟수: 0, 반박성공횟수: 0, 퍼펙트세션수: 0, 총누적어휘수: 0,
-    // 토큰 (KNOWLEDGE 32, 기본 1500)
-    보유토큰: 1500, 토큰소진시각: null, 토큰락해제시각: null, 총소비토큰: 0,
+    // 성장·마스터리·토큰 (KNOWLEDGE 13·32) — 상태.js 학습기록_기본값
+    ...학습기록_기본값,
     // 설정
-    테마: 'antique', 폰트: 'nanum_square',
-    // 세션10-g 항목1: 화면배율은 신규 사용자도 저장하지 않음(미저장 = 기본칩 100% 유지 + 실제는 0.9 조용히 적용)
+    테마: 'antique', 폰트: 'theme',
+    // 화면배율은 신규 사용자도 저장하지 않음(미저장 = 기본 100%)
     히스토리필터: 'off', AI문제만: false, 복습상한: 50, 알림설정: true,
     음성엔드포인트: '',   // 추가기능: 음성 생성 서버 주소(창조주가 입력) — 기본 빈 값
     // 업적

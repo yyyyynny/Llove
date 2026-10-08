@@ -21,7 +21,12 @@ function 아재풀_구성(난이도){
   const DB풀 = (DB문제['아재개그'] || []).filter(g => (g.난이도 || '아↗그거!') === 난이도);
   return DB풀.length ? [...기본풀, ...DB풀] : 기본풀;
 }
+// UP¡¿ 난이도는 말장난 파악이 더 까다로워 기본(20)의 1.5배(30) 지급
+const 아재_보상 = () => (학습설정.sq4 === 'UP¡¿') ? 30 : 20;
 function renderDad(data){
+  학습진행_다음('sq4');
+  배지_방식표시('sq4Mode', 학습설정.sq4_input);
+  document.getElementById('sq4Exp').textContent = '+' + 아재_보상();
   const body=document.getElementById('sq4Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재아재풀=data;
@@ -32,10 +37,9 @@ function renderDad(data){
   // 세션7 항목7: 「4지선다」 실구현 — 오답은 다른 개그 정답+임시 표본에서 구성
   if(학습설정.sq4_input === '4지선다'){
     const 정답텍스트 = g.a;
-    const 오답들 = 아재_오답표본
-      .filter(t => 직접입력_규격(t) !== 직접입력_규격(정답텍스트))
-      .sort(()=>Math.random()-0.5).slice(0,3);
-    const 보기들 = [...오답들.map(t=>({t, 정:false})), {t:정답텍스트, 정:true}].sort(()=>Math.random()-0.5);
+    const 오답들 = 셔플(아재_오답표본
+      .filter(t => 직접입력_규격(t) !== 직접입력_규격(정답텍스트))).slice(0,3);
+    const 보기들 = 셔플([...오답들.map(t=>({t, 정:false})), {t:정답텍스트, 정:true}]);
     body.innerHTML=`
       <div class="dad-card">
         <div class="qcat" style="margin-bottom:8px"><span class="tag tp">아재개그</span></div>
@@ -46,7 +50,7 @@ function renderDad(data){
           <div class="dad-a-explain">${g.e}</div>
         </div>
       </div>
-      <button class="btn-acc" style="width:100%" onclick="아재_다음문제()">다음 문제 →</button>
+      <button class="btn-acc q-next" style="width:100%" onclick="아재_다음문제()"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
     `;
     return;
   }
@@ -66,7 +70,7 @@ function renderDad(data){
           <div class="dad-a-explain">${g.e}</div>
         </div>
       </div>
-      <button class="btn-acc" style="width:100%" onclick="아재_다음문제()">다음 문제 →</button>
+      <button class="btn-acc q-next" style="width:100%" onclick="아재_다음문제()"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
     `;
     return;
   }
@@ -80,18 +84,12 @@ function renderDad(data){
         <div class="dad-a-explain">${g.e}</div>
       </div>
     </div>
-    <button class="btn-acc" style="width:100%" onclick="아재_다음문제()">다음 문제 →</button>
+    <button class="btn-acc q-next" style="width:100%" onclick="아재_다음문제()"><span class="q-skip">건너뛰기</span><span class="q-go">다음 문제 →</span></button>
   `;
 }
 /* 아재개그 다음 문제 — 같은 난이도 풀에서 랜덤 재출제 */
 function 아재_다음문제(){
   if(현재아재풀) renderDad(현재아재풀);
-  setTimeout(initDad,30);
-}
-function initDad(){
-  document.getElementById('dadAns')?.classList.remove('show');
-  const btn=document.getElementById('dadBtn');
-  if(btn) btn.style.display='block';
 }
 function revealDad(){
   // 세션5: 문제당 1회만 — 중복 호출 시 EXP 반복 획득 차단
@@ -101,9 +99,7 @@ function revealDad(){
   const btn=document.getElementById('dadBtn');
   if(btn) btn.style.display='none';
   // 빌드1: 실제 EXP 획득 + 마스터리(아재개그학습수) +1
-  // UP¡¿ 난이도는 말장난 파악이 더 까다로워 기본(20)의 1.5배(30) 지급
-  const 난이도보상 = (학습설정.sq4 === 'UP¡¿') ? 30 : 20;
-  const 획득 = EXP획득(난이도보상, '아재개그');
+  const 획득 = EXP획득(아재_보상(), '아재개그');
   showExpFloat(document.querySelector('.dad-card'),'+'+획득);
   마스터리증가('아재개그학습수');
   마스터리증가('총누적어휘수');
@@ -114,18 +110,12 @@ function 아재_선다선택(el, 정답){
   el.classList.add(정답 ? 'correct' : 'wrong');
   if(!정답) el.parentElement.querySelectorAll('.aopt').forEach(o=>{ if(o.dataset.정답==='1') o.classList.add('correct'); });
   el.parentElement.querySelectorAll('.aopt').forEach(o=>o.classList.add('disabled'));
-  showToastMsg(정답 ? '🎉 정답!' : '😄 아쉽! 해설을 확인하세요');
-  revealDad();
+  revealDad();   // 맞고 틀림은 보기 색으로, 해설은 아래 정답 공개로 화면 안에 보인다(종전 토스트 중복 제거)
 }
 /* 세션5 버그7: 아재개그 직접입력 제출 — 느슨 비교 후 정답 공개(EXP는 revealDad 1회 잠금 공유) */
 function 아재_직접제출(){
-  const inp=document.getElementById('dadDirectInp');
-  if(!inp || inp.dataset.제출완료) return;
-  const 입력=(inp.value||'').trim();
-  if(!입력){ showToastMsg('답을 입력해 주세요'); return; }
-  inp.dataset.제출완료='1'; inp.disabled=true;
-  const btn=document.getElementById('dadDirectBtn'); if(btn) btn.disabled=true;
-  활성입력_blur();
+  const 입력 = 직접입력_꺼내기('dadDirectInp', 'dadDirectBtn');
+  if(입력 === null) return;
   // 세션7 항목6: 허용 정답 배열 지원 — 데이터에 허용:[...]이 있으면 그 목록으로 판정
   const 후보 = (현재아재문제 && Array.isArray(현재아재문제.허용) && 현재아재문제.허용.length)
     ? 현재아재문제.허용 : [현재아재문제?.a];

@@ -51,16 +51,16 @@ load((window) => {
 
   // 신규: sq1 예문형 옵션
   assert('sq1에 예문형 버튼 추가됨', Array.from(doc.querySelectorAll('#lsetSq1 .lset-opt')).some(b=>(b.getAttribute('onclick')||'').includes("'sq1','예문형'")));
-  ev("현재학습모드='상식·어원'; 학습설정.sq1='예문형'; renderQuiz4(__TEST_QUIZ__);");
+  ev("현재학습모드='상식·어원'; 학습설정.sq1='예문형'; renderQuiz('sq1', __TEST_QUIZ__);");
   assert('상식·어원 예문형 렌더(맥락 카드)', doc.querySelectorAll('#sq1Body .syn-opt').length === 4);
-  ev("현재학습모드='세계사·신화'; renderQuiz4(__TEST_HISTORY__);");
+  ev("현재학습모드='세계사·신화'; renderQuiz('sq1', __TEST_HISTORY__);");
   assert('세계사·신화도 예문형 렌더(별도 데이터풀)', doc.querySelectorAll('#sq1Body .syn-opt').length === 4);
   const exp1 = ev('사용자.총누적EXP||0');
   const 정답1 = doc.querySelector('#sq1Body .syn-opt[data-kind="correct"]');
   ev(`예문형_선택('sq1Body', document.querySelector('#sq1Body .syn-opt[data-kind="correct"]'));`);
   assert('sq1 예문형: 정답 시 EXP 획득', ev('사용자.총누적EXP||0') > exp1);
   assert('sq1 예문형: 이의있음 버튼 없음(일반 컨텍스트 미지정)', !doc.getElementById('sq1BodySynActions').innerHTML.includes('이의있음'));
-  ev("학습설정.sq1='4지선다'; renderQuiz4(__TEST_QUIZ__);");
+  ev("학습설정.sq1='4지선다'; renderQuiz('sq1', __TEST_QUIZ__);");
   assert('4지선다 복귀 시 정상 렌더(회귀 없음)', doc.querySelectorAll('#sq1Body .aopt').length === 4);
 
   let fail = 0;

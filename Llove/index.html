@@ -9,6 +9,8 @@
 <!-- 파비콘(외부 파일 없이 data URI) — 없으면 브라우저가 favicon.ico를 자동 요청해 404 콘솔 에러 발생 -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
 <meta name="application-name" content="Llove">
+<!-- 브라우저 주소창·상태 표시줄 색 — 테마를 바꾸면 setTheme이 --bg로 갱신 -->
+<meta name="theme-color" content="#111009">
 <meta property="og:title" content="Llove">
 <meta property="og:description" content="한국어 어휘력과 표현력을 게임처럼 키우는 학습 앱">
 <meta name="description" content="한국어 어휘력과 표현력을 게임처럼 키우는 학습 앱">
@@ -21,7 +23,7 @@
 <link href="https://cdn.jsdelivr.net/gh/MonadABXY/mona-font@2026.05.25/web/mona.css" rel="stylesheet">
 
 <!-- v3.7: 기본 폰트(시스템 누락 대비) 노토산스 KR + 젯브레인 모노 + 고운 바탕 -->
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Gowun+Batang&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Gowun+Batang:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <!-- 재구조화: 전체 스타일을 style.css로 분리 (기존 인라인 <style> 24~938줄) -->
 <link rel="stylesheet" href="style.css">
@@ -33,13 +35,52 @@
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore-compat.js"></script>
 </head>
 <body data-theme="antique">
+<!-- U10(10-03): 단색 SVG 아이콘 한 벌 — <svg class="ic"><use href="#i-이름"/></svg>로 쓴다. 색은 currentColor, 크기는 글자 크기(1em) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-review" viewBox="0 0 24 24"><path d="M4.5 11.5A7.5 7.5 0 0 1 17.6 6.6L19.5 8.5M19.5 4.5v4h-4M19.5 12.5a7.5 7.5 0 0 1-13.1 4.9L4.5 15.5M4.5 19.5v-4h4"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4.5h8V9a4 4 0 0 1-8 0zM8 6.5H5.5a2.5 2.5 0 0 0 2.6 3.4M16 6.5h2.5a2.5 2.5 0 0 1-2.6 3.4M12 13v3.5M8.5 19.5h7M10 16.5h4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4.5 19.5h15M7.5 16v-4.5M12 16V7.5M16.5 16v-7"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4.5 7.5h9M17.5 7.5h2M4.5 16.5h3M11.5 16.5h8"/><circle cx="15.5" cy="7.5" r="2"/><circle cx="9.5" cy="16.5" r="2"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M5 19l1-4 9.5-9.5a2.1 2.1 0 0 1 3 3L9 18zM13.5 7.5l3 3"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5v3M9 20.5h6"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.4 2.2 3.5 5 3.5 8s-1.1 5.8-3.5 8c-2.4-2.2-3.5-5-3.5-8s1.1-5.8 3.5-8z"/></symbol>
+  <symbol id="i-temple" viewBox="0 0 24 24"><path d="M4 9h16l-8-4.5zM6.5 9v8.5M10 9v8.5M14 9v8.5M17.5 9v8.5M4 19.5h16"/></symbol>
+  <symbol id="i-scroll" viewBox="0 0 24 24"><path d="M7.5 5H18v11.5a2.5 2.5 0 0 1-2.5 2.5H8"/><path d="M7.5 5A2 2 0 0 0 5.5 7v1.5h2M8 19a2.5 2.5 0 0 1-2.5-2.5h7.5a2.5 2.5 0 0 0 2.5 2.5"/><path d="M10.5 9h4.5M10.5 12.5h4.5"/></symbol>
+  <symbol id="i-hanja" viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="2"/><path d="M8.5 9h7M12 9v7M8.5 13h7"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7.5 4.5 4.5 4.5V18c3 0 5.5.5 7.5 2 2-1.5 4.5-2 7.5-2V4.5c-3 0-5.5.5-7.5 2zM12 6.5V20"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="M4.5 6.5h9M4.5 12h11M4.5 17.5h6.5M18.5 5v14M16 16.5l2.5 2.5 2.5-2.5"/></symbol>
+  <symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8.5 13.5a4 4 0 0 0 7 0M9.2 9.5h.01M14.8 9.5h.01"/></symbol>
+  <symbol id="i-dice" viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="3"/><path d="M9 9h.01M15 9h.01M12 12h.01M9 15h.01M15 15h.01"/></symbol>
+  <symbol id="i-screen" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="11" rx="1.5"/><path d="M9 19.5h6M12 15.5v4"/></symbol>
+  <symbol id="i-textsize" viewBox="0 0 24 24"><path d="M3.5 18 8 6l4.5 12M5.2 14h5.6M14.5 18l2.5-7 2.5 7M15.3 16h3.4"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 7h10.5M9 12h10.5M9 17h10.5M4.8 7h.01M4.8 12h.01M4.8 17h.01"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M11 4.5l1.6 4.4 4.4 1.6-4.4 1.6L11 16.5l-1.6-4.4L5 10.5l4.4-1.6zM17.5 15l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 5.5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4.5 3.5v-3.5H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M15 9l-1.8 4.2L9 15l1.8-4.2z"/></symbol>
+  <symbol id="i-gem" viewBox="0 0 24 24"><path d="M7 5h10l3.5 4.5L12 19.5 3.5 9.5zM3.5 9.5h17M9.5 5 8 9.5l4 10 4-10L14.5 5"/></symbol>
+  <symbol id="i-font" viewBox="0 0 24 24"><path d="M5.5 7V5h13v2M12 5v14M9 19h6"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 4.5H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h4M14 8l4 4-4 4M18 12H9.5"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4.5 20.5 19h-17zM12 10v4M12 16.5h.01"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12.5h8L17 7M10.5 10.5v6M13.5 10.5v6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9" rx="1.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9" rx="1.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 6.8-1.2"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9.5 4h5M10.5 4v5.5L5.5 18a1.5 1.5 0 0 0 1.3 2.2h10.4a1.5 1.5 0 0 0 1.3-2.2l-5-8.5V4M7.8 14.5h8.4"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 20a6 6 0 0 0 6-6c0-3.6-2.6-5.6-3.6-8.6-1 2-2 3-3.4 3.6C10.6 7.2 10 5.5 9.4 4.4 7.8 7.2 6 9.6 6 14a6 6 0 0 0 6 6z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M4 8l8-3.5L20 8l-8 3.5zM4 12.2l8 3.5 8-3.5M4 16.4l8 3.5 8-3.5"/></symbol>
+</svg>
 
 <!-- 토스트 -->
 <div class="toast" id="toast"></div>
 
 <!-- 추가기능: 새 버전 배포 안내 배너 (토스트와 달리 자동으로 사라지지 않음) -->
 <div class="update-bar" id="updateBar">
-  <span>🔄 최신 버전이 있습니다. 새로고침 해주세요.</span>
+  <span>최신 버전이 있습니다. 새로고침 해주세요.</span>
   <button class="btn-acc" onclick="location.reload()">새로고침</button>
   <button class="update-bar-x" onclick="document.getElementById('updateBar').classList.remove('show')" aria-label="닫기">✕</button>
 </div>
@@ -49,13 +90,13 @@
      현재 슬라이드: 0)환영 1)학습 모드 2)숭고함 3)지금, 시작하시겠습니까? -->
 <div id="onboarding">
   <div class="ob-prog" id="obProg" style="width:25%"></div>
-  <button class="ob-skip" onclick="skipOb()">건너뛰기</button>
+  <button class="ob-skip" onclick="finishOb()">건너뛰기</button>
   <div class="ob-slides" id="obSlides">
     <!-- 0 환영 -->
     <div class="ob-slide active" data-i="0">
-      <div class="ob-bg"><div class="ob-aura"></div></div>
+      <div class="ob-bg"></div>
       <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
-        <div class="ob-icon">📖</div>
+        <div class="ob-icon"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
         <div class="ob-title">Llove에<br>오신 것을 환영합니다</div>
         <div class="ob-div"></div>
         <div class="ob-sub">고사성어부터 구어 교정까지<br><b>한국어 어휘력</b>을 게임처럼 키워가는<br>당신만의 학습 연대기입니다</div>
@@ -63,16 +104,18 @@
     </div>
     <!-- 1 모드 -->
     <div class="ob-slide" data-i="1">
-      <div class="ob-title">7가지 학습 모드</div>
+      <div class="ob-title">9가지 학습 모드</div>
       <div class="ob-div"></div>
       <div class="ob-feats">
-        <div class="ob-feat"><div class="ob-fi">🌍</div><div><div class="ob-fn">상식·어원</div><div class="ob-fd">잡학상식과 단어 기원</div></div></div>
-        <div class="ob-feat"><div class="ob-fi">📜</div><div><div class="ob-fn">고사성어·속담</div><div class="ob-fd">선인의 지혜를 직설적으로</div></div></div>
-        <div class="ob-feat"><div class="ob-fi">🏛️</div><div><div class="ob-fn">세계사·신화</div><div class="ob-fd">로마 신화·세이렌 등 흥미로운 이야기</div></div></div>
-        <div class="ob-feat"><div class="ob-fi">😂</div><div><div class="ob-fn">아재개그·넌센스</div><div class="ob-fd">평범한 아재개그와 말장난</div></div></div>
-        <div class="ob-feat"><div class="ob-fi">🈯</div><div><div class="ob-fn">한자·우리말</div><div class="ob-fd">어려운 한자어와 순우리말</div></div></div>
-        <div class="ob-feat"><div class="ob-fi">✏️</div><div><div class="ob-fn">맞춤법</div><div class="ob-fd">한국인이 자주 틀리는 맞춤법</div></div></div>
-        <div class="ob-feat"><div class="ob-fi">🎤</div><div><div class="ob-fn">구어 교정</div><div class="ob-fd">일상 말투를 격식체로</div></div></div>
+        <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div><div><div class="ob-fn">상식·어원</div><div class="ob-fd">잡학상식과 단어 기원</div></div></div>
+        <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-scroll"/></svg></div><div><div class="ob-fn">고사성어·속담</div><div class="ob-fd">선인의 지혜를 직설적으로</div></div></div>
+        <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-temple"/></svg></div><div><div class="ob-fn">세계사·신화</div><div class="ob-fd">로마 신화·세이렌 등 흥미로운 이야기</div></div></div>
+        <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-smile"/></svg></div><div><div class="ob-fn">아재개그·넌센스</div><div class="ob-fd">평범한 아재개그와 말장난</div></div></div>
+        <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-hanja"/></svg></div><div><div class="ob-fn">한자·우리말</div><div class="ob-fd">어려운 한자어와 순우리말</div></div></div>
+        <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></div><div><div class="ob-fn">맞춤법</div><div class="ob-fd">한국인이 자주 틀리는 맞춤법</div></div></div>
+        <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></div><div><div class="ob-fn">구어 교정</div><div class="ob-fd">일상 말투를 격식체로</div></div></div>
+        <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div><div><div class="ob-fn">지문 독해</div><div class="ob-fd">짧은 글 읽고 요지·추론 파악</div></div></div>
+        <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-sort"/></svg></div><div><div class="ob-fn">문장 배열</div><div class="ob-fd">뒤섞인 문장을 순서대로</div></div></div>
       </div>
     </div>
     <!-- 2 숭고함 (구 슬라이드 3) -->
@@ -87,7 +130,7 @@
     <!-- 3 시작 (구 슬라이드 4) -->
     <!-- v3.6 변경: 「연대기를 시작할 준비가 됐습니다」 → 「지금, 시작하시겠습니까?」 -->
     <div class="ob-slide" data-i="3">
-      <div class="ob-bg"><div class="ob-aura"></div></div>
+      <div class="ob-bg"></div>
       <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
         <div class="ob-icon">⚔️</div>
         <div class="ob-title">지금,<br>시작하시겠습니까?</div>
@@ -103,6 +146,8 @@
     <button class="ob-nb pri" id="obNext" onclick="obNext()">다음 →</button>
   </div>
 </div>
+<!-- 한 번 본 사람에겐 첫 그림부터 숨긴다(종전: 재방문마다 로그인 확인이 끝날 때까지 온보딩이 깜빡였다) -->
+<script>try{ if(localStorage.getItem('plx_온보딩봄')) document.getElementById('onboarding').classList.add('gone'); }catch(e){ /* 저장소 차단 환경은 종전처럼 보여 준다 */ }</script>
 
 <!-- 업적 팝업 -->
 <div class="ov-bg" id="achOv" onclick="closeAchOv()">
@@ -145,12 +190,11 @@
 <!-- 일반 모달 -->
 <div class="modal-bg" id="infoBg" onclick="배경클릭_닫기(event, closeInfoModal)">
   <div class="modal-bx" onclick="event.stopPropagation()">
-    <div class="modal-icon" id="infoIcon">ℹ️</div>
+    <div class="modal-icon" id="infoIcon"></div>
     <div class="modal-title" id="infoTitle">안내</div>
     <div class="modal-desc" id="infoDesc">설명</div>
-    <div id="infoBody"></div>
     <div class="modal-btns" id="infoBtns">
-      <button class="btn-acc" style="flex:1" onclick="closeInfoModal()">확인</button>
+      <button class="btn-acc grow" onclick="closeInfoModal()">확인</button>
     </div>
   </div>
 </div>
@@ -164,12 +208,12 @@
       <img id="이미지크롭이미지" alt="크롭 미리보기">
     </div>
     <div style="display:flex;align-items:center;gap:9px;margin-top:11px">
-      <span style="font-size:14px">🔍</span>
-      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" oninput="이미지크롭_줌(this.value)" style="flex:1" aria-label="확대 배율">
+      <span style="font-size:16px;display:flex"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>
+      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" oninput="이미지크롭_줌(this.value)" class="grow" aria-label="확대 배율">
     </div>
     <div class="modal-btns" style="margin-top:13px">
-      <button class="btn-g" style="flex:1" onclick="이미지크롭_취소()">취소</button>
-      <button class="btn-acc" style="flex:1" onclick="이미지크롭_적용()">적용</button>
+      <button class="btn-g grow" onclick="이미지크롭_취소()">취소</button>
+      <button class="btn-acc grow" onclick="이미지크롭_적용()">적용</button>
     </div>
   </div>
 </div>
@@ -177,11 +221,11 @@
 <!-- 이름 변경 모달 -->
 <div class="modal-bg" id="nmModalBg" onclick="배경클릭_닫기(event, closeNmModal)">
   <div class="modal-bx" onclick="event.stopPropagation()">
-    <div class="modal-icon">✏️</div>
+    <div class="modal-icon"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></div>
     <div class="modal-title">이름 변경</div>
-    <input class="nm-inp" id="nmModalInp" placeholder="새 이름을 입력하세요" maxlength="12" style="margin:8px 0 16px">
+    <input class="nm-inp" id="nmModalInp" aria-label="새 이름" placeholder="새 이름을 입력하세요" maxlength="12" style="margin:8px 0 16px">
     <div class="modal-btns">
-      <button class="btn-g" style="flex:1" onclick="closeNmModal()">취소</button>
+      <button class="btn-g grow" onclick="closeNmModal()">취소</button>
       <button class="btn-acc" style="flex:2" onclick="applyNmChange()">변경하기</button>
     </div>
   </div>
@@ -194,7 +238,7 @@
     <div class="modal-desc" id="selDesc"></div>
     <div class="select-modal-list" id="selList"></div>
     <div class="modal-btns" style="margin-top:14px">
-      <button class="btn-g" style="flex:1" onclick="closeSelect()">닫기</button>
+      <button class="btn-g grow" onclick="closeSelect()">닫기</button>
     </div>
   </div>
 </div>
@@ -202,22 +246,22 @@
 <!-- 폰트 선택 모달 — v3.7 항목6,8: 확정 폰트 11종 + 출처 표기 -->
 <div class="modal-bg" id="fontBg" onclick="배경클릭_닫기(event, closeFont)">
   <div class="modal-bx" onclick="event.stopPropagation()">
-    <div class="modal-title">🔤 글꼴</div>
+    <div class="modal-title">글꼴</div>
     <div class="fo-list" id="fontList"></div>
     <!-- v3.7 항목8: 폰트 출처 표기 (KNOWLEDGE 19섹션 의무) -->
     <div style="margin-top:14px;padding:10px 12px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;font-size:11px;color:var(--txt2);line-height:1.7">
-      <div style="color:var(--acc);font-weight:700;margin-bottom:5px;font-size:11px">📜 폰트 출처</div>
+      <div style="color:var(--acc);font-weight:700;margin-bottom:5px;font-size:11px">폰트 출처</div>
       <div id="fontCreditList" style="display:flex;flex-direction:column;gap:3px"></div>
       <!-- 빌드1: 가사 미리보기 출처 표기 의무 (KNOWLEDGE 19) -->
       <div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bdr)">
-        🎵 가사 © 음율 (피차일반) · © ユイリ (Betelgeuse) · 각 아티스트 저작권 보유
+        가사 © 음율 (피차일반) · © ユイリ (Betelgeuse) · 각 아티스트 저작권 보유
       </div>
       <!-- 항목2: 상업적 이용 관련 경고 문구는 사용자 UI에서 제거.
            (내부 관리 메모) 광고 적용 시점에 폰트·가사 라이선스의 상업적 사용 가능 여부를 재확인할 것. -->
 
     </div>
     <div class="modal-btns" style="margin-top:14px">
-      <button class="btn-g" style="flex:1" onclick="closeFont()">닫기</button>
+      <button class="btn-g grow" onclick="closeFont()">닫기</button>
     </div>
   </div>
 </div>
@@ -225,7 +269,7 @@
 <!-- 항목3: 커스텀 테마 에디터 (4색 직접 설정·32색 팔레트·실시간 미리보기·대비 경고·랜덤·10슬롯 프로필) -->
 <div class="modal-bg" id="customThemeBg" onclick="배경클릭_닫기(event, closeCustomTheme)">
   <div class="modal-bx" onclick="event.stopPropagation()" style="max-height:88vh;overflow-y:auto">
-    <div class="modal-title">🎨 커스텀 테마</div>
+    <div class="modal-title">커스텀 테마</div>
     <div class="ct-preview" id="ctPreview">
       <div class="ct-prev-card" id="ctPrevCard">
         <div class="ct-prev-title" id="ctPrevTitle">미리보기 · 가나다 Llove</div>
@@ -242,15 +286,15 @@
     </div>
     <div class="ct-palette" id="ctPalette"></div>
     <div style="display:flex;gap:8px;margin-top:12px">
-      <input class="nm-inp" id="ctName" placeholder="테마 이름(선택)" maxlength="16" style="flex:1;margin:0">
-      <button class="btn-g" onclick="커스텀_랜덤()">🎲 랜덤</button>
+      <input class="nm-inp" id="ctName" aria-label="테마 이름" placeholder="테마 이름(선택)" maxlength="16" style="flex:1;margin:0">
+      <button class="btn-g" onclick="커스텀_랜덤()">랜덤</button>
     </div>
     <button class="btn-acc" style="width:100%;margin-top:10px" onclick="커스텀_적용()">이 색으로 적용</button>
-    <div class="ct-slots-lbl">💾 프로필 슬롯 (최대 10) — 채워진 슬롯 탭: 불러오기 / ✕: 비우기</div>
+    <div class="ct-slots-lbl">프로필 슬롯 (최대 10) — 채워진 슬롯 탭: 불러오기 / ✕: 비우기</div>
     <div class="ct-slots" id="ctSlots"></div>
     <button class="btn-g" style="width:100%;margin-top:8px" onclick="커스텀_슬롯_현재저장()">＋ 현재 색을 빈 슬롯에 저장</button>
     <div class="modal-btns" style="margin-top:12px">
-      <button class="btn-g" style="flex:1" onclick="closeCustomTheme()">닫기</button>
+      <button class="btn-g grow" onclick="closeCustomTheme()">닫기</button>
     </div>
   </div>
 </div>
@@ -258,31 +302,31 @@
 <!-- 추가기능: 콜롬비나 음성 생성(TTS) — 창조주 전용 테스트 벤치 (봉인 골격) -->
 <div class="modal-bg" id="음성생성Bg" onclick="배경클릭_닫기(event, 음성생성패널_닫기)">
   <div class="modal-bx" onclick="event.stopPropagation()" style="max-height:88vh;overflow-y:auto">
-    <div class="modal-title">🎙 음성 생성 (실험)</div>
+    <div class="modal-title">음성 생성 (실험)</div>
     <div class="modal-desc" style="font-size:11.5px;line-height:1.7">
       텍스트를 외부 음성 서버로 보내 음성으로 받아 재생합니다.<br>
       <b>창조주 전용</b> · 서버 주소는 직접 입력(코드에 저장하지 않음).
     </div>
     <!-- 봉인 안내 — 음성생성_활성화=false 동안 노출 -->
     <div id="음성봉인안내" style="margin:10px 0;padding:9px 11px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;font-size:11px;color:var(--txt2);line-height:1.7">
-      🔒 현재 봉인 상태입니다(서버 미준비). 서버 준비 후 코드의 <code>음성생성_활성화</code>를 켜면 동작합니다.
+      현재 봉인 상태입니다(서버 미준비). 서버 준비 후 코드의 <code>음성생성_활성화</code>를 켜면 동작합니다.
     </div>
     <label class="vc-lbl" for="음성엔드포인트입력">서버 엔드포인트 주소</label>
-    <input class="nm-inp" id="음성엔드포인트입력" placeholder="https://... (로컬 터널 또는 클라우드 GPU)" style="width:100%;margin:4px 0 8px;box-sizing:border-box">
+    <input class="nm-inp" id="음성엔드포인트입력" aria-label="음성 서버 주소" placeholder="https://... (로컬 터널 또는 클라우드 GPU)" style="width:100%;margin:4px 0 8px;box-sizing:border-box">
     <div style="display:flex;gap:8px;margin-bottom:6px">
-      <button class="btn-g" style="flex:1" onclick="음성엔드포인트_저장()">주소 저장</button>
-      <button class="btn-g" style="flex:1" onclick="음성엔드포인트_지우기()">주소 지우기</button>
+      <button class="btn-g grow" onclick="음성엔드포인트_저장()">주소 저장</button>
+      <button class="btn-g grow" onclick="음성엔드포인트_지우기()">주소 지우기</button>
     </div>
     <label class="vc-lbl" for="음성테스트입력">테스트 문장</label>
-    <textarea id="음성테스트입력" class="vc-ta" placeholder="예) 안녕하세요, 끝말잇기 시작할게요" maxlength="120"></textarea>
+    <textarea id="음성테스트입력" aria-label="음성 테스트 문장" class="vc-ta" placeholder="예) 안녕하세요, 끝말잇기 시작할게요" maxlength="120"></textarea>
     <!-- 로딩 표시(회전 금지 — 점 불투명도 펄스) -->
     <div id="음성로딩" class="vc-loading" style="display:none">
       <span class="vc-dot"></span><span class="vc-dot"></span><span class="vc-dot"></span>
-      <span class="vc-loading-txt">🎙 음성 생성 중… (3~8초)</span>
+      <span class="vc-loading-txt">음성 생성 중… (3~8초)</span>
     </div>
     <button class="btn-acc" id="음성생성버튼" style="width:100%;margin-top:10px" onclick="음성_테스트생성()">음성 생성 · 재생</button>
     <div class="modal-btns" style="margin-top:12px">
-      <button class="btn-g" style="flex:1" onclick="음성생성패널_닫기()">닫기</button>
+      <button class="btn-g grow" onclick="음성생성패널_닫기()">닫기</button>
     </div>
   </div>
 </div>
@@ -294,34 +338,34 @@
   <div class="ask-handle"></div>
   <div class="ask-hdr">
     <div style="display:flex;align-items:center;gap:8px">
-      <div class="ask-title">💬 질문하기</div>
+      <div class="ask-title">질문하기</div>
       <!-- β2: 일일 100회 풀 폐기 — 토큰 잔량 표시로 통합 (KNOWLEDGE 22·32) -->
-      <div class="ask-quota" id="askQuota">💎 <span id="askQuotaNow">1,500</span></div>
+      <div class="ask-quota" id="askQuota"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg> <span id="askQuotaNow">1,500</span></div>
     </div>
     <div style="display:flex;gap:6px;align-items:center">
       <!-- 세션6 항목4: 새 대화 — 현재 대화를 기록으로 보관하고 채팅창 초기화 -->
-      <button id="askNewBtn" onclick="새대화_시작()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">🆕 새 대화</button>
+      <button id="askNewBtn" onclick="새대화_시작()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">새 대화</button>
       <!-- β7: 사고전개 탭 — 기본 OFF, 매번 수동 ON (KNOWLEDGE 5-1) / 세션6 항목2: 가시성 상향(--txt·11px) -->
-      <button id="thinkToggle" onclick="사고전개_토글()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">🧠 사고전개 OFF</button>
-      <button id="askCls창조주" onclick="closeAsk()" style="display:none;background:rgba(192,112,112,.15);border:1px solid var(--err);color:var(--err);padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700">중도 포기</button>
+      <button id="thinkToggle" onclick="사고전개_토글()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">사고전개 OFF</button>
+      <button id="askCls창조주" onclick="closeAsk()" style="display:none;background:color-mix(in srgb,var(--err) 15%,transparent);border:1px solid var(--err);color:var(--err);padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700">중도 포기</button>
       <button class="ask-cls" onclick="closeAsk()">✕</button>
     </div>
   </div>
   <!-- Phase 7: AI 질문/사전 뜻풀이 모드 전환 — 기존 .fs-opts/.fs-opt(단계형 선택 버튼) 재사용 -->
   <div class="fs-opts" id="askModeTabs" style="padding:10px 18px 0">
-    <button type="button" class="fs-opt on" id="askTabAI" onclick="질문모드_전환('ai')">🤖 AI에게 질문</button>
-    <button type="button" class="fs-opt" id="askTabDict" onclick="질문모드_전환('dict')">📖 사전에서 뜻 찾기</button>
+    <button type="button" class="fs-opt on" id="askTabAI" onclick="질문모드_전환('ai')">AI에게 질문</button>
+    <button type="button" class="fs-opt" id="askTabDict" onclick="질문모드_전환('dict')">사전에서 뜻 찾기</button>
   </div>
   <div class="ask-body" id="askBody">
-    <div class="ask-msg ai">
-      안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요. Grok이 답변드립니다.
+    <div class="ask-msg ai intro">
+      안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요.
     </div>
   </div>
   <!-- 입력 영역: 창조주 시나리오에서 ID로 안정적으로 숨김/복구 -->
   <div id="askInputArea" style="padding:12px 18px;border-top:1px solid var(--bdr);background:var(--card)">
     <div class="ask-input-row">
       <!-- 세션10-h: Enter 전송/줄바꿈 분기는 질문입력_Enter처리()가 기기별(모바일=줄바꿈, PC=전송)로 판단 -->
-      <textarea class="ask-input" id="askInp" placeholder="질문을 입력하세요..." rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" oninput="질문입력_높이조절(this)" onkeypress="질문입력_Enter처리(event)"></textarea>
+      <textarea class="ask-input" id="askInp" aria-label="질문" placeholder="질문을 입력하세요..." rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" oninput="질문입력_높이조절(this)" onkeypress="질문입력_Enter처리(event)"></textarea>
       <button class="ask-send" onclick="sendAsk()">전송</button>
     </div>
   </div>
@@ -335,11 +379,11 @@
     <!-- β3: reasoning_note 패널 — 이의있음! 상단 항상 표시 (KNOWLEDGE 33) -->
     <div class="obj-note" id="objNote" style="display:none"></div>
     <!-- v3.7 항목5: obj-sub — 컨텍스트(synonym/speak/general)별 안내문 분기 표시 -->
-    <div class="obj-desc obj-sub">정말로 이 답변이 틀렸다고 생각하십니까?<br>어디가 어떻게 왜 틀렸는지 구체적으로 적어주세요.<br><b>Grok 교차검증 후 인정 시</b> [반박의 화신] 카운터가 올라갑니다.</div>
-    <textarea class="obj-input" id="objInp" placeholder="반박 내용을 입력하세요..."></textarea>
+    <div class="obj-desc obj-sub">정말로 이 답변이 틀렸다고 생각하십니까?<br>어디가 어떻게 왜 틀렸는지 구체적으로 적어주세요.<br><b>AI 교차검증 후 인정 시</b> [반박의 화신] 카운터가 올라갑니다.</div>
+    <textarea class="obj-input" id="objInp" aria-label="반박 내용" placeholder="반박 내용을 입력하세요..."></textarea>
     <div class="obj-btns">
-      <button class="btn-g" style="flex:1" onclick="closeObj()">취소</button>
-      <button class="btn-acc" style="flex:2" onclick="submitObj()">반박 제출</button>
+      <button class="btn-g grow" onclick="closeObj()">취소</button>
+      <button class="btn-acc" id="objSubmit" style="flex:2" onclick="submitObj()">반박 제출</button>
     </div>
   </div>
 </div>
@@ -367,13 +411,12 @@
 <!-- ━━━ ① 로그인 ━━━
      v3.7 항목1: 구글 로그인 강제화 확정 (KNOWLEDGE 28섹션)
      - 비로그인·익명 로그인 옵션 폐기
-     - 진입 경로는 단일 「Google 계정으로 시작하기」 버튼만 유효
-     - 실제 Firebase Auth 연결은 Claude Code 단계 -->
+     - 진입 경로는 단일 「Google 계정으로 시작하기」 버튼만 유효 (Firebase Auth — js/firebase.js) -->
 <div id="sl" class="screen active demo-offset">
-  <div class="lg-bg"><div class="lg-aura"></div></div>
+  <div class="lg-bg"></div>
   <div class="lg-content">
     <!-- 세션8: 백도어 터치 진입점 — 아래 백도어_로고탭() 참조 -->
-    <div class="lg-icon-wrap fu" id="lgIconWrap" onclick="백도어_로고탭()">📖</div>
+    <div class="lg-icon-wrap fu" id="lgIconWrap" onclick="백도어_로고탭()"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
     <div class="lg-title fu s1">Llove</div>
     <div class="lg-sub fu s2">한국어 어휘 학습</div>
     <div class="lg-desc fu s3"><p>한국어 어휘력과 표현력을<br>게임처럼 키워가는<br>당신만의 학습 연대기</p></div>
@@ -386,10 +429,10 @@
 <!-- ② 이름 입력 -->
 <div id="sn" class="screen demo-offset">
   <div class="sn-content">
-    <div class="fu" style="text-align:center"><h2 style="font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:6px">✨ 환영합니다!</h2><p style="font-size:13px;color:var(--txt2);line-height:1.75">학습 연대기에서 사용할<br>이름을 설정해 주세요</p></div>
+    <div class="fu" style="text-align:center"><h2 style="font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:6px">환영합니다!</h2><p style="font-size:13px;color:var(--txt2);line-height:1.75">학습 연대기에서 사용할<br>이름을 설정해 주세요</p></div>
     <div class="fu s1">
       <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:6px">이름 (닉네임)</label>
-      <input class="nm-inp" id="nmInp" type="text" placeholder="이름을 입력하세요" maxlength="12" oninput="updateNmPreview()">
+      <input class="nm-inp" id="nmInp" aria-label="이름" type="text" placeholder="이름을 입력하세요" maxlength="12" oninput="updateNmPreview()">
     </div>
     <div class="nm-prev fu s2" id="nmPrev">
       <div class="nm-av" id="nmAvatar">⚔️</div>
@@ -429,9 +472,9 @@
       <div class="exp-row"><span style="color:var(--txt2)">레벨 진행도</span><span id="homeExpTxt"></span></div>
     </div>
     <div class="stat-row fu s4">
-      <div class="stat-chip"><div class="sc-val" id="homeStreak"></div><div class="sc-lbl">연속 학습일</div></div>
-      <div class="stat-chip"><div class="sc-val" id="homeVocab"></div><div class="sc-lbl">누적 어휘</div></div>
-      <div class="stat-chip"><div class="sc-val" id="homeReview"></div><div class="sc-lbl">복습 대기</div></div>
+      <div class="stat-chip"><div class="sc-val"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg><span id="homeStreak"></span></div><div class="sc-lbl">연속 학습일</div></div>
+      <div class="stat-chip"><div class="sc-val"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg><span id="homeVocab"></span></div><div class="sc-lbl">누적 어휘</div></div>
+      <div class="stat-chip"><div class="sc-val"><svg class="ic" aria-hidden="true"><use href="#i-review"/></svg><span id="homeReview"></span></div><div class="sc-lbl">복습 대기</div></div>
     </div>
   </div>
   <!-- v3.7 항목11,12: 오늘 한 문장 슬라이드 배너 (KNOWLEDGE 24섹션)
@@ -440,7 +483,7 @@
        - 문장 내 학습 단어(.kc-word) 탭 → 해당 플래시카드로 이동 -->
   <div class="kc fu s1" id="quoteCard" style="flex-shrink:0" onclick="quoteNext(event)">
     <div class="kl">
-      <span>📜 오늘 한 문장</span>
+      <span>오늘 한 문장</span>
       <span style="font-size:9px;color:var(--txt2);font-weight:500;letter-spacing:.4px;text-transform:none">탭하면 다음 →</span>
     </div>
     <div id="quoteSlides" style="display:grid;min-height:64px">
@@ -452,41 +495,38 @@
     <div class="sec-t">학습 모드</div>
     <!-- 세션10-d 항목6·7: 카테고리 그룹으로 재편(교정 계열 맨 위) + 색맹 대비 그룹 라벨(색+두께+텍스트 3중 신호).
          색 그룹: 교정=g4(--acc) · 지식=g1(--inf) · 어휘=g2(--warn) · 문해=g3(--ok) · 재미=g5(--err) -->
-    <div class="mc-glabel" style="--gl:var(--acc)">✏️ 교정 · 실전</div>
-    <div class="mc fu s1 mc-g4" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon">✏️</div><div style="flex:1"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 3지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s2 mc-g4" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon">🎤</div><div style="flex:1"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc-glabel" style="--gl:var(--inf)">🌍 지식</div>
-    <div class="mc fu s3 mc-g1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon">🌍</div><div style="flex:1"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s4 mc-g1" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon">🏛️</div><div style="flex:1"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc-glabel" style="--gl:var(--warn)">📚 어휘</div>
-    <div class="mc fu s5 mc-g2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon">📜</div><div style="flex:1"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 예문형</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc fu s6 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon">🈯</div><div style="flex:1"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc-glabel" style="--gl:var(--ok)">📖 문해</div>
-    <div class="mc fu s7 mc-g3" onclick="goLearn('지문 독해','sq6',null)"><div class="mc-icon">📖</div><div style="flex:1"><div class="mc-name">지문 독해</div><div class="mc-desc">짧은 글 읽고 요지·추론 파악 · 문해력</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc-glabel" style="--gl:var(--acc)">교정 · 실전</div>
+    <div class="mc fu s1 mc-g4" onclick="goLearn('맞춤법','sq3',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></div><div class="grow"><div class="mc-name">맞춤법</div><div class="mc-desc">자주 틀리는 한국어 맞춤법 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s2 mc-g4" onclick="goLearn('구어 교정','sq5',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></div><div class="grow"><div class="mc-name">구어 교정</div><div class="mc-desc">일상 말투를 격식체로 다듬기</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc-glabel" style="--gl:var(--inf)">지식</div>
+    <div class="mc fu s3 mc-g1" onclick="goLearn('상식·어원','sq1',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div><div class="grow"><div class="mc-name">상식·어원</div><div class="mc-desc">잡학상식과 단어 기원 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s4 mc-g1" onclick="goLearn('세계사·신화','sq1',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-temple"/></svg></div><div class="grow"><div class="mc-name">세계사·신화</div><div class="mc-desc">로마·신화·전설 · 4지선다</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc-glabel" style="--gl:var(--warn)">어휘</div>
+    <div class="mc fu s5 mc-g2" onclick="goLearn('고사성어·속담','sq2',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-scroll"/></svg></div><div class="grow"><div class="mc-name">고사성어·속담</div><div class="mc-desc">선인의 지혜 · 예문형</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s6 mc-g2" onclick="goLearn('한자·우리말','sq2',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-hanja"/></svg></div><div class="grow"><div class="mc-name">한자·우리말</div><div class="mc-desc">어려운 한자어와 순우리말 · 예문형</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc-glabel" style="--gl:var(--cat-read)">문해</div>
+    <div class="mc fu s7 mc-g3" onclick="goLearn('지문 독해','sq6',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div><div class="grow"><div class="mc-name">지문 독해</div><div class="mc-desc">짧은 글 읽고 요지·추론 파악 · 문해력</div></div><div class="mc-arrow">›</div></div>
     <!-- 세션10-m: 문해력 2탄(D안) — 뒤섞인 문장을 원래 순서대로 탭해 배치 -->
-    <div class="mc fu s8 mc-g3" onclick="goLearn('문장 배열','sq7',null)"><div class="mc-icon">🧩</div><div style="flex:1"><div class="mc-name">문장 배열</div><div class="mc-desc">뒤섞인 문장을 순서대로 · 문해력</div></div><div class="mc-arrow">›</div></div>
-    <div class="mc-glabel" style="--gl:var(--err)">😂 재미</div>
-    <div class="mc fu s9 mc-g5" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon">😂</div><div style="flex:1"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc fu s8 mc-g3" onclick="goLearn('문장 배열','sq7',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-sort"/></svg></div><div class="grow"><div class="mc-name">문장 배열</div><div class="mc-desc">뒤섞인 문장을 순서대로 · 문해력</div></div><div class="mc-arrow">›</div></div>
+    <div class="mc-glabel" style="--gl:var(--cat-fun)">재미</div>
+    <div class="mc fu s9 mc-g5" onclick="goLearn('아재개그','sq4',null)"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-smile"/></svg></div><div class="grow"><div class="mc-name">아재개그</div><div class="mc-desc">평범한 아재개그와 넌센스</div></div><div class="mc-arrow">›</div></div>
     <!-- 세션6 항목7: 랜덤 학습 — 들어갈 때마다 임의 모드 / 세션7 항목8: ⚙ = 모드별 확률·제외 설정 -->
-    <div class="mc fu s10" style="border-style:dashed;margin-top:12px" onclick="랜덤학습()"><div class="mc-icon">🎲</div><div style="flex:1"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()">⚙</span><div class="mc-arrow">›</div></div>
+    <div class="mc fu s10" style="border-style:dashed;margin-top:12px" onclick="랜덤학습()"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-dice"/></svg></div><div class="grow"><div class="mc-name">랜덤</div><div class="mc-desc">매번 다른 모드로 출제 · 오늘의 운에 맡기기</div></div><span style="font-size:19px;padding:6px;color:var(--txt2)" onclick="event.stopPropagation();랜덤설정_열기()" aria-label="랜덤 설정"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></span><div class="mc-arrow">›</div></div>
   </div>
 </div>
 
 <!-- ④-1 4지선다 (상식·어원, 세계사·신화 공용) -->
 <div id="sq1" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt" id="sq1Title">상식·어원</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq1Mode">🌍 4지선다</div><div class="qct">1 / 5 문제</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <div class="q-head"><div class="tbt" id="sq1Title">상식·어원</div><div class="qmb" id="sq1Mode">4지선다</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span><button class="q-set" onclick="toggleLset('lsetSq1')" aria-label="학습 설정" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></button></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
     <div class="tkb-row">
-      <span class="tkb-icon">💎</span>
+      <span class="tkb-icon"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg></span>
       <div class="tkb-bar"><div class="tkb-fill"></div></div>
       <span class="tkb-val">- / 1,500</span>
       <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
@@ -495,10 +535,6 @@
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) -->
   <div class="lset-panel" id="lsetSq1">
-    <div class="lset-hdr" onclick="toggleLset('lsetSq1')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">방식</span>
@@ -518,31 +554,28 @@
     <!-- JS로 동적 생성 -->
   </div>
   <!-- 세션10-e 항목3: 랜덤 진입 시에만 노출되는 넘어가기(같은 모드 다음 문제) -->
-  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
+  <div class="random-skip" style="display:none"><button class="btn-g" onclick="랜덤_넘어가기()">넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
-  <div style="padding:10px 18px 4px;flex-shrink:0">
-    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
-      <span style="font-size:14px">💬</span>
-      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
+  <div class="ask-entry-wrap">
+    <div class="ask-entry" onclick="openAsk()">
+      <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>
+      <span>궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg> <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
 
 <!-- ④-6 세션10-c: 지문 독해(문해력 모드) — 문장형 보기 전용 엔진, 방식 옵션 없어 설정 패널 생략 -->
 <div id="sq6" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt" id="sq6Title">지문 독해</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq6Mode">📖 지문 독해</div><div class="qct">1 / 5 문제</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <div class="q-head"><div class="tbt" id="sq6Title">지문 독해</div><div class="qmb" id="sq6Mode">문해력</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
     <div class="tkb-row">
-      <span class="tkb-icon">💎</span>
+      <span class="tkb-icon"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg></span>
       <div class="tkb-bar"><div class="tkb-fill"></div></div>
       <span class="tkb-val">- / 1,500</span>
       <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
@@ -552,31 +585,28 @@
   <div class="qbody" id="sq6Body">
     <!-- JS로 동적 생성 -->
   </div>
-  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
+  <div class="random-skip" style="display:none"><button class="btn-g" onclick="랜덤_넘어가기()">넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
-  <div style="padding:10px 18px 4px;flex-shrink:0">
-    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
-      <span style="font-size:14px">💬</span>
-      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
+  <div class="ask-entry-wrap">
+    <div class="ask-entry" onclick="openAsk()">
+      <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>
+      <span>궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg> <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
 
 <!-- ④-7 세션10-m: 문장 배열(문해력 2탄, D안) — 뒤섞인 문장을 탭한 순서대로 배치, 방식 옵션 없어 설정 패널 생략 -->
 <div id="sq7" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt" id="sq7Title">문장 배열</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq7Mode">🧩 문장 배열</div><div class="qct">1 / 5 문제</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <div class="q-head"><div class="tbt" id="sq7Title">문장 배열</div><div class="qmb" id="sq7Mode">문해력</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
     <div class="tkb-row">
-      <span class="tkb-icon">💎</span>
+      <span class="tkb-icon"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg></span>
       <div class="tkb-bar"><div class="tkb-fill"></div></div>
       <span class="tkb-val">- / 1,500</span>
       <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
@@ -586,32 +616,29 @@
   <div class="qbody" id="sq7Body">
     <!-- JS로 동적 생성 -->
   </div>
-  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
+  <div class="random-skip" style="display:none"><button class="btn-g" onclick="랜덤_넘어가기()">넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
-  <div style="padding:10px 18px 4px;flex-shrink:0">
-    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
-      <span style="font-size:14px">💬</span>
-      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
+  <div class="ask-entry-wrap">
+    <div class="ask-entry" onclick="openAsk()">
+      <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>
+      <span>궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg> <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
 
 <!-- ④-2 플래시카드 (고사성어, 한자우리말) -->
 <div id="sq2" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt" id="sq2Title">고사성어·속담</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb" id="sq2Mode">📜 4지선다</div><div class="qct">1 / 8 카드</div></div>
-    <div class="qpbar"><div class="qpfill" style="width:12%"></div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <div class="q-head"><div class="tbt" id="sq2Title">고사성어·속담</div><div class="qmb" id="sq2Mode">4지선다</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span><button class="q-set" onclick="toggleLset('lsetSq2')" aria-label="학습 설정" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></button></div>
+    <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
     <div class="tkb-row">
-      <span class="tkb-icon">💎</span>
+      <span class="tkb-icon"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg></span>
       <div class="tkb-bar"><div class="tkb-fill"></div></div>
       <span class="tkb-val">- / 1,500</span>
       <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
@@ -620,10 +647,6 @@
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) — v3.7 항목3·4·5: 4지선다 기본 + 5방식 -->
   <div class="lset-panel" id="lsetSq2">
-    <div class="lset-hdr" onclick="toggleLset('lsetSq2')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">방식</span>
@@ -641,32 +664,29 @@
   <div class="qbody" id="sq2Body">
     <!-- JS로 동적 생성 -->
   </div>
-  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
+  <div class="random-skip" style="display:none"><button class="btn-g" onclick="랜덤_넘어가기()">넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
-  <div style="padding:10px 18px 4px;flex-shrink:0">
-    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
-      <span style="font-size:14px">💬</span>
-      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
+  <div class="ask-entry-wrap">
+    <div class="ask-entry" onclick="openAsk()">
+      <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>
+      <span>궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg> <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
 
-<!-- ④-3 3지선다 (맞춤법) -->
+<!-- ④-3 4지선다 (맞춤법) -->
 <div id="sq3" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt">맞춤법</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb">✏️ 3지선다</div><div class="qct">1 / 5 문제</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <div class="q-head"><div class="tbt">맞춤법</div><div class="qmb" id="sq3Mode">4지선다</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta">+20</span><button class="q-set" onclick="toggleLset('lsetSq3')" aria-label="학습 설정" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></button></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
     <div class="tkb-row">
-      <span class="tkb-icon">💎</span>
+      <span class="tkb-icon"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg></span>
       <div class="tkb-bar"><div class="tkb-fill"></div></div>
       <span class="tkb-val">- / 1,500</span>
       <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
@@ -675,10 +695,6 @@
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) -->
   <div class="lset-panel" id="lsetSq3">
-    <div class="lset-hdr" onclick="toggleLset('lsetSq3')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">방식</span>
@@ -695,32 +711,29 @@
   <div class="qbody" id="sq3Body">
     <!-- JS로 동적 생성 -->
   </div>
-  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
+  <div class="random-skip" style="display:none"><button class="btn-g" onclick="랜덤_넘어가기()">넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
-  <div style="padding:10px 18px 4px;flex-shrink:0">
-    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
-      <span style="font-size:14px">💬</span>
-      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
+  <div class="ask-entry-wrap">
+    <div class="ask-entry" onclick="openAsk()">
+      <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>
+      <span>궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg> <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
 
 <!-- ④-4 아재개그 -->
 <div id="sq4" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt">아재개그</div>
-    <div class="tag ta">+20</div>
-  </div>
-  <div class="qprog-wrap">
-    <div class="qpr-top"><div class="qmb">😂 탭→공개</div><div class="qct">1 / 5 문제</div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <div class="q-head"><div class="tbt">아재개그</div><div class="qmb" id="sq4Mode">플래시카드</div></div>
+    <div class="q-meta"><span class="qct">1문제째</span><span class="tag ta" id="sq4Exp">+20</span><button class="q-set" onclick="toggleLset('lsetSq4')" aria-label="학습 설정" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></button></div>
     <div class="qpbar"><div class="qpfill" style="width:20%"></div></div>
   </div>
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
     <div class="tkb-row">
-      <span class="tkb-icon">💎</span>
+      <span class="tkb-icon"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg></span>
       <div class="tkb-bar"><div class="tkb-fill"></div></div>
       <span class="tkb-val">- / 1,500</span>
       <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
@@ -729,10 +742,6 @@
   </div>
   <!-- v3.5: 학습 설정 패널 (접이식) — v3.7 항목13: 입력 방식 행 추가 -->
   <div class="lset-panel" id="lsetSq4">
-    <div class="lset-hdr" onclick="toggleLset('lsetSq4')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">난이도</span>
@@ -756,23 +765,23 @@
   <div class="qbody" id="sq4Body">
     <!-- JS로 동적 생성 -->
   </div>
-  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
+  <div class="random-skip" style="display:none"><button class="btn-g" onclick="랜덤_넘어가기()">넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
-  <div style="padding:10px 18px 4px;flex-shrink:0">
-    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
-      <span style="font-size:14px">💬</span>
-      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
+  <div class="ask-entry-wrap">
+    <div class="ask-entry" onclick="openAsk()">
+      <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>
+      <span>궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg> <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
 
 <!-- ④-5 구어 교정 -->
 <div id="sq5" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('sh',null)">← 나가기</button>
-    <div class="tbt">구어 교정</div>
-    <div class="tag ta">+60</div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('sh',null)" aria-label="나가기"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <div class="q-head"><div class="tbt">구어 교정</div></div>
+    <div class="q-meta"><span class="tag ta">+60</span></div>
   </div>
   <div class="spk-info">
     <div class="spk-info-text">일상에서 쓰는 말투를 직장·회의·고객 응대 상황에 맞는 격식 표현으로 다듬어 드립니다.</div>
@@ -780,7 +789,7 @@
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
     <div class="tkb-row">
-      <span class="tkb-icon">💎</span>
+      <span class="tkb-icon"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg></span>
       <div class="tkb-bar"><div class="tkb-fill"></div></div>
       <span class="tkb-val">- / 1,500</span>
       <button class="tkb-info" onclick="event.stopPropagation();토큰차감안내_모달()">? 차감 안내</button>
@@ -791,22 +800,22 @@
     <div class="spk-input-area">
       <!-- β8: 정령왕 JSON 구어_교정 27건 출제 카드 — 예문데이터_로드() 성공 시 표시 -->
       <div class="spk-prompt" id="spkPrompt" style="display:none">
-        <div class="spk-prompt-lbl">📢 이 문장을 격식체로 다듬어 보세요</div>
+        <div class="spk-prompt-lbl">이 문장을 격식체로 다듬어 보세요</div>
         <div class="spk-prompt-text" id="spkPromptText"></div>
         <div class="spk-prompt-diff" id="spkPromptDiff"></div>
       </div>
       <div class="spk-mode-tabs">
-        <div class="spk-mode-btn on" id="spkMText" onclick="switchSpkMode('text')">⌨️ 텍스트</div>
-        <div class="spk-mode-btn" id="spkMVoice" onclick="switchSpkMode('voice')">🎤 음성</div>
+        <div class="spk-mode-btn on" id="spkMText" onclick="switchSpkMode('text')">텍스트</div>
+        <div class="spk-mode-btn" id="spkMVoice" onclick="switchSpkMode('voice')">음성</div>
       </div>
       <div id="spkTextArea">
-        <textarea class="spk-textarea" id="spkInput" placeholder="위 예문(또는 다듬고 싶은 말)을 격식체로 바꿔 입력하세요."></textarea>
+        <textarea class="spk-textarea" id="spkInput" aria-label="격식체로 바꾼 문장" placeholder="위 예문(또는 다듬고 싶은 말)을 격식체로 바꿔 입력하세요."></textarea>
       </div>
       <div id="spkVoiceArea" style="display:none">
         <!-- 항목8: 브라우저 Web Speech API(SpeechRecognition) 기반 한국어 음성 입력 -->
         <div class="spk-voice">
           <button type="button" class="spk-mic-btn" id="spkMicBtn" onclick="음성인식_토글()">
-            <span class="spk-mic-ico" id="spkMicIco">🎤</span>
+            <span class="spk-mic-ico" id="spkMicIco"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></span>
             <span id="spkMicLabel">말하기 시작</span>
           </button>
           <div class="spk-voice-status" id="spkVoiceStatus">마이크 버튼을 누르고 또박또박 말해 보세요. 인식된 말이 아래에 채워집니다.</div>
@@ -824,13 +833,13 @@
       <button class="btn-g" style="width:100%;margin-top:10px" onclick="구어교정_다음예문()">다음 예문 →</button>
     </div>
   </div>
-  <div class="random-skip" style="display:none;padding:0 18px 6px"><button class="btn-g" style="width:100%;padding:9px" onclick="랜덤_넘어가기()">⏭️ 넘어가기 · 다음 문제</button></div>
+  <div class="random-skip" style="display:none"><button class="btn-g" onclick="랜덤_넘어가기()">넘어가기 · 다음 문제</button></div>
   <!-- 학습 화면 하단 AI 챗 -->
-  <div style="padding:10px 18px 4px;flex-shrink:0">
-    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;opacity:.7" onclick="openAsk()">
-      <span style="font-size:14px">💬</span>
-      <span style="font-size:12px;color:var(--txt2)">궁금한 게 있으신가요?</span>
-      <span class="ask-chat-quota" style="margin-left:auto;font-size:10px;color:var(--txtm)">💎 <span class="ask-chat-now">1,500</span></span>
+  <div class="ask-entry-wrap">
+    <div class="ask-entry" onclick="openAsk()">
+      <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>
+      <span>궁금한 게 있으신가요?</span>
+      <span class="ask-chat-quota"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg> <span class="ask-chat-now">1,500</span></span>
     </div>
   </div>
 </div>
@@ -839,9 +848,9 @@
 <div id="sr" class="screen demo-offset has-bnav">
   <div class="top-bar"><div></div><div class="tbt">복습 관리</div><div></div></div>
   <div class="seg" style="flex-shrink:0">
-    <button class="seg-btn on" id="rvT0" onclick="switchRvTab(0)">📥 대기열 (<span id="rvQCnt">0</span>)</button>
-    <button class="seg-btn" id="rvT1" onclick="switchRvTab(1)">⭐ 즐겨찾기 (<span id="rvFCnt">0</span>)</button>
-    <button class="seg-btn" id="rvT2" onclick="switchRvTab(2)">🗑️ 휴지통 (<span id="rvBCnt">0</span>)</button>
+    <button class="seg-btn on" id="rvT0" onclick="switchRvTab(0)">대기열 (<span id="rvQCnt">0</span>)</button>
+    <button class="seg-btn" id="rvT1" onclick="switchRvTab(1)">즐겨찾기 (<span id="rvFCnt">0</span>)</button>
+    <button class="seg-btn" id="rvT2" onclick="switchRvTab(2)">휴지통 (<span id="rvBCnt">0</span>)</button>
   </div>
 
   <!-- v3.5: 전체 동적 렌더링. JS의 renderReview() 함수가 채움 -->
@@ -853,17 +862,13 @@
 <!-- 항목10: 복습 '하기' 전용 화면 — 좁은 복습칸 인라인 진행으로 인한 시각 피로 해소.
      복습시작() 시 이 화면으로 이동해 카드 1장에 집중하도록 분리 (바텀 네비 숨김). -->
 <div id="srp" class="screen demo-offset">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="복습_중단()">← 복습 중단</button>
-    <div class="tbt">복습 진행</div>
-    <div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="복습_중단()" aria-label="복습 중단"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <div class="q-head"><div class="tbt">복습 진행</div></div>
+    <button class="q-set" onclick="toggleLset('lsetSrp')" aria-label="학습 설정" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></button>
   </div>
   <!-- 세션7 항목5: 복습에도 학습 설정 — 복습 방식·순서 선택 (srpBody 형제 배치로 접힘 상태 보존) -->
   <div class="lset-panel" id="lsetSrp">
-    <div class="lset-hdr" onclick="toggleLset('lsetSrp')">
-      <div class="lset-hdr-left">⚙ 학습 설정</div>
-      <span class="lset-toggle">▼</span>
-    </div>
     <div class="lset-body">
       <div class="lset-row">
         <span class="lset-row-lbl">복습 방식</span>
@@ -891,10 +896,8 @@
   <!-- 빌드1 오류 수정: 3/5/12 하드코딩 → renderAchievements()가 실계산 주입 -->
   <div class="ach-sum">
     <div class="ach-si"><div class="ach-sn" id="achSumDone">0</div><div class="ach-sl">획득</div></div>
-    <div class="ach-divider"></div>
-    <div class="ach-si"><div class="ach-sn" id="achSumProg" style="color:var(--ok)">0</div><div class="ach-sl">진행 중</div></div>
-    <div class="ach-divider"></div>
-    <div class="ach-si"><div class="ach-sn" id="achSumNone" style="color:var(--txtm)">0</div><div class="ach-sl">미달성</div></div>
+    <div class="ach-si"><div class="ach-sn" id="achSumProg">0</div><div class="ach-sl">진행 중</div></div>
+    <div class="ach-si"><div class="ach-sn" id="achSumNone">0</div><div class="ach-sl">미달성</div></div>
   </div>
   <div class="ach-body" id="achBody">
     <!-- JS로 동적 생성 -->
@@ -915,25 +918,24 @@
       <div class="banner-layer" id="statusBanner"></div>
       <!-- α9: 아바타 탭 → 고급 커스터마이징 -->
       <div class="st-av" id="statusAvatar" style="cursor:pointer" onclick="event.stopPropagation();프로필선택_열기()"></div>
-      <div class="prof-info" style="flex:1">
+      <div class="prof-info grow">
         <!-- v3.4: 하드코딩 제거. JS afterNav('ss')에서 사용자 객체로 주입 -->
         <div class="st-name" id="statusUser"></div>
-        <div class="st-ttl">🏷️ <span id="statusTitle"></span> &nbsp;<span id="statusSubTitle" class="status-sub-title"></span></div>
+        <div class="st-ttl"><span id="statusTitle"></span> &nbsp;<span id="statusSubTitle" class="status-sub-title"></span></div>
         <div class="st-lv-row"><div class="lbdg" id="statusLv"></div><div class="st-lv" id="statusGrade"></div></div>
       </div>
     </div>
     <div class="tree-wrap" id="treeWrap"></div>
     <!-- 성장 상세 화면 진입 버튼 -->
-    <button class="btn-g" style="width:100%;padding:13px;font-size:13px;margin-top:4px;border-radius:10px" onclick="goNav('sg',null)">🌱 성장 상세 보기 →</button>
+    <button class="btn-g" style="width:100%;padding:13px;font-size:13px;margin-top:4px;border-radius:10px" onclick="goNav('sg',null)">성장 상세 보기 →</button>
   </div>
 </div>
 
-<!-- ⑦-1 성장 상세 화면 (sg) — Claude Code 단계에서 완전 구현 예정 -->
+<!-- ⑦-1 성장 상세 화면 (sg) — 렌더는 js/성장상세.js -->
 <div id="sg" class="screen demo-offset has-bnav">
-  <div class="top-bar">
-    <button class="btn-g" style="padding:7px 12px;font-size:12px" onclick="goNav('ss',null)">← 나가기</button>
-    <div class="tbt">성장 상세</div>
-    <div></div>
+  <div class="top-bar q-bar">
+    <button class="q-exit" onclick="goNav('ss',null)" aria-label="나가기"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <div class="q-head"><div class="tbt">성장 상세</div></div>
   </div>
   <!-- β10: 성장 상세 — 소칭호 로드맵 + EXP 진행 바 + 획득 방법 안내 (KNOWLEDGE 17-1)
        afterNav('sg') → 렌더_성장상세()가 동적 생성 -->
@@ -950,10 +952,10 @@
       <div class="banner-layer" id="settingsBanner"></div>
       <!-- α9: 아바타 탭 → 고급 커스터마이징 (초월자 {wait!} / 필멸자 [권한 부족]) -->
       <div class="set-av" id="settingsAvatar" style="cursor:pointer" onclick="event.stopPropagation();프로필선택_열기()"></div>
-      <div class="prof-info" style="flex:1">
+      <div class="prof-info grow">
         <!-- v3.4: 하드코딩 제거. JS afterNav('sse')에서 사용자 객체로 주입 -->
         <div class="set-nm" id="settingsUser"></div>
-        <div class="set-ttl">🏷️ <span id="settingsTitle"></span></div>
+        <div class="set-ttl"><span id="settingsTitle"></span></div>
         <div class="set-em" id="settingsEmail"></div>
       </div>
       <button class="set-eb" onclick="event.stopPropagation();openNmModal()">이름 변경</button>
@@ -961,15 +963,25 @@
 
     <div class="set-sec fu s1">
       <div class="set-lbl">외관</div>
-      <!-- 세션10-k: 다크/라이트 토글 삭제 — 라이트 테마가 페이퍼 하나뿐이라 실질적으로 "페이퍼로 전환"
-           스위치에 불과했고, 아래 「테마 선택」 그리드와 기능이 겹쳐 정신모델 혼동만 유발(최고 관리자님 확정) -->
+      <div class="th-grid">
+        <div class="tc on" id="th-antique" onclick="setTheme('antique')"><div class="tp-bg tp-a"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">고서</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-navy" onclick="setTheme('navy')"><div class="tp-bg tp-n"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">네이비</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-midnight" onclick="setTheme('midnight')"><div class="tp-bg tp-m"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">미드나이트</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-paper" onclick="setTheme('paper')"><div class="tp-bg tp-p"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr" style="background:#ede8df;border-top-color:#d8d0c0"><span class="tnm" style="color:#281e12">페이퍼</span><span class="tck" style="color:#7a5228">✓</span></div></div>
+        <div class="tc" id="th-forest" onclick="setTheme('forest')"><div class="tp-bg tp-f"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">포레스트</span><span class="tck">✓</span></div></div>
+        <div class="tc" id="th-custom" onclick="openCustomTheme()"><div class="tp-bg" style="height:48px;background:linear-gradient(135deg,var(--bg),var(--elev),var(--accd));position:relative"><div class="tdots"><div class="td" style="background:#8080ff"></div><div class="td" style="background:#e8e8f0"></div><div class="td" style="background:#404090"></div></div></div><div class="tnr"><span class="tnm">커스텀</span><span class="tck">✓</span></div></div>
+      </div>
+      <div class="set-row" onclick="openFontSelect()">
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-font"/></svg></span>
+        <div class="grow"><div class="srl">글꼴</div><div class="srs" id="fontTxt">테마 기본</div></div>
+        <span class="sra">›</span>
+      </div>
       <!-- 세션5 버그1: 「화면 크기」(구 글자 크기) — 앱 전체 zoom 배율. 저장·재실행 유지 -->
       <div class="set-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:9px">
         <div style="display:flex;align-items:center;gap:11px;width:100%">
-          <span class="sri">🖥️</span>
-          <!-- 세션10-g: 표기·기본 선택칩은 100% 그대로 유지 — 저장된 설정이 없는 사용자에 한해
-               내부적으로 90% 배율만 조용히 적용(항목1). 칩·문구는 건드리지 않음 -->
-          <div style="flex:1"><div class="srl">화면 크기</div><div class="srs" id="fontScaleTxt">100% — 화면 전체를 확대/축소</div></div>
+          <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-screen"/></svg></span>
+
+          <div class="grow"><div class="srl">화면 크기</div><div class="srs" id="fontScaleTxt">100% — 화면 전체를 확대/축소</div></div>
         </div>
         <div class="fs-opts" id="fontScaleOpts">
           <!-- 세션10-g: 최소 70%(항목3) / 최대 150%(항목2, 175·200 제거) -->
@@ -985,8 +997,8 @@
       <!-- 세션5 버그1: 「글자 크기」 신설 — 학습 콘텐츠 글자만 배율(--글자배율). 화면 크기와 독립 -->
       <div class="set-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:9px">
         <div style="display:flex;align-items:center;gap:11px;width:100%">
-          <span class="sri">🔠</span>
-          <div style="flex:1"><div class="srl">글자 크기</div><div class="srs" id="textScaleTxt">100% — 문제·카드·채팅 글자만 확대</div></div>
+          <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-textsize"/></svg></span>
+          <div class="grow"><div class="srl">글자 크기</div><div class="srs" id="textScaleTxt">100% — 문제·카드·채팅 글자만 확대</div></div>
           <!-- 세션7 항목10: 적용 범위 — 학습 콘텐츠만 / 앱 전체 -->
           <div style="display:flex;gap:5px">
             <button class="fs-opt on" id="글자범위학습" onclick="set글자범위('학습')">학습만</button>
@@ -1009,118 +1021,108 @@
     </div>
 
     <div class="set-sec fu s2">
-      <div class="set-lbl">테마 선택</div>
-      <div class="th-grid">
-        <div class="tc on" id="th-antique" onclick="setTheme('antique')"><div class="tp-bg tp-a"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">📜 고서</span><span class="tck">✓</span></div></div>
-        <div class="tc" id="th-navy" onclick="setTheme('navy')"><div class="tp-bg tp-n"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">🌊 네이비</span><span class="tck">✓</span></div></div>
-        <div class="tc" id="th-midnight" onclick="setTheme('midnight')"><div class="tp-bg tp-m"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">🌌 미드나이트</span><span class="tck">✓</span></div></div>
-        <div class="tc" id="th-paper" onclick="setTheme('paper')"><div class="tp-bg tp-p"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr" style="background:#ede8df;border-top-color:#d8d0c0"><span class="tnm" style="color:#281e12">📄 페이퍼</span><span class="tck" style="color:#7a5228">✓</span></div></div>
-        <div class="tc" id="th-forest" onclick="setTheme('forest')"><div class="tp-bg tp-f"><div class="tdots"><div class="td d1"></div><div class="td d2"></div><div class="td d3"></div></div></div><div class="tnr"><span class="tnm">🌲 포레스트</span><span class="tck">✓</span></div></div>
-        <div class="tc" id="th-custom" onclick="openCustomTheme()"><div class="tp-bg" style="height:48px;background:linear-gradient(135deg,var(--bg),var(--elev),var(--accd));position:relative"><div class="tdots"><div class="td" style="background:#8080ff"></div><div class="td" style="background:#e8e8f0"></div><div class="td" style="background:#404090"></div></div></div><div class="tnr"><span class="tnm">🎨 커스텀</span><span class="tck">✓</span></div></div>
+      <div class="set-lbl">학습</div>
+      <div class="set-row" onclick="openHistoryFilter()">
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span>
+        <div class="grow"><div class="srl">최근 출제 제외</div><div class="srs" id="histFilterTxt">사용 안함</div></div>
+        <span class="sra">›</span>
+      </div>
+      <!-- '앱 안내 다시 보기' — 2026-06 제거했다가 2026-09-27 관리자님 지시로 복원(Q3) -->
+      <div class="set-row" onclick="showOb()">
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span>
+        <div class="grow"><div class="srl">앱 안내 다시 보기</div></div>
+        <span class="sra">›</span>
       </div>
     </div>
 
-    <div class="set-sec fu s3">
-      <div class="set-lbl">학습</div>
-      <div class="set-row" onclick="openHistoryFilter()">
-        <span class="sri">📋</span>
-        <div style="flex:1"><div class="srl">최근 출제 제외</div><div class="srs" id="histFilterTxt">사용 안함</div></div>
-        <span class="sra">›</span>
-      </div>
+    <div class="set-sec fu s3 set-ai">
+      <div class="set-lbl">AI 기능</div>
       <div class="set-row" style="cursor:default">
-        <span class="sri">🤖</span>
-        <div style="flex:1"><div class="srl">AI 문제만 출제</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></span>
+        <div class="grow"><div class="srl">AI 문제만 출제</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
         <div class="mtw"><label class="mt"><input type="checkbox" id="aiOnlyToggle" onchange="toggleAiOnly()" aria-label="AI 문제만 출제"><div class="mtt"><div class="mtth"></div></div></label></div>
       </div>
       <!-- 세션6 항목4: placeholder 「히스토리 확인」 → 실기능 「채팅 내역」으로 교체 -->
       <div class="set-row" onclick="채팅내역_열기()">
-        <span class="sri">💬</span>
-        <div style="flex:1"><div class="srl">채팅 내역</div><div class="srs">AI와의 최근 대화 30개 보기</div></div>
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></span>
+        <div class="grow"><div class="srl">채팅 내역</div><div class="srs">AI와의 최근 대화 30개 보기</div></div>
         <span class="sra">›</span>
       </div>
       <!-- 세션6 항목5: AI 지침(통합 메모리) — 공백 포함 500자, AI 호출 시 항상 전달 -->
       <div class="set-row" onclick="AI지침_열기()">
-        <span class="sri">🧭</span>
-        <div style="flex:1"><div class="srl">AI 지침</div><div class="srs" id="ai지침상태">없음</div></div>
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg></span>
+        <div class="grow"><div class="srl">AI 지침</div><div class="srs" id="ai지침상태">없음</div></div>
         <span class="sra">›</span>
       </div>
       <!-- β2: 질문하기 일일 100회 행 폐기 → 토큰 행으로 교체 (KNOWLEDGE 22·32·35) -->
       <div class="set-row" onclick="토큰차감안내_모달()">
-        <span class="sri">💎</span>
-        <div style="flex:1"><div class="srl">토큰</div><div class="srs" id="tokenSetTxt">1,500 / 1,500</div></div>
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-gem"/></svg></span>
+        <div class="grow"><div class="srl">토큰</div><div class="srs" id="tokenSetTxt">1,500 / 1,500</div></div>
         <span class="sra">›</span>
       </div>
-      <!-- 항목5: '앱 안내 다시 보기'(온보딩 재진입 바로가기) 제거 (최고 관리자님 지시) -->
     </div>
 
     <div class="set-sec fu s4">
-      <div class="set-lbl">기타</div>
-      <div class="set-row" onclick="openFontSelect()">
-        <span class="sri">🔤</span>
-        <div style="flex:1"><div class="srl">글꼴</div><div class="srs" id="fontTxt">나눔스퀘어 Neo</div></div>
+      <div class="set-lbl">계정</div>
+      <!-- 표시 전용(누를 동작 없음) — 화살표·손가락 커서 제거(2026-09-27) -->
+      <div class="set-row" style="cursor:default">
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></span>
+        <div class="grow"><div class="srl">구글 계정</div><div class="srs" id="settingsEmail2"></div></div>
+      </div>
+      <div class="set-row" onclick="로그아웃()">
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-logout"/></svg></span>
+        <div class="grow"><div class="srl">로그아웃</div></div>
         <span class="sra">›</span>
       </div>
     </div>
 
     <div class="set-sec fu s5">
-      <div class="set-lbl">계정</div>
-      <div class="set-row">
-        <span class="sri">👤</span>
-        <div style="flex:1"><div class="srl">구글 계정</div><div class="srs" id="settingsEmail2"></div></div>
-        <span class="sra">›</span>
-      </div>
-      <div class="set-row" onclick="로그아웃()">
-        <span class="sri">🚪</span>
-        <div style="flex:1"><div class="srl">로그아웃</div></div>
-        <span class="sra">›</span>
-      </div>
-    </div>
-
-    <div class="set-sec fu s6" style="border-color:rgba(192,112,112,.3)">
       <div class="set-lbl" style="color:var(--err)">위험 구역</div>
       <!-- 빌드1: 학습 데이터 초기화 실제 구현 (KNOWLEDGE 15 초기화 범위, 2중 확인) -->
       <div class="set-row" onclick="학습데이터초기화_1단계()">
-        <span class="sri" style="color:var(--err)">⚠️</span>
-        <div style="flex:1"><div class="srl" style="color:var(--err)">학습 데이터 초기화</div><div class="srs">진행 상황을 모두 리셋합니다</div></div>
+        <span class="sri" style="color:var(--err)"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg></span>
+        <div class="grow"><div class="srl" style="color:var(--err)">학습 데이터 초기화</div><div class="srs">진행 상황을 모두 리셋합니다</div></div>
         <span class="sra">›</span>
       </div>
       <!-- 버그6: 계정 삭제 (2중 확인 절차) — KNOWLEDGE 18섹션 -->
       <div class="set-row" onclick="계정삭제_1단계()">
-        <span class="sri" style="color:var(--err)">🗑️</span>
-        <div style="flex:1"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 데이터를 영구 삭제</div></div>
+        <span class="sri" style="color:var(--err)"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span>
+        <div class="grow"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 데이터를 영구 삭제</div></div>
         <span class="sra">›</span>
       </div>
+    </div>
+
+    <div class="set-sec fu s6">
+      <div class="set-lbl">기타</div>
       <div class="set-row" id="devModeRow" onclick="개발자모드_탭()">
-        <span class="sri" id="devModeIcon">🔒</span>
-        <div style="flex:1"><div class="srl" id="devModeLabel" style="color:var(--txtm)">개발자 모드</div><div class="srs" id="devModeDesc">[창조주] 달성 후 활성화</div></div>
+        <span class="sri" id="devModeIcon"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg></span>
+        <div class="grow"><div class="srl" id="devModeLabel" style="color:var(--txtm)">개발자 모드</div><div class="srs" id="devModeDesc">[창조주] 달성 후 활성화</div></div>
         <span class="sra" id="devModeArrow" style="color:var(--txtm)">›</span>
       </div>
       <!-- 추가기능: 음성 생성(콜롬비나 TTS) — 창조주 전용. 기본 숨김, 창조주 달성 시 갱신_음성설정_UI()로 노출 -->
-      <!-- 세션7 항목2: 실험실 — 예정·실험 기능을 미리 보여주는 티저 공간 (전원 노출) -->
-      <div class="set-row" onclick="실험실_열기()">
-        <span class="sri">🧪</span>
-        <div style="flex:1"><div class="srl">실험실</div><div class="srs">준비 중인 기능 미리 보기</div></div>
+      <div class="set-row" id="음성설정Row" onclick="음성설정_탭()" style="display:none">
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></span>
+        <div class="grow"><div class="srl">음성 생성 (실험)</div><div class="srs">창조주 전용 · 외부 음성 서버 연결</div></div>
         <span class="sra">›</span>
       </div>
-      <div class="set-row" id="음성설정Row" onclick="음성설정_탭()" style="display:none">
-        <span class="sri">🎙</span>
-        <div style="flex:1"><div class="srl">음성 생성 (실험)</div><div class="srs">창조주 전용 · 외부 음성 서버 연결</div></div>
+      <!-- 세션7 항목2: 실험실 — 예정·실험 기능을 미리 보여주는 티저 공간 (전원 노출). 항상 보이는 행이라
+           섹션 마지막에 둔다(.set-row:last-child 밑줄 제거가 숨김 행에 걸리지 않게) -->
+      <div class="set-row" onclick="실험실_열기()">
+        <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-flask"/></svg></span>
+        <div class="grow"><div class="srl">실험실</div><div class="srs">준비 중인 기능 미리 보기</div></div>
         <span class="sra">›</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 질문하기 FAB -->
-<!-- 질문하기 FAB 제거됨 (v3.4) — 학습 화면 하단 AI 챗 바로 통합 -->
-
 <!-- 바텀 네비 -->
 <nav id="g-bnav" class="hidden">
-  <button class="nv-btn" id="nb-sh" onclick="goNav('sh',null)"><span class="nv-icon">🏠</span><span>홈</span></button>
-  <button class="nv-btn" id="nb-sr" onclick="goNav('sr',null)"><span class="nv-icon">🔁</span><span>복습</span></button>
-  <button class="nv-btn" id="nb-sa" onclick="goNav('sa',null)"><span class="nv-icon">🏆</span><span>업적</span></button>
-  <button class="nv-btn" id="nb-ss" onclick="goNav('ss',null)"><span class="nv-icon">📊</span><span>현황</span></button>
-  <button class="nv-btn" id="nb-sse" onclick="goNav('sse',null)"><span class="nv-icon">⚙️</span><span>설정</span></button>
+  <button class="nv-btn" id="nb-sh" onclick="goNav('sh',null)"><svg class="nv-icon ic" aria-hidden="true"><use href="#i-home"/></svg><span>홈</span></button>
+  <button class="nv-btn" id="nb-sr" onclick="goNav('sr',null)"><svg class="nv-icon ic" aria-hidden="true"><use href="#i-review"/></svg><span>복습</span></button>
+  <button class="nv-btn" id="nb-sa" onclick="goNav('sa',null)"><svg class="nv-icon ic" aria-hidden="true"><use href="#i-trophy"/></svg><span>업적</span></button>
+  <button class="nv-btn" id="nb-ss" onclick="goNav('ss',null)"><svg class="nv-icon ic" aria-hidden="true"><use href="#i-chart"/></svg><span>현황</span></button>
+  <button class="nv-btn" id="nb-sse" onclick="goNav('sse',null)"><svg class="nv-icon ic" aria-hidden="true"><use href="#i-sliders"/></svg><span>설정</span></button>
 </nav>
 
 <!-- '잇는' 포탈 해금 퍼즐 — 흩어진 7조각(ㅇ 좌우 반링·ㅣ 3조각·ㅅ 두 획)을 돌려 '잇' 완성.
@@ -1160,7 +1162,7 @@
   </div>
 </div>
 
-<!-- 재구조화: 단일 인라인 스크립트(약 6,100줄)를 js/ 폴더 23개 파일로 분할.
+<!-- 재구조화: 단일 인라인 스크립트를 js/ 폴더 파일들로 분할(현재 목록은 아래 태그 그대로).
      클래식 스크립트 순차 로드로 전역 스코프를 공유하므로 아래 순서를 절대 바꾸지 말 것.
      (초기 실행은 js/초기실행.js — 반드시 마지막) -->
 <script src="js/상태.js"></script>

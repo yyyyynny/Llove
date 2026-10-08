@@ -1,0 +1,189 @@
+// 2026-09-26 포니테일 감사 — 조사 중 발견해 고친 Llove 버그(배치 B) 회귀 검증
+// (wchain 쪽 B1·B4는 test-wchain-플레이.cjs에서 검증)
+const fs = require('fs');
+const path = require('path');
+const { load, makeHarness } = require('./load.cjs');
+
+load((window) => {
+  const { assert, finish } = makeHarness('포니테일 감사 — 발견 버그 수정');
+  const doc = window.document;
+  const ev = (code) => window.eval(code);
+
+  // B2: CDN이 정의한 이름은 띄어 쓴 'Nanum Gothic'/'Nanum Myeongjo' — 붙여 쓰면 기본 글꼴로 대체된다
+  const 나눔 = ev("FONTS.filter(f=>f.key.startsWith('nanum_')).map(f=>f.css).join('|')");
+  assert('B2: 나눔고딕 이름이 CDN 정의와 같다', 나눔.includes("'Nanum Gothic'"), 나눔);
+  assert('B2: 나눔명조 이름이 CDN 정의와 같다', 나눔.includes("'Nanum Myeongjo'"), 나눔);
+
+  // B3: 넓은 안내 모달을 본 뒤 확인 모달을 열면 넓은 상태가 남으면 안 된다
+  ev("showInfoModal('ℹ️','넓은 모달','내용',true);");
+  const bx = doc.querySelector('#infoBg .modal-bx');
+  assert('B3: 전제 — 안내 모달이 넓게 열렸다', bx.classList.contains('wide'));
+  ev("showConfirmModal('⚠️','확인','정말요?','확인',null);");
+  assert('B3: 확인 모달은 기본 너비로 열린다', !bx.classList.contains('wide'));
+  assert('B3: 확인 모달에 [취소]+[확인] 두 버튼', doc.querySelectorAll('#infoBtns button').length === 2);
+
+  // B5: 편향 셔플(sort(()=>Math.random()-0.5)) 금지 — 공용 Fisher–Yates 셔플()만 쓴다
+  const js폴더 = path.join(__dirname, '..', 'Llove', 'js');
+  const 편향 = fs.readdirSync(js폴더).filter(f => f.endsWith('.js'))
+    .filter(f => /\.sort\(\s*\(\)\s*=>\s*Math\.random\(\)\s*-\s*0?\.5\s*\)/.test(fs.readFileSync(path.join(js폴더, f), 'utf8')));
+  assert('B5: 편향 셔플이 남아 있지 않다', 편향.length === 0, 편향.join(','));
+  const 결과 = ev('셔플([1,2,3,4,5]).slice().sort((a,b)=>a-b).join()');
+  assert('B5: 셔플은 원소를 잃거나 더하지 않는다', 결과 === '1,2,3,4,5', 결과);
+
+  // B7: '위험 구역'의 마지막 행은 항상 보이는 행이어야 한다(.set-row:last-child 밑줄 제거가 먹도록)
+  const 실험실행 = [...doc.querySelectorAll('.set-row')].find(r => (r.getAttribute('onclick') || '').includes('실험실_열기'));
+  assert('B7: 실험실 행이 섹션의 마지막 자식', 실험실행 && 실험실행.parentElement.lastElementChild === 실험실행);
+
+  // B11: 글꼴을 고르면 모달이 닫히기 전에도 새 선택에 ✓가 켜져 있어야 한다
+  ev('openFontSelect();');
+  ev("applyFont('nanum_gothic', true);");
+  const 켜진 = [...doc.querySelectorAll('#fontList .fo.on')].map(e => e.dataset.key);
+  assert('B11: 새로 고른 글꼴 하나만 선택 표시', 켜진.length === 1 && 켜진[0] === 'nanum_gothic', 켜진.join(','));
+
+  /* ── 배치 C-1: 통합된 학습 렌더 경로 회귀 ──
+     renderQuiz4·renderQuiz3 → renderQuiz(screenId), goLearn의 출제 → 현재모드_다음출제 공유,
+     직접입력 잠금 → 직접입력_꺼내기, 채점 후처리 → 채점_기록. 두 화면의 차이가 그대로인지 본다. */
+  ev(`DB문제['상식·어원']=[{cat:'상식',q:'상식 문제',ai:true,opts:[{t:'가',c:true},{t:'나',c:false},{t:'다',c:false},{t:'라',c:false}]}];
+      DB문제['맞춤법']=[{cat:'맞춤법',q:'맞춤법 문제',hint:'띄어쓰기 주의',opts:[{t:'되요',c:false},{t:'돼요',c:true},{t:'됬어요',c:false}]}];
+      학습설정.sq1='4지선다'; 학습설정.sq3='3지선다';`);
+  ev("goLearn('상식·어원','sq1',null);");
+  const sq1 = doc.getElementById('sq1Body');
+  assert('C1: sq1 진입 시 보기 4개', sq1.querySelectorAll('.aopt').length === 4);
+  assert('C1: sq1은 파란 태그 + AI 출제 표시, 힌트 줄 없음',
+    !!sq1.querySelector('.tag.tb') && !!sq1.querySelector('.tag-ai') && !sq1.querySelector('.q-hint'));
+  assert('C4: sq1 배지는 방식만(10-03: 제목과 겹치던 아이콘 제거)', doc.getElementById('sq1Mode').textContent === '4지선다');
+
+  ev("goLearn('맞춤법','sq3',null);");
+  const sq3 = doc.getElementById('sq3Body');
+  assert('C1: sq3 진입 시 보기 3개', sq3.querySelectorAll('.aopt').length === 3);
+  assert('C1: sq3는 초록 태그 + 힌트 줄, AI 표시 없음',
+    !!sq3.querySelector('.tag.tg') && sq3.querySelector('.q-hint')?.textContent === '띄어쓰기 주의' && !sq3.querySelector('.tag-ai'));
+
+  // 직접입력 — 제출 1회 잠금 + 채점 후처리(누적 어휘 +1)
+  ev("학습설정.sq3='직접입력'; renderQuiz('sq3', DB문제['맞춤법']);");
+  const 누적전 = ev('사용자.총누적어휘수 || 0');
+  doc.getElementById('sq3DirectInp').value = '돼요';
+  ev("직접입력_제출('sq3');");
+  assert('C17: 직접입력 제출 후 입력칸 잠금', doc.getElementById('sq3DirectInp').disabled === true);
+  assert('C7: 정답 판정 결과 표시', (doc.getElementById('sq3DirectResult').textContent || '').includes('✓ 정답'));
+  assert('C7: 채점 후처리로 누적 어휘 +1', ev('사용자.총누적어휘수 || 0') === 누적전 + 1, `${누적전} → ${ev('사용자.총누적어휘수')}`);
+  ev("직접입력_제출('sq3');");
+  assert('C17: 두 번 제출해도 한 번만 집계', ev('사용자.총누적어휘수 || 0') === 누적전 + 1);
+
+  // 「넘어가기」는 goLearn과 같은 출제 경로를 탄다
+  ev("학습설정.sq3='3지선다'; 랜덤_넘어가기();");
+  assert('C4: 넘어가기로 같은 화면에 새 문제', doc.getElementById('sq3Body').querySelectorAll('.aopt').length === 3);
+
+  // 아재개그 — initDad 삭제 후에도 '정답 보기' 버튼은 CSS로 block
+  ev("학습설정.sq4_input='플래시카드'; goLearn('아재개그','sq4',null);");
+  const 버튼 = doc.getElementById('dadBtn');
+  assert('C5: 아재개그 정답 보기 버튼이 그려진다', !!버튼);
+  assert('C5: 버튼 표시 방식은 CSS(block)가 담당', window.getComputedStyle(버튼).display === 'block');
+
+  /* ── 배치 C-2: Llove UI 중복 통합 회귀 ── */
+  // C3 복습 탭 공통 틀 — 빈 안내 / 항목 카드 / 탭별 메타·액션·꼬리 버튼
+  ev(`복습데이터.대기열=[{id:'q1',단어:'가렴주구',뜻:'뜻1',모드:'고사성어·속담',모드클래스:'tp',연속정답수:0,즐겨찾기:true}];
+      복습데이터.즐겨찾기=[]; 복습데이터.휴지통=[{id:'b1',단어:'어불성설',뜻:'뜻2',모드:'고사성어·속담',모드클래스:'tp',잔여일:7}];
+      renderReview();`);
+  const 대기열 = doc.getElementById('rvQueue'), 즐찾 = doc.getElementById('rvFav'), 휴지통 = doc.getElementById('rvBin');
+  assert('C3: 대기열 카드 + 즐겨찾기 표시 + 복습 시작 버튼',
+    대기열.querySelectorAll('.rv-item').length === 1 && 대기열.querySelector('.act-btn.fav.on') && /복습시작\(\)/.test(대기열.innerHTML));
+  assert('C3: 빈 즐겨찾기는 안내 문구만', 즐찾.querySelectorAll('.rv-item').length === 0 && 즐찾.textContent.includes('즐겨찾기가 비어있습니다'));
+  assert('C3: 휴지통 카드에 잔여일·복구 버튼·비우기 버튼',
+    휴지통.textContent.includes('7일 후 삭제') && /휴지통_복구\('b1'\)/.test(휴지통.innerHTML) && /휴지통_비우기확인/.test(휴지통.innerHTML));
+
+  // C14 휴지통 이동 공용 — 대기열 → 휴지통(잔여일 20)
+  ev("대기열_휴지통이동('q1');");
+  assert('C14: 수동 삭제가 휴지통으로 옮긴다(잔여일 20)',
+    ev('복습데이터.대기열.length') === 0 && ev("복습데이터.휴지통.some(x=>x.단어==='가렴주구' && x.잔여일===20)"));
+
+  // C6 선택 모달 공용 — 현재 항목 수보다 작은 상한은 흐리게(비활성)
+  ev('사용자.복습대기열수=45; 사용자.복습대기열상한=50; openCapacity();');
+  const 옵션 = [...doc.querySelectorAll('#selList .select-opt')];
+  assert('C6: 상한 옵션 5개, 현재값 50에 선택 표시', 옵션.length === 5 && 옵션[2].classList.contains('on'));
+  assert('C6: 45개보다 작은 30·40은 흐리게, 50은 정상', 옵션[0].style.opacity === '0.4' && 옵션[1].style.opacity === '0.4' && 옵션[2].style.opacity === '');
+  ev('closeSelect(); openHistoryFilter();');
+  assert('C6: 최근 출제 제외 옵션 문구', [...doc.querySelectorAll('#selList .select-opt')].map(e=>e.textContent.replace('✓','').trim()).join(',')
+    === '사용 안함,최근 30개,최근 50개,최근 80개,최근 100개,최근 120개');
+  ev('closeSelect();');
+
+  // C10 채팅 기록 보관 공용 — 30개 초과 시 가장 오래된 것부터 정리
+  ev(`현재UID=null; 채팅기록=[]; for(let i=0;i<31;i++) 채팅기록_보관({카테고리:'일반', 시작시각:i, 메시지:[{역할:'나',내용:'q'+i}]});`);
+  assert('C10: 기록은 30개만 유지(가장 오래된 것 삭제)', ev('채팅기록.length') === 30 && ev('채팅기록[0].시작시각') === 1);
+  assert('C10: 게스트는 정리된 30개를 로컬에 저장', JSON.parse(window.localStorage.getItem('plx_채팅기록')).length === 30);
+
+  // C10 창조주 중도 포기 — 상태 해제 + 입력창 복구 + 채팅창 초기화
+  ev(`창조주진행중=true; 창조주단계=3; document.getElementById('askInputArea').style.display='none';
+      document.getElementById('askBody').innerHTML='<div>시나리오</div>'; closeAsk();`);
+  assert('C10: 중도 포기 시 시나리오 상태 해제', ev('창조주진행중') === false && ev('창조주단계') === 0);
+  assert('C10: 입력창 복구 + 인사말로 초기화', doc.getElementById('askInputArea').style.display === '' && doc.querySelector('#askBody .ask-msg.ai'));
+
+  // C20 사전 결과 — 동음이의어 그룹 번호는 ①② (U+2460~)
+  const 사전 = ev(`사전결과_HTML({뜻풀이그룹:[{뜻풀이:['뜻 가']},{뜻풀이:['뜻 나','뜻 다']}]})`);
+  assert('C20: 그룹 번호 ①②, 그룹 안은 1. 2.', 사전.includes('<b>①</b> 1. 뜻 가') && 사전.includes('<b>②</b> 1. 뜻 나<br>2. 뜻 다'));
+  assert('C20: 키 정규화 — CRLF·CR·빈 줄·양끝 공백 정리', ev(`키정규화(' 가 \\r\\n\\r나\\n\\n 다')`) === '가\n나\n다');
+
+  // C18 구어 교정 탭 전환
+  ev("switchSpkMode('voice');");
+  assert('C18: 음성 탭 — 버튼·영역 전환', doc.getElementById('spkMVoice').classList.contains('on') && !doc.getElementById('spkMText').classList.contains('on')
+    && doc.getElementById('spkVoiceArea').style.display === 'block' && doc.getElementById('spkTextArea').style.display === 'none');
+  ev("switchSpkMode('text');");
+  assert('C18: 텍스트 탭으로 복귀', doc.getElementById('spkMText').classList.contains('on') && doc.getElementById('spkTextArea').style.display === 'block');
+
+  /* ── Q11: 학습 화면 진행 표시 — 이번 학습에서 몇 번째 문제인지, 바는 5문제마다 한 바퀴 ── */
+  const 진행 = id => [doc.querySelector('#'+id+' .qct').textContent, doc.querySelector('#'+id+' .qpfill').style.width];
+  ev("학습설정.sq3='3지선다'; goLearn('상식·어원','sq1',null); goLearn('맞춤법','sq3',null);");
+  assert('Q11: 모드 진입 시 1문제째 · 20%', 진행('sq3').join(' ') === '1문제째 20%', 진행('sq3').join(' '));
+  for(let i=0;i<4;i++) ev('다음문제();');
+  assert('Q11: 다섯 번째 문제에서 바가 가득(100%)', 진행('sq3').join(' ') === '5문제째 100%', 진행('sq3').join(' '));
+  ev('다음문제();');
+  assert('Q11: 여섯 번째부터 바는 다시 20%, 번호는 계속', 진행('sq3').join(' ') === '6문제째 20%', 진행('sq3').join(' '));
+  ev("goLearn('상식·어원','sq1',null); goLearn('맞춤법','sq3',null);");
+  assert('Q11: 모드에 다시 들어오면 1문제째부터', 진행('sq3')[0] === '1문제째');
+  // 보기 표본이 부족해 플래시카드로 넘어가도 한 번만 센다
+  ev(`DB문제['고사성어·속담']=[{cat:'고사성어',word:'가',mark:'',reading:'가',meaning:'뜻',hanja:[['家','집 가']],direct:'',example:'',mnemonic:''}];
+      학습설정.sq2='4지선다'; goLearn('고사성어·속담','sq2',null);`);
+  assert('Q11: 폴백(4지선다→플래시카드)도 한 문제로 센다', 진행('sq2')[0] === '1문제째', 진행('sq2')[0]);
+
+  /* ── Q3: 설정 '앱 안내 다시 보기'로 온보딩 재진입 ── */
+  const 안내행 = [...doc.querySelectorAll('#sse .set-row')].find(r => r.textContent.includes('앱 안내 다시 보기'));
+  assert('Q3: 설정에 앱 안내 다시 보기 행이 있다', !!안내행);
+  ev("finishOb(); setObSlide(2);");
+  안내행?.click();
+  assert('Q3: 누르면 온보딩이 첫 장부터 다시 열린다',
+    !doc.getElementById('onboarding').classList.contains('gone') && ev('obIdx') === 0);
+  ev('finishOb();');
+  assert('Q3: 건너뛰기·시작하기로 다시 닫힌다', doc.getElementById('onboarding').classList.contains('gone'));
+
+  /* ── Q14: 복사 폴백이 실패하면 성공이라 안내하지 않는다 ── */
+  const 원exec = doc.execCommand;
+  doc.execCommand = () => false;
+  ev("복사_폴백('가');");
+  assert('Q14: execCommand 실패(false) → 실패 안내', doc.getElementById('toast').textContent.includes('복사 실패'));
+  doc.execCommand = () => true;
+  ev("복사_폴백('가');");
+  assert('Q14: execCommand 성공 → 복사됨 안내', doc.getElementById('toast').textContent.includes('복사됨'));
+  doc.execCommand = 원exec;
+
+  /* ── 학습 화면 배지가 실제 출제 방식을 따른다(종전 sq1·sq3·sq4 고정 문구) ── */
+  const 배지 = id => doc.getElementById(id).textContent;
+  ev("학습설정.sq1='직접입력'; goLearn('상식·어원','sq1',null);");
+  assert('배지: sq1 진입 시 설정 방식 표시', 배지('sq1Mode') === '직접입력', 배지('sq1Mode'));
+  ev("setLsetMode('sq1','역방향',doc_btn=document.querySelector(\"#lsetSq1 .lset-opt\"));");
+  assert('배지: sq1 설정을 바꾸면 즉시 반영', 배지('sq1Mode') === '역방향', 배지('sq1Mode'));
+  ev("학습설정.sq3='4지선다'; goLearn('맞춤법','sq3',null);");
+  assert('배지: sq3는 설정 방식(종전 고정 3지선다)', 배지('sq3Mode') === '4지선다', 배지('sq3Mode'));
+  ev("학습설정.sq4_input='직접입력'; goLearn('아재개그·넌센스','sq4',null);");
+  assert('배지: sq4는 입력 방식(종전 고정 탭→공개)', 배지('sq4Mode') === '직접입력', 배지('sq4Mode'));
+  ev("학습설정.sq1='4지선다'; 학습설정.sq4_input='플래시카드';");
+
+  /* ── sq2 플래시카드 방식에 '다음 카드' 버튼(종전엔 판정 후 넘어갈 방법이 없었다) ── */
+  ev("학습설정.sq2='플래시카드'; goLearn('고사성어·속담','sq2',null);");
+  const 다음카드 = [...doc.querySelectorAll('#sq2Body button')].find(b => b.textContent.includes('다음 카드'));
+  assert('sq2 플래시카드: 다음 카드 버튼이 있다', !!다음카드);
+  다음카드?.click();
+  assert('sq2 플래시카드: 누르면 다음 카드(2문제째)', doc.querySelector('#sq2 .qct').textContent === '2문제째',
+    doc.querySelector('#sq2 .qct').textContent);
+
+  process.exit(finish() > 0 ? 1 : 0);
+});

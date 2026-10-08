@@ -7,38 +7,26 @@
    - 아래 값은 로그인 전 초기 placeholder. 실DB 로드 시 교체됨.
    - 변수명은 전부 한글 유지 (KNOWLEDGE 13·13-1)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// 성장·마스터리·토큰 기본값 — 사용자 초기값·신규 가입 문서·학습 데이터 초기화가 공유한다
+// (세 곳에 따로 적혀 있다가 필드 하나가 빠지는 일이 실제로 있었다 — 세션10-f 배너 누락 참조)
+const 학습기록_기본값 = {
+  // 성장 데이터
+  레벨: 1, 현재EXP: 0, 총누적EXP: 0, 연속학습일: 0, 총학습일: 0, 마지막학습일: '',
+  // 마스터리 카운터 (KNOWLEDGE 13섹션) — 문해력학습수는 세션10-c 지문 독해
+  상식어원학습수: 0, 언어의뿌리학습수: 0, 세계사신화학습수: 0, 아재개그학습수: 0, 맞춤법학습수: 0,
+  구어교정횟수: 0, 문해력학습수: 0, 이의제기횟수: 0, 반박성공횟수: 0, 퍼펙트세션수: 0, 총누적어휘수: 0,
+  // 토큰 (KNOWLEDGE 32 — 기본 1,500)
+  보유토큰: 1500, 토큰소진시각: null, 토큰락해제시각: null, 총소비토큰: 0,
+};
+
 const 사용자 = {
   // 기본 정보 — 로그인 전 중립 기본값 (빌드1: 홍길동/Lv.15 데모 더미 제거)
   이름: '학습자',
   이메일: '',          // 버그7: 하드코딩 제거 — 로그인 시 Firebase Auth의 currentUser.email 주입
   프로필이미지: '⚔️',
 
-  // 성장 데이터
-  레벨: 1,
-  현재EXP: 0,
-  총누적EXP: 0,
-  연속학습일: 0,
-  총학습일: 0,
-  마지막학습일: '',
-
-  // 마스터리 카운터 (KNOWLEDGE 13섹션)
-  상식어원학습수: 0,
-  언어의뿌리학습수: 0,
-  세계사신화학습수: 0,
-  아재개그학습수: 0,
-  맞춤법학습수: 0,
-  구어교정횟수: 0,
-  문해력학습수: 0,  // 세션10-c: 지문 독해
-  이의제기횟수: 0,
-  반박성공횟수: 0,
-  퍼펙트세션수: 0,
-  총누적어휘수: 0,
-
-  // 토큰 (KNOWLEDGE 32 — 기본 1,500)
-  보유토큰: 1500,
-  토큰소진시각: null,
-  토큰락해제시각: null,
-  총소비토큰: 0,
+  // 성장·마스터리·토큰 — 위 학습기록_기본값
+  ...학습기록_기본값,
 
   // 보관함 카운트 (renderReview가 복습데이터와 동기화)
   복습대기열수: 0,
@@ -190,6 +178,16 @@ function 보관함_로드(){
   }).catch(e=> console.error('[Firestore] 보관함 로드 실패', e));
 }
 
+// 대기열 항목 하나를 휴지통으로 옮긴다(잔여일 20일로 시작, Firestore 문서도 이동) — 상한 초과 자동 이동·수동 삭제 공용
+function 대기열항목_휴지통으로(idx){
+  const [옮김] = 복습데이터.대기열.splice(idx,1);
+  보관함_문서삭제('복습대기열', 옮김.id);
+  const 휴항목 = {id:보관함_임시ID(), 단어:옮김.단어, 뜻:옮김.뜻, 모드:옮김.모드, 모드클래스:옮김.모드클래스, 잔여일:20};
+  복습데이터.휴지통.push(휴항목);
+  보관함_문서추가('휴지통', 휴항목, {단어:옮김.단어, 뜻:옮김.뜻, 모드:옮김.모드,
+    이동일시: fbDb ? firebase.firestore.FieldValue.serverTimestamp() : null});
+}
+
 // 학습 흐름 → 대기열 추가 (오답·몰랐다·헷갈린다 시) — 상한 초과 시 가장 오래된 항목 휴지통 이동 (KNOWLEDGE 7)
 function 복습대기열_추가(단어, 뜻, 모드){
   if(!단어) return;
@@ -207,13 +205,8 @@ function 복습대기열_추가(단어, 뜻, 모드){
   while(복습데이터.대기열.length >= 상한){
     const 오래된idx = 복습데이터.대기열.findIndex(x=>!x.즐겨찾기);
     if(오래된idx < 0) break;  // 전부 즐겨찾기면 이동 불가
-    const 옮김 = 복습데이터.대기열.splice(오래된idx,1)[0];
-    보관함_문서삭제('복습대기열', 옮김.id);
-    const 휴항목 = {id:보관함_임시ID(), 단어:옮김.단어, 뜻:옮김.뜻, 모드:옮김.모드, 모드클래스:옮김.모드클래스, 잔여일:20};
-    복습데이터.휴지통.push(휴항목);
-    보관함_문서추가('휴지통', 휴항목, {단어:옮김.단어, 뜻:옮김.뜻, 모드:옮김.모드,
-      이동일시: firebase?.firestore ? firebase.firestore.FieldValue.serverTimestamp() : null});
-    showToastMsg('📥 대기열 초과 — 가장 오래된 항목이 휴지통으로 이동');
+    대기열항목_휴지통으로(오래된idx);
+    showToastMsg('대기열 초과 — 가장 오래된 항목이 휴지통으로 이동');
   }
   const 항목 = {id:보관함_임시ID(), 단어, 뜻, 모드, 모드클래스:모드클래스계산(모드), 연속정답수:0, 즐겨찾기:false, 추가시각:Date.now()};
   복습데이터.대기열.push(항목);
@@ -221,7 +214,7 @@ function 복습대기열_추가(단어, 뜻, 모드){
   // 상한 5개 이내 경고 알람 (KNOWLEDGE 7)
   const 남은자리 = 사용자.복습대기열상한 - 복습데이터.대기열.length;
   if(남은자리 >= 0 && 남은자리 <= 5 && (사용자.알림설정 ?? true)){
-    showToastMsg(`⚠️ 복습 대기열 자리가 ${남은자리}개 남았습니다`);
+    showToastMsg(`복습 대기열 자리가 ${남은자리}개 남았습니다`);
   }
   if(curScreen==='sr') renderReview();
 }
@@ -231,15 +224,9 @@ function 복습대기열_추가(단어, 뜻, 모드){
 function 복습대기열_정답처리(단어){
   const idx = 복습데이터.대기열.findIndex(x=>x.단어===단어);
   if(idx < 0) return;
-  const 항목 = 복습데이터.대기열[idx];
-  항목.연속정답수++;
-  if(항목.연속정답수 >= 1){
-    복습데이터.대기열.splice(idx,1);
-    보관함_문서삭제('복습대기열', 항목.id);
-    showToastMsg(`🎓 「${항목.단어}」 복습 졸업!`);
-  } else {
-    보관함_문서수정('복습대기열', 항목.id, {연속정답수:항목.연속정답수});
-  }
+  const [항목] = 복습데이터.대기열.splice(idx,1);
+  보관함_문서삭제('복습대기열', 항목.id);
+  showToastMsg(`「${항목.단어}」 복습 졸업!`);
   if(curScreen==='sr') renderReview();
 }
 
@@ -249,9 +236,8 @@ function 복습대기열_정답처리(단어){
 let curScreen='sl';
 let userName=사용자.이름;
 let curExp=사용자.현재EXP, curLv=사용자.레벨;
-let curTheme='antique';
-// 버그D 수정: 'gowun'은 FONTS 배열에 없는 유령 키였음 → 기본 글꼴(나눔스퀘어 Neo) 실제 키로 교정 (KNOWLEDGE 8·19)
-let curFont='nanum_square';
+// 10-03 관리자님 결정: 기본은 테마 글꼴('theme'). 고른 글꼴이 있으면 그것이 앱 전체(버튼·입력창 포함)에 적용된다
+let curFont='theme';
 
 // 레벨업 공식: 110 + (레벨-1) × 28
 // α3: 하급신 구간(Lv.36~46)은 ×1.123 적용 — 성장 정체 의도 (KNOWLEDGE 11)
@@ -285,15 +271,11 @@ function 등급정보(lv){
 // 소칭호 계산 (현황 탭 전용)
 // α1: KNOWLEDGE 11섹션 7단계 확정표로 교체 (구 3단계 '성위' 폐기)
 // α5: 창조주 달성 시 선택 칭호 반환 — 기본 「폐하」, 글리치 없는 깨끗한 「주신」 전환 가능
+// 소칭호 7단계 — [칭호, 최소 레벨] 오름차순. 성장 상세 화면의 칭호 로드맵도 이 표를 쓴다.
+const 소칭호표 = [['필멸자',1],['초월자',16],['시련',26],['하급신',36],['중급신',47],['최고신',58],['주҉신҉',69]];
 function 소칭호계산(lv, 창조주달성){
   if(창조주달성) return 사용자.선택칭호 || '폐하';
-  if(lv>=69) return '주҉신҉';
-  if(lv>=58) return '최고신';
-  if(lv>=47) return '중급신';
-  if(lv>=36) return '하급신';
-  if(lv>=26) return '시련';
-  if(lv>=16) return '초월자';
-  return '필멸자';
+  return 소칭호표.findLast(([,최소]) => lv >= 최소)?.[0] || '필멸자';
 }
 
 // α7: 소칭호 7단계 색상표 (KNOWLEDGE 11 — 기본 10팔레트 회피색)
@@ -355,10 +337,12 @@ const 기본이름풀=[
 //   - family명을 @font-face/KNOWLEDGE 19와 일치시키고, 출처 표기를 '임베딩' → '눈누 CDN'으로 정정.
 //   - mona: KNOWLEDGE 19 기준 family명은 'Mona'. CDN 직접 검증 불가하여 'Mona-Sans' 폴백을 함께 둠.
 //   - weight: 단일 굵기로 배포된 폰트(평창평화체 Light=300)의 미리보기 굵기 지정용 (버그B 연동).
+// 「테마 기본」 — FONTS(출처 표기 대상)에는 넣지 않고 선택 목록 맨 위에만 붙인다
+const 테마글꼴 = {key:'theme', name:'테마 기본', sample:'테마를 바꾸면 글꼴도 함께 바뀝니다'};
 const FONTS=[
   // ━━━ CDN 4종 ━━━
-  {key:'nanum_gothic',   name:'나눔고딕',          css:"'NanumGothic',sans-serif",             sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
-  {key:'nanum_myeongjo', name:'나눔명조',          css:"'NanumMyeongjo',serif",                sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
+  {key:'nanum_gothic',   name:'나눔고딕',          css:"'Nanum Gothic',sans-serif",            sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
+  {key:'nanum_myeongjo', name:'나눔명조',          css:"'Nanum Myeongjo',serif",               sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
   {key:'nanum_square',   name:'나눔스퀘어 Neo',    css:"'NanumSquareNeoVariable',sans-serif",  sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},
   // 모나 family명 실측 확정 (세션 2 — CDN 검증 완료): mona.css에는 'Mona'·'Mona-Sans'가 존재하지 않음.
   // 실제 제공 family는 Mona10/Mona12/'Mona12 Text KR' 등이며, 한글은 'Mona12 Text KR'가 담당.

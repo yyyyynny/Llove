@@ -8,14 +8,14 @@
 // 조회. (2)는 국어원 오픈API의 "고급 검색"(advanced=y&method=start|end)이 실제로 "이 글자로
 // 시작/끝나는 단어 목록"을 돌려준다는 걸 2026-07-24에 실측으로 확인해 추가함(기본 검색은
 // 부분일치라 이게 안 되는 줄 알았던 이전 판단은 오판 — Worker 쪽에서 고급 검색 파라미터로
-// 호출). 게이트 off·API 실패 시엔 빈 배열을 반환해 호출부(js/게임규칙.js)가 로컬 사전만으로
-// 안전하게 강등되게 한다(하이브리드: API 우선, 실패 시 로컬 — 관리자님 확정 방침).
+// 호출). 게이트 off·API 실패 시엔 null(확인 불가)을 반환하고, 호출부는 세션 수집어·보조 사전으로
+// 버티거나 "확인 불가"를 알린다(2026-07-29 내부 사전 폐지 이후 로컬 폴백 사전은 없다).
 //
 // 클래식 스크립트, 사전.js·엔진.js 뒤 아무 데나(게임규칙.js보다 먼저) 로드.
 
 // ⚠️ 국어원 게이트 — 최고 관리자님 승인 없이 true로 변경 금지 (Llove GROK_활성화와 동일 정책).
-//    Cloudflare Worker 배포 + 인증키 등록 전까지 실호출 전면 봉인. false인 동안 국어원_단어조회()는
-//    항상 로컬 사전 판정만 쓰고(호출부가 자동 강등) 네트워크 호출도, 캐시 소비도 하지 않는다.
+//    2026-08-15 Worker 실배포·실측 검증 후 개방. false로 되돌리면 조회 함수들은 네트워크 호출도,
+//    캐시 소비도 없이 null(확인 불가)을 돌려준다.
 const 국어원_활성화 = true;
 
 // Cloudflare Workers 엔드포인트(국립국어원 API 프록시). 관리자님이 Worker 배포 후 이 값을 채울 것.
@@ -34,23 +34,24 @@ function 캐시_상한적용(캐시, 최대개수){
   for(let i = 0; i < 초과; i++) delete 캐시[키들[i]];
   return 캐시;
 }
+// 캐시 3종(존재·상세·후보) 공용 로드·저장 — 키와 상한만 다르다
+function 캐시_로드(키){
+  try{ return JSON.parse(localStorage.getItem(키) || '{}'); }
+  catch(e){ return {}; }   // localStorage 차단 환경 무시
+}
+function 캐시_저장(키, 캐시, 최대개수){
+  try{ localStorage.setItem(키, JSON.stringify(캐시_상한적용(캐시, 최대개수))); }
+  catch(e){ /* 용량 초과 등 무시 — 캐시는 있으면 좋고 없어도 그만 */ }
+}
 
 // 캐시 키에 버전을 붙인다(2026-07-27). 판정 결과(특히 "없는 단어"=false)가 영구 저장되는데,
 // Worker나 판정 규칙이 바뀌어도 옛 결과가 그대로 남아 되돌릴 방법이 없었다. 규칙이 바뀔 때
 // 이 숫자를 올리면 사용자 기기의 옛 캐시가 자연히 무시된다.
 const 국어원_캐시_KEY = 'plx_잇는_국어원캐시_v2';
-function 국어원_캐시_로드(){
-  try{ return JSON.parse(localStorage.getItem(국어원_캐시_KEY) || '{}'); }
-  catch(e){ return {}; }   // localStorage 차단 환경 무시
-}
 const 국어원_캐시_최대개수 = 1000;   // 존재 여부(불리언)만 담아 항목이 작다 — 넉넉히
-function 국어원_캐시_저장(캐시){
-  try{ localStorage.setItem(국어원_캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 국어원_캐시_최대개수))); }
-  catch(e){ /* 용량 초과 등 무시 — 캐시는 있으면 좋고 없어도 그만 */ }
-}
 
-// 공통 POST 헬퍼 — 타임아웃(AbortController) 포함. 게이트 off·엔드포인트 미설정 시 fetch 없이
-// null, 실패·시간초과 시에도 null을 반환해 호출부가 로컬 판정으로 강등하게 한다.
+// 공통 POST 헬퍼 — 타임아웃(AbortSignal.timeout) 포함. 게이트 off·엔드포인트 미설정 시 fetch 없이
+// null, 실패·시간초과 시에도 null을 반환해 호출부가 "확인 불가"로 처리하게 한다.
 //
 // ⚠️ 타임아웃 값은 추정이 아니라 실측으로 정했다(2026-07-26). 관리자님이 실배포 사이트에서
 // "국어"·"이름" 같은 흔한 단어가 "사전 확인 실패"로 거부되는 걸 제보 → Worker 왕복 시간을 직접
@@ -64,53 +65,25 @@ function 국어원_캐시_저장(캐시){
 // 오판하지 않게 하는 안전망은 그대로 유지한다.
 const 국어원_타임아웃_단어_MS = 8000;
 const 국어원_타임아웃_후보_MS = 6000;
-async function 국어원_POST(payload, 타임아웃_MS){
-  if(!국어원_활성화) return null;
-  if(!국어원_WORKERS_ENDPOINT) return null;
-  const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  const 타임아웃ID = controller ? setTimeout(() => controller.abort(), 타임아웃_MS) : null;
+// Worker 공용 POST — 실패·시간초과·HTTP 오류는 전부 null("확인 불가"). 적절성판정.js도 쓴다.
+async function 워커_POST(주소, 본문, 타임아웃_MS, 이름){
   try{
-    const res = await fetch(국어원_WORKERS_ENDPOINT, {
+    const res = await fetch(주소, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      ...(controller ? { signal: controller.signal } : {})
+      body: JSON.stringify(본문),
+      signal: AbortSignal.timeout(타임아웃_MS)
     });
-    if(타임아웃ID) clearTimeout(타임아웃ID);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     return await res.json();
   }catch(e){
-    if(타임아웃ID) clearTimeout(타임아웃ID);
-    console.error('[국어원] 요청 실패/시간초과 — 로컬 판정으로 강등', e);
+    console.error(`[${이름}] 요청 실패/시간초과 — 확인 불가(null)로 처리`, e);
     return null;
   }
 }
-
-// 단어의 사전 등재 여부 온라인 조회. 반환값은 3가지: true(등재 확인)/false(미등재 확인)/
-// null(게이트 off·미설정·오프라인·실패·시간초과 — "확인 자체를 못 함". 2026-07-25 이전엔 이 경우도
-// false로 뭉뚱그려 반환해서, 실제로는 흔한 단어인데 네트워크가 느려서 확인을 못 했을 뿐인데도
-// 호출부가 "사전에 없는 단어입니다"라고 오판하고 사용자에게 실수까지 매기는 문제가 있었음
-// — 호출부(서바이벌.js)가 null을 별도로 처리해 이 오판을 없앤다).
-/* ⚠️ 붙임표(-) 문제 — 2026-07-29 실측으로 확인한 치명적 오판 원인.
-   ────────────────────────────────────────────────────────────────
-   우리말샘은 **합성어 표제어에 붙임표를 넣어** 등재한다: `가마-솥`, `뽕-나무`, `눈-사람`.
-   그런데 Worker가 이 붙임표를 제거하지 않고 정확 일치로 비교해서, 사용자가 붙여 쓴 정상
-   단어가 전부 "사전에 없는 단어"가 됐다(관리자님 제보 — 가마솥·뽕나무·뽕잎 오답 처리).
-
-   이 환경에서 Worker에 직접 질의해 확정:
-     가마솥 → 존재 false  /  가마-솥 → 존재 true (뜻풀이 1건)
-     뽕나무 → 존재 false  /  뽕-나무 → 존재 true (뜻풀이 2건)
-     나무·학교·무지개 → true (합성어가 아니라 표제어에 붙임표가 없음)
-
-   **근본 해결은 Worker가 붙임표를 지우고 비교하는 것**이고, 그건 관리자님 몫이다
-   (Cloudflare Worker는 이 저장소 밖). 그때까지 클라이언트에서 붙임표 위치를 넣어 재시도한다.
-   한국어 합성어는 매우 흔해서 이 폴백이 없으면 게임이 성립하지 않는다. */
-function 붙임표_변형(word){
-  // 한글 2~6글자만. 공백이 든 구(句)는 표제어 형식이 달라 대상 밖.
-  if(!/^[가-힣]{2,6}$/.test(word)) return [];
-  const 변형 = [];
-  for(let i = 1; i < word.length; i++) 변형.push(word.slice(0, i) + '-' + word.slice(i));
-  return 변형;
+async function 국어원_POST(payload, 타임아웃_MS){
+  if(!국어원_활성화 || !국어원_WORKERS_ENDPOINT) return null;
+  return 워커_POST(국어원_WORKERS_ENDPOINT, payload, 타임아웃_MS, '국어원');
 }
 
 // 단어의 사전 등재 여부 온라인 조회. 반환값은 3가지: true(등재 확인)/false(미등재 확인)/
@@ -118,34 +91,23 @@ function 붙임표_변형(word){
 // false로 뭉뚱그려 반환해서, 실제로는 흔한 단어인데 네트워크가 느려서 확인을 못 했을 뿐인데도
 // 호출부가 "사전에 없는 단어입니다"라고 오판하고 사용자에게 실수까지 매기는 문제가 있었음
 // — 호출부(서바이벌.js)가 null을 별도로 처리해 이 오판을 없앤다).
+// 합성어 붙임표(`가마-솥`)는 Worker가 변형을 끼워 재조회한다(우리말샘-worker.mjs 붙임표_변형).
+// 2026-07-29~09-27엔 클라이언트도 같은 재조회를 했으나, 없는 단어마다 왕복이 최대 5회 늘어 삭제.
+const 단어조회_진행중 = new Map();   // 타이핑 중 선조회와 제출이 겹치면 요청 하나를 함께 기다린다
 async function 국어원_단어조회(word){
-  const 캐시 = 국어원_캐시_로드();
+  const 캐시 = 캐시_로드(국어원_캐시_KEY);
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
-
-  const data = await 국어원_POST({ 단어: word }, 국어원_타임아웃_단어_MS);
-  if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
-  if(data.존재){
-    캐시[word] = true; 국어원_캐시_저장(캐시);
-    return true;
-  }
-
-  // 붙여 쓴 형태로 못 찾았다 → 합성어일 수 있으니 붙임표를 끼워 다시 물어본다(위 주석 참조).
-  // 위치를 모르므로 가능한 자리를 전부, **병렬로** 확인한다(직렬이면 왕복이 길이만큼 쌓인다).
-  const 변형 = 붙임표_변형(word);
-  if(변형.length){
-    const 결과들 = await Promise.all(
-      변형.map(v => 국어원_POST({ 단어: v }, 국어원_타임아웃_단어_MS)));
-    if(결과들.some(d => d && d.존재)){
-      캐시[word] = true; 국어원_캐시_저장(캐시);
-      return true;
-    }
-    // 전부 네트워크 실패면 "없다"고 단정할 수 없다 — 확인 못 함으로 돌려보낸다.
-    if(결과들.every(d => d === null)) return null;
-  }
-
-  캐시[word] = false;
-  국어원_캐시_저장(캐시);
-  return false;
+  if(단어조회_진행중.has(word)) return 단어조회_진행중.get(word);
+  const 요청 = (async () => {
+    const data = await 국어원_POST({ 단어: word }, 국어원_타임아웃_단어_MS);
+    if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
+    const 최신 = 캐시_로드(국어원_캐시_KEY);
+    최신[word] = !!data.존재;
+    캐시_저장(국어원_캐시_KEY, 최신, 국어원_캐시_최대개수);
+    return 최신[word];
+  })();
+  단어조회_진행중.set(word, 요청);
+  try{ return await 요청; } finally{ 단어조회_진행중.delete(word); }
 }
 
 // 단어 존재 + 뜻풀이(동음이의어 그룹) 조회 — '이의 있음' 재설계 전용(2026-08-19).
@@ -153,21 +115,19 @@ async function 국어원_단어조회(word){
 // 두고, 뜻풀이 근거가 필요한 곳만 이 함수를 쓴다. Worker 계약(wchain/worker/우리말샘-worker.mjs)의
 // 뜻풀이그룹 필드를 그대로 통과시킨다. 반환값 3가지: { 존재, 뜻풀이그룹 }(조회 성공) /
 // null(게이트 off·미설정·오프라인·실패·시간초과 — "확인 자체를 못 함", 위 함수와 동일 관례).
-// 붙임표 재시도는 하지 않는다 — 여기서 조회하는 단어는 항상 AI가 이미 낸 단어(HARD_DICT·
-// DICTIONARY·온라인 후보 중에서만 골라 이미 유효성이 보장됨)라 합성어 붙임표 오판 케이스가
-// 사실상 없다.
-const 국어원_상세캐시_KEY = 'plx_잇는_국어원상세캐시_v1';
-function 국어원_상세캐시_로드(){
-  try{ return JSON.parse(localStorage.getItem(국어원_상세캐시_KEY) || '{}'); }
-  catch(e){ return {}; }
-}
+const 국어원_상세캐시_KEY = 'plx_잇는_국어원상세캐시_v2';   // v2(2026-09-28): 묶음별 일반수 추가
+try{ localStorage.removeItem('plx_잇는_국어원상세캐시_v1'); }catch(e){}
 const 국어원_상세캐시_최대개수 = 500;   // 뜻풀이 텍스트까지 담아 존재캐시보다 항목이 크다
-function 국어원_상세캐시_저장(캐시){
-  try{ localStorage.setItem(국어원_상세캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 국어원_상세캐시_최대개수))); }
-  catch(e){ /* 용량 초과 등 무시 */ }
+// 말풍선과 카드가 같은 단어의 뜻을 동시에 물으므로 진행 중인 요청은 하나로 합친다
+const 상세조회_진행중 = new Map();
+function 국어원_단어조회_상세(word){
+  if(상세조회_진행중.has(word)) return 상세조회_진행중.get(word);
+  const 요청 = 상세조회_본체(word).finally(() => 상세조회_진행중.delete(word));
+  상세조회_진행중.set(word, 요청);
+  return 요청;
 }
-async function 국어원_단어조회_상세(word){
-  const 캐시 = 국어원_상세캐시_로드();
+async function 상세조회_본체(word){
+  const 캐시 = 캐시_로드(국어원_상세캐시_KEY);
   if(Object.prototype.hasOwnProperty.call(캐시, word)) return 캐시[word];
   // ⚠️ 뜻풀이:true 필수 — 이게 없으면 Worker가 그룹화를 건너뛰고 뜻풀이그룹을 빈 배열로
   // 돌려준다(2026-08-22, 매 턴 단어 검증까지 이 계산을 물던 성능 회귀 수정 — 위 파일 상단
@@ -175,8 +135,11 @@ async function 국어원_단어조회_상세(word){
   const data = await 국어원_POST({ 단어: word, 뜻풀이: true }, 국어원_타임아웃_단어_MS);
   if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
   const 결과 = { 존재: !!data.존재, 뜻풀이그룹: Array.isArray(data.뜻풀이그룹) ? data.뜻풀이그룹 : [] };
+  // 있는 단어인데 뜻이 비어 온 결과는 캐시하지 않는다 — 일시적인 빈 응답이 영구히 박혀
+  // 뜻 자동 표시·이의 근거가 계속 비는 일을 막는다(2026-09-27, 자동 표시로 조회가 잦아짐).
+  if(결과.존재 && !결과.뜻풀이그룹.length) return 결과;
   캐시[word] = 결과;
-  국어원_상세캐시_저장(캐시);
+  캐시_저장(국어원_상세캐시_KEY, 캐시, 국어원_상세캐시_최대개수);
   return 결과;
 }
 
@@ -184,6 +147,16 @@ async function 국어원_단어조회_상세(word){
 // 찍기 좋은 문자열 배열로 바꾼다. Llove의 js/채팅.js 사전결과_HTML()과 같은 원칙(그룹이
 // 하나면 번호를 안 붙임)이지만, 여기는 HTML이 아니라 로그_추가()가 쓰는 순수 텍스트 줄이라
 // 그룹마다 별도 줄로 낸다. 단어가 사전에 없거나 조회 자체가 실패했으면(null) null을 반환.
+// 대표 뜻 한 줄 — 동음이의어 묶음 중 뜻풀이가 가장 많은 쪽(대개 흔한 단어)의 첫 뜻. 첫 묶음을 그대로 쓰면
+// '내부'에 "그이의 아버지"(乃父), '닥터'에 영화 제목이 뜨는 식이었다(2026-09-28 실사전 자동 플레이로 발견).
+// 뜻 자동 표시와 이의 있음 기각 안내가 함께 쓴다. 없으면 null.
+function 대표뜻(결과){
+  if(!결과 || !결과.존재 || !결과.뜻풀이그룹.length) return null;
+  // 일반 뜻(전문 분야 아님) 개수가 많은 묶음 먼저, 같으면 뜻 개수(2026-09-28 '이중' — Worker가 일반수를 줄 때만 적용)
+  const 묶음 = [...결과.뜻풀이그룹].sort((a, b) => ((b.일반수 || 0) - (a.일반수 || 0))
+    || ((b.뜻풀이?.length || 0) - (a.뜻풀이?.length || 0)))[0];
+  return 묶음?.뜻풀이?.[0] || null;
+}
 const 뜻풀이_동그라미 = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨'];
 function 뜻풀이_로그줄들(결과){
   if(!결과 || !결과.존재 || !결과.뜻풀이그룹.length) return null;
@@ -201,19 +174,13 @@ function 뜻풀이_로그줄들(결과){
    바뀔 때마다 이 숫자를 올릴 수 있게 한다. */
 // v3(2026-08-20): Worker가 후보 목록에서 북한어·옛말·방언·전문분야·고유명사를 걸러내기
 // 시작했다 — v2 캐시엔 필터 전(이상한 단어 포함) 결과가 남아 있어 버전을 올려 무시시킨다.
-const 국어원_후보캐시_KEY = 'plx_잇는_국어원후보캐시_v3';
-function 국어원_후보캐시_로드(){
-  try{ return JSON.parse(localStorage.getItem(국어원_후보캐시_KEY) || '{}'); }
-  catch(e){ return {}; }
-}
+// v4(2026-09-28): Worker가 많이 찾은 순·명사·일반어로 서버에서 거르기 시작 — v3엔 가나다순 앞부분(전문어 위주) 결과가 남아 있다.
+const 국어원_후보캐시_KEY = 'plx_잇는_국어원후보캐시_v4';
+try{ localStorage.removeItem('plx_잇는_국어원후보캐시_v3'); }catch(e){}   // 옛 버전 자리 비우기
 // 글자+방향 키 하나당 후보 단어 배열(최대 수십 개)이 통째로 들어가 세 캐시 중 항목이 제일
 // 크다 — 상한을 더 낮게 잡는다. 어차피 한글 음절 수(약 11,172개) × 방향 2로 이론상 최댓값이
 // 있는 캐시지만, 그 최댓값까지 안 가더라도 한 세션에 여러 글자를 오래 플레이하면 커질 수 있다.
 const 국어원_후보캐시_최대개수 = 300;
-function 국어원_후보캐시_저장(캐시){
-  try{ localStorage.setItem(국어원_후보캐시_KEY, JSON.stringify(캐시_상한적용(캐시, 국어원_후보캐시_최대개수))); }
-  catch(e){ /* 용량 초과 등 무시 */ }
-}
 
 // 특정 글자로 시작(start)/끝나는(end) 실제 단어 후보 목록을 온라인으로 조회 — AI 다음 단어
 // 생성용이자, 한방 판정(정말 이을 단어가 없는지) 확인용. 접사·구·복합표기(하이픈·공백·^ 포함
@@ -223,12 +190,21 @@ function 국어원_후보캐시_저장(캐시){
 // off·미설정 시 null**. 종전엔 둘 다 빈 배열이라 "정말 이을 단어가 없다"와 "확인을 못 했다"를
 // 구분할 수 없었는데, 한방 판정은 이 둘을 반드시 구분해야 한다("확인 못 함"을 한방으로 단정하면
 // 네트워크가 느린 것만으로 사용자가 실수를 뒤집어쓴다 — 국어원_단어조회의 null 관례와 동일).
-// AI 후보용 호출부는 `?? []`로 정규화해 기존처럼 로컬 사전으로 안전하게 강등된다.
+// AI 후보용 호출부(온라인후보_가져오기)는 null을 실패로 세고 세션 수집어·보조 사전으로 버틴다.
+// 같은 글자를 동시에 두 번 묻지 않는다 — 단어 확인과 나란히 띄운 선조회가 끝나기 전에 AI 턴이
+// 같은 글자를 물으면, 새 요청 대신 진행 중인 요청을 함께 기다린다.
+const 후보조회_진행중 = new Map();
 async function 국어원_후보목록조회(글자, 방향){
   if(!국어원_활성화) return null;
   const 캐시키 = `${방향}:${글자}`;
-  const 캐시 = 국어원_후보캐시_로드();
+  const 캐시 = 캐시_로드(국어원_후보캐시_KEY);
   if(Object.prototype.hasOwnProperty.call(캐시, 캐시키)) return 캐시[캐시키];
+  if(후보조회_진행중.has(캐시키)) return 후보조회_진행중.get(캐시키);
+  const 요청 = 후보목록_받기(글자, 방향, 캐시키);
+  후보조회_진행중.set(캐시키, 요청);
+  try{ return await 요청; } finally{ 후보조회_진행중.delete(캐시키); }
+}
+async function 후보목록_받기(글자, 방향, 캐시키){
   const data = await 국어원_POST({ 글자: 글자, 방향: 방향 }, 국어원_타임아웃_후보_MS);
   if(data === null) return null;    // 실패·시간초과 — 캐시에 쓰지 않음(전이적 실패 오염 방지)
   const 목록 = Array.isArray(data.후보) ? data.후보 : [];
@@ -236,10 +212,9 @@ async function 국어원_후보목록조회(글자, 방향){
   // Worker의 필터·페이지 설정에 좌우되는 값이라 영구 저장할 만큼 확실하지 않다. 한 번 0으로
   // 박히면 그 글자는 그 기기에서 영원히 막다른 길이 된다 — 다음에 다시 물어보게 둔다.
   if(목록.length){
+    const 캐시 = 캐시_로드(국어원_후보캐시_KEY);   // 기다리는 사이 다른 조회가 저장했을 수 있어 다시 읽는다
     캐시[캐시키] = 목록;
-    국어원_후보캐시_저장(캐시);
+    캐시_저장(국어원_후보캐시_KEY, 캐시, 국어원_후보캐시_최대개수);
   }
   return 목록;
 }
-
-if (typeof module !== 'undefined') module.exports = { 국어원_단어조회, 국어원_단어조회_상세, 국어원_후보목록조회, 국어원_캐시_KEY };

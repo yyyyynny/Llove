@@ -72,7 +72,8 @@ const 진입점있음 = existsSync('Llove/index.html');
       for (const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']) {
         const p = `wchain/js/${f}`;
         if (!existsSync(p)) continue;
-        const src = readFileSync(p, 'utf8');
+        // 주석 속 옛 코드의 참조는 세지 않는다(죽은 키가 "참조됨"으로 가려지지 않게)
+        const src = readFileSync(p, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
         for (const m of src.matchAll(/대사\(gs,\s*'([^']+)'(\s*\+)?/g)) {
           if (!m[2]) 참조.add(m[1]);   // 조립 키(접두사 + 변수)는 정적 검사 대상에서 제외
         }
@@ -141,6 +142,9 @@ if (진입점있음) {
     // 용도가 아니다. 다시 잠글 일이 생기면(재봉인 결정) 여기 다시 추가할 것.
     const 봉인이어야_하는_게이트 = [
       ['음성생성_활성화', 'wchain/js/음성.js'],
+      // 10-03: Llove 게이트도 존재(5번)만이 아니라 실제 봉인 값까지 확인 — CLAUDE.md 절대 고정 항목
+      ['GROK_활성화', 'Llove/js/grok.js'],
+      ['음성생성_활성화', 'Llove/js/grok.js'],
     ];
     for (const [플래그, 경로] of 봉인이어야_하는_게이트) {
       const 본문 = existsSync(경로) ? readFileSync(경로, 'utf8') : '';

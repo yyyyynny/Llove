@@ -5,7 +5,7 @@ load((window) => {
   const doc = window.document, ev = (c) => window.eval(c);
   const css = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
-  // 재구조화 이후: sq2_출제풀()이 코드 속 하드코딩 표본 없이 DB문제[category]만 쓰도록 정리됨
+  // 재구조화 이후: sq2 출제는 출제_분기()로 코드 속 하드코딩 표본 없이 DB문제[category]만 쓰도록 정리됨
   // (해당 표본은 data/고사성어속담.json·한자우리말.json으로 이전). fetch가 항상 실패하는 이
   // 테스트 환경(no-net-in-test)에서는 DB문제가 비므로, "DB 로드 성공" 상황을 직접 재현해
   // sq2 4지선다·역방향·뜻서술·플래시카드가 실제 데이터로 정상 동작하는지 검증한다.

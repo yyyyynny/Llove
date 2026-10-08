@@ -63,9 +63,9 @@ function 게스트로그인(){
   사용자.이름 = 사용자.이름 || '테스트';
   사용자.이메일 = '(비로그인 테스트)';
   userName = 사용자.이름;
-  document.getElementById('onboarding')?.classList.add('gone');
+  온보딩_걷기();
   goNav('sh', null);
-  showToastMsg('🔓 비로그인 테스트 모드 — 저장은 되지 않습니다');
+  showToastMsg('비로그인 테스트 모드 — 저장은 되지 않습니다');
 }
 document.addEventListener('keydown', 테스트진입_키감지);
 // 키보드만으로도 앱을 쓸 수 있게 — role/tabindex 부여 + Enter/Space 위임 (화면전환.js)
@@ -99,8 +99,8 @@ function 새버전_감지_시작(){
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    초기 실행 — 빌드1: 데이터 로드·plx 캐시·토큰 UI·개발자 네비
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-renderObDots();
-음성입력_차단_부착();      // v3.7 항목2: 구어 교정 텍스트 입력 음성 차단
+setObSlide(0);  // 첫 슬라이드 상태(이전 버튼 숨김·점·진행 막대)를 처음부터 맞춘다
+document.body.classList.toggle('grok-off', !GROK_활성화);  // 봉인 중엔 토큰 바 등 AI 전용 표시를 숨긴다(style.css)
 /* plx_ 로컬 캐시 적용 — 로그인 전·새로고침 대비 (Firestore 로드 시 그 값으로 다시 덮어씀)
    ⚠️ 2026-08-15: 종전에는 아래 15개 복원이 **하나의 try** 안에 묶여 있었다. 그래서 예컨대
    plx_학습설정 값 하나만 깨져도(JSON.parse 예외) 뒤에 오는 랜덤 설정·글자 범위·배너·AI 지침·
@@ -115,12 +115,8 @@ function 복원단계(이름, 작업){
 복원단계('커스텀 테마', () => 커스텀_복원());  // 항목3: 테마가 custom일 때 변수 세팅이 선행돼야 함
 복원단계('테마', () => { const v = localStorage.getItem('plx_테마'); if(v) setTheme(v, true); });
 복원단계('글꼴', () => { const v = localStorage.getItem('plx_폰트'); if(v) applyFont(v, true); });
-// 세션5: 화면 크기 복원 / 세션10-g 항목1: 저장값 없으면 칩·문구는 100% 그대로, zoom만 조용히 0.9
-복원단계('화면 배율', () => {
-  const v = localStorage.getItem('plx_화면배율');
-  if(v) setFontScale(parseInt(v,10), true);
-  else document.documentElement.style.zoom = '0.9';
-});
+// 세션5: 화면 크기 복원 — 저장값이 없으면 기본 100%(10-03: 종전 "표기 100%·실제 0.9"는 폐기)
+복원단계('화면 배율', () => { const v = localStorage.getItem('plx_화면배율'); if(v) setFontScale(parseInt(v,10), true); });
 복원단계('글자 배율', () => { const v = localStorage.getItem('plx_글자배율'); if(v) set글자크기(parseInt(v,10), true); });  // 세션5
 복원단계('학습 설정', () => {   // 세션5 버그7
   const v = JSON.parse(localStorage.getItem('plx_학습설정')||'null');
@@ -134,7 +130,7 @@ function 복원단계(이름, 작업){
   if(v && v.가중치) 랜덤설정 = v;
 });
 복원단계('글자 범위', () => { const v = localStorage.getItem('plx_글자범위'); set글자범위(v || '학습', true); });  // 세션7 항목10
-복원단계('배너 프리셋', () => 배너프리셋_로드());  // 세션7 항목12: 없으면 조용히 무시
+복원단계('배너 프리셋', () => 프리셋_로드('배너', v => 배너_이미지프리셋 = v));  // 세션7 항목12: 없으면 조용히 무시
 // 세션10-h: 모바일은 Enter가 줄바꿈이라 안내 문구를 다르게(전송은 버튼으로)
 복원단계('질문 입력창 안내', () => {
   const 입력창 = document.getElementById('askInp');
@@ -146,7 +142,7 @@ function 복원단계(이름, 작업){
   const v = localStorage.getItem('plx_AI지침'); if(v !== null){ 사용자.AI지침 = v; }
   AI지침_상태갱신();
 });
-복원단계('프로필 프리셋', () => 프로필프리셋_로드());  // 세션6 항목11: 없으면 조용히 무시
+복원단계('프로필 프리셋', () => 프리셋_로드('프로필', v => 프로필_이미지프리셋 = v));  // 세션6 항목11: 없으면 조용히 무시
 복원단계('채팅 기록', () => 채팅기록_로드());          // 세션6 항목4: 로그인 시 보관함_로드가 다시 로드
 복원단계('이름 화면 아바타', () => 아바타_적용(document.getElementById('nmAvatar'), 사용자.프로필이미지));  // 세션6
 복원단계('음성 서버 주소', () => { const v = localStorage.getItem('plx_음성엔드포인트'); if(v) 음성엔드포인트 = v; });
