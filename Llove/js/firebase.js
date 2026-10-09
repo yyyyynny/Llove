@@ -163,10 +163,10 @@ function 사용자데이터_적용(data, authUser){
     const t=document.getElementById('histFilterTxt');
     if(t) t.textContent = (histFilter==='off') ? '사용 안함' : `최근 ${histFilter}개`;
   }
-  if(typeof data.AI문제만 === 'boolean'){
-    aiOnly = data.AI문제만;
-    const tg=document.getElementById('aiOnlyToggle'); if(tg) tg.checked=aiOnly;
-    const tx=document.getElementById('aiOnlyTxt');   if(tx) tx.textContent=aiOnly?'켜짐':'꺼짐';
+  if(typeof data.AI생성끔 === 'boolean'){
+    AI생성끔 = data.AI생성끔;
+    const tg=document.getElementById('aiOnlyToggle'); if(tg) tg.checked=AI생성끔;
+    const tx=document.getElementById('aiOnlyTxt');   if(tx) tx.textContent=AI생성끔?'켜짐':'꺼짐';
   }
   if(data.복습상한) 사용자.복습대기열상한 = data.복습상한;
   // 빌드1: 토큰 락 만료 검사 + 토큰 UI·개발자 네비 갱신
@@ -196,7 +196,7 @@ function 신규사용자_생성(){
     // 설정
     테마: 'antique', 폰트: 'theme',
     // 화면배율은 신규 사용자도 저장하지 않음(미저장 = 기본 100%)
-    히스토리필터: 'off', AI문제만: false, 복습상한: 50, 알림설정: true,
+    히스토리필터: 'off', AI생성끔: false, 복습상한: 50, 알림설정: true,
     음성엔드포인트: '',   // 추가기능: 음성 생성 서버 주소(창조주가 입력) — 기본 빈 값
     // 업적
     업적진행도: {}, 창조주달성: false, 개발자모드: false, 선택칭호: '',

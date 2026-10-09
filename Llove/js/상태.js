@@ -298,7 +298,7 @@ function 소칭호적용(el, lv, 창조주달성){
 
 // 설정
 let histFilter='off'; // off / 30 / 50 / 80 / 100 / 120
-let aiOnly=false;
+let AI생성끔=false;  // 켜면 AI가 그 자리에서 문제를 만들지 않고 DB 문제만 출제
 
 // 온보딩
 // v3.6: KNOWLEDGE 23섹션 4장 확정 일치 (구 5장에서 '레벨업' 슬라이드 삭제)

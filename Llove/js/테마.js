@@ -427,13 +427,13 @@ function applyFont(key, 조용히){
   setTimeout(closeFont,300);
 }
 
-/* AI 문제만 토글 */
+/* AI 즉시 생성 안 함 토글 (이전 「AI 문제만」과 뜻이 반대라 저장 필드도 새로 씀) */
 function toggleAiOnly(){
-  aiOnly=document.getElementById('aiOnlyToggle').checked;
-  document.getElementById('aiOnlyTxt').textContent=aiOnly?'켜짐':'꺼짐';
-  사용자.AI문제만 = aiOnly;
-  사용자데이터_저장({AI문제만: aiOnly});  // 빌드1: Firestore 설정 동기화
-  showToastMsg('AI 문제만 출제: '+(aiOnly?'켜짐':'꺼짐'));
+  AI생성끔=document.getElementById('aiOnlyToggle').checked;
+  document.getElementById('aiOnlyTxt').textContent=AI생성끔?'켜짐':'꺼짐';
+  사용자.AI생성끔 = AI생성끔;
+  사용자데이터_저장({AI생성끔});  // 빌드1: Firestore 설정 동기화
+  showToastMsg('AI 즉시 생성 안 함: '+(AI생성끔?'켜짐':'꺼짐'));
 }
 
 /* 히스토리 필터 */

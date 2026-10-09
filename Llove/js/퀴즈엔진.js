@@ -24,9 +24,9 @@ const 모드_마스터리맵 = {
   '문장 배열':'문해력학습수'  // 세션10-m: 문해력 2탄(D안) — 지문 독해와 카운터 공유
 };
 
-// β9: 출제 확률 결정 — DB 40% / AI 60%, 「AI 문제만」 ON 시 항상 AI (KNOWLEDGE 4)
+// β9: 출제 확률 결정 — DB 40% / AI 60%, 「AI 즉시 생성 안 함」 ON 시 항상 DB (KNOWLEDGE 4)
 function 출제방식_결정(){
-  if(aiOnly) return 'ai';
+  if(AI생성끔) return 'db';
   return Math.random() < 0.4 ? 'db' : 'ai';
 }
 

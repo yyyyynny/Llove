@@ -133,5 +133,10 @@ load((window) => {
   const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];
   assert('U19: 상태색 고정 rgba가 남아 있지 않다', 박힌색.length === 0, 박힌색.join(' '));
 
+  // AI 즉시 생성 안 함: 켜면 출제는 항상 DB
+  ev("AI생성끔=true");
+  assert("AI 즉시 생성 안 함 ON이면 항상 DB 출제", Array.from({length:50},()=>ev("출제방식_결정()")).every(v=>v==="db"));
+  ev("AI생성끔=false");
+
   process.exit(finish() > 0 ? 1 : 0);
 });
