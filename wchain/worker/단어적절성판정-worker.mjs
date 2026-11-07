@@ -145,6 +145,7 @@ const 이차_설정 = { 제공사: 'openai호환', 모델: 'gpt-5.4-mini', 추�
 // ── CORS (우리말샘 Worker와 동일 원칙 — 같은 origin만 허용) ────────────────
 const 허용_ORIGIN = new Set([
   'https://yyyyynny.github.io',
+  'http://localhost:8000',   // 로컬 개발 서버(.claude/launch.json) — 내 PC에서만 열리는 주소
 ]);
 
 function cors헤더(origin){

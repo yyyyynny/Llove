@@ -50,6 +50,7 @@ const 공통_HEADERS = {
 // 관리자님의 API 호출량을 몰래 빌려 쓸 수 있다. 게임이 실제로 서비스되는 origin만 허용한다.
 const 허용_ORIGIN = new Set([
   'https://yyyyynny.github.io',
+  'http://localhost:8000',   // 로컬 개발 서버(.claude/launch.json) — 내 PC에서만 열리는 주소
 ]);
 
 function cors헤더(origin){
