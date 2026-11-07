@@ -138,5 +138,12 @@ load((window) => {
   assert("AI 즉시 생성 안 함 ON이면 항상 DB 출제", Array.from({length:50},()=>ev("출제방식_결정()")).every(v=>v==="db"));
   ev("AI생성끔=false");
 
+  // 심연 업적: 사전 모드에선 "너는 누구"만 달성, 단어 검색(존재)은 달성 안 됨
+  ev("사용자.업적진행도={}; 사전모드=true; document.getElementById('askInp').value='존재'; sendAsk();");
+  assert("심연: 사전 모드 단어 검색(존재)은 달성이 아니다", !ev("사용자.업적진행도['심연을들여다보는자']"));
+  ev("document.getElementById('askInp').value='너는 누구야'; sendAsk();");
+  assert("심연: 사전 모드에서도 너는 누구는 달성", !!ev("사용자.업적진행도['심연을들여다보는자']"));
+  ev("사전모드=false");
+
   process.exit(finish() > 0 ? 1 : 0);
 });

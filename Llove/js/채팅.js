@@ -561,6 +561,8 @@ function sendAsk(){
   // Phase 7: 사전 모드는 완전히 별개 흐름(토큰·창조주 로직 없음). 단 창조주 키 문장(【】)은 사전 단어가 아니므로
   // 사전 모드가 기본이 된 뒤에도(10-03) 종전처럼 아래 창조주 흐름으로 보낸다 — 진입 경로 보존
   const 원문 = document.getElementById('askInp').value.trim();
+  // 사전 모드는 AI 감지줄(아래)에 닿지 않으므로 "너는 누구"만 먼저 감지(존재·자아는 사전 검색어라 제외)
+  if(사전모드 && /너는 누구/.test(원문)) 업적_단발달성('abyss');
   if(사전모드 && !/[【】]/.test(원문) && 키정규화(원문) !== 키정규화(창조주키)){ sendAsk_사전(); return; }
 
   const inp=document.getElementById('askInp');
