@@ -1127,7 +1127,7 @@
 
 <!-- '잇는' 포탈 해금 퍼즐 — 흩어진 7조각(ㅇ 좌우 반링·ㅣ 3조각·ㅅ 두 획)을 돌려 '잇' 완성.
      조각 회전(90°)은 게임 관문 예외(일반 UI 회전 금지와 별개). 로직: js/잇는.js -->
-<div class="modal-bg" id="잇는퍼즐Bg">
+<div class="modal-bg" id="잇는퍼즐Bg" onclick="배경클릭_닫기(event, 잇는_퍼즐닫기)">
   <div class="modal-bx itneun-modal">
     <div class="itneun-badge">잇 는</div>
     <div class="itneun-lead">흩어진 조각을 돌려 <b>'잇'</b>을 맞추면 이어진다.</div>
