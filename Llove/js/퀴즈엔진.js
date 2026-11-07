@@ -40,6 +40,24 @@ function 셔플(arr){
   return arr;
 }
 
+/* 풀에서 한 문항 뽑기 — 모든 모드 공용(2026-11-07 전면 조사: 매번 풀 전체에서 뽑아 첫날부터 반복,
+   설정 「최근 출제 제외」는 저장만 되고 안 쓰이던 문제). 최근에 낸 문항(키=내용 앞부분)을 제외하고 뽑는다.
+   제외 개수: 설정값(30~120), 「사용 안함」이어도 풀의 절반은 연속 반복을 피한다. 풀보다 많으면 풀-1개.
+   // ponytail: 키가 내용 앞 80자 — 앞부분이 같은 문항끼리는 하나로 취급. 문항 id가 생기면 id로 */
+let 최근출제 = [];
+try{ 최근출제 = JSON.parse(localStorage.getItem('plx_최근출제') || '[]'); }catch(e){ /* 저장소 차단 무시 */ }
+function 출제_뽑기(풀){
+  const 키 = q => JSON.stringify(q).slice(0, 80);
+  const 제외수 = Math.min(풀.length - 1, histFilter === 'off' ? Math.floor(풀.length / 2) : Number(histFilter) || 0);
+  const 최근 = new Set(제외수 > 0 ? 최근출제.slice(-제외수) : []);
+  const 후보 = 풀.filter(q => !최근.has(키(q)));
+  const q = (후보.length ? 후보 : 풀)[Math.floor(Math.random() * (후보.length || 풀.length))];
+  최근출제.push(키(q));
+  if(최근출제.length > 200) 최근출제 = 최근출제.slice(-200);
+  try{ localStorage.setItem('plx_최근출제', JSON.stringify(최근출제)); }catch(e){ /* 저장소 차단 무시 */ }
+  return q;
+}
+
 /* 학습 화면 상단 진행 표시(Q11 — 2026-09-26 관리자님 결정: "이번 학습에서 푼 문제 수").
    모드에 들어온 뒤 몇 번째 문제인지를 "n문제째"로 세고, 바는 5문제마다 한 바퀴 돈다.
    goLearn이 진입마다 0으로 되돌리고, 각 화면의 출제 함수가 새 문제를 그릴 때마다 부른다
@@ -92,7 +110,7 @@ function renderQuiz(screenId, data){
   const body=document.getElementById(screenId+'Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재퀴즈풀=data; 현재퀴즈화면=screenId;
-  const q=data[Math.floor(Math.random()*data.length)];
+  const q=출제_뽑기(data);
   현재퀴즈문제 = q;  // 복습 대기열 연동용
   현재문제_reasoning_note = q.reasoning_note || '';  // β3: DB 문제는 JSON에 직접 작성 (없으면 Grok fallback 예정)
   // 세션7 항목7: 플래시카드/역방향 분기 (문항 부족 시 기본 선다형 폴백)
@@ -109,7 +127,7 @@ function renderQuiz(screenId, data){
   }
   // 세션5 버그7: 「직접입력」 — 선택지 대신 답 타이핑 + 정답 비교 / 그 밖엔 선택지(1~N번)
   const 답영역 = 방식 === '직접입력' ? 직접입력_HTML(screenId)
-    : `<div class="aopts">${q.opts.map((o,i)=>`<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`).join('')}</div>`;
+    : `<div class="aopts">${셔플([...q.opts]).map((o,i)=>`<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`).join('')}</div>`;
   body.innerHTML=`
     <div class="qcard">
       <div class="qcat">${sq1 && q.ai?'<span class="tag-ai">🤖 AI 출제</span>':''}<span class="tag ${sq1 ? 'tb' : 'tg'}">${q.cat}</span></div>

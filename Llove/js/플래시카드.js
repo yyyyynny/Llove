@@ -22,7 +22,7 @@ function sq2_선다렌더(category, 역방향){
     return;
   }
   학습진행_다음('sq2');
-  const 정답 = 풀[Math.floor(Math.random()*풀.length)];
+  const 정답 = 출제_뽑기(풀);
   const 오답 = 셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
   const 보기 = 셔플([정답, ...오답]);
   현재문제_reasoning_note = 정답.reasoning_note || '';
@@ -56,7 +56,7 @@ function sq2_뜻서술_렌더(category){
   const 풀 = 출제_분기(category);
   if(!풀.length){ renderFlashcard(풀); return; }
   학습진행_다음('sq2');
-  const 문항 = 풀[Math.floor(Math.random()*풀.length)];
+  const 문항 = 출제_뽑기(풀);
   현재문제_reasoning_note = 문항.reasoning_note || '';
   body.innerHTML = `
     <div class="qcard">
@@ -93,7 +93,7 @@ function renderFlashcard(data){
   if(!data || !data.length){ showToastMsg('문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
   학습진행_다음('sq2');
   const body=document.getElementById('sq2Body');
-  const c=data[Math.floor(Math.random()*data.length)];
+  const c=출제_뽑기(data);
   현재플래시카드 = c;  // 복습 대기열 연동용
   현재문제_reasoning_note = c.reasoning_note || '';
   let hanjaHtml='';

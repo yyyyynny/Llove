@@ -17,11 +17,12 @@ function 예문형_렌더(bodyId, item, 다음fn, 이의컨텍스트){
   현재문제_reasoning_note = item.reasoning_note || '';
 
   // 4개 보기 = correct 1 + acceptable + wrong (랜덤 순서)
+  const 오답 = 셔플(item.wrong.map(w=>({w:w.w, kind:'wrong'})));
   const 보기풀 = [
     {w: item.correct.w, kind:'correct'},
-    ...item.acceptable.map(a=>({w:a.w, kind:'acceptable'})),
-    ...item.wrong.map(w=>({w:w.w, kind:'wrong'}))
-  ].slice(0,4);
+    ...오답.slice(0,1),
+    ...셔플([...item.acceptable.map(a=>({w:a.w, kind:'acceptable'})), ...오답.slice(1)]).slice(0,2)
+  ];
   셔플(보기풀);
 
   // 예문 빈칸 표시 — 공백 개수 변형에 견디도록 정규식 사용
@@ -117,7 +118,7 @@ function 예문형_다음(bodyId){
 
 function 유의어변별_렌더(){
   // β8: 정령왕 JSON 18건 풀에서 랜덤 출제 (로드 실패 시 폴백 2건) — '다음'도 같은 함수로 재출제
-  const 항목 = 유의어출제풀[Math.floor(Math.random() * 유의어출제풀.length)];
+  const 항목 = 출제_뽑기(유의어출제풀);
   학습진행_다음('sq2');
   예문형_렌더('sq2Body', 항목, 유의어변별_렌더, 'synonym');
 }
@@ -221,7 +222,7 @@ function 독해_렌더(){
   const body = document.getElementById('sq6Body');
   if(!body) return;
   학습진행_다음('sq6');
-  const 항목 = 지문독해풀[Math.floor(Math.random()*지문독해풀.length)];
+  const 항목 = 출제_뽑기(지문독해풀);
   독해_상태.item = 항목;
   const 순서 = 셔플(항목.보기.map((_,i)=>i));
   body.innerHTML = `
@@ -318,7 +319,7 @@ function 문장배열_렌더(){
   const body = document.getElementById('sq7Body');
   if(!body) return;
   학습진행_다음('sq7');
-  const 항목 = 문장배열풀[Math.floor(Math.random()*문장배열풀.length)];
+  const 항목 = 출제_뽑기(문장배열풀);
   let 순서 = 항목.문장들.map((_,i)=>i);
   do{ // 셔플이 우연히 정답 순서와 같으면 재셔플(4문장 기준이라 드물지 않아 방지)
     셔플(순서);

@@ -34,13 +34,13 @@ load((window) => {
 
   /* ── ③ 학습 콘텐츠 맥락화 ── */
   // sq2 기본값이 이제 예문형(맥락형) — 세션10: 옵션명 "유의어 변별"→"예문형" 통일
-  assert('sq2 기본값 = 예문형', ev('학습설정.sq2') === '예문형');
+  assert('sq2 기본값 = 4지선다(11-07 변경)', ev('학습설정.sq2') === '4지선다');
   const sq2on = Array.from(doc.querySelectorAll('#lsetSq2 .lset-opt')).find(b=>b.classList.contains('on'));
-  assert('sq2 버튼 UI 기본 on = 예문형', sq2on && sq2on.textContent.trim() === '예문형');
+  assert('sq2 버튼 UI 기본 on = 4지선다(11-07 기본 변경)', sq2on && sq2on.textContent.trim() === '4지선다');
 
   // 예문형 — 기존 동작이 리팩터링 후에도 그대로 (엔진 일반화 회귀 확인)
   ev("유의어출제풀=[{예문:'그 일은 [ ] 결과였다.', correct:{w:'필연',def:'반드시 그리됨'}, acceptable:[{w:'숙명',def:'정해진 운명',reason:'유사'}], wrong:[{w:'우연',def:'뜻밖의 일'},{w:'추측',def:'짐작'}]}];");
-  ev("sq2_출제_렌더('고사성어·속담');");
+  ev("학습설정.sq2='예문형'; sq2_출제_렌더('고사성어·속담');");
   assert('예문형: 보기 4개 렌더', doc.querySelectorAll('#sq2Body .syn-opt').length === 4);
   const 정답버튼 = Array.from(doc.querySelectorAll('#sq2Body .syn-opt')).find(b=>b.dataset.kind==='correct');
   const exp0 = ev('사용자.총누적EXP||0');

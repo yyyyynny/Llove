@@ -30,7 +30,7 @@ function renderDad(data){
   const body=document.getElementById('sq4Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재아재풀=data;
-  const g=data[Math.floor(Math.random()*data.length)];
+  const g=출제_뽑기(data);
   현재아재문제 = g;
   아재정답공개됨 = false;
   현재문제_reasoning_note = g.reasoning_note || '';

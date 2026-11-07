@@ -152,6 +152,12 @@ load(async (window) => {
   assert('P0: 문서 로드 실패 후엔 저장이 서버로 가지 않는다', ev("window.__저장.length") === 0 && ev("현재UID") === null);
   ev("fbDb = null");
 
+  // 출제 엔진: 최근에 낸 문항은 다시 안 나오고, 정답 보기가 늘 1번이 아니다
+  const 연속 = ev("histFilter='off'; 최근출제=[]; const 풀=Array.from({length:10},(_,i)=>({q:'문항'+i})); Array.from({length:5},()=>출제_뽑기(풀).q)");
+  assert('출제: 풀 10개에서 연속 5번은 모두 다른 문항', new Set(연속).size === 5, 연속.join(','));
+  const 첫칸정답 = ev("let n=0; for(let i=0;i<40;i++){ renderQuiz('sq3',[{q:'문',cat:'맞춤법',opts:[{t:'정',c:true},{t:'가',c:false},{t:'나',c:false},{t:'다',c:false}]}]); if(document.querySelector('#sq3Body .aopt .otxt').textContent==='정') n++; } n");
+  assert('출제: 정답 보기가 늘 1번에 있지 않다', 첫칸정답 < 40, String(첫칸정답));
+
   // 잇 퍼즐: 바깥(배경)을 누르면 닫힌다
   ev("잇는_퍼즐열기()");
   doc.getElementById('잇는퍼즐Bg').click();

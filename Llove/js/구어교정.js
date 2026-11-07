@@ -114,7 +114,7 @@ function 음성인식_중지(){
 function 구어교정_예문표시(){
   const card=document.getElementById('spkPrompt');
   if(!card || !구어교정풀.length) return;
-  구어교정현재 = 구어교정풀[Math.floor(Math.random()*구어교정풀.length)];
+  구어교정현재 = 출제_뽑기(구어교정풀);
   현재문제_reasoning_note = 구어교정현재.reasoning_note || '';
   card.style.display='block';
   document.getElementById('spkPromptText').textContent = '"' + 구어교정현재.구어 + '"';
