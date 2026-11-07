@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { load, makeHarness } = require('./load.cjs');
 
-load((window) => {
+load(async (window) => {
   const { assert, finish } = makeHarness('UI 개선 — 감사 지적 수정');
   const doc = window.document;
   const ev = (code) => window.eval(code);
@@ -144,6 +144,13 @@ load((window) => {
   ev("document.getElementById('askInp').value='너는 누구야'; sendAsk();");
   assert("심연: 사전 모드에서도 너는 누구는 달성", !!ev("사용자.업적진행도['심연을들여다보는자']"));
   ev("사전모드=false");
+
+  // P0: 사용자 문서를 못 읽으면 이번 접속은 저장하지 않는다(기본값이 서버 기록을 덮지 않게)
+  ev("window.__저장 = []; fbDb = {collection:()=>({doc:()=>({get:()=>Promise.reject(new Error('net')), set:(d)=>{window.__저장.push(d); return Promise.resolve();}})})}; 인증상태_변경({uid:'u1', email:''});");
+  await new Promise(r => setTimeout(r, 20));
+  ev("사용자데이터_저장({레벨:1})");
+  assert('P0: 문서 로드 실패 후엔 저장이 서버로 가지 않는다', ev("window.__저장.length") === 0 && ev("현재UID") === null);
+  ev("fbDb = null");
 
   // 잇 퍼즐: 바깥(배경)을 누르면 닫힌다
   ev("잇는_퍼즐열기()");
