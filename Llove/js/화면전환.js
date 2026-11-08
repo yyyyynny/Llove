@@ -385,6 +385,56 @@ function 키보드접근_보강(뿌리){
   });
 }
 
+/* 모달 접근성(11-08): 오버레이에 role=dialog·aria-modal·제목 연결, 열리면 상자 안 첫 조작 요소로 포커스를 옮기고
+   닫히면 연 자리로 되돌린다. 모달을 여닫는 함수가 여러 파일(classList show 토글)에 흩어져 있어
+   모두가 지나는 공통 지점인 class 변화를 지켜본다 — 여는 함수를 일일이 고치지 않는다.
+   입력창으로 포커스를 주는 모달(이름·질문·이의)은 그쪽 setTimeout이 나중에 덮어쓴다.
+   ponytail: 한계 — Tab이 모달 밖으로 나갈 수 있음(포커스 가두기 없음), 필요하면 keydown Tab 순환 추가 */
+const 대화상자_선택자 = '.ov-bg, .modal-bg, .obj-bg, .ach-detail-bg, .ask-panel';
+const 대화상자_제목선택자 = '.modal-title, .pp-title, .lvup-txt, .ach-d-name, .obj-title, .ask-title, .itneun-badge';
+const 대화상자_초점후보 = 'button:not([disabled]), a[href], select, input[type="range"], input[type="checkbox"], [tabindex="0"]';
+const 대화상자_복귀자리 = new Map();
+function 대화상자_상자(el){ return el.matches('.ask-panel') ? el : el.firstElementChild; }
+function 대화상자_변화(el){
+  const 상자 = 대화상자_상자(el);
+  if(!상자) return;
+  const 지금 = document.activeElement;
+  if(el.classList.contains('show')){
+    if(대화상자_복귀자리.has(el)) return;   // 열린 채 다른 class만 바뀐 경우
+    대화상자_복귀자리.set(el, 지금);
+    // 첫 조작 요소로 — 글 입력칸은 건너뛴다(모바일 자판이 튀어나오지 않게). 숨은 단추는 focus가 실패하니 다음 후보로
+    if(!상자.contains(지금)){
+      for(const 후보 of 상자.querySelectorAll(대화상자_초점후보)){
+        후보.focus({preventScroll:true});
+        if(document.activeElement === 후보) break;
+      }
+    }
+  } else if(대화상자_복귀자리.has(el)){
+    const 자리 = 대화상자_복귀자리.get(el);
+    대화상자_복귀자리.delete(el);
+    // 닫는 동안 사용자가 다른 곳으로 옮겨 간 포커스는 빼앗지 않는다
+    if(자리 && 자리.isConnected && (!지금 || 지금 === document.body || 상자.contains(지금))) 자리.focus({preventScroll:true});
+  }
+}
+function 대화상자_보강(){
+  const 대상 = document.querySelectorAll(대화상자_선택자);
+  대상.forEach((el, i) => {
+    const 상자 = 대화상자_상자(el);
+    if(!상자) return;
+    상자.setAttribute('role', 'dialog');
+    상자.setAttribute('aria-modal', 'true');
+    const 제목 = 상자.querySelector(대화상자_제목선택자);
+    if(제목){
+      if(!제목.id) 제목.id = '대화상자제목' + i;
+      상자.setAttribute('aria-labelledby', 제목.id);
+    }
+  });
+  try{
+    const 관찰 = new MutationObserver(변경들 => new Set(변경들.map(v => v.target)).forEach(대화상자_변화));
+    대상.forEach(el => 관찰.observe(el, { attributes: true, attributeFilter: ['class'] }));
+  }catch(e){ console.warn('[모달] MutationObserver 미지원 — 포커스 이동이 생략됩니다', e); }
+}
+
 function 키보드접근_시작(){
   // ② Enter/Space → click (위임)
   document.addEventListener('keydown', e => {
@@ -411,6 +461,10 @@ function 키보드접근_시작(){
   });
 
   키보드접근_보강(document);
+  대화상자_보강();
+  // 토스트는 보조 기술이 읽어 주게(표시 시간·문구는 테마.js showToastMsg 그대로)
+  const 토스트 = document.getElementById('toast');
+  if(토스트){ 토스트.setAttribute('role', 'status'); 토스트.setAttribute('aria-live', 'polite'); }
 
   // ③ 동적 렌더 자동 보강
   try{
