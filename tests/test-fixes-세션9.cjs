@@ -51,10 +51,13 @@ load((window) => {
 
   // 신규: sq1 예문형 옵션
   assert('sq1에 예문형 버튼 추가됨', Array.from(doc.querySelectorAll('#lsetSq1 .lset-opt')).some(b=>(b.getAttribute('onclick')||'').includes("'sq1','예문형'")));
+  // 2026-11-08: 예문형 표본이 2건뿐이라(3건 미만) 4지선다로 폴백 — 엔진 자체는 아래에서 표본을 직접 넣어 검증
   ev("현재학습모드='상식·어원'; 학습설정.sq1='예문형'; renderQuiz('sq1', __TEST_QUIZ__);");
-  assert('상식·어원 예문형 렌더(맥락 카드)', doc.querySelectorAll('#sq1Body .syn-opt').length === 4);
+  assert('상식·어원 예문형: 표본 부족 시 4지선다 폴백', doc.querySelectorAll('#sq1Body .aopt').length === 4);
   ev("현재학습모드='세계사·신화'; renderQuiz('sq1', __TEST_HISTORY__);");
-  assert('세계사·신화도 예문형 렌더(별도 데이터풀)', doc.querySelectorAll('#sq1Body .syn-opt').length === 4);
+  assert('세계사·신화 예문형: 표본 부족 시 4지선다 폴백', doc.querySelectorAll('#sq1Body .aopt').length === 4);
+  ev("예문형_렌더('sq1Body', 예문형_상식어원[0], ()=>{});");
+  assert('sq1 예문형 엔진 렌더(맥락 카드)', doc.querySelectorAll('#sq1Body .syn-opt').length === 4);
   const exp1 = ev('사용자.총누적EXP||0');
   const 정답1 = doc.querySelector('#sq1Body .syn-opt[data-kind="correct"]');
   ev(`예문형_선택('sq1Body', document.querySelector('#sq1Body .syn-opt[data-kind="correct"]'));`);

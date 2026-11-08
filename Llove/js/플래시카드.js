@@ -23,7 +23,9 @@ function sq2_선다렌더(category, 역방향){
   }
   학습진행_다음('sq2');
   const 정답 = 출제_뽑기(풀);
-  const 오답 = 셔플(풀.filter(c=>c.word !== 정답.word)).slice(0,3);
+  // 뜻이 같거나 한쪽이 다른 쪽을 품는 항목은 오답에서 뺀다 — 정답이 둘인 보기 방지
+  const 뜻 = c => 직접입력_규격(c.meaning), 정답뜻 = 뜻(정답);
+  const 오답 = 셔플(풀.filter(c=>c.word !== 정답.word && !뜻(c).includes(정답뜻) && !정답뜻.includes(뜻(c)))).slice(0,3);
   const 보기 = 셔플([정답, ...오답]);
   현재문제_reasoning_note = 정답.reasoning_note || '';
   // selAns의 복습 대기열 연동을 위해 현재퀴즈문제를 선다형 형식으로 구성.

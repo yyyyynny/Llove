@@ -11,6 +11,7 @@ let 현재퀴즈풀 = null;            // 「다음 문제」 재출제용 풀
 let 현재퀴즈화면 = '';            // sq1 / sq3
 let 현재아재풀 = null;            // 아재개그 재출제용 풀
 let AI대체안내함 = false;          // AI→DB 대체 토스트는 세션당 1회만
+let 예문형부족안내함 = false;      // sq1 예문형 → 4지선다 폴백 토스트도 세션당 1회만
 let 현재퀴즈문제 = null;          // 복습 대기열 연동용 — 현재 표시 중인 퀴즈 문항
 let 현재플래시카드 = null;        // 복습 대기열 연동용 — 현재 표시 중인 카드
 let 퀴즈세션 = {수:0, 오답:0};    // 퍼펙트 세션 판정 — 5문제 단위, 전부 정답 시 +150 (KNOWLEDGE 12·14)
@@ -120,10 +121,14 @@ function renderQuiz(screenId, data){
     showToastMsg(`문항이 부족해 ${sq1 ? '4지선다로' : '선다형으로'} 출제합니다`);
   }
   // 세션9: 「예문형」(sq1 전용) — 단어 단답 대신 예문 맥락으로 판단 (유의어 변별과 동일 엔진 재사용)
+  // 2026-11-08: 표본이 3건 미만이면 주제와 무관한 두 문항만 번갈아 나와 → 4지선다로 폴백(안내는 한 번)
   if(sq1 && 방식 === '예문형'){
     const 예문풀 = (현재학습모드 === '세계사·신화') ? 예문형_세계사신화 : 예문형_상식어원;
-    예문형_렌더('sq1Body', 예문풀[Math.floor(Math.random()*예문풀.length)], ()=>renderQuiz('sq1', data));
-    return;
+    if(예문풀.length >= 3){
+      예문형_렌더('sq1Body', 예문풀[Math.floor(Math.random()*예문풀.length)], ()=>renderQuiz('sq1', data));
+      return;
+    }
+    if(!예문형부족안내함){ showToastMsg('예문형 문항이 아직 부족해 4지선다로 출제합니다'); 예문형부족안내함 = true; }
   }
   // 세션5 버그7: 「직접입력」 — 선택지 대신 답 타이핑 + 정답 비교 / 그 밖엔 선택지(1~N번)
   const 답영역 = 방식 === '직접입력' ? 직접입력_HTML(screenId)
@@ -190,14 +195,29 @@ function 채점_기록(정답여부, 단어, 뜻, 모드){
   세션결과_기록(정답여부);
 }
 
-/* ━━━ 세션5 버그7: 「직접입력」 공용 구현 (sq1 상식·세계사 / sq3 맞춤법) ━━━ */
-// 입력칸 + 제출 버튼 HTML (renderQuiz의 직접입력 분기에서 사용)
-function 직접입력_HTML(screenId){
+/* 4지선다 공용(아재개그·복습) — 보기에 data-정답 표지를 달고, 고르면 맞고 틀림을 표시한다.
+   선다_표시는 이미 골랐으면 false(문제당 1회). sq1·sq2·sq3의 selAns는 결과 상자까지 그려 따로 둔다 */
+function 선다_HTML(보기들, 선택함수){
+  return `<div class="aopts">${보기들.map((b,i)=>`<div class="aopt" data-정답="${b.정?1:0}" onclick="${선택함수}(this,${b.정})"><div class="onum">${i+1}</div><div class="otxt">${문자열_이스케이프(b.t)}</div></div>`).join('')}</div>`;
+}
+function 선다_표시(el, 정답){
+  if(el.parentElement.querySelector('.correct,.wrong')) return false;
+  el.classList.add(정답 ? 'correct' : 'wrong');
+  el.parentElement.querySelectorAll('.aopt').forEach(o=>{
+    if(!정답 && o.dataset.정답==='1') o.classList.add('correct');
+    o.classList.add('disabled');
+  });
+  return true;
+}
+
+/* ━━━ 세션5 버그7: 「직접입력」 공용 구현 (sq1 상식·세계사 / sq3 맞춤법 / 아재개그 / 복습) ━━━ */
+// 입력칸 + 제출 버튼 HTML. 아재개그('dad')·복습('rv')은 자기 제출 함수를 넘긴다
+function 직접입력_HTML(screenId, 제출 = `직접입력_제출('${screenId}')`){
   return `
     <div style="display:flex;gap:8px;margin:4px 0 10px">
       <input class="nm-inp" id="${screenId}DirectInp" placeholder="정답을 직접 입력하세요" style="flex:1;margin:0"
-             onkeydown="if(event.key==='Enter')직접입력_제출('${screenId}')">
-      <button class="btn-acc" style="padding:11px 18px" id="${screenId}DirectBtn" onclick="직접입력_제출('${screenId}')">제출</button>
+             onkeydown="if(event.key==='Enter')${제출}">
+      <button class="btn-acc" style="padding:11px 18px" id="${screenId}DirectBtn" onclick="${제출}">제출</button>
     </div>
     <div id="${screenId}DirectResult"></div>`;
 }

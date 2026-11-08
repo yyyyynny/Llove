@@ -94,7 +94,8 @@ load((window) => {
   assert('#7: sq1 역방향 — 정답 제시+문항 보기', doc.querySelectorAll('#sq1Body .aopt').length >= 2 && doc.getElementById('sq1Body').innerHTML.includes('역방향'));
   ev("renderQuiz('sq1', __TEST_QUIZ__);");
   assert('#7: 역방향 문항 부족 시 4지선다 폴백', doc.getElementById('toast').textContent.includes('부족') && doc.querySelectorAll('#sq1Body .aopt').length === 4);
-  ev("학습설정.sq4_input='4지선다'; renderDad(DAD_GAGS_BY_DIFFICULTY['아↗그거!']);");
+  // 2026-11-08: 오답 보기가 같은 풀의 다른 정답에서 나오므로(임시 표본 폐지) 정답이 4개 이상인 풀로 검증
+  ev("학습설정.sq4_input='4지선다'; renderDad([...DAD_GAGS_BY_DIFFICULTY['아↗그거!'], {q:'가',a:'일',e:''},{q:'나',a:'이',e:''},{q:'다',a:'삼',e:''}]);");
   assert('#7: 아재 4지선다 보기 4개', doc.querySelectorAll('#sq4Body .aopt').length === 4);
   const dExp0 = ev('사용자.총누적EXP||0');
   ev("아재_선다선택(document.querySelector('#sq4Body .aopt[data-정답=\"1\"]'), true);");

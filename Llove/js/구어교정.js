@@ -130,8 +130,9 @@ function 구어교정_다음예문(){
 
 function submitSpk(){
   const txt=document.getElementById('spkInput').value.trim();
-  if(!txt){
-    showToastMsg('입력해 주세요');
+  // 자동 채점이 없으므로(AI 봉인) 최소한 문장다운 길이는 요구한다 — 한두 글자로 보상만 받는 것 방지
+  if(txt.replace(/\s/g,'').length < 5){
+    showToastMsg('격식체로 바꾼 문장을 5자 이상 입력해 주세요');
     return;
   }
   document.getElementById('spkOrigTxt').textContent=txt;
@@ -142,7 +143,7 @@ function submitSpk(){
   }
   // Grok 미연동 단계: 정령왕 예문의 모범답안·포인트와 비교하는 방식으로 동작
   if(구어교정현재){
-    document.getElementById('spkFixTxt').textContent = 구어교정현재.격식;
+    document.getElementById('spkFixTxt').textContent = '모범답안: ' + 구어교정현재.격식;
     document.getElementById('spkTipTxt').textContent = 구어교정현재.포인트 || '';
   } else {
     document.getElementById('spkFixTxt').textContent = '(AI 연동 후 입력 문장에 맞춘 교정안이 제공됩니다)';
@@ -157,5 +158,5 @@ function submitSpk(){
     EXP획득(60, '구어 교정 완료');
     마스터리증가('구어교정횟수');
   }
-  showToastMsg('✓ 분석 완료 — 모범답안과 비교해 보세요');
+  showToastMsg('모범답안과 비교해 보세요 (자동 채점 없음)');
 }

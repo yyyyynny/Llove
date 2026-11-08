@@ -173,7 +173,7 @@ function 복습탭_렌더(wrapId, 머리글, 목록, 빈안내, 메타, 액션, 
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    복습 플레이 — 대기열 항목을 순차적으로 복습 (KNOWLEDGE 7)
-   - 기억남 → 연속정답수 +1 (3회 시 졸업) / 까먹음 → 0으로 초기화
+   - 기억남 → 졸업(세션7 관리자님 지시: 3연속 → 1회로 완화, 상태.js 복습대기열_정답처리) / 까먹음 → 0으로 초기화
    - 1회 완주 시 토큰 +30 충전, 일 3회 한도 (KNOWLEDGE 32 복구 시스템)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 let 복습진행 = null;  // {목록, idx} — null이면 비진행
@@ -199,25 +199,30 @@ function 복습_카드렌더(){
   const 항목 = 복습진행.목록[복습진행.idx];
   if(!항목){ 복습_완료(); return; }
   const 진행률 = Math.round((복습진행.idx / 복습진행.목록.length) * 100);
+  // 대기열 항목은 사용자 입력·문항 데이터가 섞여 들어오므로 innerHTML 전 이스케이프
+  const 단어 = 문자열_이스케이프(항목.단어), 뜻 = 문자열_이스케이프(항목.뜻);
+  const 태그 = `<div class="qcat"><span class="tag ${문자열_이스케이프(항목.모드클래스)}">${문자열_이스케이프(항목.모드)}</span></div>`;
   const 머리 = `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 8px">
       <span style="font-size:13px;color:var(--txt2);font-weight:600">복습 ${복습진행.idx+1} / ${복습진행.목록.length}</span>
     </div>
     <div class="exp-track" style="margin-bottom:14px"><div class="exp-fill instant" style="width:${진행률}%"></div></div>`;
 
-  // ── 4지선다: 단어 제시 → 뜻 4개(대기열의 다른 뜻으로 오답 구성, 후보 부족 시 카드 폴백)
+  // ── 4지선다: 원래 문항처럼 뜻(=문제·뜻풀이)을 제시 → 단어(=정답) 4개 중 고르기.
+  //    대기열은 어느 모드든 단어=정답, 뜻=문제로 쌓인다(채점_기록). 종전엔 방향이 반대라 퀴즈 문제 문장이 보기로 나왔다.
+  //    오답은 대기열의 다른 단어, 같은 모드를 먼저(후보 부족 시 카드 폴백)
   if(학습설정.srp === '4지선다'){
-    const 후보 = 복습데이터.대기열.filter(x=>x.단어!==항목.단어 && x.뜻).map(x=>x.뜻);
+    const 후보 = 셔플(복습데이터.대기열.filter(x=>x.단어 && 직접입력_규격(x.단어)!==직접입력_규격(항목.단어)))
+      .sort((a,b)=>(b.모드===항목.모드)-(a.모드===항목.모드));
     if(후보.length >= 1){
-      const 오답 = 셔플(후보).slice(0,3);
-      const 보기들 = 셔플([...오답.map(t=>({t, 정:false})), {t:항목.뜻, 정:true}]);
+      const 보기들 = 셔플([...후보.slice(0,3).map(x=>({t:x.단어, 정:false})), {t:항목.단어, 정:true}]);
       wrap.innerHTML = 머리 + `
         <div class="qcard" style="margin-top:4px">
-          <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
-          <div class="q-question" style="font-size:calc(20px*var(--글자배율));margin-top:6px">${항목.단어}</div>
-          <div class="q-hint">알맞은 뜻을 고르세요</div>
+          ${태그}
+          <div class="q-question" style="margin-top:6px">${뜻}</div>
+          <div class="q-hint">알맞은 답을 고르세요</div>
         </div>
-        <div class="aopts">${보기들.map((b,i)=>`<div class="aopt" data-정답="${b.정?1:0}" onclick="복습_선다선택(this,${b.정})"><div class="onum">${i+1}</div><div class="otxt">${b.t}</div></div>`).join('')}</div>`;
+        ${선다_HTML(보기들, '복습_선다선택')}`;
       return;
     }
     showToastMsg('보기 후보가 부족해 카드 보기로 진행합니다');
@@ -227,23 +232,20 @@ function 복습_카드렌더(){
   if(학습설정.srp === '직접입력'){
     wrap.innerHTML = 머리 + `
       <div class="qcard" style="margin-top:4px">
-        <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
-        <div class="q-question" style="margin-top:6px">${항목.뜻}</div>
+        ${태그}
+        <div class="q-question" style="margin-top:6px">${뜻}</div>
         <div class="q-hint">이 뜻에 해당하는 단어를 입력하세요</div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <input class="nm-inp" id="rvDirectInp" placeholder="단어 입력" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')복습_직접제출()">
-        <button class="btn-acc" style="padding:11px 18px" id="rvDirectBtn" onclick="복습_직접제출()">제출</button>
-      </div>`;
+      ${직접입력_HTML('rv', '복습_직접제출()')}`;
     return;
   }
 
   // ── 기본: 카드 보기 (기존 방식)
   wrap.innerHTML = 머리 + `
     <div class="qcard" style="margin-top:4px;padding:26px 20px">
-      <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
-      <div class="q-question" style="font-size:calc(20px*var(--글자배율));margin-top:6px">${항목.단어}</div>
-      <div id="rvAnswer" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--bdr);font-size:14px;color:var(--txt2);line-height:1.8">${항목.뜻}</div>
+      ${태그}
+      <div class="q-question" style="font-size:calc(20px*var(--글자배율));margin-top:6px">${단어}</div>
+      <div id="rvAnswer" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--bdr);font-size:14px;color:var(--txt2);line-height:1.8">${뜻}</div>
     </div>
     <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:14px" onclick="복습_뜻공개()">뜻 보기</button>
     <div id="rvJudge" style="display:none;gap:8px;margin-top:12px">
@@ -255,11 +257,7 @@ function 복습_카드렌더(){
 
 /* 세션7 항목5: 복습 4지선다 선택 처리 — 정답/오답 표시 후 기존 판정 흐름으로 위임 */
 function 복습_선다선택(el, 정답){
-  if(el.parentElement.querySelector('.correct,.wrong')) return;
-  el.classList.add(정답 ? 'correct' : 'wrong');
-  if(!정답) el.parentElement.querySelectorAll('.aopt').forEach(o=>{ if(o.dataset.정답==='1') o.classList.add('correct'); });
-  el.parentElement.querySelectorAll('.aopt').forEach(o=>o.classList.add('disabled'));
-  setTimeout(()=>복습_판정(정답), 700);
+  if(선다_표시(el, 정답)) setTimeout(()=>복습_판정(정답), 700);
 }
 /* 세션7 항목5: 복습 직접입력 제출 — 단어 느슨 비교 후 판정 위임 */
 function 복습_직접제출(){
@@ -304,7 +302,9 @@ function 복습_중단(){
 }
 
 function 복습_완료(){
+  const 보상없음 = 복습진행?.보상없음;
   복습진행 = null;
+  if(보상없음){ goNav('sr', null); renderReview(); showToastMsg('다시 풀기 완료'); return; }  // 즐겨찾기 한 항목 다시 풀기는 토큰 충전 없음
   학습일갱신();
   // 토큰 +30 충전 — 일 3회 한도 (KNOWLEDGE 32). 한도 추적 필드는 한글 신규: 복습복구횟수·복습복구날짜
   const 오늘 = 오늘날짜_로컬(0);
@@ -374,9 +374,13 @@ function 대기열_휴지통이동(id){
 
 /* ━━━ 즐겨찾기 액션 ━━━ */
 
+// 즐겨찾기 한 항목을 복습 플레이(현재 복습 방식)로 한 번 출제 — 대기열 복습과 같은 화면·판정
 function 즐겨찾기_다시풀기(id){
-  // 서브컬렉션 연동(즐겨찾기 항목 ↔ 문제 풀 매핑) 후 실제 재출제 연결 예정
-  showInfoModal('🔁','다시 풀기','이 문제를 다시 출제합니다.<br><br>🔧 문제 풀 매핑 구축 후 제공됩니다 (다음 빌드).');
+  const item = 복습데이터.즐겨찾기.find(x=>x.id===id);
+  if(!item) return;
+  복습진행 = { 목록: [item], idx: 0, 보상없음: true };
+  goNav('srp', null);
+  복습_카드렌더();
 }
 
 function 즐겨찾기_유사문제(id){

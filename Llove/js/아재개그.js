@@ -9,9 +9,6 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 let 현재아재문제 = null;   // 세션5: 직접입력 비교용 현재 문항
 let 아재정답공개됨 = false; // 세션5: revealDad 중복 호출 → EXP 반복 획득 방지
-/* 세션7 항목7: 아재개그 4지선다용 오답 표본 (임시 — data/아재개그.json이 채워지면
-   실제 풀의 정답들로 대체하고 이 배열은 제거. 세션3 임시보기 패턴과 동일한 관리 방침) */
-const 아재_오답표본 = ['치타','적운형 구름','데이비드 (또는 루시)','오리너구리','붕어빵','참을 인(忍)','옆집 백구','고구마 라떼'];
 /* 재구조화 이후 발견한 불일치 수정: data/아재개그.json(DB문제['아재개그'])이 로드돼도
    기존엔 여기 없는 DAD_GAGS_BY_DIFFICULTY(js/복습.js)만 렌더에 쓰여 실제 앱에 반영되지 않았다.
    난이도별 큐레이션 문항은 유지하고, JSON 항목을 항목별 난이도 필드(기본값 '아↗그거!')로
@@ -34,17 +31,18 @@ function renderDad(data){
   현재아재문제 = g;
   아재정답공개됨 = false;
   현재문제_reasoning_note = g.reasoning_note || '';
-  // 세션7 항목7: 「4지선다」 실구현 — 오답은 다른 개그 정답+임시 표본에서 구성
-  if(학습설정.sq4_input === '4지선다'){
-    const 정답텍스트 = g.a;
-    const 오답들 = 셔플(아재_오답표본
-      .filter(t => 직접입력_규격(t) !== 직접입력_규격(정답텍스트))).slice(0,3);
-    const 보기들 = 셔플([...오답들.map(t=>({t, 정:false})), {t:정답텍스트, 정:true}]);
+  // 세션7 항목7: 「4지선다」 — 오답은 같은 풀의 다른 문항 정답 3개(허용 정답과 겹치는 것 제외).
+  // 다른 정답이 하나도 없으면(데이터 미로드) 아래 플래시카드로 낸다
+  const 정답들 = [g.a, ...(g.허용 || [])].map(직접입력_규격);
+  const 오답들 = 학습설정.sq4_input === '4지선다'
+    ? 셔플([...new Set(data.map(x=>x.a))].filter(t => !정답들.includes(직접입력_규격(t)))).slice(0,3) : [];
+  if(오답들.length){
+    const 보기들 = 셔플([...오답들.map(t=>({t, 정:false})), {t:g.a, 정:true}]);
     body.innerHTML=`
       <div class="dad-card">
         <div class="qcat" style="margin-bottom:8px"><span class="tag tp">아재개그</span></div>
         <div class="dad-q">${g.q}</div>
-        <div class="aopts" style="margin-top:6px">${보기들.map((b,i)=>`<div class="aopt" data-정답="${b.정?1:0}" onclick="아재_선다선택(this,${b.정})"><div class="onum">${i+1}</div><div class="otxt">${b.t}</div></div>`).join('')}</div>
+        ${선다_HTML(보기들, '아재_선다선택')}
         <div class="dad-answer" id="dadAns">
           <div class="dad-a-text">${g.a}</div>
           <div class="dad-a-explain">${g.e}</div>
@@ -60,11 +58,7 @@ function renderDad(data){
       <div class="dad-card">
         <div class="qcat" style="margin-bottom:8px"><span class="tag tp">아재개그</span></div>
         <div class="dad-q">${g.q}</div>
-        <div style="display:flex;gap:8px;margin:4px 0 10px">
-          <input class="nm-inp" id="dadDirectInp" placeholder="정답을 맞혀보세요" style="flex:1;margin:0"
-                 onkeydown="if(event.key==='Enter')아재_직접제출()">
-          <button class="btn-acc" style="padding:11px 18px" id="dadDirectBtn" onclick="아재_직접제출()">제출</button>
-        </div>
+        ${직접입력_HTML('dad', '아재_직접제출()')}
         <div class="dad-answer" id="dadAns">
           <div class="dad-a-text">${g.a}</div>
           <div class="dad-a-explain">${g.e}</div>
@@ -91,26 +85,27 @@ function renderDad(data){
 function 아재_다음문제(){
   if(현재아재풀) renderDad(현재아재풀);
 }
-function revealDad(){
+/* 정답 공개 — 문제당 1회. 플래시카드(정답여부 없음)는 공개만으로 보상,
+   4지선다·직접입력은 맞혔을 때만 EXP를 주고 채점_기록(복습 대기열·연속 정답·세션·마스터리)에 남긴다
+   (종전엔 틀려도 EXP를 주고 채점 기록이 없었다) */
+function revealDad(정답여부){
   // 세션5: 문제당 1회만 — 중복 호출 시 EXP 반복 획득 차단
   if(아재정답공개됨) return;
   아재정답공개됨 = true;
   document.getElementById('dadAns').classList.add('show');
   const btn=document.getElementById('dadBtn');
   if(btn) btn.style.display='none';
-  // 빌드1: 실제 EXP 획득 + 마스터리(아재개그학습수) +1
-  const 획득 = EXP획득(아재_보상(), '아재개그');
-  showExpFloat(document.querySelector('.dad-card'),'+'+획득);
-  마스터리증가('아재개그학습수');
-  마스터리증가('총누적어휘수');
+  const 채점 = typeof 정답여부 === 'boolean';
+  if(!채점 || 정답여부){
+    const 획득 = EXP획득(아재_보상(), '아재개그');
+    showExpFloat(document.querySelector('.dad-card'),'+'+획득);
+  }
+  if(채점) 채점_기록(정답여부, 현재아재문제.a, 현재아재문제.q, '아재개그');
+  else { 마스터리증가('아재개그학습수'); 마스터리증가('총누적어휘수'); }
 }
-/* 세션7 항목7: 아재개그 4지선다 선택 — 정답/오답 표시 후 해설 공개(EXP는 revealDad 1회 잠금 공유) */
+/* 세션7 항목7: 아재개그 4지선다 선택 — 정답/오답 표시 후 해설 공개 */
 function 아재_선다선택(el, 정답){
-  if(el.parentElement.querySelector('.correct,.wrong')) return;
-  el.classList.add(정답 ? 'correct' : 'wrong');
-  if(!정답) el.parentElement.querySelectorAll('.aopt').forEach(o=>{ if(o.dataset.정답==='1') o.classList.add('correct'); });
-  el.parentElement.querySelectorAll('.aopt').forEach(o=>o.classList.add('disabled'));
-  revealDad();   // 맞고 틀림은 보기 색으로, 해설은 아래 정답 공개로 화면 안에 보인다(종전 토스트 중복 제거)
+  if(선다_표시(el, 정답)) revealDad(정답);   // 맞고 틀림은 보기 색으로, 해설은 아래 정답 공개로 화면 안에 보인다
 }
 /* 세션5 버그7: 아재개그 직접입력 제출 — 느슨 비교 후 정답 공개(EXP는 revealDad 1회 잠금 공유) */
 function 아재_직접제출(){
@@ -121,5 +116,5 @@ function 아재_직접제출(){
     ? 현재아재문제.허용 : [현재아재문제?.a];
   const 맞음 = 직접입력_규격(입력)!=='' && 후보.some(ans => 직접입력_규격(입력) === 직접입력_규격(ans));
   showToastMsg(맞음 ? '🎉 정답! 센스가 대단합니다' : '😄 아쉽! 정답을 확인하세요');
-  revealDad();
+  revealDad(맞음);
 }
