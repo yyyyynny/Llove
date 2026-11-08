@@ -16,22 +16,22 @@ const ACH_DATA=[
   ]},
   // 숙련
   {sec:'숙련', items:[
-    {key:'perfect', name:'다섯 문제 만점', icon:'🏅', cat:'숙련 · 7단계',
+    {key:'perfect', name:'완벽주의자', icon:'🏅', cat:'숙련 · 7단계',
      desc:'다섯 문제를 이어서 모두 맞히면 1회로 세요'},
-    {key:'speech', name:'격식 있는 말', icon:'🎙️', cat:'숙련 · 7단계',
+    {key:'speech', name:'말의 품격', icon:'🎙️', cat:'숙련 · 7단계',
      desc:'구어 교정 예문을 하나 마칠 때마다 1회로 세요'}
   ]},
   // 탐구
   {sec:'탐구', items:[
     {key:'know', name:'상식 쌓기', icon:'🌍', cat:'탐구 · 7단계',
      desc:'상식·어원 문제를 풀 때마다 1회로 세요'},
-    {key:'root', name:'옛말과 우리말', icon:'📜', cat:'탐구 · 7단계',
+    {key:'root', name:'언어의 뿌리', icon:'📜', cat:'탐구 · 7단계',
      desc:'고사성어·속담·한자·우리말 문제를 풀 때마다 1회로 세요'},
     {key:'history', name:'역사와 신화', icon:'🏛️', cat:'탐구 · 7단계',
      desc:'세계사·신화 문제를 풀 때마다 1회로 세요'},
     {key:'spell', name:'맞춤법 다지기', icon:'✏️', cat:'탐구 · 7단계',
      desc:'맞춤법 문제를 풀 때마다 1회로 세요'},
-    {key:'dad', name:'아재개그 감각', icon:'😂', cat:'탐구 · 7단계',
+    {key:'dad', name:'아재력', icon:'😂', cat:'탐구 · 7단계',
      desc:'아재개그 문제를 풀 때마다 1회로 세요'},
     {key:'vocab', name:'어휘 모으기', icon:'📖', cat:'탐구 · 7단계',
      desc:'지금까지 익힌 단어 수예요. 복습을 마쳐도 줄지 않아요'}
@@ -43,7 +43,7 @@ const ACH_DATA=[
   ]},
   // 숨은 업적 — 달성 전엔 이름 대신 「???」와 hint만 보인다(업적_공개). ai:true는 AI 기능이 켜져야 보인다(업적_보임)
   {sec:'숨은 업적', items:[
-    {key:'reb', name:'근거 있는 반박', icon:'⚡', cat:'숨은 업적 · 7단계', ai:true,
+    {key:'reb', name:'이의 있음!', icon:'⚡', cat:'숨은 업적 · 7단계', ai:true,
      hint:'틀렸다고 생각하는 문제가 있다면…',
      desc:'이의 제기가 받아들여질 때마다 1회로 세요'},
     {key:'night', name:'새벽 공부', icon:'🌙', cat:'숨은 업적 · 7단계',
@@ -52,13 +52,13 @@ const ACH_DATA=[
     {key:'asker', name:'질문 습관', icon:'💬', cat:'숨은 업적 · 7단계',
      hint:'궁금한 건 물어보세요',
      desc:'질문하기를 쓸 때마다 1회로 세요'},
-    {key:'abyss', name:'정체를 묻는 질문', icon:'👁️', cat:'숨은 업적 · 한 번',
+    {key:'abyss', name:'너는 누구니?', icon:'👁️', cat:'숨은 업적 · 한 번',
      hint:'질문하기에 조금 엉뚱한 걸 물어보세요',
      desc:'질문하기에서 「너는 누구야」처럼 정체를 물으면 받아요', progress:'+150 EXP', single:true},
     {key:'will', name:'세 번째에 정답', icon:'💪', cat:'숨은 업적 · 한 번',
      hint:'틀려도 포기하지 마세요',
      desc:'두 번 연달아 틀린 뒤 바로 다음 문제를 맞히면 받아요', progress:'+120 EXP', single:true},
-    {key:'deep', name:'30분 집중', icon:'🦉', cat:'숨은 업적 · 한 번',
+    {key:'deep', name:'몰입의 30분', icon:'🦉', cat:'숨은 업적 · 한 번',
      hint:'한자리에서 오래 공부해 보세요',
      desc:'문제 사이를 5분 넘게 쉬지 않고 30분 이상 이어서 공부하면 받아요', progress:'+150 EXP', single:true},
     {key:'border', name:'선을 넘은 질문', icon:'🚧', cat:'숨은 업적 · 한 번', ai:true,
