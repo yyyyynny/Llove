@@ -17,7 +17,7 @@ function sq2_선다렌더(category, 역방향){
   const 풀 = 출제_분기(category);
   if(풀.length < 4){
     // 보기 표본 부족 시 안전 폴백 — 플래시카드로 출제 (기능 누락 방지)
-    showToastMsg('보기 표본이 부족해 플래시카드로 출제합니다');
+    showToastMsg('보기가 부족해 플래시카드로 낼게요');
     renderFlashcard(풀);
     return;
   }
@@ -92,7 +92,7 @@ function sq2_뜻서술_공개(){
   }
 }
 function renderFlashcard(data){
-  if(!data || !data.length){ showToastMsg('문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
+  if(!data || !data.length){ showToastMsg('문제를 불러오는 중이에요. 잠시 뒤 다시 해 주세요.'); return; }
   학습진행_다음('sq2');
   const body=document.getElementById('sq2Body');
   const c=출제_뽑기(data);
@@ -108,7 +108,7 @@ function renderFlashcard(data){
         <div class="fc-front-tag"><span class="tag ta">${c.cat}</span></div>
         <div class="fc-word">${c.word}</div>
         <div class="fc-hanja-mark">${c.mark}</div>
-        <div class="fc-hint">탭하면 뜻이 공개됩니다</div>
+        <div class="fc-hint">누르면 뜻이 보여요</div>
       </div>
       <div class="fc-back" id="fcBack">
         <div class="fc-row"><div class="fc-row-num">① 읽기</div><div class="fc-reading">${c.reading}</div></div>

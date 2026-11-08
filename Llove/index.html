@@ -6,15 +6,23 @@
 <!-- 항목8: 구어 교정 음성 입력 구현을 위해 마이크 차단(microphone=()) 메타 제거.
      이전 빌드는 음성 입력을 의도적으로 막았으나, 최고 관리자님 지시로 Web Speech API 음성 입력을 허용한다. -->
 <title>Llove</title>
-<!-- 파비콘(외부 파일 없이 data URI) — 없으면 브라우저가 favicon.ico를 자동 요청해 404 콘솔 에러 발생 -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
+<!-- 파비콘: 아이콘 묶음의 #i-book을 페이퍼 테마 색으로. apple-touch-icon은 SVG를 못 읽어 생략(PNG가 생기면 추가) -->
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <meta name="application-name" content="Llove">
 <!-- 브라우저 주소창·상태 표시줄 색 — 테마를 바꾸면 setTheme이 --bg로 갱신 -->
 <meta name="theme-color" content="#ede8df">
 <meta property="og:title" content="Llove">
 <meta property="og:description" content="한국어 어휘력과 표현력을 게임처럼 키우는 학습 앱">
 <meta name="description" content="한국어 어휘력과 표현력을 게임처럼 키우는 학습 앱">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yyyyynny.github.io/Llove/">
+<!-- og:image는 생략 — 공유용 이미지가 아직 없음 -->
+<meta name="twitter:card" content="summary">
 
+<!-- 폰트 CDN 연결을 미리 열어 첫 글꼴 표시를 앞당긴다 -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- v3.7 항목6: 확정 폰트 CDN 4개 (KNOWLEDGE 19섹션) -->
 <link href="https://cdn.jsdelivr.net/font-nanum/1.0/nanumgothic/nanumgothic.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/font-nanum/1.0/nanummyeongjo/nanummyeongjo.css" rel="stylesheet">
@@ -26,7 +34,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Gowun+Batang:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <!-- 재구조화: 전체 스타일을 style.css로 분리 (기존 인라인 <style> 24~938줄) -->
-<link rel="stylesheet" href="style.css?v=2026110804">
+<link rel="stylesheet" href="style.css?v=2026110805">
 
 <!-- Firebase Compat SDK (KNOWLEDGE 13·28 — 구글 로그인 + Firestore 동기화). compat 방식: 전역 firebase 객체 사용 -->
 <!-- 버전은 필요 시 교체 가능 -->
@@ -539,8 +547,7 @@
           <button class="lset-opt" onclick="setLsetMode('sq1','직접입력',this)">직접입력</button>
           <button class="lset-opt" onclick="setLsetMode('sq1','플래시카드',this)">플래시카드</button>
           <button class="lset-opt" onclick="setLsetMode('sq1','역방향',this)">역방향</button>
-          <!-- 세션9: 맥락형(예문 빈칸) 신설 — 단어 단답 위주에서 벗어나기 위한 1단계 확장 -->
-          <button class="lset-opt" onclick="setLsetMode('sq1','예문형',this)">예문형</button>
+          <!-- 11-08: 예문형은 표본이 2건뿐이라 숨김(퀴즈엔진.js 분기는 유지) — 표본이 늘면 이 버튼을 되살린다 -->
         </div>
       </div>
     </div>
@@ -817,11 +824,11 @@
           <div class="spk-voice-transcript" id="spkVoiceTranscript"></div>
         </div>
       </div>
-      <button class="btn-acc spk-submit" onclick="submitSpk()">분석하기</button>
+      <button class="btn-acc spk-submit" onclick="submitSpk()">모범답안 보기</button>
     </div>
 
     <div class="spk-result" id="spkResult">
-      <div class="spk-result-title">교정 결과</div>
+      <div class="spk-result-title">모범답안</div>
       <div class="spk-orig" id="spkOrigTxt"></div>
       <div class="spk-fix" id="spkFixTxt"></div>
       <div class="spk-tip" id="spkTipTxt"></div>
@@ -1164,30 +1171,30 @@
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore-compat.js"></script>
-<script src="js/상태.js?v=2026110804"></script>
-<script src="js/데이터로드.js?v=2026110804"></script>
-<script src="js/화면전환.js?v=2026110804"></script>
-<script src="js/온보딩.js?v=2026110804"></script>
-<script src="js/firebase.js?v=2026110804"></script>
-<script src="js/레벨.js?v=2026110804"></script>
-<script src="js/grok.js?v=2026110804"></script>
-<script src="js/사전.js?v=2026110804"></script>
-<script src="js/토큰.js?v=2026110804"></script>
-<script src="js/퀴즈엔진.js?v=2026110804"></script>
-<script src="js/플래시카드.js?v=2026110804"></script>
-<script src="js/유의어변별.js?v=2026110804"></script>
-<script src="js/아재개그.js?v=2026110804"></script>
-<script src="js/구어교정.js?v=2026110804"></script>
-<script src="js/복습.js?v=2026110804"></script>
-<script src="js/업적.js?v=2026110804"></script>
-<script src="js/채팅.js?v=2026110804"></script>
-<script src="js/테마.js?v=2026110804"></script>
-<script src="js/슬라이드.js?v=2026110804"></script>
-<script src="js/개발자모드.js?v=2026110804"></script>
-<script src="js/이의있음.js?v=2026110804"></script>
-<script src="js/커스터마이징.js?v=2026110804"></script>
-<script src="js/성장상세.js?v=2026110804"></script>
-<script src="js/잇는.js?v=2026110804"></script>
-<script src="js/초기실행.js?v=2026110804"></script>
+<script src="js/상태.js?v=2026110805"></script>
+<script src="js/데이터로드.js?v=2026110805"></script>
+<script src="js/화면전환.js?v=2026110805"></script>
+<script src="js/온보딩.js?v=2026110805"></script>
+<script src="js/firebase.js?v=2026110805"></script>
+<script src="js/레벨.js?v=2026110805"></script>
+<script src="js/grok.js?v=2026110805"></script>
+<script src="js/사전.js?v=2026110805"></script>
+<script src="js/토큰.js?v=2026110805"></script>
+<script src="js/퀴즈엔진.js?v=2026110805"></script>
+<script src="js/플래시카드.js?v=2026110805"></script>
+<script src="js/유의어변별.js?v=2026110805"></script>
+<script src="js/아재개그.js?v=2026110805"></script>
+<script src="js/구어교정.js?v=2026110805"></script>
+<script src="js/복습.js?v=2026110805"></script>
+<script src="js/업적.js?v=2026110805"></script>
+<script src="js/채팅.js?v=2026110805"></script>
+<script src="js/테마.js?v=2026110805"></script>
+<script src="js/슬라이드.js?v=2026110805"></script>
+<script src="js/개발자모드.js?v=2026110805"></script>
+<script src="js/이의있음.js?v=2026110805"></script>
+<script src="js/커스터마이징.js?v=2026110805"></script>
+<script src="js/성장상세.js?v=2026110805"></script>
+<script src="js/잇는.js?v=2026110805"></script>
+<script src="js/초기실행.js?v=2026110805"></script>
 </body>
 </html>

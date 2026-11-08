@@ -83,7 +83,7 @@ function 학습진행_다음(screenId){
 function 출제_분기(category){
   const 방식 = 출제방식_결정();
   if(방식 === 'ai' && !GROK_활성화 && !AI대체안내함){
-    showToastMsg('AI 출제는 준비 중이라 기본 문제로 냅니다');
+    showToastMsg('AI 출제는 준비 중이라 기본 문제로 낼게요');
     AI대체안내함 = true;
   }
   // DB 풀: data/ JSON 문항 (미적재·로드 실패면 빈 배열 — 렌더 함수들이 빈 배열을 안전하게 처리)
@@ -104,7 +104,7 @@ function 다음문제(){
 /* 선택형 문제 렌더 — sq1(상식·어원/세계사·신화, 4지선다)·sq3(맞춤법, 4지선다) 공용.
    두 화면은 태그 색·AI 출제 표시·힌트 줄·예문형 지원만 다르다. */
 function renderQuiz(screenId, data){
-  if(!data || !data.length){ showToastMsg('문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
+  if(!data || !data.length){ showToastMsg('문제를 불러오는 중이에요. 잠시 뒤 다시 해 주세요.'); return; }
   학습진행_다음(screenId);
   const sq1 = screenId === 'sq1', 방식 = 학습설정[screenId];
   배지_방식표시(screenId + 'Mode', 방식);
@@ -118,7 +118,7 @@ function renderQuiz(screenId, data){
   if(방식 === '플래시카드'){ 퀴즈_플래시렌더(screenId, q); return; }
   if(방식 === '역방향'){
     if(data.length >= 2){ 퀴즈_역방향렌더(screenId, q, data); return; }
-    showToastMsg(`문항이 부족해 ${sq1 ? '4지선다로' : '선다형으로'} 출제합니다`);
+    showToastMsg(`문항이 부족해 ${sq1 ? '4지선다로' : '선다형으로'} 낼게요`);
   }
   // 세션9: 「예문형」(sq1 전용) — 단어 단답 대신 예문 맥락으로 판단 (유의어 변별과 동일 엔진 재사용)
   // 2026-11-08: 표본이 3건 미만이면 주제와 무관한 두 문항만 번갈아 나와 → 4지선다로 폴백(안내는 한 번)
@@ -128,7 +128,7 @@ function renderQuiz(screenId, data){
       예문형_렌더('sq1Body', 예문풀[Math.floor(Math.random()*예문풀.length)], ()=>renderQuiz('sq1', data));
       return;
     }
-    if(!예문형부족안내함){ showToastMsg('예문형 문항이 아직 부족해 4지선다로 출제합니다'); 예문형부족안내함 = true; }
+    if(!예문형부족안내함){ showToastMsg('예문형 문항이 아직 부족해 4지선다로 낼게요'); 예문형부족안내함 = true; }
   }
   // 세션5 버그7: 「직접입력」 — 선택지 대신 답 타이핑 + 정답 비교 / 그 밖엔 선택지(1~N번)
   const 답영역 = 방식 === '직접입력' ? 직접입력_HTML(screenId)

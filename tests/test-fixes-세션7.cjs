@@ -106,7 +106,7 @@ load((window) => {
   assert('#8: 랜덤 카드에 ⚙', Array.from(doc.querySelectorAll('.mc span')).some(s=>(s.getAttribute('onclick')||'').includes('랜덤설정_열기')));
   ev("랜덤학습_모드목록.forEach(m=>랜덤_가중치설정(m[0],0)); closeInfoModal();");
   ev('랜덤학습();');
-  assert('#8: 전부 제외 시 진입 안 함+안내', doc.getElementById('toast').textContent.includes('제외'), doc.getElementById('toast').textContent);
+  assert('#8: 전부 제외 시 진입 안 함+안내', doc.getElementById('toast').textContent.includes('빠져'), doc.getElementById('toast').textContent);
   ev("랜덤_가중치설정('맞춤법',3); closeInfoModal(); 랜덤학습();");
   assert('#8: 유일 후보(맞춤법)로 진입', ev('현재학습모드') === '맞춤법');
   assert('#8: plx_랜덤설정 저장', (window.localStorage.getItem('plx_랜덤설정')||'').includes('맞춤법'));

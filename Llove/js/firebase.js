@@ -52,19 +52,19 @@ function 구글로그인(){
     let 안내;
     switch(e && e.code){
       case 'auth/unauthorized-domain':
-        안내 = '이 도메인이 Firebase 승인 목록에 없어 로그인 창이 닫혔습니다. (콘솔 → Authentication → 승인된 도메인에 현재 주소 추가 필요)';
+        안내 = '이 주소에서는 아직 로그인할 수 없어요. 잠시 뒤 다시 해 주세요.';
         break;
       case 'auth/popup-blocked':
-        안내 = '브라우저가 팝업을 차단했습니다. 팝업 허용 후 다시 시도해 주세요.';
+        안내 = '브라우저가 팝업을 막았어요. 팝업을 허용한 뒤 다시 해 주세요.';
         break;
       case 'auth/popup-closed-by-user':
-        안내 = '로그인 창이 닫혔습니다. 다시 시도해 주세요.';
+        안내 = '로그인 창이 닫혔어요. 다시 해 주세요.';
         break;
       case 'auth/operation-not-allowed':
-        안내 = 'Firebase 콘솔에서 Google 로그인 제공업체가 비활성 상태입니다.';
+        안내 = '지금은 구글 로그인을 쓸 수 없어요. 잠시 뒤 다시 해 주세요.';
         break;
       default:
-        안내 = '구글 로그인 실패: ' + ((e && e.code) || (e && e.message) || '알 수 없는 오류');
+        안내 = '구글 로그인에 실패했어요. 잠시 뒤 다시 해 주세요.'  // 오류 코드는 위 console.error에;
     }
     showToastMsg(안내);
   });
@@ -73,7 +73,7 @@ function 구글로그인(){
 // 로그아웃 (설정 화면)
 function 로그아웃(){
   if(!현재UID){ 구글로그인(); return; }   // 둘러보기(비로그인) 중엔 같은 행이 「로그인」
-  showConfirmModal('🚪','로그아웃','정말 로그아웃 하시겠습니까?','로그아웃', 로그아웃실행);
+  showConfirmModal('🚪','로그아웃','로그아웃할까요?','로그아웃', 로그아웃실행);
 }
 function 로그아웃실행(){
   if(!fbAuth){ console.error('[Firebase] auth 미초기화'); return; }

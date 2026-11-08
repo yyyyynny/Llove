@@ -19,7 +19,7 @@ load((win) => {
   assert('1440px 이상 홈 4열', /@media \(min-width:1440px\)\{\s*\.hs\{grid-template-columns:repeat\(4,1fr\)\}/.test(css));
   const 줄임 = css.match(/@media \(prefers-reduced-motion: reduce\) \{([\s\S]*?)\n\}/);
   assert('동작 줄이기에서 등장 지연을 0으로', 줄임 && /animation-delay: 0s !important/.test(줄임[1]));
-  assert('동작 줄이기에서 장식용 무한 애니메이션 정지', 줄임 && /\.sub-jushin \{ animation: none !important; \}/.test(줄임[1]));
+  assert('동작 줄이기에서 장식용 무한 애니메이션 정지', 줄임 && /\.status-sub-title\.creator \{ animation: none !important; \}/.test(줄임[1]));
 
   /* ── 모달: role·aria-modal·제목 연결 ── */
   const 상자들 = [...d.querySelectorAll('.ov-bg, .modal-bg, .obj-bg, .ach-detail-bg')].map(e => e.firstElementChild)

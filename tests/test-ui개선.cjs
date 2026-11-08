@@ -184,5 +184,22 @@ load(async (window) => {
   둘러보기.click();
   assert('둘러보기: 홈으로 들어가고 계정 행이 로그인', ev('curScreen') === 'sh' && doc.querySelector('[onclick="로그아웃()"] .srl').textContent === '로그인');
 
+  // 2026-11-08 2차 정리: 남은 문구·봉인 기능 숨김
+  ev("setLsetMode('sq4','UP¡¿', document.querySelector(\"#lsetSq4 [onclick*='UP']\"))");
+  assert('아재 난이도 토스트는 버튼 라벨(어려움)로', doc.getElementById('toast').textContent === '난이도: 어려움', doc.getElementById('toast').textContent);
+  ev("복습데이터.즐겨찾기=[{id:'f1',단어:'가렴주구',뜻:'뜻',모드:'고사성어·속담',모드클래스:'tp'}]; renderReview();");
+  assert('봉인 중엔 즐겨찾기의 「유사 문제」 버튼이 없다', doc.getElementById('rvFav').innerHTML.includes('가렴주구') && !doc.getElementById('rvFav').innerHTML.includes('즐겨찾기_유사문제'));
+  assert('구어 교정: 버튼·제목이 「모범답안」', doc.querySelector('#sq5 .spk-submit').textContent === '모범답안 보기' && doc.querySelector('#spkResult .spk-result-title').textContent === '모범답안');
+
+  // 배포·메타: 관문 리다이렉트가 쿼리·해시를 유지, og 메타·404
+  const 루트 = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const 이동 = []; new Function('location', 루트.match(/<script>([\s\S]*?)<\/script>/)[1])({ search: '?a=1', hash: '#x', replace: (u) => 이동.push(u) });
+  assert('관문: 쿼리·해시를 붙여 이동', 이동[0] === 'Llove/?a=1#x', 이동[0]);
+  for (const [파일, 주소] of [['index.html', 'https://yyyyynny.github.io/Llove/'], ['Llove/index.html', 'https://yyyyynny.github.io/Llove/'], ['wchain/index.html', 'https://yyyyynny.github.io/Llove/wchain/']]) {
+    const h = fs.readFileSync(path.join(__dirname, '..', 파일), 'utf8');
+    assert(`${파일}: description·og·twitter 메타`, /<meta name="description"/.test(h) && h.includes(`<meta property="og:url" content="${주소}">`) && /og:title/.test(h) && /og:type/.test(h) && /twitter:card/.test(h));
+  }
+  assert('404.html: Llove로 가는 절대 링크', fs.readFileSync(path.join(__dirname, '..', '404.html'), 'utf8').includes('href="/Llove/Llove/"'));
+
   process.exit(finish() > 0 ? 1 : 0);
 });

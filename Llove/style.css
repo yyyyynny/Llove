@@ -154,8 +154,8 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
     animation-delay: 0s !important;
     transition-delay: 0s !important;
   }
-  /* 장식용 무한 반복(창조주 소칭호 발광·주신 무지개)은 아예 멈춘다 */
-  .status-sub-title.creator, .sub-jushin { animation: none !important; }
+  /* 장식용 무한 반복(창조주 소칭호 발광)은 아예 멈춘다 */
+  .status-sub-title.creator { animation: none !important; }
   /* 읽어야 하는 보상 숫자(+EXP)는 길이 0이면 뜨자마자 사라진다 — 이동 없이 제자리에서 옅어지기만 */
   @keyframes expFloat{0%,60%{opacity:1}100%{opacity:0}}
   .exp-float{animation-duration:.8s !important}
@@ -978,10 +978,6 @@ body.devnav #demo-nav{display:flex}
 .demb.sp{border-color:color-mix(in srgb,var(--acc) 38%,transparent);color:color-mix(in srgb,var(--acc) 75%,transparent)}
 .demb.sp:hover{border-color:var(--acc);color:var(--acc)}
 body.devnav .demo-offset{margin-top:80px}
-
-/* ━━━ 빌드1 α8: 주҉신҉ 소칭호 무지개 글리치 (결합 문자 + 그라디언트 순환) ━━━ */
-.sub-jushin{background:linear-gradient(90deg,#ff5050,#ffb050,#ffe850,#50d850,#50a8ff,#b070ff,#ff50c0);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;color:transparent !important;animation:jushinShift 3s linear infinite}
-@keyframes jushinShift{0%{background-position:0% 0}100%{background-position:400% 0}}
 
 /* ━━━ 빌드1 β5: 토큰 UI — 잔량 바 + 드롭다운 + 차감 안내 (KNOWLEDGE 32·35) ━━━ */
 .tkb{margin:8px 18px 0;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r-m);padding:9px 12px;cursor:pointer;flex-shrink:0}

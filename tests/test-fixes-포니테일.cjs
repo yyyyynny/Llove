@@ -88,7 +88,7 @@ load((window) => {
   const 대기열 = doc.getElementById('rvQueue'), 즐찾 = doc.getElementById('rvFav'), 휴지통 = doc.getElementById('rvBin');
   assert('C3: 대기열 카드 + 즐겨찾기 표시 + 복습 시작 버튼',
     대기열.querySelectorAll('.rv-item').length === 1 && 대기열.querySelector('.act-btn.fav.on') && /복습시작\(\)/.test(대기열.innerHTML));
-  assert('C3: 빈 즐겨찾기는 안내 문구만', 즐찾.querySelectorAll('.rv-item').length === 0 && 즐찾.textContent.includes('즐겨찾기가 비어있습니다'));
+  assert('C3: 빈 즐겨찾기는 안내 문구만', 즐찾.querySelectorAll('.rv-item').length === 0 && 즐찾.textContent.includes('즐겨찾기가 비어 있어요'));
   assert('C3: 휴지통 카드에 잔여일·복구 버튼·비우기 버튼',
     휴지통.textContent.includes('7일 후 삭제') && /휴지통_복구\('b1'\)/.test(휴지통.innerHTML) && /휴지통_비우기확인/.test(휴지통.innerHTML));
 

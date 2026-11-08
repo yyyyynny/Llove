@@ -46,11 +46,11 @@ load((window) => {
   const exp0 = ev('사용자.총누적EXP||0');
   ev(`예문형_선택('sq2Body', document.querySelector('#sq2Body .syn-opt[data-kind="correct"]'));`);
   assert('예문형: 정답 선택 시 EXP 획득(엔진 일반화 후에도 정상)', ev('사용자.총누적EXP||0') > exp0);
-  assert('예문형: 이의있음 버튼(컨텍스트 synonym) 유지', doc.getElementById('sq2BodySynActions').innerHTML.includes("openObj('synonym')"));
+  assert('예문형: 봉인 중(GROK_활성화 false)엔 이의있음 버튼 없음', !doc.getElementById('sq2BodySynActions').innerHTML.includes('openObj('));
   assert('예문형: 재클릭 방지 가드 유지', doc.getElementById('sq2BodySynResult').classList.contains('show'));
 
   // 신규: sq1 예문형 옵션
-  assert('sq1에 예문형 버튼 추가됨', Array.from(doc.querySelectorAll('#lsetSq1 .lset-opt')).some(b=>(b.getAttribute('onclick')||'').includes("'sq1','예문형'")));
+  assert('sq1 예문형 버튼은 표본 부족으로 숨김', !Array.from(doc.querySelectorAll('#lsetSq1 .lset-opt')).some(b=>(b.getAttribute('onclick')||'').includes("'sq1','예문형'")));
   // 2026-11-08: 예문형 표본이 2건뿐이라(3건 미만) 4지선다로 폴백 — 엔진 자체는 아래에서 표본을 직접 넣어 검증
   ev("현재학습모드='상식·어원'; 학습설정.sq1='예문형'; renderQuiz('sq1', __TEST_QUIZ__);");
   assert('상식·어원 예문형: 표본 부족 시 4지선다 폴백', doc.querySelectorAll('#sq1Body .aopt').length === 4);

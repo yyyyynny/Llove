@@ -36,7 +36,7 @@ function 예문형_렌더(bodyId, item, 다음fn, 이의컨텍스트){
       </div>
       <div class="syn-result" id="${bodyId}SynResult"></div>
       <div class="syn-actions" id="${bodyId}SynActions" style="display:none">
-        ${이의컨텍스트 ? `<button class="btn-g" onclick="openObj('${이의컨텍스트}')">이의있음!</button>` : ''}
+        ${GROK_활성화 && 이의컨텍스트 ? `<button class="btn-g" onclick="openObj('${이의컨텍스트}')">이의있음!</button>` : ''}
         <button class="btn-acc" onclick="예문형_다음('${bodyId}')">다음 문제 →</button>
       </div>
     </div>
@@ -67,9 +67,9 @@ function 예문형_선택(bodyId, btn){
 
   // 사용자 선택 결과 헤더
   const 헤더 =
-    선택kind === 'correct'    ? `<div class="syn-result-title ok">✓ 정답 — 「${선택word}」를 선택했습니다</div>` :
-    선택kind === 'acceptable' ? `<div class="syn-result-title warn">△ 근사 정답 — 「${선택word}」를 선택했습니다</div>` :
-                                `<div class="syn-result-title err">✗ 오답 — 「${선택word}」를 선택했습니다</div>`;
+    선택kind === 'correct'    ? `<div class="syn-result-title ok">✓ 정답 — 「${선택word}」를 골랐어요</div>` :
+    선택kind === 'acceptable' ? `<div class="syn-result-title warn">△ 근사 정답 — 「${선택word}」를 골랐어요</div>` :
+                                `<div class="syn-result-title err">✗ 오답 — 「${선택word}」를 골랐어요</div>`;
 
   // 버그3 수정: 선택한 1개만이 아니라 보기 전부의 설명을 공개
   const 항목들 = Array.from(all).map(el=>{
@@ -97,7 +97,7 @@ function 예문형_선택(bodyId, btn){
   // 세션10-c 항목1: 근사(acceptable) 판정 순간에만 지문 독해로 유도하는 넛지 — 데이터·판정 로직은
   // 그대로 두고(근사=EXP 없음 정책 유지) 더 넓은 맥락으로 변별하는 다른 모드를 안내만 한다.
   const 넛지 = 선택kind === 'acceptable'
-    ? `<div class="syn-nudge">이 문항이 애매하셨나요? 더 넓은 맥락으로 판단하는 <b>지문 독해</b>를 추천합니다.
+    ? `<div class="syn-nudge">이 문항이 애매하셨나요? 더 넓은 맥락으로 판단하는 <b>지문 독해</b>를 추천해요.
        <button class="btn-g" onclick="goLearn('지문 독해','sq6',null)">지문 독해로 가기</button></div>`
     : '';
 
@@ -256,8 +256,8 @@ function 독해_선택(btn){
   btn.classList.remove('dim');
 
   const 헤더 = 정답여부
-    ? `<div class="syn-result-title ok">✓ 정답입니다</div>`
-    : `<div class="syn-result-title err">✗ 오답입니다</div>`;
+    ? `<div class="syn-result-title ok">✓ 정답이에요</div>`
+    : `<div class="syn-result-title err">✗ 오답이에요</div>`;
   const 항목들 = item.보기.map((b,i)=>{
     const 선택됨 = i === 선택idx;
     return `
@@ -399,8 +399,8 @@ function 문장배열_판정(){
     el.classList.add(사용자위치 === 원본idx ? 'correct' : 'wrong');
   });
   const 헤더 = 전체정답
-    ? `<div class="syn-result-title ok">✓ 정답입니다</div>`
-    : `<div class="syn-result-title err">✗ 순서가 틀렸습니다</div>`;
+    ? `<div class="syn-result-title ok">✓ 정답이에요</div>`
+    : `<div class="syn-result-title err">✗ 순서가 틀렸어요</div>`;
   const 정답나열 = item.문장들.map((s,i)=>`${i+1}. ${s}`).join('<br>');
   const resultEl = document.getElementById('sq7Result');
   resultEl.innerHTML = 헤더 + `<div class="syn-result-def" style="margin-top:8px">${정답나열}</div>` +
@@ -435,7 +435,7 @@ function judgeCard(type){
   // 고른 평가는 단추에 남기고(나머지는 흐리게), 복습에 들어가는지만 짧게 알린다.
   // 종전 토스트("졸업 카운트 +1")는 내부 용어였고, 실제로는 정답 1회에 바로 졸업이라 사실과도 달랐다
   document.querySelector(`#sq2Body .fc-jbtn.j-${type}`)?.classList.add('on');
-  if(type !== 'know') showToastMsg('복습 목록에 넣었습니다');
+  if(type !== 'know') showToastMsg('복습 목록에 넣었어요');
   // 복습 대기열 연동 — 카드 정보 (읽기 (한자) 형식)
   const 카드단어 = 현재플래시카드 ? `${현재플래시카드.reading} (${현재플래시카드.word})` : '';
   const 카드뜻 = 현재플래시카드?.meaning || '';

@@ -215,7 +215,7 @@ function 복습대기열_추가(단어, 뜻, 모드){
   // 상한 5개 이내 경고 알람 (KNOWLEDGE 7)
   const 남은자리 = 사용자.복습대기열상한 - 복습데이터.대기열.length;
   if(남은자리 >= 0 && 남은자리 <= 5 && (사용자.알림설정 ?? true)){
-    showToastMsg(`복습 대기열 자리가 ${남은자리}개 남았습니다`);
+    showToastMsg(`복습 대기열 자리가 ${남은자리}개 남았어요`);
   }
   if(curScreen==='sr') renderReview();
 }
@@ -339,7 +339,7 @@ const 기본이름풀=[
 //   - mona: KNOWLEDGE 19 기준 family명은 'Mona'. CDN 직접 검증 불가하여 'Mona-Sans' 폴백을 함께 둠.
 //   - weight: 단일 굵기로 배포된 폰트(평창평화체 Light=300)의 미리보기 굵기 지정용 (버그B 연동).
 // 「테마 기본」 — FONTS(출처 표기 대상)에는 넣지 않고 선택 목록 맨 위에만 붙인다
-const 테마글꼴 = {key:'theme', name:'테마 기본', sample:'테마를 바꾸면 글꼴도 함께 바뀝니다'};
+const 테마글꼴 = {key:'theme', name:'테마 기본', sample:'테마를 바꾸면 글꼴도 함께 바뀌어요'};
 const FONTS=[
   // ━━━ CDN 4종 ━━━
   {key:'nanum_gothic',   name:'나눔고딕',          css:"'Nanum Gothic',sans-serif",            sample:'한국어 어휘력과 표현력을', src:'CDN · jsDelivr · OFL', credit:'OFL'},

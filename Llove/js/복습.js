@@ -82,7 +82,7 @@ function setLsetMode(screenId, mode, btn){
     // 실브라우저 E2E로 발견한 누락: 하드코딩 풀만 렌더해 설정 변경 순간 JSON DB 문항이
     // 풀에서 빠지던 버그 — 화면전환.js와 동일하게 큐레이션+DB 병합 풀로 통일
     renderDad(아재풀_구성(mode));
-    showToastMsg(`난이도: ${mode}`);
+    showToastMsg(`난이도: ${btn.textContent.trim()}`);  // 내부 값(아↗그거!·UP¡¿) 대신 버튼 라벨(보통·어려움)
   } else if(screenId==='sq4_input'){
     // 아재개그 입력 방식 (4지선다 / 직접입력 / 플래시카드) — 즉시 반영
     if(현재아재풀) renderDad(현재아재풀);
@@ -132,7 +132,7 @@ function renderReview(){
       <span class="rv-cap-lbl">용량</span>
       <div class="cap-bar"><div class="cap-fill" style="width:${Math.min(100,(대기열.length/상한)*100)}%"></div></div>
       <span class="rv-cap-val" onclick="openCapacity()">${대기열.length} / ${상한} ⚙</span>
-    </div>`, 대기열, '대기열이 비어있습니다',
+    </div>`, 대기열, '대기열이 비어 있어요',
     // 세션7 항목5: 졸업 기준 1회 — 점 1개
     item => `<div class="rv-dots"><div class="rv-dot${0<item.연속정답수?' f':''}"></div></div>
              <span style="font-size:10px;color:var(--txtm)">${item.연속정답수}/1</span>`,
@@ -140,14 +140,14 @@ function renderReview(){
              <div class="act-btn d" onclick="대기열_휴지통이동('${item.id}')" title="삭제" aria-label="삭제"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></div>`,
     // 복습 시작 — 대기열 순차 복습 플레이 (완료 시 토큰 +30, 일 3회 — KNOWLEDGE 32)
     `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="복습시작()">복습 시작</button>`);
-  복습탭_렌더('rvFav', `<div class="bin-info">즐겨찾기는 무한 보관 가능하며 다른 시스템(대기열·휴지통)의 영향을 받지 않습니다.</div>`,
-    복습데이터.즐겨찾기, '즐겨찾기가 비어있습니다',
+  복습탭_렌더('rvFav', `<div class="bin-info">즐겨찾기는 개수 제한 없이 대기열·휴지통과 따로 보관돼요.</div>`,
+    복습데이터.즐겨찾기, '즐겨찾기가 비어 있어요',
     () => '',
     item => `<div class="act-btn" onclick="즐겨찾기_다시풀기('${item.id}')" title="다시 풀기">↻</div>
-             <div class="act-btn" onclick="즐겨찾기_유사문제('${item.id}')" title="유사 문제" aria-label="유사 문제"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></div>
+             ${GROK_활성화 ? `<div class="act-btn" onclick="즐겨찾기_유사문제('${item.id}')" title="유사 문제" aria-label="유사 문제"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></div>` : ''}
              <div class="act-btn d" onclick="즐겨찾기_해제('${item.id}')" title="해제">★</div>`);
-  복습탭_렌더('rvBin', `<div class="bin-info">휴지통의 항목은 <b>20일 후 자동 삭제</b>됩니다. 그 전에 복구하거나 영구삭제할 수 있습니다.</div>`,
-    복습데이터.휴지통, '휴지통이 비어있습니다',
+  복습탭_렌더('rvBin', `<div class="bin-info">휴지통의 항목은 <b>20일 뒤 자동으로 삭제</b>돼요. 그 전에 복구하거나 영구 삭제할 수 있어요.</div>`,
+    복습데이터.휴지통, '휴지통이 비어 있어요',
     item => `<span style="font-size:10px;color:var(--txtm)">${item.잔여일}일 후 삭제</span>`,
     item => `<div class="act-btn" onclick="휴지통_복구('${item.id}')" title="복구">↩</div>
              <div class="act-btn d" onclick="휴지통_영구삭제('${item.id}')" title="영구삭제">✕</div>`,
@@ -180,7 +180,7 @@ let 복습진행 = null;  // {목록, idx} — null이면 비진행
 
 function 복습시작(){
   if(복습데이터.대기열.length === 0){
-    showToastMsg('복습할 항목이 없습니다');
+    showToastMsg('복습할 항목이 없어요');
     return;
   }
   복습진행 = { 목록: [...복습데이터.대기열], idx: 0 };
@@ -225,7 +225,7 @@ function 복습_카드렌더(){
         ${선다_HTML(보기들, '복습_선다선택')}`;
       return;
     }
-    showToastMsg('보기 후보가 부족해 카드 보기로 진행합니다');
+    showToastMsg('보기 후보가 부족해 카드로 보여 드릴게요');
   }
 
   // ── 직접입력: 뜻 제시 → 단어 타이핑
@@ -298,7 +298,7 @@ function 복습_중단(){
   복습진행 = null;
   goNav('sr', null);   // 항목10: 전용 화면 → 복습 관리 화면으로 복귀
   renderReview();
-  showToastMsg('복습을 중단했습니다 (보상 없음)');
+  showToastMsg('복습을 멈췄어요 (보상 없음)');
 }
 
 function 복습_완료(){
@@ -385,7 +385,7 @@ function 즐겨찾기_다시풀기(id){
 
 function 즐겨찾기_유사문제(id){
   if(!GROK_활성화){
-    showInfoModal('✨','유사 문제','AI가 비슷한 유형의 문제를 새로 만듭니다 (토큰 20 차감).<br><br>AI 연동 후 쓸 수 있습니다.');
+    showInfoModal('✨','유사 문제','AI가 비슷한 유형의 문제를 새로 만들어요 (토큰 20 차감).<br><br>준비 중이에요.');
     return;
   }
   // ── Grok 활성화 후 실행 경로 ──
@@ -421,7 +421,7 @@ function 휴지통_복구(id){
   // 대기열 상한 체크 (개발자 모드 상한 해제 시 통과 — KNOWLEDGE 14)
   const 상한 = 개발자오버레이?.상한해제 ? Infinity : 사용자.복습대기열상한;
   if(복습데이터.대기열.length >= 상한){
-    showInfoModal('🚫','복구 불가',`대기열이 가득 찼습니다 (${사용자.복습대기열상한}개).<br><br>먼저 대기열 항목을 줄여주세요.`);
+    showInfoModal('🚫','복구 불가',`대기열이 가득 찼어요 (${사용자.복습대기열상한}개).<br><br>먼저 대기열 항목을 줄여주세요.`);
     return;
   }
 
@@ -460,17 +460,17 @@ function 휴지통_영구삭제(id){
 
 // 종전엔 확인 없이 주 단추 한 번에 전부 영구 삭제됐다 — 개수를 보여 주고 한 번 묻는다
 function 휴지통_비우기확인(){
-  if(복습데이터.휴지통.length===0){ showToastMsg('휴지통이 비어있습니다'); return; }
-  showConfirmModal('🗑️', '휴지통 비우기', `${복습데이터.휴지통.length}개 항목을 영구 삭제합니다.<br>되돌릴 수 없습니다.`, '비우기', 휴지통_전체비우기, true);
+  if(복습데이터.휴지통.length===0){ showToastMsg('휴지통이 비어 있어요'); return; }
+  showConfirmModal('🗑️', '휴지통 비우기', `${복습데이터.휴지통.length}개 항목을 영구 삭제할까요?<br>되돌릴 수 없어요.`, '비우기', 휴지통_전체비우기, true);
 }
 function 휴지통_전체비우기(){
   if(복습데이터.휴지통.length===0){
-    showToastMsg('휴지통이 비어있습니다');
+    showToastMsg('휴지통이 비어 있어요');
     return;
   }
   복습데이터.휴지통.forEach(x=> 보관함_문서삭제('휴지통', x.id));
   복습데이터.휴지통 = [];
-  showToastMsg('휴지통을 비웠습니다');
+  showToastMsg('휴지통을 비웠어요');
   업적_단발달성('clean');  // [환경미화원] 단발 +80 (KNOWLEDGE 14)
   renderReview();
 }
@@ -479,13 +479,13 @@ function 휴지통_전체비우기(){
 function openCapacity(){
   // 현재 항목 수보다 작은 값으로 변경 시도 시 차단(흐리게 + 안내)
   선택모달_열기('⚙️ 복습 대기열 상한',
-    '상한 초과 시 가장 오래된 항목이 휴지통으로 자동 이동됩니다. 현재 항목 수보다 작은 값으로는 변경 불가.',
+    '상한을 넘으면 가장 오래된 항목이 휴지통으로 옮겨져요. 지금 항목 수보다 작게는 바꿀 수 없어요.',
     [30,40,50,60,70].map(v=>{
       const 차단 = v < 사용자.복습대기열수;
       return {
         라벨: `${v}개${v===50?' (기본값)':''}${차단?' 🚫':''}`, 켜짐: v===사용자.복습대기열상한, 비활성: 차단,
         클릭: 차단
-          ? ()=>showInfoModal('🚫','변경 불가', `현재 대기열 항목 수(${사용자.복습대기열수}개)가 새 상한(${v}개)보다 많습니다.<br><br>먼저 항목을 줄여주세요.`)
+          ? ()=>showInfoModal('🚫','변경 불가', `현재 대기열 항목 수(${사용자.복습대기열수}개)가 새 상한(${v}개)보다 많아요.<br><br>먼저 항목을 줄여 주세요.`)
           : ()=>applyCapacity(v)
       };
     }));

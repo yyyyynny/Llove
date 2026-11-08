@@ -310,7 +310,7 @@ function 랜덤학습(){
   // 가중치 추첨 — 0(제외)은 후보에서 빠짐
   const 풀 = [];
   랜덤학습_모드목록.forEach(m => { for(let i=0;i<랜덤_가중치(m[0]);i++) 풀.push(m); });
-  if(!풀.length){ showToastMsg('모든 모드가 제외되어 있습니다 — 랜덤 설정을 확인하세요'); return; }
+  if(!풀.length){ showToastMsg('모든 모드가 빠져 있어요 — 랜덤 설정을 확인해 주세요'); return; }
   const [카테고리, 화면] = 풀[Math.floor(Math.random()*풀.length)];
   showToastMsg('오늘의 랜덤: ' + 카테고리);
   goLearn(카테고리, 화면, null);
@@ -330,7 +330,7 @@ function 랜덤설정_열기(){
     </div>`;
   }).join('');
   showInfoModal('🎲','랜덤 설정',
-    `<div style="text-align:left;font-size:11px;color:var(--txt2);margin-bottom:6px">모드별 등장 확률(×배수)을 정하거나 제외할 수 있습니다.</div>${행들}`);
+    `<div style="text-align:left;font-size:11px;color:var(--txt2);margin-bottom:6px">모드별 등장 확률(×배수)을 정하거나 뺄 수 있어요.</div>${행들}`);
 }
 function 랜덤_가중치설정(모드, v){
   랜덤설정.가중치[모드] = v;

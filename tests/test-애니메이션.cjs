@@ -16,8 +16,8 @@ load((win) => {
   const 벗어남 = 전환시간.filter(t => !['.15s', '.25s', '.4s', '0s'].includes(t));
   assert(`transition 길이 ${전환시간.length}개가 3단 값만 쓴다`, 전환시간.length > 50 && 벗어남.length === 0, 벗어남.join(' '));
 
-  /* ── 무한 반복은 진행 중 표시(녹음·생성 대기)와 창조주·주신 장식만 ── */
-  const 허용 = ['.spk-mic-btn.rec .spk-mic-ico', '.vc-dot', '.status-sub-title.creator', '.sub-jushin'];
+  /* ── 무한 반복은 진행 중 표시(녹음·생성 대기)와 창조주 장식만 ── */
+  const 허용 = ['.spk-mic-btn.rec .spk-mic-ico', '.vc-dot', '.status-sub-title.creator'];
   const 무한 = [...css.matchAll(/([^{}]+)\{[^}]*animation:[^;}]*infinite/g)].map(m => m[1].trim());
   const 밖 = 무한.filter(s => !허용.includes(s));
   assert('무한 애니메이션이 지정 목록 밖에 없다', 무한.length > 0 && 밖.length === 0, 밖.join(' / '));
