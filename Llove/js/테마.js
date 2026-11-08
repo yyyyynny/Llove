@@ -309,7 +309,7 @@ function 커스텀_슬롯렌더(){
     const s = 커스텀슬롯[i];
     if(s){
       const bg = `linear-gradient(135deg, ${s.bg} 0 38%, ${s.card} 38% 64%, ${s.acc} 64%)`;
-      html += `<div class="ct-slot filled" title="${(s.이름||'슬롯 '+(i+1)).replace(/"/g,'')}" style="background:${bg}" onclick="커스텀_슬롯로드(${i})"><span class="ct-slot-clear" onclick="event.stopPropagation();커스텀_슬롯비우기(${i})">✕</span></div>`;
+      html += `<div class="ct-slot filled" title="${문자열_이스케이프(s.이름||'슬롯 '+(i+1))}" style="background:${문자열_이스케이프(bg)}" onclick="커스텀_슬롯로드(${i})"><span class="ct-slot-clear" onclick="event.stopPropagation();커스텀_슬롯비우기(${i})">✕</span></div>`;
     } else {
       html += `<div class="ct-slot" onclick="커스텀_슬롯_현재저장(${i})">＋</div>`;
     }
@@ -347,13 +347,15 @@ function 커스텀_슬롯비우기(i){
 function 커스텀_복원(객체){
   try{
     const 색 = 객체 || JSON.parse(localStorage.getItem('plx_커스텀') || 'null');
-    if(색 && 색.bg){
+    // 손상된 값(색 하나라도 빠지거나 #색 형식이 아님)은 무시 — 그대로 쓰면 CSS 변수가 undefined가 된다
+    const 색형식 = c => c && ['bg','card','acc','txt'].every(k => /^#[0-9a-f]{3,8}$/i.test(c[k]));
+    if(색형식(색)){
       커스텀색 = 커스텀_4색(색);
       커스텀이름 = 색.이름 || '';
       커스텀_색적용DOM();  // 테마가 custom이면 즉시 반영되도록 변수 세팅
     }
     const 슬롯 = JSON.parse(localStorage.getItem('plx_커스텀슬롯') || 'null');
-    if(Array.isArray(슬롯)) 커스텀슬롯 = 슬롯.filter(Boolean).slice(0,10);
+    if(Array.isArray(슬롯)) 커스텀슬롯 = 슬롯.filter(색형식).slice(0,10);
   }catch(e){ /* 무시 */ }
   커스텀칩_라벨갱신();  // 세션5 버그2: 복원 시점에도 칩 라벨 동기화
 }

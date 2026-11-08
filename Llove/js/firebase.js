@@ -76,12 +76,18 @@ function 로그아웃(){
 }
 function 로그아웃실행(){
   if(!fbAuth){ console.error('[Firebase] auth 미초기화'); return; }
-  fbAuth.signOut().then(()=>{
-    현재UID = null;
-    goNav('sl', null);
-    showToastMsg('로그아웃되었습니다');
-  }).catch(e=> console.error('[Firebase] 로그아웃 실패', e));
+  // 진행 중 대화를 이 계정 기록으로 마감하고 서버 쓰기가 끝난 뒤 로그아웃한다 — 남겨 두면 다음 계정 기록으로 들어간다.
+  // 로그아웃 뒤 정리·새로고침은 다른 탭 로그아웃과 같은 길(인증상태_변경의 user 없음)에서 한다.
+  채팅세션_마감('로그아웃');
+  // ponytail: 한계 — 오프라인이면 3초 뒤 못 보낸 쓰기를 버리고 나간다. 필요하면 오프라인 안내 추가
+  Promise.race([fbDb ? fbDb.waitForPendingWrites().catch(()=>{}) : Promise.resolve(), new Promise(r=>setTimeout(r, 3000))])
+    .then(()=> fbAuth.signOut())
+    .catch(e=> console.error('[Firebase] 로그아웃 실패', e));
 }
+
+// 로그아웃 때 지울 계정 개인 키 — 테마·글꼴·화면 배율 같은 기기 설정 키는 남긴다
+const 로그아웃_삭제키 = ['plx_진행중대화', 'plx_채팅기록', 'plx_AI지침', 'plx_게스트보관함', 'plx_음성엔드포인트'];
+let 로그인했었음 = false;  // 첫 접속의 「비로그인」 통지와 실제 로그아웃을 구분
 
 // 인증 상태 변경 — 로그인 성공 시 Firestore 사용자 문서 로드(기존) 또는 이름 입력(신규)
 // 온보딩(#onboarding)은 position:fixed·z-index:9999로 기본 표시라, 걷어내지 않으면 그 아래 화면이
@@ -92,7 +98,17 @@ function 온보딩_걷기(){
 }
 
 function 인증상태_변경(user){
-  if(!user){ 현재UID = null; return; }
+  if(!user){
+    현재UID = null;
+    // 로그아웃(이 탭·다른 탭 모두) — 메모리 상태(복습 대기열·프로필 이미지 등)가 다음 계정에 넘어가지 않게
+    // 개인 키를 지우고 새로 시작한다. 새로 열면 비로그인 첫 화면(로그인)이 뜬다.
+    if(로그인했었음){
+      로그아웃_삭제키.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){ /* 저장소 차단 무시 */ } });
+      location.reload();
+    }
+    return;
+  }
+  로그인했었음 = true;
   현재UID = user.uid;
   사용자.이메일 = user.email || '';
 

@@ -73,7 +73,8 @@ async function 사전_단어조회(word){
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 단어: word, 뜻풀이: true }),
-      signal: AbortSignal.timeout(8000)
+      // ponytail: iOS 15 이하엔 AbortSignal.timeout이 없어 시간제한 없이 보낸다 — 필요하면 wchain/js/국어원.js의 시간제한_신호 방식으로
+      signal: typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(8000) : undefined
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();

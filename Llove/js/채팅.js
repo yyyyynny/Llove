@@ -657,10 +657,11 @@ function sendAsk(){
     if(res && res.답변){
       // 세션6 항목2: 사고전개 블록 — 응답에 사고전개가 오면 답변 위에 접힌 형태로 표시 (기본 글자색으로 가독 확보)
       const 사고블록 = (사고전개모드 && res.사고전개)
-        ? `<div class="ask-think"><b>사고 전개</b><br>${res.사고전개}</div>`
+        ? `<div class="ask-think"><b>사고 전개</b><br><span style="white-space:pre-wrap">${문자열_이스케이프(res.사고전개)}</span></div>`
         : '';
       // 이의있음! 버튼은 답변 생성 후에만 노출 (KNOWLEDGE 5 표시 조건)
-      a.innerHTML = 사고블록 + res.답변 + '<br><br><button class="ask-objection-btn" onclick="openObj()">이의있음!</button>';
+      // AI 출력은 글자로만 넣는다(태그 실행 차단) — 줄바꿈은 pre-wrap으로 유지
+      a.innerHTML = 사고블록 + '<span style="white-space:pre-wrap">' + 문자열_이스케이프(res.답변) + '</span><br><br><button class="ask-objection-btn" onclick="openObj()">이의있음!</button>';
       // 세션10-d 항목2: 가공 라벨 없이 순수 텍스트(사고전개 있으면 답변 위에 그대로) 저장
       if(!창조주시도중) 채팅기록_추가메시지('AI', (res.사고전개 ? res.사고전개 + '\n\n' : '') + res.답변);
     } else {
@@ -746,7 +747,7 @@ function openObj(컨텍스트){
     note.style.display='block';
     note.innerHTML = `<div class="obj-note-lbl">${UI_TEXT.이의있음.출제근거라벨}</div>` +
       (현재문제_reasoning_note
-        ? 현재문제_reasoning_note
+        ? 문자열_이스케이프(현재문제_reasoning_note)
         : '(이 문제는 출제 근거가 아직 등록되지 않았습니다 — AI 연동 후 자동 생성됩니다)');
   }
   // 토큰 소진 시 이의있음! 비활성화 (KNOWLEDGE 5 표시 조건)

@@ -15,3 +15,8 @@ node_modules/
 /models/
 /voices/
 /음성모델/
+
+# Cloudflare Worker 로컬 설정·시크릿 — 레포에 커밋 금지
+wrangler.toml
+.dev.vars
+.env

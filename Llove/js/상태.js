@@ -87,7 +87,8 @@ function 게스트보관함_저장(){
 function 게스트보관함_복원(){
   try{
     const d = JSON.parse(localStorage.getItem('plx_게스트보관함')||'null');
-    if(d) ['대기열','즐겨찾기','휴지통'].forEach(k=>{ if(Array.isArray(d[k])) 복습데이터[k]=d[k]; });
+    // 손상된 원소(null 등)는 버린다 — 남기면 복습 화면이 x.단어에서 예외
+    if(d) ['대기열','즐겨찾기','휴지통'].forEach(k=>{ if(Array.isArray(d[k])) 복습데이터[k]=d[k].filter(x=>x && x.단어); });
   }catch(e){ /* 무시 */ }
 }
 
