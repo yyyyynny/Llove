@@ -386,8 +386,10 @@
     .result .stat{ font-size:12px; color:var(--txt2); margin-bottom:20px; }
 
     .modal-bg{ position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.6); display:flex; align-items:center;
-      justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .25s; }
-    .modal-bg.show{ opacity:1; pointer-events:all; }
+      justify-content:center; padding:20px; opacity:0; pointer-events:none; visibility:hidden;
+      transition:opacity .25s, visibility 0s .25s; }
+    /* visibility:hidden — 닫힌 모달 안 버튼이 Tab 순서·스크린리더에 남지 않게(닫힐 땐 페이드 뒤에 숨김) */
+    .modal-bg.show{ opacity:1; pointer-events:all; visibility:visible; transition:opacity .25s; }
     .modal-bx{ background:var(--card); border:1px solid var(--bdr); border-radius:16px; padding:20px; max-width:400px;
       max-height:80vh; overflow-y:auto; width:100%; font-size:13px; line-height:1.7; text-align:left; }
     .modal-bx h3{ font-size:15px; margin-bottom:10px; }
@@ -398,25 +400,8 @@
   <div class="badge">잇 는</div>
   <h1>끝말잇기</h1>
 
-  <!-- 페르소나 선택 (원본 show_init/_handle_init) -->
-  <div class="screen active" id="s-페르소나">
-    <div class="card fu">
-      <div class="card-title">페르소나 선택</div>
-      <button class="btn" onclick="선택_페르소나('Arrogant')">
-        <b>폭군</b> — 냉혹하고 조롱하는 심판
-        <div class="d">호칭: 필멸자 → 각성자 → 초월자</div>
-      </button>
-      <button class="btn" onclick="선택_페르소나('Polite')">
-        <b>비서</b> — 친절하고 격려하는 조력자
-        <div class="d">호칭: 사용자님 → 숙련자님 → 마스터님</div>
-      </button>
-    </div>
-    <a class="back" href="../Llove/#home">← 학습 세계로 돌아가기</a>
-    <a class="back danger" href="javascript:void(0)" onclick="게임데이터삭제_1단계()">🗑 게임 데이터 삭제</a>
-  </div>
-
-  <!-- 모드 선택 (원본 _show_mode_select) -->
-  <div class="screen" id="s-모드">
+  <!-- 모드 선택 (원본 _show_mode_select) — 첫 화면. 원본의 페르소나 선택은 2026-11-08 폐지 -->
+  <div class="screen active" id="s-모드">
     <div class="card fu">
       <div class="card-title">게임 모드</div>
       <button class="btn" onclick="선택_모드('SURVIVAL')">
@@ -428,7 +413,8 @@
         <div class="d">13층 타워 등반 · 목숨 8개 · 시련의 탑</div>
       </button>
     </div>
-    <a class="back" href="javascript:void(0)" onclick="뒤로_페르소나()">← 페르소나 다시 고르기</a>
+    <a class="back" href="../Llove/#home">← 학습 세계로 돌아가기</a>
+    <a class="back danger" href="javascript:void(0)" onclick="게임데이터삭제_1단계()">🗑 게임 데이터 삭제</a>
   </div>
 
   <!-- 서바이벌 설정 — Llove 설정창(set-sec/set-row/.mt/.fs-opt) 문법 그대로 (2026-07-28) -->
@@ -517,7 +503,7 @@
     <div class="result fu">
       <div class="emoji">💥</div>
       <div class="msg" style="color:var(--err);font-family:monospace;font-size:12px;line-height:1.8;word-break:break-all" id="소프트락-텍스트"></div>
-      <div class="stat" style="margin-top:14px">여기까지가 이 탑의 끝이다.</div>
+      <div class="stat" style="margin-top:14px">여기까지가 이 탑의 끝이에요.</div>
       <button class="btn acc" onclick="전체리셋()">전체 초기화</button>
     </div>
   </div>
@@ -532,7 +518,7 @@
     <p><b>한방 단어</b>(상대가 더 이상 이을 수 없는 단어) — 한방 모드가 <b>켜기</b>(기본값)면
     자유롭게 쓸 수 있고, <b>끄기</b>면 목숨 1개가 깎입니다. 아케이드에서는 항상 쓸 수 없습니다.
     한방인지 여부는 우리말샘 사전으로 실제 확인합니다.</p><br>
-    <p><b>서바이벌</b> — 안온 50턴·목숨10 / 격동 75턴·목숨7 / 초월 140턴·목숨5 / 심연 160턴·목숨3.
+    <p><b>서바이벌</b> — 안온(쉬움) 50턴·목숨10 / 격동(보통) 75턴·목숨7 / 초월(어려움) 140턴·목숨5 / 심연(매우 어려움) 160턴·목숨3.
     규칙을 어기면(이미 쓴 단어·틀린 글자·금지된 한방 단어) 목숨 1개가 깎이고, 0이 되면 패배합니다.
     <b>사전에 없는 단어(오타)</b>는 목숨을 깎지 않고 다시 입력하게 합니다.</p><br>
     <p><b>점수</b> — 긴 단어일수록, 판이 길어질수록, 빨리 낼수록 높습니다. 어려운 난이도일수록 배율이
@@ -594,8 +580,8 @@
 <script src="js/음성.js"></script>
 <script src="js/서바이벌.js"></script>
 <script src="js/연동.js"></script>
-<!-- 부트스트랩 — 페르소나 대사(data/대사.json)를 먼저 적재한다.
-     첫 화면(페르소나 선택)에는 대사가 쓰이지 않으므로 화면을 막지 않고 뒤에서 받아 둔다. -->
+<!-- 부트스트랩 — 대사(data/대사.json)를 먼저 적재한다.
+     첫 화면(모드 선택)에는 대사가 쓰이지 않으므로 화면을 막지 않고 뒤에서 받아 둔다. -->
 <script>테마_적용(); 대사_로드(); 사전_로드();</script>
 </body>
 </html>

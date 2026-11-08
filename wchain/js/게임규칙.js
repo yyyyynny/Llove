@@ -347,26 +347,18 @@ async function 한방_확정인가(word, gs){
   return true;                                                             // 5
 }
 
-// 칭호 체크 — 서바이벌 턴 마일스톤(95/100/200/30배수) + 아케이드(Phase 4) 자리 보존
+// 턴 마일스톤 알림 — 서바이벌 95/100/200/30배수. 원본은 여기서 칭호(각성자·초월자 등)를 붙였지만
+// 2026-11-08 관리자님 결정으로 칭호를 없애고 「n턴 넘겼어요」만 알린다(이름은 원본 대조용으로 유지).
 function check_title(gs){
-  if(gs.god_mode_active){ gs.user_title = '최고 관리자님'; return; }
-  if(gs.game_mode === 'SURVIVAL'){
-    if(gs.turn === 95 && ['초월','심연'].includes(gs.diff)){
-      gs.user_title = is_arrogant(gs) ? '각성자' : '숙련자님';
-      로그_추가(대사(gs, 'check_title_4'));
-    } else if(gs.turn === 100 && ['안온','격동'].includes(gs.diff)){
-      gs.user_title = is_arrogant(gs) ? '각성자' : '숙련자님';
-      로그_추가(대사(gs, 'check_title_3'));
-    } else if(gs.turn === 200 && ['초월','심연'].includes(gs.diff)){
-      gs.user_title = is_arrogant(gs) ? '초월자' : '마스터님';
-      로그_추가(대사(gs, 'check_title_2'));
-    } else if(gs.turn > 0 && gs.turn % 30 === 0 && ![60,90,95,100,150,200].includes(gs.turn)){
-      로그_추가(대사(gs, 'check_title_1', [gs.turn]));
-    }
-  } else if(gs.game_mode === 'ARCADE'){
-    if(gs.stage >= 14 && !['탑의지배자','탑의주인님'].includes(gs.user_title)){
-      gs.user_title = is_arrogant(gs) ? '탑의지배자' : '탑의주인님';
-    }
+  if(gs.god_mode_active || gs.game_mode !== 'SURVIVAL') return;
+  if(gs.turn === 95 && ['초월','심연'].includes(gs.diff)){
+    로그_추가(대사(gs, 'check_title_4'));
+  } else if(gs.turn === 100 && ['안온','격동'].includes(gs.diff)){
+    로그_추가(대사(gs, 'check_title_3'));
+  } else if(gs.turn === 200 && ['초월','심연'].includes(gs.diff)){
+    로그_추가(대사(gs, 'check_title_2'));
+  } else if(gs.turn > 0 && gs.turn % 30 === 0 && ![60,90,95,100,150,200].includes(gs.turn)){
+    로그_추가(대사(gs, 'check_title_1', [gs.turn]));
   }
 }
 
@@ -410,10 +402,10 @@ function user_defeat(gs){
 
   if(gs.hearts === 0){
     if(gs.game_mode === 'SURVIVAL'){
-      로그_추가(대사(gs, 'user_defeat_패배', {칭호: title(gs)}));
+      로그_추가(대사(gs, 'user_defeat_패배'));
       if(gs.turn > gs.best) gs.best = gs.turn;
     } else {
-      로그_추가(대사(gs, 'user_defeat_한계', {층: gs.stage, 칭호: title(gs)}));
+      로그_추가(대사(gs, 'user_defeat_한계', {층: gs.stage}));
       if(gs.stage > gs.best) gs.best = gs.stage;
     }
     return 'game_over';
@@ -453,12 +445,12 @@ function arcade_floor_up(gs, ai_defeated){
 
   if(cleared % 2 === 0){
     gs.hints += 1;
-    로그_추가(`💡 [${cleared}층 보상] 힌트 +1 획득. 남은 힌트: ${표시무한(gs.hints)}`, 'ok');
+    로그_추가(`${cleared}층 보상으로 힌트 1개를 받았어요. 힌트 ${표시무한(gs.hints)}개.`, 'ok');
   }
 
   const target = get_stage_target(gs);
-  if(gs.curse_time_floors > 0) 로그_추가(`⛓ [시간의 계약] 이번 층 목표 턴 +30% (${target}턴)`, 'sys');
-  if(gs.curse_life_floors > 0) 로그_추가(`⛓ [생명의 계약] 두음법칙 OFF 유지 (${gs.curse_life_floors}층 남음)`, 'sys');
+  if(gs.curse_time_floors > 0) 로그_추가(`시간의 계약: 이번 층 목표가 ${target}턴으로 늘었어요.`, 'sys');
+  if(gs.curse_life_floors > 0) 로그_추가(`생명의 계약: 두음법칙 없이 ${gs.curse_life_floors}층 더 가요.`, 'sys');
 
   if(ai_defeated){
     로그_추가(대사(gs, 'arcade_floor_up_3'), 'ok');

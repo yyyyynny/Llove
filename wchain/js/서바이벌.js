@@ -134,7 +134,7 @@ function 단어_말풍선(word, 누구, 이음있음){
 }
 let 마지막_내말풍선 = null;
 
-// 상대가 낸 단어를 화면에 올린다 — 페르소나 반응 + 왼쪽 말풍선 + 뜻(말풍선·카드). 일반 턴과 이의 인정
+// 상대가 낸 단어를 화면에 올린다 — 한 줄 반응 + 왼쪽 말풍선 + 뜻(말풍선·카드). 일반 턴과 이의 인정
 // 뒤 재출제가 함께 쓴다(2026-09-27 버그 점검: 재출제 경로엔 말풍선·카드 뜻이 빠져 있었다).
 // 뜻은 비동기로 채워지므로, 호출부가 바로 뒤에 HUD를 갱신해 카드 뜻 칸을 비워도 나중에 다시 채워진다.
 function AI단어_보이기(ai_word){
@@ -173,15 +173,9 @@ function 흔들기(el){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   페르소나 선택 → 모드 선택 (원본 _handle_init/_handle_mode_select)
+   모드 선택 (원본 _handle_mode_select) — 첫 화면.
+   원본의 페르소나 선택(_handle_init)은 2026-11-08 관리자님 결정으로 없앴다(대사는 한 목소리).
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function 선택_페르소나(p){
-  gs.persona = p;
-  if(!gs.god_mode_active) gs.user_title = (p === 'Arrogant') ? '필멸자' : '사용자님';
-  gs.game_state = 'MODE_SELECT';
-  화면('모드');
-}
-
 // 2026-07-29: 아케이드도 설정 화면을 거친다(관리자님 지적 "아케이드 모드는 따로 설정 선택이 없음").
 // 원본 파이썬은 아케이드를 설정 불가 모드로 뒀지만, 두음법칙·구 허용처럼 아케이드에서도 의미가 있는
 // 항목까지 기본값에 묶여 있었다. 모드별로 의미 있는 항목만 보여주고, 규칙상 고정인 항목은 잠금 행으로
@@ -195,12 +189,8 @@ function 선택_모드(mode){
 }
 
 /* ── 뒤로가기 (2026-07-29 신설) ──────────────────────────────────────────
-   종전엔 페르소나를 잘못 고르거나 모드를 바꾸려면 '리셋'으로 전부 날리는 수밖에 없었다.
+   종전엔 모드를 바꾸려면 '리셋'으로 전부 날리는 수밖에 없었다.
    화면만 되돌리고 진행 중인 판이 없으므로 상태는 건드리지 않는다. */
-function 뒤로_페르소나(){
-  gs.game_state = 'INIT';
-  화면('페르소나');
-}
 function 뒤로_모드(){
   gs.game_state = 'MODE_SELECT';
   화면('모드');
@@ -232,10 +222,10 @@ const 설정_항목 = [
   // ⚠️ 난이도 설명의 숫자는 난이도표(게임상태.js)에서 직접 읽는다. 종전에는 여기에 손으로 적어
   // 둬서, 실수 폐지로 목숨을 4배 올렸을 때 설명만 옛 숫자로 남는 식의 어긋남이 생겼다.
   { 키:'diff', 종류:'칩', 아이콘:'🔥', 라벨:'난이도', 모드:['SURVIVAL'],
-    선택지:[['안온','안온', 난이도설명('안온', '상대가 쉬운 단어로 봐줍니다')],
-           ['격동','격동', 난이도설명('격동', '상대가 아무 단어나 냅니다')],
-           ['초월','초월', 난이도설명('초월', '상대가 잇기 어려운 단어를 노립니다')],
-           ['심연','심연', 난이도설명('심연', '상대가 매번 최악의 수를 둡니다 (거래 불가)')]] },
+    선택지:[['안온','안온 · 쉬움', 난이도설명('안온', '상대가 쉬운 단어로 봐줍니다')],
+           ['격동','격동 · 보통', 난이도설명('격동', '상대가 아무 단어나 냅니다')],
+           ['초월','초월 · 어려움', 난이도설명('초월', '상대가 잇기 어려운 단어를 노립니다')],
+           ['심연','심연 · 매우 어려움', 난이도설명('심연', '상대가 매번 최악의 수를 둡니다 (거래 불가)')]] },
   { 키:'rev', 종류:'칩', 아이콘:'🔁', 라벨:'진행 방향',
     선택지:[[false,'끝말잇기','마지막 글자로 잇습니다'],[true,'앞말잇기','첫 글자로 잇습니다 (두음법칙 미적용)']] },
   { 키:'dueum', 종류:'칩', 아이콘:'📏', 라벨:'두음법칙',
@@ -450,7 +440,8 @@ function 설정요약_갱신(){
     칩.push('🗼 아케이드');
   } else {
     칩.push('🕰 서바이벌');
-    칩.push(`🔥 ${gs.diff}`);
+    // 난이도 칩 라벨(「격동 · 보통」)을 그대로 쓴다 — 쉬운 이름이 두 곳에 따로 적히지 않게
+    칩.push(`🔥 ${설정_항목.find(x => x.키 === 'diff').선택지.find(x => x[0] === gs.diff)?.[1] ?? gs.diff}`);
     if(gs.infinite) 칩.push('🔄 무한');
   }
   칩.push(gs.rev ? '🔀 앞말잇기' : '🔀 끝말잇기');
@@ -901,13 +892,13 @@ function 버튼_양보(){
   if(gs.game_state !== 'PLAYING') return;
   gs.yield_attempts += 1;
   if(gs.yield_attempts === 1){
-    로그_추가(대사(gs, '버튼_양보_1', {칭호: title(gs)}));
+    로그_추가(대사(gs, '버튼_양보_1'));
   } else if(gs.yield_attempts === 2){
     로그_추가(대사(gs, '버튼_양보_3'));
   } else if(gs.yield_attempts === 3){
     로그_추가(대사(gs, '버튼_양보_2'), 'err');
   } else {
-    로그_추가(대사(gs, '버튼_양보_1'), 'err');
+    로그_추가(대사(gs, '버튼_양보_기권'), 'err');
     gs.yield_attempts = 0;
     const result = user_defeat(gs);
     if(result === 'game_over'){ 게임오버(false); return; }
@@ -1286,7 +1277,7 @@ async function 힌트_본체(내세대, 선물 = false){
     로그_추가(대사(gs, '힌트_본체_8'), 'sys');
     gs.game_state = 'ESCAPE_WAIT';
     선택박스_보이기(`
-      <div class="q">[비상 탈출구]</div>
+      <div class="q">비상 탈출구</div>
       <button class="btn sm acc" onclick="탈출_응답(false)">계속</button>
       <button class="btn sm" onclick="탈출_응답(true)">도망</button>`);
     return;
@@ -1312,14 +1303,14 @@ async function 힌트_본체(내세대, 선물 = false){
       const prob = 붕괴확률(gs.trial_attempts_this_floor);
       if(prob > 0){
         gs.game_state = 'TOWER_COLLAPSE_WAIT';
-        로그_추가(`▓▒░ [탑의 그림자가 짙어진다] ░▒▓  현재 붕괴 위험: ${prob}%`, 'err');
+        로그_추가(`힌트가 없어요. 계약을 하려면 탑이 무너질 위험(${prob}%)을 감수해야 해요.`, 'err');
         선택박스_보이기(`
-          <div class="q">⚠ ${prob}% 확률로 탑이 무너진다.</div>
-          <button class="btn sm acc" onclick="붕괴_응답(true)">심연의 문 — 입장(위험 감수)</button>
-          <button class="btn sm" onclick="붕괴_응답(false)">탑의 그림자 — 퇴장(포기)</button>`);
+          <div class="q">${prob}% 확률로 탑이 무너져요.</div>
+          <button class="btn sm acc" onclick="붕괴_응답(true)">감수하고 계약 보기</button>
+          <button class="btn sm" onclick="붕괴_응답(false)">그만두기</button>`);
       } else {
         gs.game_state = 'TRIAL_WAIT';
-        로그_추가('░▒▓ [시련의 탑] ▓▒░', 'sys');
+        로그_추가('힌트가 없어요. 시련의 탑에서 계약을 고를 수 있어요.', 'sys');
         시련_선택박스(true);
       }
       return;
@@ -1343,8 +1334,7 @@ async function 힌트_본체(내세대, 선물 = false){
   if(!cands.length){
     // 관리자님 제보: "힌트 불가라고 뜨면 내가 진 건가?" — 아니다. 힌트로 **안전하게** 안내할
     // 단어를 못 찾았을 뿐 판은 그대로 진행된다. 오해하지 않게 명시하고 힌트도 차감하지 않는다.
-    로그_추가('❌ [힌트 불가] 안내할 만한 단어를 찾지 못했습니다. 진 것이 아니니 직접 입력해 보세요 '
-            + '(힌트는 차감되지 않았습니다).', 'sys');
+    로그_추가('알려 줄 만한 단어를 못 찾았어요. 진 건 아니니 직접 입력해 보세요(힌트는 그대로예요).', 'sys');
     return;
   }
 
@@ -1364,7 +1354,7 @@ async function 힌트_본체(내세대, 선물 = false){
   로그_추가(`   🔤 초성 : ${extract_chosung(hint_word)}`);
   // 원본 deliver_hint(game.py:1071-1072)의 어둠의 계약 안내 — 이식 때 누락됐던 것 복원
   if(gs.game_mode === 'ARCADE' && gs.curse_dark_active){
-    로그_추가('   ⛓ [어둠의 계약] 2글자 단어만 안내됩니다.', 'sys');
+    로그_추가('어둠의 계약 중이라 2글자 단어만 알려 줘요.', 'sys');
   }
   플레이_HUD갱신();
 }
@@ -1393,7 +1383,7 @@ function 딜_응답(수락){
     gs.infinite = true;
     gs.hints += 1;
     gs.game_state = 'PLAYING';
-    로그_추가(`✅ [무한 모드 진입] 끝은 없다. 한계를 시험하라, ${title(gs)}.`, 'ok');
+    로그_추가('무한 모드로 바꿨어요. 힌트가 1개 늘었어요.', 'ok');
   } else {
     gs.game_state = 'PLAYING';
     로그_추가(대사(gs, '딜_응답_1'));
@@ -1405,7 +1395,7 @@ function 생존승리_응답(계속){
   if(계속){
     gs.infinite = true;
     gs.game_state = 'PLAYING';
-    로그_추가('✅ [무한 모드 진입] 턴 제한 해제. 한계를 넘어서십시오!', 'ok');
+    로그_추가('무한 모드로 계속해요. 턴 제한이 없어요.', 'ok');
     플레이_HUD갱신(); 프롬프트_갱신();
   } else {
     if(gs.turn > gs.best) gs.best = gs.turn;
@@ -1456,9 +1446,8 @@ function 붕괴_응답(입장){
     const prob = 붕괴확률(gs.trial_attempts_this_floor);
     const roll = 1 + Math.floor(Math.random() * 100);
     if(roll <= prob){   // roll은 1~100 — prob가 100 이상이면 항상 참
-      로그_추가('▓▒░ 탑이 무너진다. 대지가 갈라진다. ░▒▓', 'err');
-      로그_추가(대사(gs, '붕괴_응답_3', [title(gs)]), 'err');
-      로그_추가(`💀 [탑 붕괴 엔딩] ${gs.stage}층에서 소멸.`, 'err');
+            로그_추가(대사(gs, '붕괴_응답_3'), 'err');
+      로그_추가(`${gs.stage}층에서 끝났어요.`, 'err');
       if(gs.stage > gs.best) gs.best = gs.stage;
       게임오버(false);
     } else {
@@ -1477,7 +1466,7 @@ function 붕괴_응답(입장){
 function 탈출_응답(도망){
   if(도망){
     로그_추가(대사(gs, '탈출_응답_2'), 'err');
-    로그_추가(`💀 [비상 탈출] ${gs.stage}층에서 도망쳤습니다.`, 'err');
+    로그_추가(`${gs.stage}층에서 그만뒀어요.`, 'err');
     if(gs.stage > gs.best) gs.best = gs.stage;
     게임오버(false);
   } else {
@@ -1494,9 +1483,8 @@ function 탑승리_응답(계속){
     // 아케이드 시작값(아케이드_목숨=8)과 같은 기준으로 맞춘다 — 14층부터는 무한 등반이라
     // 시작보다 각박할 이유가 없다.
     gs.hearts = gs.god_mode_active ? Infinity : 아케이드_목숨;
-    gs.user_title = is_arrogant(gs) ? '탑의지배자' : '탑의주인님';
     gs.game_state = 'PLAYING';
-    로그_추가(`🚀 [14층 진입] 무한 등반. 목표: ${get_stage_target(gs)}턴`, 'ok');
+    로그_추가(`14층부터 무한 등반이에요. 이번 층 목표는 ${get_stage_target(gs)}턴이에요.`, 'ok');
     플레이_HUD갱신(); 프롬프트_갱신();
   } else {
     if(gs.stage > gs.best) gs.best = gs.stage;
@@ -1549,15 +1537,15 @@ function 게임오버(victory){
 
   if(gs.game_mode === 'SURVIVAL'){
     const msg = victory
-      ? 대사(gs, '게임오버_생존승리', {칭호: title(gs)})
-      : 대사(gs, '게임오버_생존패배', {칭호: title(gs)});
-    document.getElementById('오버-메시지').textContent = (victory ? '🏆 [SURVIVAL 클리어] ' : '💀 [GAME OVER] ') + msg;
+      ? 대사(gs, '게임오버_생존승리')
+      : 대사(gs, '게임오버_생존패배');
+    document.getElementById('오버-메시지').textContent = msg;
     결과_통계(`턴 ${gs.turn}`);
   } else {
     const msg = victory
-      ? 대사(gs, '게임오버_1', [title(gs)])
-      : 대사(gs, '게임오버_탑패배', {층: gs.stage, 칭호: title(gs)});
-    document.getElementById('오버-메시지').textContent = (victory ? '🏆 [13층 클리어] ' : '💀 [GAME OVER] ') + msg;
+      ? 대사(gs, '게임오버_1')
+      : 대사(gs, '게임오버_탑패배', {층: gs.stage});
+    document.getElementById('오버-메시지').textContent = msg;
     결과_통계(`${gs.stage}층`);
   }
 }
@@ -1613,12 +1601,12 @@ function 다시시작(){
 
 function 전체리셋(){
   // 원본 !리셋 처리(WordChainGame.run): full_reset() 후 GOD MODE 여부와 무관하게 항상
-  // show_init()(페르소나 선택)으로 돌아간다 — god_mode_active는 화면 안내 문구만 다를 뿐 분기 없음.
+  // 첫 화면으로 돌아간다(원본은 show_init — 페르소나 선택이었으나 2026-11-08 폐지, 지금은 모드 선택).
   게임_세대올리기();   // 진행 중이던 턴의 결과가 초기화된 상태에 섞이지 않게
   full_reset(gs);
   세션_비우기();       // 이전 판의 수집 단어·조회 실패 카운터를 새 판으로 넘기지 않는다
   로그_비우기();
-  화면('페르소나');
+  화면('모드');
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1626,12 +1614,14 @@ function 전체리셋(){
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function 버튼_설명(){ document.getElementById('설명Bg').classList.add('show'); }
 function 버튼_설명닫기(){ document.getElementById('설명Bg').classList.remove('show'); }
+// Esc로 열린 모달 닫기(설명·관리자·삭제 확인 공용 — 셋 다 닫기 = .show 제거, 삭제 확인은 '취소'와 같다)
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') document.querySelector('.modal-bg.show')?.classList.remove('show');
+});
 
 function 갓모드_활성화(){
   gs.god_mode_active = true;
   gs.hints = Infinity; gs.hearts = Infinity;
-  gs.user_title = '최고 관리자님';
-  if(gs.persona === null) gs.persona = 'Arrogant';
   로그_추가('🔓 어서 오십시오, 최고 관리자님. (힌트 ∞ · 목숨 ∞)', 'ok');
   로그_추가('🔓 보조 버튼에 「관리자」가 열렸습니다.', 'sys');
   if(gs.game_state === 'PLAYING'){ 플레이_HUD갱신(); 프롬프트_갱신(); }

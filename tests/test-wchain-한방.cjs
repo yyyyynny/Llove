@@ -62,7 +62,6 @@ function 세계만들기({ 게이트 = true, 온라인 = '정상', 모드 = 'SUR
   if(보조사전) vm.runInContext('추가사전 = ' + JSON.stringify(보조사전) + ';', ctx);
   const gs = ctx.새게임상태();
   gs.game_mode = 모드;
-  gs.persona = 'Polite';
   gs.game_state = 'PLAYING';
   // 클래식 스크립트의 const 선언(DICTIONARY 등)은 스크립트 렉시컬 스코프에 있어 컨텍스트 객체의
   // 속성이 되지 않는다(함수 선언은 됨). 값이 필요하면 컨텍스트 안에서 평가해 꺼낸다.
