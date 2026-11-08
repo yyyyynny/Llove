@@ -24,11 +24,10 @@ function 렌더_성장상세(){
     ...소칭호표.map(([t,min],i)=>({t, min, r:`Lv.${min}~${i<소칭호표.length-1 ? 소칭호표[i+1][1]-1 : 최대레벨}`})),
     {t:'폐하',    r:'창조주 달성', min:Infinity}
   ];
-  const 색상키 = t => (t==='주҉신҉') ? '주신' : t;
   body.innerHTML = `
     <div class="sg-sec fu">
       <div class="sg-sec-t">현재 상태</div>
-      <div style="font-size:15px;font-weight:700">${문자열_이스케이프(userName)} <span style="font-size:12px;color:${소칭호색상표[색상키(칭호)]||'var(--accl)'};text-shadow:0 1px 3px rgba(0,0,0,.38)">(${칭호})</span></div>
+      <div style="font-size:15px;font-weight:700">${문자열_이스케이프(userName)} <span style="font-size:12px;color:${소칭호색상표[칭호]||'var(--accl)'};text-shadow:0 1px 3px rgba(0,0,0,.38)">(${칭호})</span></div>
       <div style="font-size:12px;color:var(--txt);margin-top:4px">등급: <b>${등급.등급}</b>${등급.세부!==등급.등급?` · ${등급.세부}`:''}</div>
       <div style="font-size:12px;color:var(--txt2);margin-top:4px">Lv.${표시Lv} — EXP ${표시Exp} / ${표시Max} · 총누적 ${(사용자.총누적EXP||0).toLocaleString('ko-KR')}</div>
     </div>
@@ -43,7 +42,7 @@ function 렌더_성장상세(){
         const 달성 = (it.min===Infinity) ? !!사용자.창조주달성 : 표시Lv >= it.min;
         const 현재구간 = (칭호 === it.t);
         return `<div class="sg-road-item">
-          <span style="color:${소칭호색상표[색상키(it.t)]||'#b4b4c4'};font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.38)${현재구간?';text-decoration:underline':''}">(${it.t})</span>
+          <span style="color:${소칭호색상표[it.t]||'#b4b4c4'};font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.38)${현재구간?';text-decoration:underline':''}">(${it.t})</span>
           <span class="sg-road-range">${it.r}</span>
           <span class="sg-road-state" style="color:${달성?'var(--ok)':'var(--txtm)'}">${달성?'달성':'미달성'}</span>
         </div>`;

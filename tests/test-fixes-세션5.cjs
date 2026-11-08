@@ -17,7 +17,7 @@ load((window) => {
   assert('버그3: obj-note(사고전개/근거) 기본 글자색', /\.obj-note\{[^}]*color:var\(--txt\)/.test(css));
   assert('버그3: 채팅 사용자 말풍선 기본 글자색', /\.ask-msg\.user\{[^}]*color:var\(--txt\)/.test(css));
   assert('버그4: 소칭호 그림자(외곽선) 부여', /\.status-sub-title\{[^}]*text-shadow/.test(css));
-  assert('버그4: 최고신 색 명도 상향', ev("소칭호색상표['최고신']") === '#c078d8', ev("소칭호색상표['최고신']"));
+  assert('버그4: 달인(옛 최고신 구간) 색 명도 상향 유지', ev("소칭호색상표['달인']") === '#c078d8', ev("소칭호색상표['달인']"));
   assert('버그1: --글자배율 CSS 블록 존재', /--글자배율/.test(css) && /calc\(15px\*var\(--글자배율\)\)/.test(css));
 
   /* ── 버그2: 커스텀 테마 이름 → 테마 칩 라벨 반영 ── */
@@ -28,7 +28,7 @@ load((window) => {
 
   /* ── 버그5: 성장 상세에도 등급 표시 (현황과 통일) ── */
   ev('curLv=70; 렌더_성장상세();');
-  assert('버그5: Lv.70 성장상세에 등급 「강림자」 표시', doc.getElementById('sgBody').innerHTML.includes('강림자'));
+  assert('버그5: Lv.70 성장상세에 등급 「거장」 표시(11-08 강림자→거장)', doc.getElementById('sgBody').innerHTML.includes('거장'));
   ev('curLv=1; 렌더_성장상세();');
   assert('버그5: Lv.1 성장상세에 등급 「견습생」 표시', doc.getElementById('sgBody').innerHTML.includes('견습생'));
 
