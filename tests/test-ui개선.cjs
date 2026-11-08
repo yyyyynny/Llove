@@ -174,8 +174,8 @@ load(async (window) => {
   assert('개발자 모드 행: 창조주면 보임', 개발행() === 'flex');
   ev("사용자.개발자모드=false; 사용자.창조주달성=false; 갱신_설정_개발자모드_UI(); 실험실_열기();");
   const 실험실글 = doc.getElementById('infoDesc').textContent;
-  assert('실험실: 일반 사용자에겐 「예정」·「실험」 항목이 안 보인다',
-    실험실글.includes('끝말잇기') && !실험실글.includes('AI 실시간 출제') && !실험실글.includes('음성 생성'), 실험실글);
+  assert('실험실(11-08): 일반 사용자에겐 준비 중(예정)만 보이고, 끝말잇기·실험 항목은 안 보인다',
+    !실험실글.includes('끝말잇기') && 실험실글.includes('AI 실시간 출제') && !실험실글.includes('음성 생성'), 실험실글);
   ev("closeInfoModal()");
 
   // 둘러보기: 로그인 화면 버튼으로 비로그인 진입, 설정의 계정 행은 「로그인」이 된다
@@ -200,6 +200,15 @@ load(async (window) => {
     assert(`${파일}: description·og·twitter 메타`, /<meta name="description"/.test(h) && h.includes(`<meta property="og:url" content="${주소}">`) && /og:title/.test(h) && /og:type/.test(h) && /twitter:card/.test(h));
   }
   assert('404.html: Llove로 가는 절대 링크', fs.readFileSync(path.join(__dirname, '..', '404.html'), 'utf8').includes('href="/Llove/Llove/"'));
+
+  // 11-08 결정: 이어서 하기 — 마지막으로 연 모드가 홈 맨 위 카드로
+  ev("localStorage.removeItem('plx_마지막학습'); 이어서하기_표시()");
+  assert('이어서 하기: 처음엔 숨김', doc.getElementById('continueCard').style.display === 'none');
+  ev("goLearn('맞춤법','sq3',null); goNav('sh',null)");
+  assert('이어서 하기: 맞춤법을 연 뒤 홈에 표시', doc.getElementById('continueCard').style.display === '' && doc.getElementById('continueDesc').textContent === '맞춤법');
+  // 11-08 결정: 기본 이름 풀에 오류처럼 보이는 이름 없음, 실험실엔 이미 쓸 수 있는 끝말잇기 없음
+  assert('이름 풀: null·undefined 없음', !ev("기본이름풀.some(n=>['null','undefined','noname','N/A'].includes(n))"));
+  assert('실험실: 끝말잇기 항목 없음', !ev("실험실_목록.some(it=>it.이름==='끝말잇기')"));
 
   process.exit(finish() > 0 ? 1 : 0);
 });

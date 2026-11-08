@@ -34,7 +34,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Gowun+Batang:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <!-- 재구조화: 전체 스타일을 style.css로 분리 (기존 인라인 <style> 24~938줄) -->
-<link rel="stylesheet" href="style.css?v=2026110805">
+<link rel="stylesheet" href="style.css?v=2026110806">
 
 <!-- Firebase Compat SDK (KNOWLEDGE 13·28 — 구글 로그인 + Firestore 동기화). compat 방식: 전역 firebase 객체 사용 -->
 <!-- 버전은 필요 시 교체 가능 -->
@@ -495,6 +495,8 @@
     <div class="kc-dots" id="quoteDots"></div>
   </div>
   <div class="hs">
+    <!-- 11-08: 이어서 하기 — 마지막으로 연 모드로 바로 간다(처음 온 사람에겐 숨김) -->
+    <div class="mc mc-g4" id="continueCard" style="display:none;margin-bottom:14px" onclick="이어서하기()"><div class="mc-icon"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></div><div class="grow"><div class="mc-name">이어서 하기</div><div class="mc-desc" id="continueDesc"></div></div><div class="mc-arrow">›</div></div>
     <div class="sec-t">학습 모드</div>
     <!-- 세션10-d 항목6·7: 카테고리 그룹으로 재편(교정 계열 맨 위) + 색맹 대비 그룹 라벨(색+두께+텍스트 3중 신호).
          색 그룹: 교정=g4(--acc) · 지식=g1(--inf) · 어휘=g2(--warn) · 문해=g3(--ok) · 재미=g5(--err) -->
@@ -911,7 +913,7 @@
   <div class="top-bar"><div></div><div class="tbt">현황</div><div></div></div>
   <div class="st-body">
     <!-- α4: Lv.70 도달 시 「주신의 경지」 메시지 UI (KNOWLEDGE 11) -->
-    <div class="jushin-msg" id="jushinMsg" style="display:none" onclick="주신의경지_탭()">「주҉신҉의 경지」</div>
+    <div class="jushin-msg" id="jushinMsg" style="display:none" onclick="주신의경지_탭()">「주신의 경지」</div>
     <!-- 세션10-c 항목4: 배너를 이름칸 배경으로 합침(독립 박스 폐지)
          세션10-i 항목1: 탭 핸들러를 카드 전체(prof-banner)로 옮김 — 배경 레이어(banner-layer)에만 있으면
          가운데 prof-info(이름·칭호 등, z-index 위) 영역이 클릭을 가로채 히트박스가 좁아 보이던 문제.
@@ -1171,30 +1173,30 @@
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore-compat.js"></script>
-<script src="js/상태.js?v=2026110805"></script>
-<script src="js/데이터로드.js?v=2026110805"></script>
-<script src="js/화면전환.js?v=2026110805"></script>
-<script src="js/온보딩.js?v=2026110805"></script>
-<script src="js/firebase.js?v=2026110805"></script>
-<script src="js/레벨.js?v=2026110805"></script>
-<script src="js/grok.js?v=2026110805"></script>
-<script src="js/사전.js?v=2026110805"></script>
-<script src="js/토큰.js?v=2026110805"></script>
-<script src="js/퀴즈엔진.js?v=2026110805"></script>
-<script src="js/플래시카드.js?v=2026110805"></script>
-<script src="js/유의어변별.js?v=2026110805"></script>
-<script src="js/아재개그.js?v=2026110805"></script>
-<script src="js/구어교정.js?v=2026110805"></script>
-<script src="js/복습.js?v=2026110805"></script>
-<script src="js/업적.js?v=2026110805"></script>
-<script src="js/채팅.js?v=2026110805"></script>
-<script src="js/테마.js?v=2026110805"></script>
-<script src="js/슬라이드.js?v=2026110805"></script>
-<script src="js/개발자모드.js?v=2026110805"></script>
-<script src="js/이의있음.js?v=2026110805"></script>
-<script src="js/커스터마이징.js?v=2026110805"></script>
-<script src="js/성장상세.js?v=2026110805"></script>
-<script src="js/잇는.js?v=2026110805"></script>
-<script src="js/초기실행.js?v=2026110805"></script>
+<script src="js/상태.js?v=2026110806"></script>
+<script src="js/데이터로드.js?v=2026110806"></script>
+<script src="js/화면전환.js?v=2026110806"></script>
+<script src="js/온보딩.js?v=2026110806"></script>
+<script src="js/firebase.js?v=2026110806"></script>
+<script src="js/레벨.js?v=2026110806"></script>
+<script src="js/grok.js?v=2026110806"></script>
+<script src="js/사전.js?v=2026110806"></script>
+<script src="js/토큰.js?v=2026110806"></script>
+<script src="js/퀴즈엔진.js?v=2026110806"></script>
+<script src="js/플래시카드.js?v=2026110806"></script>
+<script src="js/유의어변별.js?v=2026110806"></script>
+<script src="js/아재개그.js?v=2026110806"></script>
+<script src="js/구어교정.js?v=2026110806"></script>
+<script src="js/복습.js?v=2026110806"></script>
+<script src="js/업적.js?v=2026110806"></script>
+<script src="js/채팅.js?v=2026110806"></script>
+<script src="js/테마.js?v=2026110806"></script>
+<script src="js/슬라이드.js?v=2026110806"></script>
+<script src="js/개발자모드.js?v=2026110806"></script>
+<script src="js/이의있음.js?v=2026110806"></script>
+<script src="js/커스터마이징.js?v=2026110806"></script>
+<script src="js/성장상세.js?v=2026110806"></script>
+<script src="js/잇는.js?v=2026110806"></script>
+<script src="js/초기실행.js?v=2026110806"></script>
 </body>
 </html>

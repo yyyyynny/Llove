@@ -592,7 +592,7 @@ function sendAsk(){
       inp.value='';
       inp.style.height='auto';
       // 세션6 항목3: 최고 관리자님 지정 문구로 교체 (맞춤법 교정 반영)
-      showInfoModal('👑','알현','시스템의 창조자이자 최고 권력자이신, 드높으신 폐하를 알현합니다.<br><br><span style="font-size:11px;color:var(--txt2)">창조주 퀘스트는 최초 1회만 진행됩니다.</span>');
+      showInfoModal('👑','창조주','이미 창조주예요.<br><br><span style="font-size:11px;color:var(--txt2)">창조주 퀘스트는 처음 한 번만 할 수 있어요.</span>');
       return;
     }
     inp.value='';

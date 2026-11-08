@@ -33,7 +33,7 @@ load((window) => {
   /* ── #2 실험실 ── */
   assert('#2: 위험 구역에 실험실 행', Array.from(doc.querySelectorAll('.set-row')).some(r=>(r.getAttribute('onclick')||'').includes('실험실_열기')));
   ev('실험실_열기();');
-  assert('#2: 목록 팝업(끝말잇기 노출)', doc.getElementById('infoDesc').innerHTML.includes('끝말잇기'));
+  assert('#2: 목록 팝업(11-08: 준비 중 기능만, 끝말잇기 없음)', doc.getElementById('infoDesc').innerHTML.includes('준비 중') && !doc.getElementById('infoDesc').innerHTML.includes('끝말잇기'));
   // 2026-08-22: 종전엔 index 0(끝말잇기)을 탭해 티저를 확인했는데, 끝말잇기가 실제로
   // 플레이 가능해지면서 상태가 '가능'으로 바뀌어 곧바로 열리게 됐다(티저가 안 뜬다).
   // 이 검사의 취지는 "아직 못 쓰는 항목은 티저로 막힌다"이므로, 인덱스를 박지 말고

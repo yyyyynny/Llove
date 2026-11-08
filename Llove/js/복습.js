@@ -244,10 +244,10 @@ function 복습_카드렌더(){
   wrap.innerHTML = 머리 + `
     <div class="qcard" style="margin-top:4px;padding:26px 20px">
       ${태그}
-      <div class="q-question" style="font-size:calc(20px*var(--글자배율));margin-top:6px">${단어}</div>
-      <div id="rvAnswer" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--bdr);font-size:14px;color:var(--txt2);line-height:1.8">${뜻}</div>
+      <div class="q-question" style="font-size:calc(16px*var(--글자배율));margin-top:6px;line-height:1.7">${뜻}</div>
+      <div id="rvAnswer" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--bdr);font-size:calc(20px*var(--글자배율));font-weight:700;color:var(--txt)">${단어}</div>
     </div>
-    <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:14px" onclick="복습_뜻공개()">뜻 보기</button>
+    <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:14px" onclick="복습_뜻공개()">답 보기</button>
     <div id="rvJudge" style="display:none;gap:8px;margin-top:12px">
       <button class="btn-acc grow" onclick="복습_판정(true)">기억남 ✓</button>
       <button class="btn-g grow" onclick="복습_판정(false)">까먹음 ✗</button>

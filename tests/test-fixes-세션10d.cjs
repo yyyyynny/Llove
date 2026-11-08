@@ -67,7 +67,7 @@ load((window) => {
     assert('#5: 클램프 — tx 상한 0', ev("이미지크롭_상태.tx") <= 0);
 
     /* ── 항목6·7: 카드 재편(교정 맨 위)·색 그룹·라벨·랜덤 포함 ── */
-    const 카드들 = Array.from(doc.querySelectorAll('.hs .mc')).map(c=>(c.querySelector('.mc-name')||{}).textContent);
+    const 카드들 = Array.from(doc.querySelectorAll('.hs .mc:not(#continueCard)')).map(c=>(c.querySelector('.mc-name')||{}).textContent);
     assert('#6: 맞춤법이 학습 모드 첫 카드', 카드들[0] === '맞춤법');
     assert('#6: 구어 교정이 둘째 카드', 카드들[1] === '구어 교정');
     // 10-03: 그룹 색은 테두리 대신 왼쪽 막대(::before)·아이콘 색으로 표시

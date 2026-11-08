@@ -109,12 +109,28 @@ function goNav(id, btn){
   afterNav(id);
 }
 
+// 11-08: 이어서 하기 — 마지막으로 연 학습 모드(plx_마지막학습)를 홈 맨 위 카드로
+function 마지막학습(){
+  try{ const v = JSON.parse(localStorage.getItem('plx_마지막학습') || 'null'); return Array.isArray(v) && 모드_마스터리맵[v[0]] ? v : null; }catch(e){ return null; }
+}
+function 이어서하기_표시(){
+  const 카드 = document.getElementById('continueCard'), v = 마지막학습();
+  if(!카드) return;
+  카드.style.display = v ? '' : 'none';
+  if(v) document.getElementById('continueDesc').textContent = v[0];
+}
+function 이어서하기(){
+  const v = 마지막학습();
+  if(v) goLearn(v[0], v[1], null);
+}
+
 function afterNav(id){
   if(id==='sh'){
     // 홈 화면: 사용자 객체 기반 렌더링 — 개발자 오버레이 표시 합성 (KNOWLEDGE 14)
     const 표시Lv=표시레벨(), 표시Exp=표시EXP(), 표시Max=expForLevel(표시Lv);
     const 등급 = 등급정보(표시Lv);
     document.getElementById('homeUser').textContent=userName;
+    이어서하기_표시();
     아바타_적용(document.getElementById('homeAvatar'), 사용자.프로필이미지);  // 세션6: 이미지/이모지 겸용
     document.getElementById('homeLv').textContent='Lv.'+표시Lv;
     document.getElementById('homeRank').textContent=등급.등급;
@@ -199,6 +215,7 @@ function goLearn(category, screenId, btn){
   // 세션6 항목4: 카테고리가 바뀌면 진행 중 채팅을 기록으로 보관하고 채팅창을 비운다
   if(현재학습모드 && 현재학습모드 !== category) 채팅세션_마감('카테고리 이동');
   현재학습모드 = category;
+  try{ localStorage.setItem('plx_마지막학습', JSON.stringify([category, screenId])); }catch(e){ /* 저장소 차단 무시 */ }
   // 세션7: 뒤로가기 복귀용 — 히스토리 상태에 카테고리를 덧붙임 (popstate 시 goLearn 재진입 근거)
   try{ history.replaceState({화면:screenId, 카테고리:category}, '', ''); }catch(e){ /* 무시 */ }
   현재학습모드필드 = 모드_마스터리맵[category] || '';

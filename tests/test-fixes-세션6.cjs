@@ -17,8 +17,8 @@ load((window) => {
 
   /* ── #3 창조주 중복 문구 = 지정 문구 ── */
   ev("사용자.창조주달성=true; document.getElementById('askInp').value=창조주키; sendAsk();");
-  assert('#3: 「알현」 제목', doc.getElementById('infoTitle').textContent === '알현');
-  assert('#3: 지정 문구 본문', doc.getElementById('infoDesc').innerHTML.includes('시스템의 창조자이자 최고 권력자이신, 드높으신 폐하를 알현합니다'));
+  assert('#3: 재진입 안내 제목(11-08 「알현」→「창조주」)', doc.getElementById('infoTitle').textContent === '창조주');
+  assert('#3: 재진입 안내 본문(11-08 문구 정리)', doc.getElementById('infoDesc').innerHTML.includes('이미 창조주예요'));
   ev('closeInfoModal(); 사용자.창조주달성=false;');
 
   /* ── #4 채팅 기록 — 세션 단위·상한·아카이브·뷰어 ── */
