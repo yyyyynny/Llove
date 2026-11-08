@@ -150,6 +150,7 @@ function submitSpk(){
     document.getElementById('spkTipTxt').textContent = '';
   }
   document.getElementById('spkResult').classList.add('show');
+  탐닉_체크();   // 집중력 업적: 구어 교정 제출도 「이어서 공부」로 센다(오늘 목표 수는 안 늘림)
   // 같은 예문 반복 제출로 EXP 중복 획득 방지 — 예문당 1회만 +60 (KNOWLEDGE 12)
   const id = (구어교정현재 && 구어교정현재.id) || '자유입력';
   if(!구어교정완료ID[id]){

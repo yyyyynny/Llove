@@ -7,67 +7,67 @@
 const ACH_DATA=[
   // 성장 — stage·current는 업적_표시동기화()가 실계산으로 채운다(초기 가짜 진행치 없음)
   {sec:'성장', items:[
-    {key:'first', name:'첫걸음', icon:'🌱', cat:'성장 · 한 번',
+    {key:'first', name:'첫걸음', icon:'flag', cat:'성장 · 한 번',
      desc:'처음 공부하면 받아요', progress:'+50 EXP', single:true},
-    {key:'growth', name:'성장의 기록', icon:'📈', cat:'성장 · 7단계',
+    {key:'growth', name:'성장의 기록', icon:'chart', cat:'성장 · 7단계',
      desc:'레벨이 오를수록 단계가 올라가요'},
-    {key:'steady', name:'꾸준한 발걸음', icon:'🔥', cat:'성장 · 7단계',
+    {key:'steady', name:'꾸준한 발걸음', icon:'flame', cat:'성장 · 7단계',
      desc:'며칠 연속으로 공부할수록 단계가 올라가요. 단계마다 받는 EXP가 조금씩 늘어요'}
   ]},
   // 숙련
   {sec:'숙련', items:[
-    {key:'perfect', name:'완벽주의자', icon:'🏅', cat:'숙련 · 7단계',
+    {key:'perfect', name:'완벽주의자', icon:'star', cat:'숙련 · 7단계',
      desc:'다섯 문제를 이어서 모두 맞히면 1회로 세요'},
-    {key:'speech', name:'말의 품격', icon:'🎙️', cat:'숙련 · 7단계',
+    {key:'speech', name:'말의 품격', icon:'mic', cat:'숙련 · 7단계',
      desc:'구어 교정 예문을 하나 마칠 때마다 1회로 세요'}
   ]},
   // 탐구
   {sec:'탐구', items:[
-    {key:'know', name:'상식 쌓기', icon:'🌍', cat:'탐구 · 7단계',
+    {key:'know', name:'상식 쌓기', icon:'globe', cat:'탐구 · 7단계',
      desc:'상식·어원 문제를 풀 때마다 1회로 세요'},
-    {key:'root', name:'언어의 뿌리', icon:'📜', cat:'탐구 · 7단계',
+    {key:'root', name:'언어의 뿌리', icon:'scroll', cat:'탐구 · 7단계',
      desc:'고사성어·속담·한자·우리말 문제를 풀 때마다 1회로 세요'},
-    {key:'history', name:'역사와 신화', icon:'🏛️', cat:'탐구 · 7단계',
+    {key:'history', name:'역사와 신화', icon:'temple', cat:'탐구 · 7단계',
      desc:'세계사·신화 문제를 풀 때마다 1회로 세요'},
-    {key:'spell', name:'맞춤법 다지기', icon:'✏️', cat:'탐구 · 7단계',
+    {key:'spell', name:'맞춤법 다지기', icon:'pencil', cat:'탐구 · 7단계',
      desc:'맞춤법 문제를 풀 때마다 1회로 세요'},
-    {key:'dad', name:'아재력', icon:'😂', cat:'탐구 · 7단계',
+    {key:'dad', name:'아재력', icon:'smile', cat:'탐구 · 7단계',
      desc:'아재개그 문제를 풀 때마다 1회로 세요'},
-    {key:'vocab', name:'어휘 모으기', icon:'📖', cat:'탐구 · 7단계',
+    {key:'vocab', name:'어휘 모으기', icon:'book', cat:'탐구 · 7단계',
      desc:'지금까지 익힌 단어 수예요. 복습을 마쳐도 줄지 않아요'}
   ]},
   // 관리
   {sec:'관리', items:[
-    {key:'clean', name:'휴지통 정리', icon:'🧹', cat:'관리 · 한 번',
+    {key:'clean', name:'휴지통 정리', icon:'trash', cat:'관리 · 한 번',
      desc:'휴지통을 한 번 모두 비우면 받아요', progress:'+80 EXP', single:true}
   ]},
   // 숨은 업적 — 달성 전엔 이름 대신 「???」와 hint만 보인다(업적_공개). ai:true는 AI 기능이 켜져야 보인다(업적_보임)
   {sec:'숨은 업적', items:[
-    {key:'reb', name:'이의 있음!', icon:'⚡', cat:'숨은 업적 · 7단계', ai:true,
+    {key:'reb', name:'이의 있음!', icon:'bolt', cat:'숨은 업적 · 7단계', ai:true,
      hint:'틀렸다고 생각하는 문제가 있다면…',
      desc:'이의 제기가 받아들여질 때마다 1회로 세요'},
-    {key:'night', name:'새벽 공부', icon:'🌙', cat:'숨은 업적 · 7단계',
+    {key:'night', name:'새벽 공부', icon:'moon', cat:'숨은 업적 · 7단계',
      hint:'모두가 잠든 시간에 공부해 보세요',
      desc:'자정부터 새벽 4시 사이에 공부한 날을 하루 1회로 세요'},
-    {key:'asker', name:'질문 습관', icon:'💬', cat:'숨은 업적 · 7단계',
+    {key:'asker', name:'질문 습관', icon:'chat', cat:'숨은 업적 · 7단계',
      hint:'궁금한 건 물어보세요',
      desc:'질문하기를 쓸 때마다 1회로 세요'},
-    {key:'abyss', name:'너는 누구니?', icon:'👁️', cat:'숨은 업적 · 한 번',
+    {key:'abyss', name:'너는 누구니?', icon:'eye', cat:'숨은 업적 · 한 번',
      hint:'질문하기에 조금 엉뚱한 걸 물어보세요',
      desc:'질문하기에서 「너는 누구야」처럼 정체를 물으면 받아요', progress:'+150 EXP', single:true},
-    {key:'will', name:'세 번째에 정답', icon:'💪', cat:'숨은 업적 · 한 번',
+    {key:'will', name:'세 번째에 정답', icon:'review', cat:'숨은 업적 · 한 번',
      hint:'틀려도 포기하지 마세요',
      desc:'두 번 연달아 틀린 뒤 바로 다음 문제를 맞히면 받아요', progress:'+120 EXP', single:true},
-    {key:'deep', name:'집중력', icon:'🦉', cat:'숨은 업적 · 한 번',
+    {key:'deep', name:'집중력', icon:'clock', cat:'숨은 업적 · 한 번',
      hint:'한자리에서 오래 공부해 보세요',
      desc:'문제 사이를 5분 넘게 쉬지 않고 30분 이상 이어서 공부하면 받아요', progress:'+150 EXP', single:true},
-    {key:'border', name:'선을 넘은 질문', icon:'🚧', cat:'숨은 업적 · 한 번', ai:true,
+    {key:'border', name:'선을 넘은 질문', icon:'warn', cat:'숨은 업적 · 한 번', ai:true,
      hint:'물어볼 수 없는 것도 있어요',
      desc:'질문하기에서 답할 수 없는 분야를 두 번 물으면 받아요', progress:'+120 EXP', single:true}
   ]},
   // 최상위
   {sec:'최상위', items:[
-    {key:'creator', name:'[창조주]', icon:'👑', cat:'최상위',
+    {key:'creator', name:'[창조주]', icon:'crown', cat:'최상위',
      desc:'', blur:true,
      blurText:`【부富와 권력權力. 승리勝利와 영광榮光.】\n【전지全知와 전능全能.】\n【실패하지 않을 것이요, 고꾸라지지 않을 것이다. 필멸자의 승리는 영원하지 않으나 네 것만은 영원하리라.】\n【원한다면 언제든 세계를 너의 발밑에.】\n【바란다면 죽음 또한 감히 그대를 삼키지 못할지니.】`,
      stage:'lck', progress:'+2000 EXP · 칭호: 최고 관리자님', single:true, mystery:true}
@@ -124,6 +124,8 @@ function 업적_단계계산(key){  // 표시용 stage: -1(미획득) ~ 6(풀돌
 const 업적_보임 = a => !a.ai || GROK_활성화;
 // 숨은 업적(hint 있음)은 달성 전엔 이름·설명을 가리고 힌트만 보인다
 const 업적_공개 = a => !a.hint || a.stage === 'unl' || a.stage >= 0;
+// 업적 아이콘 — icon은 index.html 아이콘 묶음(#i-이름)의 이름. 숨은 업적은 공개 전엔 「?」
+const 업적아이콘_HTML = (a, 공개 = true) => 공개 ? `<svg class="ic" aria-hidden="true"><use href="#i-${a.icon}"/></svg>` : '?';
 // 임계·현재값 표기 —'Lv.5'처럼 단위가 앞에 붙는 업적(growth)과 '5회'처럼 뒤에 붙는 업적
 const 업적_값표기 = (d, n) => d.앞단위 ? (d.단위 + n) : (n + d.단위);
 
@@ -155,7 +157,7 @@ function 업적_팝업표시(key, 단계, exp){
           ppStage=document.getElementById('ppStage'), ppDesc=document.getElementById('ppDesc'),
           ppStars=document.getElementById('ppStars'), ppExp=document.getElementById('ppExp');
     if(!ppIcon) return;
-    ppIcon.textContent = 항목.icon;
+    ppIcon.innerHTML = 업적아이콘_HTML(항목);
     ppTitle.textContent = 항목.name;
     ppStage.textContent = (단계==null) ? '달성!' : (단계 >= 6 ? '모든 단계' : stageLabel(단계)) + ' 달성!';
     ppDesc.textContent = 항목.desc || 항목.cat || '';
@@ -311,7 +313,7 @@ function renderAchievements(){
         stars=`<div class="ach-stars">${buildStars(a.stage, true)}<span style="color:var(--txt2);font-size:10px;font-weight:400;margin-left:8px">${stageLabel(a.stage==='unl' ? 'unl' : 'lck')}</span></div>`;
       }
       html+=`<div class="ach-item ${unlClass}" style="animation-delay:${0.03*idx}s" onclick="openAchDetail('${a.key}')">
-        <div class="ach-icon">${a.icon}</div>
+        <div class="ach-icon">${업적아이콘_HTML(a, 공개)}</div>
         <div class="grow">
           <div class="ach-nm">${공개 ? a.name : '???'}</div>
           ${desc}
@@ -337,8 +339,8 @@ function openAchDetail(key){
   const target = ACH_DATA.flatMap(s=>s.items).find(a=>a.key===key);
   if(!target) return;
 
-  document.getElementById('adIcon').textContent=target.icon;
   const 공개 = 업적_공개(target);
+  document.getElementById('adIcon').innerHTML=업적아이콘_HTML(target, 공개);
   document.getElementById('adName').textContent=공개 ? target.name : '???';
   document.getElementById('adCat').textContent=target.cat;
 

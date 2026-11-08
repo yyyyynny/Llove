@@ -18,6 +18,20 @@ load(async (window) => {
   assert('집중력: 5분 안 간격으로 30분 이어 공부하면 달성', ev("사용자.업적진행도['지식의탐닉자']") === 1);
   assert('숨은 업적: 달성하면 이름 공개', 목록().includes('집중력'));
 
+  // 아이콘: 이모지 대신 단색 SVG(아이콘 묶음 참조), 숨은 업적은 공개 전 「?」
+  ev('사용자.업적진행도 = {};'); 목록();
+  const 목록HTML = window.document.getElementById('achBody').innerHTML;
+  assert('아이콘: 업적 목록에 이모지 없음', !/\p{Extended_Pictographic}/u.test(목록HTML));
+  const 참조 = [...목록HTML.matchAll(/<use href="#(i-[a-z]+)"/g)].map(m => m[1]);
+  assert('아이콘: svg use가 있고 모두 묶음에 정의됨', 참조.length > 0 && 참조.every(id => window.document.getElementById(id)), 참조.join());
+  assert('아이콘: 미달성 숨은 업적은 「?」', [...window.document.querySelectorAll('#achBody .ach-icon')].some(el => el.textContent === '?'));
+
+  // 집중력: 구어 교정 제출도 탐닉_체크를 갱신한다(오늘 목표 수는 그대로)
+  ev(`구어교정현재 = null; document.getElementById('spkInput').value = '격식체로 바꾼 문장'; 집중마지막 = 0; 사용자.오늘푼수 = 3;`);
+  ev('submitSpk()');
+  assert('집중력: 구어 제출이 집중 시각 갱신', ev('집중마지막') > 0);
+  assert('집중력: 구어 제출은 오늘 목표 수를 안 늘림', ev('사용자.오늘푼수') === 3);
+
   // AI 의존 업적은 봉인 중 목록·개수에서 숨김
   const 요약합 = () => ['achSumDone', 'achSumProg', 'achSumNone'].reduce((n, id) => n + Number(window.document.getElementById(id).textContent), 0);
   ev("사용자.업적진행도 = {반박의화신: 1, 경계를넘어서: 1};");   // 달성했어도(공개 상태여도) 봉인 중엔 숨긴다
