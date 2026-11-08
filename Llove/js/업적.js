@@ -58,7 +58,7 @@ const ACH_DATA=[
     {key:'will', name:'세 번째에 정답', icon:'💪', cat:'숨은 업적 · 한 번',
      hint:'틀려도 포기하지 마세요',
      desc:'두 번 연달아 틀린 뒤 바로 다음 문제를 맞히면 받아요', progress:'+120 EXP', single:true},
-    {key:'deep', name:'시간 가는 줄 몰라', icon:'🦉', cat:'숨은 업적 · 한 번',
+    {key:'deep', name:'집중력', icon:'🦉', cat:'숨은 업적 · 한 번',
      hint:'한자리에서 오래 공부해 보세요',
      desc:'문제 사이를 5분 넘게 쉬지 않고 30분 이상 이어서 공부하면 받아요', progress:'+150 EXP', single:true},
     {key:'border', name:'선을 넘은 질문', icon:'🚧', cat:'숨은 업적 · 한 번', ai:true,
