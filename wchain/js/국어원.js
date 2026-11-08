@@ -66,13 +66,20 @@ const 국어원_캐시_최대개수 = 1000;   // 존재 여부(불리언)만 담
 const 국어원_타임아웃_단어_MS = 8000;
 const 국어원_타임아웃_후보_MS = 6000;
 // Worker 공용 POST — 실패·시간초과·HTTP 오류는 전부 null("확인 불가"). 적절성판정.js도 쓴다.
+// iOS 15 이하 사파리엔 AbortSignal.timeout이 없다 — 없으면 AbortController+setTimeout으로 대신한다
+function 시간제한_신호(ms){
+  if(typeof AbortSignal.timeout === 'function') return AbortSignal.timeout(ms);
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
 async function 워커_POST(주소, 본문, 타임아웃_MS, 이름){
   try{
     const res = await fetch(주소, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(본문),
-      signal: AbortSignal.timeout(타임아웃_MS)
+      signal: 시간제한_신호(타임아웃_MS)
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     return await res.json();
@@ -100,7 +107,8 @@ async function 국어원_단어조회(word){
   if(단어조회_진행중.has(word)) return 단어조회_진행중.get(word);
   const 요청 = (async () => {
     const data = await 국어원_POST({ 단어: word }, 국어원_타임아웃_단어_MS);
-    if(data === null) return null;   // 실패·시간초과는 캐시에 쓰지 않음(전이적 실패 오염 방지)
+    // 실패·시간초과·형식 이상(존재 필드 없음)은 캐시에 쓰지 않음(전이적 실패 오염 방지)
+    if(data === null || typeof data.존재 !== 'boolean') return null;
     const 최신 = 캐시_로드(국어원_캐시_KEY);
     최신[word] = !!data.존재;
     캐시_저장(국어원_캐시_KEY, 최신, 국어원_캐시_최대개수);

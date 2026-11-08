@@ -240,7 +240,7 @@ const 설정_항목 = [
     선택지:[[false,'끝말잇기','마지막 글자로 잇습니다'],[true,'앞말잇기','첫 글자로 잇습니다 (두음법칙 미적용)']] },
   { 키:'dueum', 종류:'칩', 아이콘:'📏', 라벨:'두음법칙',
     선택지:[['OFF','끄기','두음법칙을 쓰지 않습니다'],['Flexible','유연','력→역·니→이 등 폭넓게 허용'],
-           ['Strict','엄격','표준 두음법칙만 허용']] },
+           ['Strict','엄격','라→나·로→노만 허용 (력→역·녀→여는 불가)']] },
   { 키:'hanbang', 종류:'토글', 아이콘:'⚔', 라벨:'한방 모드',
     잠금:gs => gs.game_mode === 'ARCADE',
     잠금설명:'아케이드에서는 한방 단어를 쓸 수 없습니다 (탑의 규칙)',
@@ -342,6 +342,7 @@ function 설정_테마연동(켬){
 function 게임_시작(){
   reset_game(gs);
   세션_비우기();   // 이전 판에서 모은 단어·실패 카운터를 새 판으로 들고 가지 않는다
+  타이머.키 = null;   // 새 판 첫 턴 키가 이전 판과 같아도 남은 시간을 이어받지 않게
   _이전힌트 = null; _이전목숨 = null;   // 새 판 시작값을 "감소"로 오탐하지 않게 추적값도 초기화
   if(gs.rev) gs.dueum = 'OFF';   // 원본: 앞말잇기는 두음법칙 자동 OFF
   gs.game_state = 'PLAYING';
@@ -631,7 +632,8 @@ function 게임_세대올리기(){ 게임_세대 += 1; 게임_비동기처리중
 function 단어_제출(){
   if(게임_비동기처리중) return false;   // 앞 입력의 온라인 조회·AI 턴이 끝날 때까지 무시
   const inp = document.getElementById('단어입력');
-  const raw = (inp.value || '').trim();
+  // 공백 오타('학  교')로 목숨이 깎이지 않게 — 구 허용이면 공백 1칸으로, 아니면 공백을 지운다
+  const raw = (inp.value || '').trim().replace(/\s+/g, gs.phrase ? ' ' : '');
   inp.value = '';
   if(!raw) return false;
   if(gs.game_state !== 'PLAYING') return false;
@@ -711,7 +713,7 @@ async function 단어_처리(raw, valid, reason){
     로그_추가(대사(gs, '단어_처리_8', [reason]), 'err');
     // 사전에 없는 단어(대개 오타)는 목숨을 깎지 않고 다시 입력하게 한다(2026-09-27 관리자님 결정 —
     // 끄투 방식. 타이머를 켠 판에서는 흘러간 시간이 곧 벌칙이다). 규칙 위반(한방·중복·글자)은 그대로 차감.
-    if(reason.endsWith('사전에 없는 단어입니다.')){
+    if(reason.endsWith('사전에 없는 단어입니다.') || reason === 형태_사유){
       콤보_끊기();
       로그_추가('↩ 목숨은 그대로예요. 다시 입력해 보세요.', 'sys');
       플레이_HUD갱신(); 프롬프트_갱신();
@@ -867,7 +869,7 @@ function 서바이벌_제안_확인(){
     로그_추가(대사(gs, '단어_처리_7'), 'sys');
     플레이_HUD갱신();
     선택박스_보이기(`
-      <div class="q">${document.querySelector('.log').lastChild.textContent}</div>
+      <div class="q">${HTML막기(document.querySelector('.log').lastChild.textContent)}</div>
       <button class="btn sm acc" onclick="딜_응답(true)">수락</button>
       <button class="btn sm" onclick="딜_응답(false)">거절</button>`);
     return true;

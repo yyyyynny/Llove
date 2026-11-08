@@ -1545,6 +1545,68 @@ async function main(){
          `disputed=${disputed}, ai_last_word=${g.ai_last_word}`);
   }
 
+  /* ── 26. 입력 형태·공백·타이머·문구·이스케이프·Worker 실패 (2026-11-07 버그 묶음) ── */
+  console.log('\n[26] 입력 형태·공백·타이머·이스케이프·Worker 실패');
+  {
+    // (1) 자모·한 글자·붙임표·캐럿은 단어가 아니다 — 목숨 유지, Worker에 묻지 않음, 턴 안 넘어감
+    const { win, 요청기록 } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    for(const w of ['ㄱ', '화', '학-교', '가마^솥']) await 단어넣기(win, w);
+    const g = 상태(win);
+    확인('형태가 틀린 입력은 목숨을 깎지 않는다', g.hearts === 7, `hearts=${g.hearts}`);
+    확인('형태가 틀린 입력은 턴이 넘어가지 않는다', g.turn === 0, `turn=${g.turn}`);
+    확인('형태가 틀린 입력은 Worker에 묻지 않는다', !요청기록.some(p => ['ㄱ', '화', '학-교', '가마^솥'].includes(p.단어)));
+    확인('다시 입력 안내가 나온다', 로그텍스트(win).includes('다시 입력해 보세요'));
+
+    // (6) 공백 오타 — 구 허용이 꺼져 있으면 공백을 지워 '학교'로 낸다
+    await 단어넣기(win, '학  교');
+    확인('공백 오타(학  교)가 학교로 정리돼 통과', g.history[0]?.word === '학교' && g.hearts === 7,
+         `${g.history[0]?.word} hearts=${g.hearts}`);
+
+    // (5) 새 판 첫 턴은 이전 판 남은 시간을 이어받지 않는다
+    win.게임_시작();
+    win.eval('타이머_진행(0); 타이머_진행(5000)');
+    win.게임_시작();
+    win.eval('타이머_진행(0)');
+    확인('새 판 시작 시 타이머가 가득 찬다', 값(win, '타이머.남은 > 타이머.총 - 1000'), 값(win, '타이머.남은 + "/" + 타이머.총'));
+
+    // (7) 엄격 두음 설명이 실제 동작(ㄹ→ㄴ만, 녀→여 불가)과 맞는다
+    const 엄격설명 = 값(win, "설정_항목.find(x => x.키 === 'dueum').선택지.find(x => x[0] === 'Strict')[2]");
+    확인('엄격 설명이 녀→여 불가를 밝힌다', 엄격설명.includes('녀→여는 불가') && !win.dueum_check('녀', '여', 'Strict')
+         && win.dueum_check('로', '노', 'Strict'), 엄격설명);
+
+    // (9) 50턴 제안의 질문 칸은 대사를 이스케이프해 넣는다
+    g.diff = '초월'; g.turn = 50; g.infinite = false;
+    win.대사 = () => '<img src=x>';
+    win.서바이벌_제안_확인();
+    const 질문 = win.document.querySelector('.q');
+    확인('제안 질문 칸에 HTML이 해석되지 않는다', 질문 && 질문.textContent === '<img src=x>' && !질문.querySelector('img'), 질문?.innerHTML);
+
+    // (10) AbortSignal.timeout이 없는 브라우저(iOS 15 이하)에서도 시간 제한 신호가 동작
+    win.eval('window.__원timeout = AbortSignal.timeout; AbortSignal.timeout = undefined; window.__신호 = 시간제한_신호(10); AbortSignal.timeout = window.__원timeout;');
+    await 잠깐(40);
+    확인('AbortSignal.timeout 없이도 시간이 지나면 중단된다', 값(win, 'window.__신호.aborted') === true);
+  }
+  {
+    // (3) Worker가 502(상류 실패)를 주면 '확인 실패' — 목숨 유지, 캐시에 '없음'을 쓰지 않음
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    const 원래fetch = win.fetch;
+    win.fetch = async (url, opt) => {
+      if(typeof url === 'string' && url.startsWith('data/')) return 원래fetch(url, opt);
+      if(JSON.parse(opt.body).단어 !== undefined) return { ok: false, status: 502, json: async () => ({ error: '오픈API 호출 실패' }) };
+      return 원래fetch(url, opt);
+    };
+    await 단어넣기(win, '나비');
+    확인('Worker 502면 확인 실패 안내', 로그텍스트(win).includes('확인에 실패'));
+    확인('Worker 502면 목숨 유지', 상태(win).hearts === 7);
+    확인('Worker 502 결과는 캐시에 쓰지 않는다', !값(win, "'나비' in 캐시_로드(국어원_캐시_KEY)"));
+    win.fetch = async () => ({ ok: true, json: async () => ({ error: '형식 이상' }) });
+    확인('존재 필드 없는 응답은 확인 불가(null)', (await win.국어원_단어조회('나방')) === null);
+  }
+
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
   process.exit(실패 ? 1 : 0);
 }

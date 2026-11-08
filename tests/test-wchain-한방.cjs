@@ -406,6 +406,21 @@ async function main(){
     확인('응답 없는 Worker여도 약 1초 뒤 풀로 진행', 목록.length === 0 && 걸림 >= 900 && 걸림 < 2500, 걸림 + 'ms');
   }
 
+  /* ── 19. 탐욕 선택 표본은 고르게 뽑힌다 (2026-11-07 — sort(무작위 비교) 편향을 Fisher–Yates로) ── */
+  console.log('\n[19] 탐욕 선택 표본 균등');
+  {
+    const { ctx } = 세계만들기();
+    const gs = ctx.새게임상태(); gs.diff = '심연';
+    // 후보 80개(끝 글자가 모두 다름) — find_words 호출의 첫 인자(끝 글자)로 표본에 든 후보를 센다
+    const 후보들 = Array.from({ length: 80 }, (_, i) => '가' + String.fromCharCode(0xAC00 + i));
+    const 횟수 = new Map();
+    ctx.find_words = 글자 => { 횟수.set(글자, (횟수.get(글자) || 0) + 1); return ['임시']; };
+    const 반복 = 2000;
+    for(let r = 0; r < 반복; r++) ctx.탐욕_선택(gs, 후보들, [], []);
+    const 최대편차 = Math.max(...후보들.map(w => Math.abs((횟수.get(w[1]) || 0) / 반복 - 0.5)));
+    확인('후보마다 표본에 들 확률이 약 1/2(편차 0.08 미만)', 최대편차 < 0.08, '최대편차=' + 최대편차.toFixed(3));
+  }
+
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);
   process.exit(실패 ? 1 : 0);
 }
