@@ -178,5 +178,11 @@ load(async (window) => {
     실험실글.includes('끝말잇기') && !실험실글.includes('AI 실시간 출제') && !실험실글.includes('음성 생성'), 실험실글);
   ev("closeInfoModal()");
 
+  // 둘러보기: 로그인 화면 버튼으로 비로그인 진입, 설정의 계정 행은 「로그인」이 된다
+  const 둘러보기 = Array.from(doc.querySelectorAll('#sl button')).find(b => b.textContent.includes('로그인 없이 둘러보기'));
+  assert('둘러보기: 로그인 화면에 버튼이 있다', !!둘러보기);
+  둘러보기.click();
+  assert('둘러보기: 홈으로 들어가고 계정 행이 로그인', ev('curScreen') === 'sh' && doc.querySelector('[onclick="로그아웃()"] .srl').textContent === '로그인');
+
   process.exit(finish() > 0 ? 1 : 0);
 });

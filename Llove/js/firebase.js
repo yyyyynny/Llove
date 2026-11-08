@@ -42,7 +42,7 @@ function Firebase초기화(){
 function 구글로그인(){
   if(!fbAuth){
     console.error('[Firebase] auth 미초기화 — 로그인 불가');
-    showToastMsg('로그인 모듈이 초기화되지 않았습니다');
+    showToastMsg('로그인을 준비하지 못했어요. 새로고침해 주세요');
     return;
   }
   const provider = new firebase.auth.GoogleAuthProvider();
@@ -72,6 +72,7 @@ function 구글로그인(){
 
 // 로그아웃 (설정 화면)
 function 로그아웃(){
+  if(!현재UID){ 구글로그인(); return; }   // 둘러보기(비로그인) 중엔 같은 행이 「로그인」
   showConfirmModal('🚪','로그아웃','정말 로그아웃 하시겠습니까?','로그아웃', 로그아웃실행);
 }
 function 로그아웃실행(){

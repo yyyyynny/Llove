@@ -54,18 +54,21 @@ function 백도어_로고탭(){
   }
 }
 
-// 비로그인 테스트 세션 — Firebase 인증 없이 홈으로. 데이터는 로컬에만 존재(저장 안 됨).
+// 비로그인 세션 — 로그인 화면 「로그인 없이 둘러보기」(11-08)와 관리자 테스트 진입이 함께 쓴다.
+// Firebase 인증 없이 홈으로. 레벨·EXP는 저장 안 됨, 복습·채팅 기록만 이 기기(localStorage)에.
 function 게스트로그인(){
   현재UID = null;                 // Firestore 저장 경로 차단 유지
   게스트보관함_복원();            // 세션5: 게스트 복습 데이터 localStorage 복원
   구어완료_복원();                // 세션5: 게스트 구어 교정 완료 기록 복원
   채팅기록_로드();                // 세션6: 게스트 채팅 기록 복원
-  사용자.이름 = 사용자.이름 || '테스트';
-  사용자.이메일 = '(비로그인 테스트)';
+  사용자.이름 = 사용자.이름 || '손님';
+  사용자.이메일 = '(로그인 안 함)';
   userName = 사용자.이름;
+  const 계정행 = document.querySelector('[onclick="로그아웃()"] .srl');
+  if(계정행) 계정행.textContent = '로그인';
   온보딩_걷기();
   goNav('sh', null);
-  showToastMsg('비로그인 테스트 모드 — 저장은 되지 않습니다');
+  showToastMsg('둘러보는 중이에요. 기록을 남기려면 설정에서 로그인해 주세요');
 }
 document.addEventListener('keydown', 테스트진입_키감지);
 // 키보드만으로도 앱을 쓸 수 있게 — role/tabindex 부여 + Enter/Space 위임 (화면전환.js)
