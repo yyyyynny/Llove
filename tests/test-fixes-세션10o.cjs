@@ -13,9 +13,9 @@ const ROOT = path.join(__dirname, '..', 'Llove');
 // load.cjs 와 같은 인라인화를 쓰되, 부팅 **전에** 깨진 값을 심을 수 있어야 해서 따로 띄운다.
 function 부팅(심을것, 콜백){
   let html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  html = html.replace(/<link rel="stylesheet" href="style.css">/,
+  html = html.replace(/<link rel="stylesheet" href="style.css(?:\?v=[^"]*)?">/,
     () => '<style>\n' + fs.readFileSync(path.join(ROOT, 'style.css'), 'utf8') + '\n</style>');
-  html = html.replace(/<script src="(js\/[^"]+)"><\/script>/g,
+  html = html.replace(/<script src="(js\/[^"?]+)(?:\?v=[^"]*)?"><\/script>/g,
     (_, 상대) => '<script>\n' + fs.readFileSync(path.join(ROOT, 상대), 'utf8') + '\n</script>');
 
   const 주입 = `

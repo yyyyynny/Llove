@@ -110,7 +110,6 @@ function goNav(id, btn){
   if(btn) btn.classList.add('on');
 
   // v3.7 항목11,12: 슬라이드 자동 순환 — 홈 진입 시 시작, 그 외 정지
-  if(id==='sh'){ 슬라이드시작(); } else { 슬라이드정지(); }
 
   afterNav(id);
 }

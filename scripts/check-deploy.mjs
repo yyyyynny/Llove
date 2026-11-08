@@ -112,8 +112,11 @@ if (진입점있음) {
 
   // 4) 재구조화 정합성 — index.html이 참조하는 분할 파일(style.css·js/*.js)이 전부 존재하는지
   확인('style.css 가 존재한다', existsSync('Llove/style.css'));
-  확인('index.html 이 style.css 를 참조한다', /<link rel="stylesheet" href="style.css">/.test(html));
-  const 참조JS = [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map((m) => m[1]);
+  확인('index.html 이 style.css 를 참조한다', /<link rel="stylesheet" href="style.css(?:\?v=[^"]*)?">/.test(html));
+  const 참조JS = [...html.matchAll(/<script src="(js\/[^"?]+)(?:\?v=[^"]*)?"><\/script>/g)].map((m) => m[1]);
+  // 캐시 버전(?v=)은 style.css·js 전부 같은 값이어야 한다 — 하나만 올리면 옛 파일과 섞인다
+  const 버전들 = new Set([...html.matchAll(/(?:style\.css|js\/[^"?]+)\?v=([^"]+)"/g)].map((m) => m[1]));
+  확인('style.css·js 캐시 버전(?v=)이 하나로 일치한다', 버전들.size === 1);
   확인('index.html 이 js/ 분할 스크립트를 참조한다 (1개 이상)', 참조JS.length > 0);
   const 누락JS = 참조JS.filter((p) => !existsSync('Llove/' + p));
   확인(`참조된 js 파일 ${참조JS.length}개가 전부 존재한다`, 누락JS.length === 0);

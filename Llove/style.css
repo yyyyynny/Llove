@@ -308,9 +308,7 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
    슬라이드가 흐름에서 빠지지 않으므로 하단 kc-dots 인디케이터를 가리지 않음. */
 .kc-slide{grid-area:1/1;display:flex;flex-direction:column;justify-content:center;opacity:0;transition:opacity .4s ease;pointer-events:none}
 .kc-slide.on{opacity:1;pointer-events:auto}
-.kc-dots{position:absolute;bottom:7px;left:0;right:0;display:flex;gap:5px;justify-content:center;pointer-events:none}
-.kc-dot{width:5px;height:5px;border-radius:var(--r-s);background:var(--bdr);transition:background .25s,width .25s}
-.kc-dot.on{background:var(--acc);width:14px}
+.kc-dots{position:absolute;bottom:7px;left:0;right:0;text-align:center;font-size:11px;color:var(--txt2);pointer-events:none}
 .kc-word{color:var(--acc);font-weight:700;cursor:pointer;border-bottom:1px dashed var(--accd);padding-bottom:1px;transition:color .25s,border-color .25s}
 .kc-word:hover{color:var(--accl);border-bottom-color:var(--acc)}
 /* P3(10-03): 홈 모드 카드 2열 — 10장이 같은 무게로 한 줄씩 내려가 두 화면을 넘던 목록을 한 화면 반으로.

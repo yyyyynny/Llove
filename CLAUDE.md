@@ -275,6 +275,7 @@ wchain/worker/            # Cloudflare Worker 소스 2개(레포와 별도로 Cl
 - [ ] API 키가 코드·git 기록에 없는지(`git log -p`로 키 형태 검색), 시크릿은 Cloudflare에만
 - [ ] `GROK_활성화`·`음성생성_활성화` 플래그가 승인 없이 바뀌지 않았는지
 - [ ] `npm test`·`check:js`·`check:deploy`·`check:html` 전부 통과
+- [ ] Llove/js·style.css를 바꿨다면 Llove/index.html의 `?v=` 캐시 버전을 올렸는지(전부 같은 값 — check:deploy가 일치만 검사, 안 올리면 브라우저가 옛 파일을 씀)
 - [ ] Worker 소스를 고쳤다면 재배포했는지(레포 커밋만으로는 적용 안 됨)
 - [ ] 보안 점검 스킬(`/security-review`)로 한 번 더 훑기 — D: 드라이브는 소유권 기록이 없어 git 전역 safe.directory 설정 없이는 스킬이 실패함(09-30).
       그땐 수동 점검: 변경분의 innerHTML·insertAdjacentHTML에 외부·사용자 문자열이 이스케이프 없이 들어가는지

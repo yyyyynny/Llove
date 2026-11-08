@@ -16,12 +16,12 @@ const HTML_PATH = path.join(ROOT, 'index.html');
 // 분할된 외부 참조를 인라인으로 되돌린 HTML을 만든다 (테스트 전용)
 function 인라인화(html) {
   // 1) style.css → <style> 인라인 (커스텀 테마·글자 배율 테스트가 CSS 변수를 참조)
-  html = html.replace(/<link rel="stylesheet" href="style.css">/, () => {
+  html = html.replace(/<link rel="stylesheet" href="style.css(?:\?v=[^"]*)?">/, () => {
     const css = fs.readFileSync(path.join(ROOT, 'style.css'), 'utf8');
     return '<style>\n' + css + '\n</style>';
   });
   // 2) <script src="js/…"></script> → 파일 내용 인라인 (순서 보존)
-  html = html.replace(/<script src="(js\/[^"]+)"><\/script>/g, (_, 상대경로) => {
+  html = html.replace(/<script src="(js\/[^"?]+)(?:\?v=[^"]*)?"><\/script>/g, (_, 상대경로) => {
     const js = fs.readFileSync(path.join(ROOT, 상대경로), 'utf8');
     return '<script>\n' + js + '\n</script>';
   });
