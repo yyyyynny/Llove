@@ -27,7 +27,7 @@ load(async (window) => {
   // U3: 봉인 중 이의있음 — 열 때부터 제출이 막혀 있고, 제출을 시도해도 쓴 글이 남는다
   ev("사용자.보유토큰 = 100; openObj('general');");
   const 제출 = doc.getElementById('objSubmit');
-  assert('U3: 봉인 중엔 열자마자 제출 버튼이 막혀 있다', 제출.disabled && 제출.textContent.includes('연동 후'), 제출.textContent);
+  assert('U3: 봉인 중엔 열자마자 제출 버튼이 막혀 있다', 제출.disabled && 제출.textContent.includes('준비 중'), 제출.textContent);
   doc.getElementById('objInp').value = '근거가 틀렸습니다';
   ev('submitObj()');
   assert('U3: 제출 시도 후에도 쓴 글이 남는다', doc.getElementById('objInp').value === '근거가 틀렸습니다');
@@ -162,6 +162,21 @@ load(async (window) => {
   ev("잇는_퍼즐열기()");
   doc.getElementById('잇는퍼즐Bg').click();
   assert("잇 퍼즐: 배경을 누르면 닫힌다", !보임('잇는퍼즐Bg'));
+
+  // 2026-11-08 봉인 기능 노출 정리: 봉인 중엔 AI 설정 묶음·질문 탭을 숨기고(플래그는 그대로), 개발자 모드 행은 창조주만
+  assert('봉인: 플래그는 그대로 false', ev('GROK_활성화') === false);
+  assert('봉인: 설정의 AI 기능 묶음과 질문하기 탭이 숨겨진다',
+    doc.querySelector('.set-ai').style.display === 'none' && doc.getElementById('askModeTabs').style.display === 'none');
+  ev("사용자.개발자모드=false; 사용자.창조주달성=false; 갱신_설정_개발자모드_UI();");
+  const 개발행 = () => doc.getElementById('devModeRow').style.display;
+  assert('개발자 모드 행: 창조주가 아니면 숨김', 개발행() === 'none');
+  ev("사용자.개발자모드=true; 사용자.창조주달성=true; 갱신_설정_개발자모드_UI();");
+  assert('개발자 모드 행: 창조주면 보임', 개발행() === 'flex');
+  ev("사용자.개발자모드=false; 사용자.창조주달성=false; 갱신_설정_개발자모드_UI(); 실험실_열기();");
+  const 실험실글 = doc.getElementById('infoDesc').textContent;
+  assert('실험실: 일반 사용자에겐 「예정」·「실험」 항목이 안 보인다',
+    실험실글.includes('끝말잇기') && !실험실글.includes('AI 실시간 출제') && !실험실글.includes('음성 생성'), 실험실글);
+  ev("closeInfoModal()");
 
   process.exit(finish() > 0 ? 1 : 0);
 });

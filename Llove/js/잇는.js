@@ -66,7 +66,7 @@ function 잇는_섞기(){
   잇는_풀림 = false;
   document.getElementById('잇는퍼즐Stage')?.classList.remove('solved');
   const msg = document.getElementById('잇는퍼즐Msg');
-  if(msg){ msg.textContent = '조각을 탭하면 90°씩 돌아갑니다.'; msg.classList.remove('done'); }
+  if(msg){ msg.textContent = '조각을 탭하면 90°씩 돌아가요.'; msg.classList.remove('done'); }
   do{ 잇는_각도 = Array.from({length:7}, ()=> 90*Math.floor(Math.random()*4)); }
   while(잇는_판정됨());   // 이미 풀린 채로 시작하지 않게
   잇는_렌더();

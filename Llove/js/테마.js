@@ -52,18 +52,18 @@ function showConfirmModal(icon, title, desc, confirmLabel, onConfirm, 위험){
 /* 버그6: 계정 삭제 — 2중 확인 절차 (KNOWLEDGE 18섹션) */
 function 계정삭제_1단계(){
   showConfirmModal('⚠️','계정 삭제 (1/2)',
-    '계정을 삭제하면 레벨·업적·복습 데이터·토큰 등 <b>모든 데이터가 영구 삭제</b>되며 되돌릴 수 없습니다.<br><br>계속하시겠습니까?',
+    '계정을 삭제하면 레벨·업적·복습 데이터·토큰 등 <b>모든 기록이 영구 삭제</b>되고 되돌릴 수 없어요.<br><br>계속할까요?',
     '계속', 계정삭제_2단계);
 }
 function 계정삭제_2단계(){
   showConfirmModal('🗑️','계정 삭제 (2/2)',
-    '<b>마지막 확인</b>입니다. 정말로 계정을 영구 삭제하시겠습니까?<br><br>이 작업은 취소할 수 없습니다.',
+    '<b>마지막 확인</b>이에요. 정말 계정을 영구 삭제할까요?<br><br>이 작업은 취소할 수 없어요.',
     '영구 삭제', 계정삭제_실행, true);
 }
 function 계정삭제_실행(){
   if(!fbAuth || !fbAuth.currentUser){
     console.error('[Firebase] 로그인 상태가 아님 — 계정 삭제 불가');
-    showToastMsg('삭제할 계정이 없습니다');
+    showToastMsg('삭제할 계정이 없어요');
     return;
   }
   const uid = fbAuth.currentUser.uid;
@@ -76,7 +76,7 @@ function 계정삭제_실행(){
     .then(()=> fbAuth.currentUser.delete())
     .then(()=>{
       현재UID = null;
-      showToastMsg('계정이 삭제되었습니다');
+      showToastMsg('계정을 삭제했어요');
       goNav('sl', null);
     })
     .catch(e=>{
@@ -262,7 +262,7 @@ function 커스텀_대비갱신(){
   if(!el) return;
   const r = 대비비율(커스텀색.txt, 커스텀색.bg);
   if(r >= 4.5){ el.className='ct-contrast ok'; el.textContent = `✓ 텍스트 대비 ${r.toFixed(1)}:1 (읽기 좋음)`; }
-  else { el.className='ct-contrast warn'; el.textContent = `⚠️ 텍스트 대비 ${r.toFixed(1)}:1 — 4.5:1 미만이라 읽기 어려울 수 있습니다`; }
+  else { el.className='ct-contrast warn'; el.textContent = `⚠️ 텍스트 대비 ${r.toFixed(1)}:1 — 4.5:1 미만이라 읽기 어려울 수 있어요`; }
 }
 function 커스텀_랜덤(){
   const p = 커스텀랜덤프리셋[Math.floor(Math.random()*커스텀랜덤프리셋.length)];
@@ -320,11 +320,11 @@ function 커스텀_슬롯_현재저장(i){
   // i(슬롯 번호) 미지정이면 첫 빈 슬롯을 찾는다
   let idx = (typeof i === 'number') ? i : -1;
   if(idx < 0){ for(let k=0;k<10;k++){ if(!커스텀슬롯[k]){ idx=k; break; } } }
-  if(idx < 0){ showToastMsg('빈 슬롯이 없습니다 (✕로 비운 뒤 저장)'); return; }
+  if(idx < 0){ showToastMsg('빈 슬롯이 없어요 (✕로 비운 뒤 저장해 주세요)'); return; }
   커스텀슬롯[idx] = {이름:(document.getElementById('ctName')?.value||'').trim(), ...커스텀색};
   커스텀_슬롯렌더();
   커스텀_저장persist();
-  showToastMsg(`슬롯 ${idx+1}에 저장했습니다`);
+  showToastMsg(`슬롯 ${idx+1}에 저장했어요`);
 }
 function 커스텀_슬롯로드(i){
   const s = 커스텀슬롯[i];
@@ -333,7 +333,7 @@ function 커스텀_슬롯로드(i){
   커스텀이름 = s.이름 || '';
   const nm = document.getElementById('ctName'); if(nm) nm.value = 커스텀이름;
   커스텀_미리보기갱신();
-  showToastMsg(`슬롯 ${i+1} 불러옴 — 「적용」을 누르면 반영됩니다`);
+  showToastMsg(`슬롯 ${i+1} 불러옴 — 「적용」을 누르면 반영돼요`);
 }
 function 커스텀_슬롯비우기(i){
   커스텀슬롯[i] = null;
@@ -429,18 +429,19 @@ function applyFont(key, 조용히){
   setTimeout(closeFont,300);
 }
 
-/* AI 즉시 생성 안 함 토글 (이전 「AI 문제만」과 뜻이 반대라 저장 필드도 새로 씀) */
+/* AI 즉시 생성 안 함 토글 (이전 「AI 문제만」과 뜻이 반대라 저장 필드도 새로 씀)
+   2026-11-08: 이중 부정 표시(「AI 즉시 생성 안 함: 켜짐」)를 「준비된 문제만 풀기」로 — 저장 필드·동작은 그대로 */
 function toggleAiOnly(){
   AI생성끔=document.getElementById('aiOnlyToggle').checked;
   document.getElementById('aiOnlyTxt').textContent=AI생성끔?'켜짐':'꺼짐';
   사용자.AI생성끔 = AI생성끔;
   사용자데이터_저장({AI생성끔});  // 빌드1: Firestore 설정 동기화
-  showToastMsg('AI 즉시 생성 안 함: '+(AI생성끔?'켜짐':'꺼짐'));
+  showToastMsg('준비된 문제만 풀기: '+(AI생성끔?'켜짐':'꺼짐'));
 }
 
 /* 히스토리 필터 */
 function openHistoryFilter(){
-  선택모달_열기('최근 출제 제외', '중복 문제를 막을지 설정합니다. 모드별로 독립 관리됩니다.',
+  선택모달_열기('최근 출제 제외', '최근에 푼 문제를 다시 내지 않게 해요. 모드마다 따로 적용돼요.',
     ['off','30','50','80','100','120'].map(v=>{
       const 라벨 = v==='off' ? '사용 안함' : `최근 ${v}개`;
       return {라벨, 켜짐: v===histFilter, 클릭: ()=>applyHistoryFilter(v, 라벨)};

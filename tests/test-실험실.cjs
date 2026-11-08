@@ -34,14 +34,19 @@ load((win) => {
   assert('아직 "예정"인 항목이 남아 있다(테스트 전제)', 예정인덱스 >= 0);
   ev(`실험실_열기(); 실험실_항목탭(${예정인덱스});`);
   assert('"예정" 항목은 준비 중 안내로 막힌다',
-    doc.body.innerHTML.includes('준비 중인 기능입니다'));
+    doc.getElementById('infoDesc').innerHTML.includes('준비 중이에요'));
 
-  // (4) 목록에 렌더된 상태 뱃지가 데이터와 일치한다(화면과 데이터 어긋남 방지)
+  // (4) 2026-11-08: 일반 사용자 목록엔 '가능'만 렌더된다('예정'은 숨김, '실험'은 개발자 모드만)
+  //     — 종전 검사는 body 전체(인라인 스크립트 원문 포함)를 봐서 항상 통과했다. 모달 본문만 본다
   ev("실험실_열기();");
-  const html = doc.body.innerHTML;
-  const 상태들 = JSON.parse(ev("JSON.stringify(실험실_목록.map(x => x.상태))"));
-  assert('실험실 목록에 모든 항목의 상태 뱃지가 렌더된다',
-    상태들.every(s => html.includes(s)), 상태들.join(','));
+  const html = doc.getElementById('infoDesc').innerHTML;
+  const 목록 = JSON.parse(ev("JSON.stringify(실험실_목록)"));
+  assert('실험실 목록엔 "가능" 항목만 렌더된다',
+    목록.every(x => html.includes(x.이름) === (x.상태 === '가능')), 목록.map(x=>x.상태).join(','));
+  ev("사용자.개발자모드 = true; 실험실_열기();");
+  assert('개발자 모드면 "실험" 항목도 보인다',
+    목록.filter(x => x.상태 === '실험').every(x => doc.getElementById('infoDesc').innerHTML.includes(x.이름)));
+  ev("사용자.개발자모드 = false;");
 
   process.exit(finish() > 0 ? 1 : 0);
 });

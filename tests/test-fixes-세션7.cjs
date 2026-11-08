@@ -41,7 +41,7 @@ load((window) => {
   const 예정idx = ev("실험실_목록.findIndex(x => x.상태 === '예정')");
   assert('#2: 아직 예정인 항목이 남아 있다(티저 검사 전제)', 예정idx >= 0);
   ev(`사용자.개발자모드=false; 실험실_항목탭(${예정idx});`);
-  assert('#2: 티저 문구(기다려 주세요+개발자 힌트)', doc.getElementById('infoDesc').innerHTML.includes('기다려 주세요') && doc.getElementById('infoDesc').innerHTML.includes('개발자 모드'));
+  assert('#2: 준비 중 한 문장(2026-11-08 문구 톤)', doc.getElementById('infoDesc').innerHTML.includes('준비 중이에요'));
   ev('closeInfoModal();');
 
   /* ── #4 음성 저장/지우기 문구 분리 ── */
@@ -50,7 +50,7 @@ load((window) => {
   const 저장토스트 = doc.getElementById('toast').textContent;
   ev('음성엔드포인트_지우기();');
   const 지움토스트 = doc.getElementById('toast').textContent;
-  assert('#4: 저장/지우기 토스트 상이', 저장토스트 !== 지움토스트 && 지움토스트.includes('삭제'), `${저장토스트} / ${지움토스트}`);
+  assert('#4: 저장/지우기 토스트 상이', 저장토스트 !== 지움토스트 && 지움토스트.includes('지웠'), `${저장토스트} / ${지움토스트}`);
 
   /* ── #5 복습 — 졸업 1회 + 방식 ── */
   ev("복습데이터.대기열=[{id:'로컬a',단어:'복습어',뜻:'복습 뜻',모드:'상식·어원',모드클래스:'tb',연속정답수:0,즐겨찾기:false},{id:'로컬b',단어:'딴어',뜻:'다른 뜻',모드:'맞춤법',모드클래스:'tg',연속정답수:0,즐겨찾기:false}];");
@@ -138,7 +138,7 @@ load((window) => {
   ev("배너_적용선택('assets/배너/테스트.jpg');");
   assert('#12: 이미지 배너 <img> 렌더', !!doc.querySelector('#statusBanner img'));
   ev("사용자.개발자모드=false; curLv=1; 이미지_업로드시도('배너');");
-  assert('#12: 미달자 업로드 경고', doc.getElementById('infoDesc').innerHTML.includes('권한 부족'));
+  assert('#12: 미달자 업로드 경고', doc.getElementById('infoDesc').innerHTML.includes('Lv.16부터'));
   ev("closeInfoModal(); 배너_적용선택('');");
 
   /* ── #16 신규 발굴 ── */

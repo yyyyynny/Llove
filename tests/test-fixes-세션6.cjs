@@ -105,7 +105,7 @@ load((window) => {
   ev("프로필_적용선택('assets/프로필/테스트.jpg');");
   assert('#11: 이미지 값이면 <img> 렌더', !!doc.querySelector('#homeAvatar img'));
   ev("사용자.개발자모드=false; curLv=1; 이미지_업로드시도('프로필');");
-  assert('#11: 미달자 업로드 → 권한 부족 경고', doc.getElementById('infoDesc').innerHTML.includes('권한 부족'));
+  assert('#11: 미달자 업로드 → Lv.16 안내', doc.getElementById('infoDesc').innerHTML.includes('Lv.16부터'));
   ev("closeInfoModal(); 프로필_적용선택('⚔️');");
 
   /* ── #12 모달 드래그-아웃 방지 ── */

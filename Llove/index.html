@@ -77,14 +77,14 @@
 
 <!-- 추가기능: 새 버전 배포 안내 배너 (토스트와 달리 자동으로 사라지지 않음) -->
 <div class="update-bar" id="updateBar">
-  <span>최신 버전이 있습니다. 새로고침 해주세요.</span>
+  <span>새 버전이 나왔어요. 새로고침해 주세요.</span>
   <button class="btn-acc" onclick="location.reload()">새로고침</button>
   <button class="update-bar-x" onclick="document.getElementById('updateBar').classList.remove('show')" aria-label="닫기">✕</button>
 </div>
 
 <!-- ━━━ 온보딩 (앱 안내) ━━━ -->
 <!-- v3.6: KNOWLEDGE 23섹션 4장 확정 일치. 기존 5장에서 '레벨업' 슬라이드(구 인덱스 2) 삭제.
-     현재 슬라이드: 0)환영 1)학습 모드 2)숭고함 3)지금, 시작하시겠습니까? -->
+     현재 슬라이드: 0)환영 1)학습 모드 2)복습 3)시작 (2026-11-08 문구 톤 정리) -->
 <div id="onboarding">
   <div class="ob-prog" id="obProg" style="width:25%"></div>
   <button class="ob-skip" onclick="finishOb()">건너뛰기</button>
@@ -94,9 +94,9 @@
       <div class="ob-bg"></div>
       <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
         <div class="ob-icon"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
-        <div class="ob-title">Llove에<br>오신 것을 환영합니다</div>
+        <div class="ob-title">Llove에<br>오신 걸 환영해요</div>
         <div class="ob-div"></div>
-        <div class="ob-sub">고사성어부터 구어 교정까지<br><b>한국어 어휘력</b>을 게임처럼 키워가는<br>당신만의 학습 연대기입니다</div>
+        <div class="ob-sub">고사성어부터 구어 교정까지<br><b>한국어 어휘력</b>을<br>게임처럼 키워 봐요</div>
       </div>
     </div>
     <!-- 1 모드 -->
@@ -115,22 +115,19 @@
         <div class="ob-feat"><div class="ob-fi"><svg class="ic" aria-hidden="true"><use href="#i-sort"/></svg></div><div><div class="ob-fn">문장 배열</div><div class="ob-fd">뒤섞인 문장을 순서대로</div></div></div>
       </div>
     </div>
-    <!-- 2 숭고함 (구 슬라이드 3) -->
-    <!-- v3.6 변경: 별 표시 ✦✦✦✦✦✦✦(풀돌과 동일) → ✧ ✦ ✧ (3개, 가운데만 채움)
-         이유: 업적 [창조주] 풀돌과 시각적으로 동일하여 혼동 유발. '문이 열리는' 신비로운 분위기로 차별화 -->
+    <!-- 2 복습 (2026-11-08: 서사시 톤 「숭고함…」 슬라이드를 실제 기능 안내로 교체) -->
     <div class="ob-slide" data-i="2">
-      <div class="ob-title">숭고함을 잃지 않는 자에게</div>
+      <div class="ob-icon"><svg class="ic" aria-hidden="true"><use href="#i-review"/></svg></div>
+      <div class="ob-title">틀린 문제는 다시</div>
       <div class="ob-div"></div>
-      <div class="ob-sub">언어는<br><b>그 문을 열어줄 것입니다</b></div>
-      <div style="font-size:28px;letter-spacing:14px;margin-top:24px;color:var(--accl);font-weight:700;text-align:center">✧ ✦ ✧</div>
+      <div class="ob-sub">틀린 문제는 복습에 모여요<br>다시 풀면서 <b>오래 기억</b>해요</div>
     </div>
     <!-- 3 시작 (구 슬라이드 4) -->
-    <!-- v3.6 변경: 「연대기를 시작할 준비가 됐습니다」 → 「지금, 시작하시겠습니까?」 -->
     <div class="ob-slide" data-i="3">
       <div class="ob-bg"></div>
       <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
-        <div class="ob-icon">⚔️</div>
-        <div class="ob-title">지금,<br>시작하시겠습니까?</div>
+        <div class="ob-icon"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></div>
+        <div class="ob-title">이제 시작해 볼까요?</div>
         <div class="ob-div"></div>
         <div class="ob-sub">로그인하고 학습을 시작하세요</div>
         <button class="ob-start-btn" onclick="finishOb()">학습 시작하기 →</button>
@@ -164,8 +161,8 @@
 <div class="ov-bg" id="lvupOv" onclick="closeLvUp()">
   <div class="lvup-popup" onclick="event.stopPropagation()">
     <div class="lvup-burst">✨</div>
-    <div class="lvup-txt">LEVEL UP!</div>
-    <div class="lvup-new">새로운 등급에 도달했습니다</div>
+    <div class="lvup-txt">레벨 업!</div>
+    <div class="lvup-new">새 등급에 올랐어요</div>
     <!-- v3.4: 하드코딩 제거. triggerLvUp에서 동적 주입 -->
     <div class="lvup-badge"><div class="lvup-lv" id="lvupLvText"></div><div class="lvup-rk" id="lvupRankText"></div></div>
     <button class="btn-acc" style="width:100%;margin-top:8px" onclick="closeLvUp()">계속하기</button>
@@ -301,12 +298,12 @@
   <div class="modal-bx" onclick="event.stopPropagation()" style="max-height:88vh;overflow-y:auto">
     <div class="modal-title">음성 생성 (실험)</div>
     <div class="modal-desc" style="font-size:11.5px;line-height:1.7">
-      텍스트를 외부 음성 서버로 보내 음성으로 받아 재생합니다.<br>
+      글을 외부 음성 서버로 보내 음성으로 받아 재생해요.<br>
       <b>창조주 전용</b> · 서버 주소는 직접 입력(코드에 저장하지 않음).
     </div>
     <!-- 봉인 안내 — 음성생성_활성화=false 동안 노출 -->
     <div id="음성봉인안내" style="margin:10px 0;padding:9px 11px;background:var(--elev);border:1px solid var(--bdr);border-radius:8px;font-size:11px;color:var(--txt2);line-height:1.7">
-      현재 봉인 상태입니다(서버 미준비). 서버 준비 후 코드의 <code>음성생성_활성화</code>를 켜면 동작합니다.
+      아직 음성 서버가 준비되지 않아 동작하지 않아요.
     </div>
     <label class="vc-lbl" for="음성엔드포인트입력">서버 엔드포인트 주소</label>
     <input class="nm-inp" id="음성엔드포인트입력" aria-label="음성 서버 주소" placeholder="https://... (로컬 터널 또는 클라우드 GPU)" style="width:100%;margin:4px 0 8px;box-sizing:border-box">
@@ -343,7 +340,7 @@
       <!-- 세션6 항목4: 새 대화 — 현재 대화를 기록으로 보관하고 채팅창 초기화 -->
       <button id="askNewBtn" onclick="새대화_시작()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">새 대화</button>
       <!-- β7: 사고전개 탭 — 기본 OFF, 매번 수동 ON (KNOWLEDGE 5-1) / 세션6 항목2: 가시성 상향(--txt·11px) -->
-      <button id="thinkToggle" onclick="사고전개_토글()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">사고전개 OFF</button>
+      <button id="thinkToggle" onclick="사고전개_토글()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn)">사고전개 끔</button>
       <button id="askCls창조주" onclick="closeAsk()" style="display:none;background:color-mix(in srgb,var(--err) 15%,transparent);border:1px solid var(--err);color:var(--err);padding:5px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:700">중도 포기</button>
       <button class="ask-cls" onclick="closeAsk()">✕</button>
     </div>
@@ -355,14 +352,14 @@
   </div>
   <div class="ask-body" id="askBody">
     <div class="ask-msg ai intro">
-      안녕하세요! 학습 중 궁금한 점이 있으시면 자유롭게 질문해 주세요.
+      안녕하세요! 학습 중 궁금한 점을 편하게 물어보세요.
     </div>
   </div>
   <!-- 입력 영역: 창조주 시나리오에서 ID로 안정적으로 숨김/복구 -->
   <div id="askInputArea" style="padding:12px 18px;border-top:1px solid var(--bdr);background:var(--card)">
     <div class="ask-input-row">
       <!-- 세션10-h: Enter 전송/줄바꿈 분기는 질문입력_Enter처리()가 기기별(모바일=줄바꿈, PC=전송)로 판단 -->
-      <textarea class="ask-input" id="askInp" aria-label="질문" placeholder="질문을 입력하세요..." rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" oninput="질문입력_높이조절(this)" onkeypress="질문입력_Enter처리(event)"></textarea>
+      <textarea class="ask-input" id="askInp" aria-label="질문" placeholder="질문을 입력해 주세요" rows="1" style="resize:none;font-family:var(--fn);min-height:38px;max-height:120px;padding:9px 14px" oninput="질문입력_높이조절(this)" onkeypress="질문입력_Enter처리(event)"></textarea>
       <button class="ask-send" onclick="sendAsk()">전송</button>
     </div>
   </div>
@@ -376,8 +373,8 @@
     <!-- β3: reasoning_note 패널 — 이의있음! 상단 항상 표시 (KNOWLEDGE 33) -->
     <div class="obj-note" id="objNote" style="display:none"></div>
     <!-- v3.7 항목5: obj-sub — 컨텍스트(synonym/speak/general)별 안내문 분기 표시 -->
-    <div class="obj-desc obj-sub">정말로 이 답변이 틀렸다고 생각하십니까?<br>어디가 어떻게 왜 틀렸는지 구체적으로 적어주세요.<br><b>AI 교차검증 후 인정 시</b> [반박의 화신] 카운터가 올라갑니다.</div>
-    <textarea class="obj-input" id="objInp" aria-label="반박 내용" placeholder="반박 내용을 입력하세요..."></textarea>
+    <div class="obj-desc obj-sub">어디가 틀렸는지 알려 주세요.<br>AI가 다시 확인해 맞으면 반영해요.</div>
+    <textarea class="obj-input" id="objInp" aria-label="반박 내용" placeholder="틀린 부분과 이유를 적어 주세요"></textarea>
     <div class="obj-btns">
       <button class="btn-g grow" onclick="closeObj()">취소</button>
       <button class="btn-acc" id="objSubmit" style="flex:2" onclick="submitObj()">반박 제출</button>
@@ -416,27 +413,26 @@
     <div class="lg-icon-wrap fu" id="lgIconWrap" onclick="백도어_로고탭()"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
     <div class="lg-title fu s1">Llove</div>
     <div class="lg-sub fu s2">한국어 어휘 학습</div>
-    <div class="lg-desc fu s3"><p>한국어 어휘력과 표현력을<br>게임처럼 키워가는<br>당신만의 학습 연대기</p></div>
+    <div class="lg-desc fu s3"><p>한국어 어휘력과 표현력을<br>게임처럼 키워 봐요</p></div>
     <!-- 세션9: 파란 원 이모지(🔵) → 실제 구글 4색 "G" 로고 SVG로 교체(가짜스러움 해소) -->
     <button class="btn-google fu s4" onclick="구글로그인()"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.9-2.26 5.36-4.78 7.02l7.73 6c4.51-4.18 7.09-10.36 7.09-17.49z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A24 24 0 0 0 0 24c0 3.87.92 7.53 2.56 10.78z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.9l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Google 계정으로 시작하기</button>
-    <div class="fu s5" style="font-size:11px;color:var(--txtm);text-align:center;line-height:1.6">로그인 시 서비스 이용약관 및<br>개인정보 처리방침에 동의하게 됩니다</div>
-  </div>
+      </div>
 </div>
 
 <!-- ② 이름 입력 -->
 <div id="sn" class="screen demo-offset">
   <div class="sn-content">
-    <div class="fu" style="text-align:center"><h2 style="font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:6px">환영합니다!</h2><p style="font-size:13px;color:var(--txt2);line-height:1.75">학습 연대기에서 사용할<br>이름을 설정해 주세요</p></div>
+    <div class="fu" style="text-align:center"><h2 style="font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:6px">반가워요!</h2><p style="font-size:13px;color:var(--txt2);line-height:1.75">앱에서 쓸<br>이름을 정해 주세요</p></div>
     <div class="fu s1">
       <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:6px">이름 (닉네임)</label>
-      <input class="nm-inp" id="nmInp" aria-label="이름" type="text" placeholder="이름을 입력하세요" maxlength="12" oninput="updateNmPreview()">
+      <input class="nm-inp" id="nmInp" aria-label="이름" type="text" placeholder="이름을 입력해 주세요" maxlength="12" oninput="updateNmPreview()">
     </div>
     <div class="nm-prev fu s2" id="nmPrev">
       <div class="nm-av" id="nmAvatar">⚔️</div>
       <div><div class="nm-pname" id="nmPrevName">이름을 입력해 주세요</div><div class="nm-rank">🌱 새싹 · Lv.1 견습생</div></div>
     </div>
     <button class="btn-acc fu s3" style="width:100%" onclick="applyName()">학습 시작하기 →</button>
-    <div style="text-align:center;font-size:11px;color:var(--txtm)" class="fu s4">나중에 설정에서 변경 가능합니다</div>
+    <div style="text-align:center;font-size:11px;color:var(--txtm)" class="fu s4">나중에 설정에서 바꿀 수 있어요</div>
   </div>
 </div>
 
@@ -743,8 +739,8 @@
       <div class="lset-row">
         <span class="lset-row-lbl">난이도</span>
         <div class="lset-opts">
-          <button class="lset-opt on" onclick="setLsetMode('sq4','아↗그거!',this)">아↗그거!</button>
-          <button class="lset-opt" onclick="setLsetMode('sq4','UP¡¿',this)">UP¡¿</button>
+          <button class="lset-opt on" onclick="setLsetMode('sq4','아↗그거!',this)">보통</button>
+          <button class="lset-opt" onclick="setLsetMode('sq4','UP¡¿',this)">어려움</button>
         </div>
       </div>
       <!-- v3.7 항목13: 입력 방식 추가 (KNOWLEDGE 2-2 갱신) -->
@@ -781,7 +777,7 @@
     <div class="q-meta"><span class="tag ta">+60</span></div>
   </div>
   <div class="spk-info">
-    <div class="spk-info-text">일상에서 쓰는 말투를 직장·회의·고객 응대 상황에 맞는 격식 표현으로 다듬어 드립니다.</div>
+    <div class="spk-info-text">일상에서 쓰는 말투를 직장·회의·고객 응대 상황에 맞는 격식 표현으로 다듬어 드려요.</div>
   </div>
   <!-- β5: 토큰 UI — 학습 탭 최상단 (KNOWLEDGE 35) -->
   <div class="tkb" onclick="토큰드롭다운_토글(this)">
@@ -815,7 +811,7 @@
             <span class="spk-mic-ico" id="spkMicIco"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></span>
             <span id="spkMicLabel">말하기 시작</span>
           </button>
-          <div class="spk-voice-status" id="spkVoiceStatus">마이크 버튼을 누르고 또박또박 말해 보세요. 인식된 말이 아래에 채워집니다.</div>
+          <div class="spk-voice-status" id="spkVoiceStatus">마이크 버튼을 누르고 또박또박 말해 보세요. 인식된 말이 아래에 채워져요.</div>
           <div class="spk-voice-transcript" id="spkVoiceTranscript"></div>
         </div>
       </div>
@@ -1036,13 +1032,13 @@
       <div class="set-lbl">AI 기능</div>
       <div class="set-row" style="cursor:default">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></span>
-        <div class="grow"><div class="srl">AI 즉시 생성 안 함</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
-        <div class="mtw"><label class="mt"><input type="checkbox" id="aiOnlyToggle" onchange="toggleAiOnly()" aria-label="AI 즉시 생성 안 함"><div class="mtt"><div class="mtth"></div></div></label></div>
+        <div class="grow"><div class="srl">준비된 문제만 풀기</div><div class="srs" id="aiOnlyTxt">꺼짐</div></div>
+        <div class="mtw"><label class="mt"><input type="checkbox" id="aiOnlyToggle" onchange="toggleAiOnly()" aria-label="준비된 문제만 풀기"><div class="mtt"><div class="mtth"></div></div></label></div>
       </div>
       <!-- 세션6 항목4: placeholder 「히스토리 확인」 → 실기능 「채팅 내역」으로 교체 -->
       <div class="set-row" onclick="채팅내역_열기()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></span>
-        <div class="grow"><div class="srl">채팅 내역</div><div class="srs">AI와의 최근 대화 30개 보기</div></div>
+        <div class="grow"><div class="srl">채팅 내역</div><div class="srs">AI와 나눈 최근 대화 30개</div></div>
         <span class="sra">›</span>
       </div>
       <!-- 세션6 항목5: AI 지침(통합 메모리) — 공백 포함 500자, AI 호출 시 항상 전달 -->
@@ -1074,26 +1070,26 @@
     </div>
 
     <div class="set-sec fu s5">
-      <div class="set-lbl" style="color:var(--err)">위험 구역</div>
+      <div class="set-lbl" style="color:var(--err)">초기화·삭제</div>
       <!-- 빌드1: 학습 데이터 초기화 실제 구현 (KNOWLEDGE 15 초기화 범위, 2중 확인) -->
       <div class="set-row" onclick="학습데이터초기화_1단계()">
         <span class="sri" style="color:var(--err)"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg></span>
-        <div class="grow"><div class="srl" style="color:var(--err)">학습 데이터 초기화</div><div class="srs">진행 상황을 모두 리셋합니다</div></div>
+        <div class="grow"><div class="srl" style="color:var(--err)">학습 데이터 초기화</div><div class="srs">진행 상황을 모두 처음으로 되돌려요</div></div>
         <span class="sra">›</span>
       </div>
       <!-- 버그6: 계정 삭제 (2중 확인 절차) — KNOWLEDGE 18섹션 -->
       <div class="set-row" onclick="계정삭제_1단계()">
         <span class="sri" style="color:var(--err)"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span>
-        <div class="grow"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 데이터를 영구 삭제</div></div>
+        <div class="grow"><div class="srl" style="color:var(--err)">계정 삭제</div><div class="srs">계정과 모든 기록을 영구 삭제</div></div>
         <span class="sra">›</span>
       </div>
     </div>
 
     <div class="set-sec fu s6">
       <div class="set-lbl">기타</div>
-      <div class="set-row" id="devModeRow" onclick="개발자모드_탭()">
+      <div class="set-row" id="devModeRow" onclick="개발자모드_탭()" style="display:none">
         <span class="sri" id="devModeIcon"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg></span>
-        <div class="grow"><div class="srl" id="devModeLabel" style="color:var(--txtm)">개발자 모드</div><div class="srs" id="devModeDesc">[창조주] 달성 후 활성화</div></div>
+        <div class="grow"><div class="srl" id="devModeLabel" style="color:var(--txtm)">개발자 모드</div><div class="srs" id="devModeDesc">준비 중이에요</div></div>
         <span class="sra" id="devModeArrow" style="color:var(--txtm)">›</span>
       </div>
       <!-- 추가기능: 음성 생성(콜롬비나 TTS) — 창조주 전용. 기본 숨김, 창조주 달성 시 갱신_음성설정_UI()로 노출 -->
@@ -1106,7 +1102,7 @@
            섹션 마지막에 둔다(.set-row:last-child 밑줄 제거가 숨김 행에 걸리지 않게) -->
       <div class="set-row" onclick="실험실_열기()">
         <span class="sri"><svg class="ic" aria-hidden="true"><use href="#i-flask"/></svg></span>
-        <div class="grow"><div class="srl">실험실</div><div class="srs">준비 중인 기능 미리 보기</div></div>
+        <div class="grow"><div class="srl">실험실</div><div class="srs">새로 들어온 기능 먼저 써 보기</div></div>
         <span class="sra">›</span>
       </div>
     </div>
@@ -1150,12 +1146,12 @@
         <g class="shard" onclick="잇는_조각회전(6)"><path class="hit" d="M104 116 L96 122 L136 206 L146 200 Z"/><path fill="url(#잇는sheen)" d="M104 116 L96 122 L136 206 L146 200 Z"/></g>
       </svg>
     </div>
-    <div class="itneun-msg" id="잇는퍼즐Msg">조각을 탭하면 90°씩 돌아갑니다.</div>
+    <div class="itneun-msg" id="잇는퍼즐Msg">조각을 탭하면 90°씩 돌아가요.</div>
     <div class="itneun-actions">
       <button class="btn-g" onclick="잇는_섞기()">다시 섞기</button>
       <button class="btn-g" onclick="잇는_퍼즐닫기()">닫기</button>
     </div>
-    <div class="itneun-foot">위치는 고정, 각도만 섞입니다. 대칭 조각(ㅣ·ㅅ)은 뒤집혀 똑같아 보이면 맞은 것으로 칩니다.</div>
+    <div class="itneun-foot">위치는 그대로, 각도만 섞여요. 대칭 조각(ㅣ·ㅅ)은 뒤집혀도 똑같아 보이면 맞은 걸로 쳐요.</div>
   </div>
 </div>
 

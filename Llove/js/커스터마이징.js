@@ -13,7 +13,7 @@ function 주신의경지_탭(){
 // α5: 창조주 달성 후 칭호 선택 — 「폐하」 ↔ 글리치 없는 깨끗한 「주신」 (KNOWLEDGE 11)
 function 칭호선택_모달(){
   if(!사용자.창조주달성) return;
-  선택모달_열기('👑 칭호 선택', '창조주 달성자는 칭호를 선택할 수 있습니다.',
+  선택모달_열기('👑 칭호 선택', '창조주 달성자는 칭호를 고를 수 있어요.',
     [{v:'폐하', d:' (기본)'},{v:'주신', d:' (글리치 없는 깨끗한 주신)'}].map(o=>({
       라벨: o.v + o.d, 켜짐: (사용자.선택칭호||'폐하')===o.v,
       클릭: ()=>{
@@ -44,8 +44,8 @@ function 프리셋_로드(폴더, 받기){
 const 업로드_가능 = () => 사용자.개발자모드 || curLv >= 16;
 function 이미지_업로드시도(대상){
   if(!업로드_가능()){
-    showInfoModal('🔒','고급 커스터마이징','[권한 부족]<br><br>직접 업로드는 초월자(Lv.16) 달성 시 해금됩니다.<br>'
-      + (대상 === '프로필' ? '기본 이모지·이미지 프리셋은' : '기본 배너는') + ' 지금도 자유롭게 사용할 수 있습니다.');
+    showInfoModal('🔒','직접 올리기','Lv.16부터 직접 올릴 수 있어요.<br>'
+      + (대상 === '프로필' ? '기본 이모지·이미지 프리셋은' : '기본 배너는') + ' 지금도 자유롭게 쓸 수 있어요.');
     return;
   }
   document.getElementById(대상 + '파일입력')?.click();
@@ -82,15 +82,15 @@ function 프로필선택_열기(){
       ).join('')
     // 세션7 항목11: 관리 방법(폴더 경로·목록.json)은 사용자 노출 문구에서 제거 — 운영자용 안내는 이 주석으로만.
     //   등록 방법: assets/프로필/ 폴더에 이미지 추가 + 목록.json items에 {파일,이름,출처} 등록 (출처.md 표기 필수)
-    : `<div style="font-size:11px;color:var(--txt2)">등록된 이미지가 아직 없습니다. 업데이트를 기다려 주세요!</div>`;
+    : '';  // 2026-11-08: 등록된 이미지가 없으면 묶음째 숨긴다(없는 기능은 안내하지 않음)
   const 업로드가능 = 업로드_가능();
   showInfoModal('🖼️','프로필 선택',
     `<div style="text-align:left">
       <div style="font-size:11px;color:var(--txt2);margin-bottom:5px">기본 이모지 — 누구나 사용 가능</div>
       <div class="pick-row">${이모지들}</div>
-      <div class="pick-lbl">이미지 프리셋 — 누구나 사용 가능</div>
-      <div class="pick-row">${이미지들}</div>
-      <div class="pick-lbl">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
+      ${이미지들 ? `<div class="pick-lbl">이미지 프리셋 — 누구나 사용 가능</div>
+      <div class="pick-row">${이미지들}</div>` : ''}
+      <div class="pick-lbl">직접 업로드 ${업로드가능 ? '' : '· Lv.16부터'}</div>
       <button class="btn-g" style="width:100%;padding:9px" onclick="이미지_업로드시도('프로필')">📁 내 사진 선택…</button>
       <input type="file" id="프로필파일입력" accept="image/*" style="display:none" onchange="이미지_파일처리(this,'프로필')">
     </div>`);
@@ -143,7 +143,7 @@ function 배너선택_열기(){
       <div style="font-size:11px;color:var(--txt2);margin-bottom:5px">기본 배너 — 누구나 사용 가능</div>
       <div class="pick-row">${그라들}</div>
       ${이미지섹션}
-      <div class="pick-lbl">직접 업로드 ${업로드가능 ? '' : '초월자(Lv.16) 해금'}</div>
+      <div class="pick-lbl">직접 업로드 ${업로드가능 ? '' : '· Lv.16부터'}</div>
       <button class="btn-g" style="width:100%;padding:9px" onclick="이미지_업로드시도('배너')">📁 내 사진 선택…</button>
       <input type="file" id="배너파일입력" accept="image/*" style="display:none" onchange="이미지_파일처리(this,'배너')">
     </div>`);
