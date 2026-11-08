@@ -59,26 +59,21 @@ function goNav(id, btn){
   if(!next) return;
   활성입력_blur();  // 항목4: 이전 화면의 입력 포커스(깜빡이는 커서) 해제
 
-  // 이전 화면: 슬라이드아웃 후 active 제거
-  if(prev){
-    prev.classList.remove('active','entering');
-    prev.classList.add('leaving');
-    setTimeout(()=>{prev.classList.remove('leaving')},280);
-  }
+  // 이전 화면은 즉시 내린다(11-08: 종전 퇴장 연출 slideOut은 display:none에 가려 보인 적이 없어 제거)
+  if(prev) prev.classList.remove('active','entering');
 
   const 첫방문 = !본화면.has(id);
   본화면.add(id);
-  // 다시 오는 화면은 표시되기 전에 멈춰 둬야 첫 프레임부터 깜빡이지 않는다
+  // 다시 오는 화면은 표시되기 전에 멈춰 둬야 첫 프레임부터 깜빡이지 않는다.
+  // 진입 뒤 다시 그려지는 목록(트리·업적·복습)은 이 클래스로 CSS가 멈춘다
   if(!첫방문) next.querySelectorAll('.fu').forEach(e=>{ e.style.animation='none'; });
-  next.classList.add('active');
+  next.classList.toggle('revisit', !첫방문);
+  // 11-08: 진입 연출을 표시와 같은 프레임에 건다 — 종전엔 rAF 두 번 뒤에 걸어 새 화면이 한 프레임
+  // 다 보였다가 투명으로 돌아가 깜빡였다. display:none→표시 때 CSS 애니메이션은 처음부터 다시 돈다
+  next.classList.add('active','entering');
   // v3.7 항목18: 화면 전환 시 scrollTop 초기화 (이전 화면의 스크롤 잔재 방지)
   next.scrollTop=0;
   next.querySelectorAll('.qbody, .ach-list, .set-body, .seg-content').forEach(el=>{ el.scrollTop=0; });
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    next.classList.add('entering');
-    if(첫방문) next.querySelectorAll('.fu').forEach(e=>{e.style.animation='none';void e.offsetWidth;e.style.animation='';});
-    setTimeout(()=>next.classList.remove('entering'),400);
-  }));
 
   const 이전화면ID = curScreen;
   curScreen=id;
@@ -129,14 +124,14 @@ function afterNav(id){
     document.getElementById('homeVocab').textContent=표시마스터리('총누적어휘수');
     document.getElementById('homeReview').textContent=사용자.복습대기열수;
 
-    // EXP 바 애니메이션 (transition:none → rAF 두 번 → transition 복구)
+    // EXP 바: 값이 바뀌었을 때만 이전 값에서 채운다(11-08: 종전엔 홈에 올 때마다 0부터 1.1초 재충전).
+    // 레벨업으로 줄어들 땐 거꾸로 빠지는 연출 없이 바로. rAF 두 번 = 방금 표시된 화면에서도 전환이 돌게
     const bar=document.getElementById('homeExp');
-    bar.classList.add('instant');
-    bar.style.width='0%';
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      bar.classList.remove('instant');
-      bar.style.width=(표시Exp/표시Max*100)+'%';
-    }));
+    const 새폭=Math.round(표시Exp/표시Max*1e4)/100, 옛폭=parseFloat(bar.style.width)||0;
+    if(새폭!==옛폭){
+      bar.classList.toggle('instant', 새폭<옛폭);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ bar.style.width=새폭+'%'; }));
+    }
 
     // v3.7 항목11: 「오늘 한 문장」 슬라이드 빌더 호출 (KNOWLEDGE 24섹션)
     슬라이드빌드();
