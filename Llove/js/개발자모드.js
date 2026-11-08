@@ -40,7 +40,7 @@ function 개발자패널_열기(){
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_레벨조정(10)">+10</button><br>` +
     `EXP (표시 ${표시EXP()}) <button class="btn-g" style="padding:5px 11px" onclick="개발자_EXP추가(500)">+500</button> ` +
     `마스터리 증분 (+${o.마스터리증분||0}) <button class="btn-g" style="padding:5px 11px" onclick="개발자_마스터리증분(10)">+10</button><br>` +
-    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_업적풀돌토글()">업적 풀돌 강제: ${o.업적풀돌?'ON':'OFF'}</button> ` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_업적풀돌토글()">업적 전부 달성(표시): ${o.업적풀돌?'ON':'OFF'}</button> ` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_상한해제토글()">상한 해제: ${o.상한해제?'ON':'OFF'}</button><br>` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_오버레이초기화()">오버레이 값 전체 초기화</button> ` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_네비토글()">상단 바로가기: ${사용자.개발자네비표시?'ON':'OFF'}</button><br>` +

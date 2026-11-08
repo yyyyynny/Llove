@@ -640,7 +640,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ach-item.unl .ach-icon{border-color:color-mix(in srgb,var(--acc) 28%,transparent);background:color-mix(in srgb,var(--acc) 7%,transparent)}
 .ach-nm{font-size:14px;font-weight:700;margin-bottom:2px}
 .ach-ds{font-size:12px;color:var(--txt2);line-height:1.5}
-.ach-ds.zalgo{font-size:11px;color:var(--txtm);font-family:var(--mono);letter-spacing:.3px;line-height:1.6;opacity:.7;word-break:break-all}
 
 /* 별 표시 — 통합된 ✦ ★ 사용 */
 .ach-stars{font-size:13px;letter-spacing:2px;margin-top:3px;font-weight:700}
@@ -655,7 +654,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ach-d-name{font-size:18px;font-weight:900;color:var(--acc);text-align:center;margin-bottom:6px}
 .ach-d-cat{font-size:12px;color:var(--txt2);text-align:center;margin-bottom:14px}
 .ach-d-desc{font-size:14px;color:var(--txt2);line-height:1.7;text-align:center;margin-bottom:14px;padding:10px;background:var(--elev);border-radius:var(--r-m)}
-.ach-d-desc.zalgo{font-family:var(--mono);font-size:12px;letter-spacing:.3px;color:var(--txtm);word-break:break-all;line-height:1.7}
 .ach-d-stars{font-size:18px;letter-spacing:3px;text-align:center;margin:8px 0;font-weight:700}
 .ach-d-table{width:100%;font-size:13px;margin-top:10px;border-collapse:collapse}
 .ach-d-table tr{border-bottom:1px solid var(--bdr)}
