@@ -199,12 +199,8 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
   #srp{padding-inline:max(0px, (100vw - var(--col, 680px)) / 2)}
   #sh{--col:1120px}
   #sr,#sa,#ss,#sg,#sse{--col:760px}
-  .hs{grid-template-columns:repeat(3,1fr)}
   .ask-panel{left:88px;max-width:680px;margin-inline:auto}
   .toast{left:calc(50% + 44px)}
-}
-@media (min-width:1440px){
-  .hs{grid-template-columns:repeat(4,1fr)}
 }
 
 /* ━━━ 바텀 네비 ━━━ */
@@ -352,12 +348,22 @@ input,textarea{user-select:text;-webkit-user-select:text;caret-color:auto}
 /* P3(10-03): 홈 모드 카드 2열 — 10장이 같은 무게로 한 줄씩 내려가 두 화면을 넘던 목록을 한 화면 반으로.
    그룹 라벨·랜덤 카드는 한 줄 전체, 카드는 아이콘·이름·설명 세로 배치(화살표 생략) */
 .hs{padding:0 20px 20px;display:grid;grid-template-columns:1fr 1fr;column-gap:9px;align-items:stretch}
-.hs>.sec-t,.hs>.mc-glabel,.hs>.mc.s10{grid-column:1/-1}
-.hs>.mc:not(.s10){flex-direction:column;align-items:flex-start;gap:8px;padding:14px 12px 13px 16px}
-.hs>.mc:not(.s10) .mc-arrow{display:none}
-.hs>.mc:not(.s10) .mc-icon{width:auto;justify-content:flex-start}
-.hs>.mc:not(.s10) .mc-name{font-size:16px}
-.hs>.mc:not(.s10) .mc-desc{line-height:1.45}
+.hs>.sec-t,.hs .mc-glabel,.hs>.mc.s10{grid-column:1/-1}
+.hs .mc:not(.s10){flex-direction:column;align-items:flex-start;gap:8px;padding:14px 12px 13px 16px}
+.hs .mc:not(.s10) .mc-arrow{display:none}
+.hs .mc:not(.s10) .mc-icon{width:auto;justify-content:flex-start}
+.hs .mc:not(.s10) .mc-name{font-size:16px}
+.hs .mc:not(.s10) .mc-desc{line-height:1.45}
+/* 11-09 PC: 분류 묶음(.mc-grp = 라벨+카드)을 나란히 — 1024px+ 2묶음씩, 1440px+ 3묶음씩.
+   좁은 화면에선 묶음이 없는 것처럼(display:contents) 위 2열 그대로. 이어서 하기는 맨 위 한 칸 */
+.mc-grp{display:contents}
+@media (min-width:1024px){
+  .hs{grid-template-columns:repeat(2,1fr);column-gap:24px}
+  .mc-grp{display:grid;grid-template-columns:1fr 1fr;column-gap:9px;align-content:start}
+}
+@media (min-width:1440px){
+  .hs{grid-template-columns:repeat(3,1fr)}
+}
 /* 세션6 항목8: 「학습 모드」 라벨·카드 강조 — 터치에선 hover가 없으므로 상시 강조로 전환 */
 .sec-t{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:10px;margin-top:18px}
 .mc{background:var(--card);border:1px solid transparent;border-radius:var(--r-m);padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:9px;transition:transform .25s,border-color .25s,background .4s,box-shadow .25s;position:relative;overflow:hidden}

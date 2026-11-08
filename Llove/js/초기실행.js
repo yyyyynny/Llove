@@ -55,9 +55,12 @@ function 백도어_로고탭(){
 }
 
 // 비로그인 세션 — 로그인 화면 「로그인 없이 둘러보기」(11-08)와 관리자 테스트 진입이 함께 쓴다.
-// Firebase 인증 없이 홈으로. 레벨·EXP는 저장 안 됨, 복습·채팅 기록만 이 기기(localStorage)에.
+// Firebase 인증 없이 홈으로. 레벨·EXP 등 진도(plx_게스트진도)·복습·채팅 기록은 이 기기(localStorage)에.
 function 게스트로그인(){
   현재UID = null;                 // Firestore 저장 경로 차단 유지
+  둘러보기중 = true;              // 11-09: 사용자데이터_저장이 이 기기에 진도를 남긴다
+  const 진도 = 게스트진도_읽기();
+  if(Object.keys(진도).length) 사용자데이터_적용(진도, null);   // 지난 둘러보기 진도 복원
   게스트보관함_복원();            // 세션5: 게스트 복습 데이터 localStorage 복원
   구어완료_복원();                // 세션5: 게스트 구어 교정 완료 기록 복원
   채팅기록_로드();                // 세션6: 게스트 채팅 기록 복원
@@ -68,7 +71,7 @@ function 게스트로그인(){
   if(계정행) 계정행.textContent = '로그인';
   온보딩_걷기();
   goNav('sh', null);
-  showToastMsg('둘러보는 중이에요. 기록을 남기려면 설정에서 로그인해 주세요');
+  showToastMsg('둘러보는 중이에요. 기록은 이 기기에만 남아요 — 설정에서 로그인할 수 있어요');
 }
 document.addEventListener('keydown', 테스트진입_키감지);
 // 키보드만으로도 앱을 쓸 수 있게 — role/tabindex 부여 + Enter/Space 위임 (화면전환.js)

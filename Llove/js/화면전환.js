@@ -397,7 +397,8 @@ function 키보드접근_보강(뿌리){
    닫히면 연 자리로 되돌린다. 모달을 여닫는 함수가 여러 파일(classList show 토글)에 흩어져 있어
    모두가 지나는 공통 지점인 class 변화를 지켜본다 — 여는 함수를 일일이 고치지 않는다.
    입력창으로 포커스를 주는 모달(이름·질문·이의)은 그쪽 setTimeout이 나중에 덮어쓴다.
-   ponytail: 한계 — Tab이 모달 밖으로 나갈 수 있음(포커스 가두기 없음), 필요하면 keydown Tab 순환 추가 */
+   11-09: 열린 맨 위 모달 안에서 Tab/Shift+Tab이 처음↔끝으로 돈다(키보드접근_시작의 Tab 처리).
+   ponytail: 한계 — 「맨 위」는 가장 늦게 연 모달(z-index 비교 안 함), 배경 화면에 inert는 안 붙임(스크린리더 가상 커서는 밖으로 나갈 수 있음) */
 const 대화상자_선택자 = '.ov-bg, .modal-bg, .obj-bg, .ach-detail-bg, .ask-panel';
 const 대화상자_제목선택자 = '.modal-title, .pp-title, .lvup-txt, .ach-d-name, .obj-title, .ask-title, .itneun-badge';
 const 대화상자_초점후보 = 'button:not([disabled]), a[href], select, input[type="range"], input[type="checkbox"], [tabindex="0"]';
@@ -466,6 +467,22 @@ function 키보드접근_시작(){
     if(!맨위) return;
     마지막포인터다운타깃 = null;   // 직전 클릭 위치가 안쪽이었어도 배경 클릭으로 인정되게
     맨위.click();
+  });
+
+  // Tab 가두기 — 가장 늦게 연 모달의 끝에서 Tab이면 처음으로, 처음에서 Shift+Tab이면 끝으로(밖에 있던 포커스도 안으로)
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Tab') return;
+    const 맨위 = [...대화상자_복귀자리.keys()].pop();
+    if(!맨위) return;
+    const 상자 = 대화상자_상자(맨위);
+    const 목록 = [...상자.querySelectorAll(대화상자_초점후보 + ', input:not([disabled]), textarea')]
+      .filter(el => !el.checkVisibility || el.checkVisibility());   // 숨은 단추는 건너뛴다
+    if(!목록.length) return;
+    const 처음 = 목록[0], 끝 = 목록[목록.length - 1], 지금 = document.activeElement;
+    if(!상자.contains(지금) || 지금 === (e.shiftKey ? 처음 : 끝)){
+      e.preventDefault();
+      (e.shiftKey ? 끝 : 처음).focus();
+    }
   });
 
   키보드접근_보강(document);

@@ -15,8 +15,7 @@ load((win) => {
   assert('1024px 이상 미디어 쿼리가 있다', !!pc);
   assert('네비가 왼쪽 세로 레일(88px)로 바뀐다', pc && /#g-bnav\{[^}]*width:88px[^}]*flex-direction:column/.test(pc[1]));
   assert('네비 영역 화면은 레일 오른쪽에서 시작한다', pc && /\.has-bnav\{left:88px/.test(pc[1]));
-  assert('홈 모드 카드 3열', pc && /\.hs\{grid-template-columns:repeat\(3,1fr\)\}/.test(pc[1]));
-  assert('1440px 이상 홈 4열', /@media \(min-width:1440px\)\{\s*\.hs\{grid-template-columns:repeat\(4,1fr\)\}/.test(css));
+  // 홈 카드 PC 배치(분류 묶음 2·3개씩)는 11-09 test-ui개선.cjs에서 검사
   const 줄임 = css.match(/@media \(prefers-reduced-motion: reduce\) \{([\s\S]*?)\n\}/);
   assert('동작 줄이기에서 등장 지연을 0으로', 줄임 && /animation-delay: 0s !important/.test(줄임[1]));
   assert('동작 줄이기에서 장식용 무한 애니메이션 정지', 줄임 && /\.status-sub-title\.creator \{ animation: none !important; \}/.test(줄임[1]));

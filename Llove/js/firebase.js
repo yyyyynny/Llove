@@ -21,6 +21,15 @@ const firebaseConfig = {
 
 let fbAuth = null, fbDb = null;
 let 현재UID = null;
+// 11-09: 「로그인 없이 둘러보기」 중인가 — 이때만 진도를 이 기기(plx_게스트진도)에 저장한다.
+// 로그인 사용자의 문서 로드 실패(현재UID=null)와 구분하려고 따로 둔다(그 경우엔 아무 데도 저장 안 함)
+let 둘러보기중 = false;
+function 게스트진도_읽기(){
+  try{ return JSON.parse(localStorage.getItem('plx_게스트진도')) || {}; }catch(e){ return {}; }
+}
+function 게스트진도_삭제(){
+  try{ localStorage.removeItem('plx_게스트진도'); }catch(e){ /* 저장소 차단 무시 */ }
+}
 
 function Firebase초기화(){
   try{
@@ -110,6 +119,7 @@ function 인증상태_변경(user){
     return;
   }
   로그인했었음 = true;
+  둘러보기중 = false;   // 둘러보다 로그인했으면 이제부터는 계정에 저장
   현재UID = user.uid;
   사용자.이메일 = user.email || '';
 
@@ -130,6 +140,7 @@ function 인증상태_변경(user){
   }
   fbDb.collection('users').doc(user.uid).get().then(snap=>{
     if(snap.exists){
+      게스트진도_삭제();   // 기존 계정은 서버 기록이 원본 — 둘러보기 진도는 버린다(덮어쓰기 금지)
       사용자데이터_적용(snap.data(), user);
       온보딩_걷기();     // 자동 로그인 시 온보딩 건너뜀
       goNav('sh', null);
@@ -206,6 +217,9 @@ function 신규사용자_생성(){
   }
   const authUser = fbAuth && fbAuth.currentUser;
   사용자.이메일 = (authUser && authUser.email) || '';
+  // 11-09: 둘러보기 진도를 새 계정으로 옮긴다(이름은 방금 입력한 값이 우선)
+  const 게스트진도 = 게스트진도_읽기();
+  delete 게스트진도.이름;
   const 신규데이터 = {
     // 기본 정보
     이름: 사용자.이름,
@@ -230,18 +244,23 @@ function 신규사용자_생성(){
     // '잇는' 포탈 — '잇' 퍼즐 해금 여부(이세계 진입). 세계 이름 미정 → 임시 필드명
     잇는개방: false,
     // 11-08: 오늘 목표·연속 보호
-    오늘목표: 10, 오늘날짜: '', 오늘푼수: 0, 얼음: 0, 얼음지급주: 0
+    오늘목표: 10, 오늘날짜: '', 오늘푼수: 0, 얼음: 0, 얼음지급주: 0,
+    ...게스트진도
   };
   Object.assign(사용자, 신규데이터);
-  curLv = 1; curExp = 0; maxExp = expForLevel(1);
+  curLv = 신규데이터.레벨; curExp = 신규데이터.현재EXP; maxExp = expForLevel(curLv);
   return fbDb.collection('users').doc(현재UID).set(신규데이터, {merge:true})
+    .then(게스트진도_삭제)
     .catch(e=> console.error('[Firestore] 신규 사용자 저장 실패', e));
 }
 
 // 사용자 루트 문서 부분 동기화 저장 (변경된 필드만 merge)
 function 사용자데이터_저장(부분){
   if(!fbDb || !현재UID){
-    console.error('[Firestore] 미초기화 — 저장 생략');
+    // 둘러보기 중이면 이 기기에 병합 저장(얕은 병합 — 맵 필드는 늘 통째로 저장하므로 충분)
+    if(둘러보기중){
+      try{ localStorage.setItem('plx_게스트진도', JSON.stringify({...게스트진도_읽기(), ...부분})); }catch(e){ /* 저장소 차단 무시 */ }
+    } else console.error('[Firestore] 미초기화 — 저장 생략');
     return Promise.resolve();
   }
   return fbDb.collection('users').doc(현재UID).set(부분, {merge:true})

@@ -225,5 +225,57 @@ load(async (window) => {
   // 11-08: 현황 「주신의 경지」 메시지 삭제(창조주 이스터에그 자체는 유지)
   assert('주신의 경지 메시지 없음·창조주 흐름 유지', !doc.getElementById('jushinMsg') && typeof window.창조주달성 === 'function');
 
+  // 11-09: PC 홈 — 분류 묶음(라벨+카드)이 1024px+ 2묶음, 1440px+ 3묶음씩 나란히
+  const 묶음 = [...doc.querySelectorAll('#sh .hs > .mc-grp')];
+  assert('PC 홈: 분류 묶음 5개, 각각 라벨로 시작', 묶음.length === 5 && 묶음.every(g => g.firstElementChild.classList.contains('mc-glabel')), String(묶음.length));
+  assert('PC 홈: 좁은 화면은 묶음 없는 2열, 1024px+ 2묶음·1440px+ 3묶음 규칙',
+    css.includes('.mc-grp{display:contents}') && /min-width:1024px\)\{\s*\.hs\{grid-template-columns:repeat\(2,1fr\)[^}]*\}\s*\.mc-grp\{display:grid/.test(css) && /min-width:1440px\)\{\s*\.hs\{grid-template-columns:repeat\(3,1fr\)/.test(css));
+
+  // 11-09: 모달 Tab 가두기 — 끝에서 Tab이면 처음으로, 처음에서 Shift+Tab이면 끝으로
+  ev("showConfirmModal('ℹ️','확인','내용','예', ()=>{})");
+  await new Promise(r => setTimeout(r, 0));   // MutationObserver(열림 감지) 처리 대기
+  const 단추들 = [...doc.querySelectorAll('#infoBg button:not([disabled])')];
+  const 탭 = (shiftKey) => doc.activeElement.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true }));
+  단추들[단추들.length - 1].focus(); 탭(false);
+  assert('Tab 가두기: 끝에서 Tab → 처음', 단추들.length > 1 && doc.activeElement === 단추들[0], String(단추들.length));
+  탭(true);
+  assert('Tab 가두기: 처음에서 Shift+Tab → 끝', doc.activeElement === 단추들[단추들.length - 1]);
+  ev('closeInfoModal()');
+
+  // 11-09: 둘러보기 진도 — 이 기기에 병합 저장되고, 다시 둘러보기로 들어오면 복원된다
+  ev("localStorage.removeItem('plx_게스트진도'); 게스트로그인(); 사용자데이터_저장({레벨:7, 현재EXP:30, 이름:'손님진도'}); 사용자데이터_저장({총누적EXP:500});");
+  const 게스트진도 = () => JSON.parse(window.localStorage.getItem('plx_게스트진도') || 'null');
+  assert('둘러보기 진도: 부분 저장이 병합된다', 게스트진도()?.레벨 === 7 && 게스트진도()?.총누적EXP === 500, JSON.stringify(게스트진도()));
+  ev("curLv=1; 사용자.총누적EXP=0; 게스트로그인();");
+  assert('둘러보기 진도: 다시 들어오면 레벨·누적 EXP 복원', ev('curLv') >= 7 && ev('사용자.총누적EXP') >= 500);  // 복원 뒤 업적 정합화가 EXP를 더할 수 있다
+
+  // 로그인 사용자의 문서 로드 실패 — 서버에도, 게스트 진도에도 쓰지 않는다
+  ev(`window.__저장=[]; window.__문서='실패';
+    const 하위 = {get:()=>Promise.resolve({docs:[], empty:true, forEach(){}}), add:()=>Promise.resolve({id:'x'})};
+    fbDb = {collection:()=>({doc:()=>({
+      get:()=> window.__문서==='실패' ? Promise.reject(new Error('net')) : Promise.resolve(window.__문서 ? {exists:true, data:()=>window.__문서} : {exists:false}),
+      set:(d)=>{ window.__저장.push(d); return Promise.resolve(); },
+      collection:()=>하위 })})};
+    인증상태_변경({uid:'u2', email:''});`);
+  await new Promise(r => setTimeout(r, 20));
+  ev("사용자데이터_저장({레벨:99})");
+  assert('로드 실패: 게스트 진도에도 서버에도 안 쓴다', 게스트진도()?.레벨 === 7 && ev('window.__저장.length') === 0);
+
+  // 둘러보다 신규 계정으로 로그인 — 진도를 새 문서로 옮기고(이름은 입력값) 게스트 진도를 지운다
+  ev("window.__문서=null; 인증상태_변경({uid:'u3', email:'a@b.c'});");
+  await new Promise(r => setTimeout(r, 20));
+  ev("사용자.이름='새이름'");
+  const 이관전 = 게스트진도();
+  await ev('신규사용자_생성()');
+  const 새문서 = ev('window.__저장[0]');
+  assert('신규 계정: 둘러보기 진도 이관(이름은 입력값)', 새문서?.레벨 === 이관전.레벨 && 새문서?.총누적EXP === 이관전.총누적EXP && 새문서?.이름 === '새이름' && ev('curLv') === 이관전.레벨, JSON.stringify(새문서));
+  assert('신규 계정: 옮긴 뒤 게스트 진도 삭제', 게스트진도() === null);
+
+  // 기존 계정으로 로그인 — 서버 기록을 쓰고 게스트 진도는 버린다
+  ev("localStorage.setItem('plx_게스트진도', JSON.stringify({레벨:3})); window.__저장=[]; window.__문서={레벨:20, 현재EXP:0}; 인증상태_변경({uid:'u4', email:''});");
+  await new Promise(r => setTimeout(r, 20));
+  assert('기존 계정: 서버 기록 사용·게스트 진도 버림·덮어쓰기 없음', ev('curLv') === 20 && 게스트진도() === null && !ev('window.__저장').some(d => d.레벨 === 3));
+  ev('fbDb = null');
+
   process.exit(finish() > 0 ? 1 : 0);
 });
