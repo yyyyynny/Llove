@@ -167,9 +167,6 @@ function afterNav(id){
     // α1·α7·α8: 7단계 소칭호 + 색상 + 주신 글리치 일괄 적용
     const 소칭호엘 = document.getElementById('statusSubTitle');
     소칭호적용(소칭호엘, 표시Lv, 사용자.창조주달성);
-    // α4: Lv.70 도달 시 「주신의 경지」 메시지 노출 (창조주 달성 전까지)
-    const jm=document.getElementById('jushinMsg');
-    if(jm) jm.style.display = (표시Lv >= 최대레벨 && !사용자.창조주달성) ? 'block' : 'none';
 
     document.getElementById('statusLv').textContent='Lv.'+표시Lv;
     document.getElementById('statusGrade').textContent=등급.등급;

@@ -222,5 +222,8 @@ load(async (window) => {
   assert('오늘 목표: 새 날엔 0부터 센다', ev('사용자.오늘푼수') === 2);
   assert('창조주 호칭은 최고 관리자님', ev('소칭호계산(70, true)') === '최고 관리자님');
 
+  // 11-08: 현황 「주신의 경지」 메시지 삭제(창조주 이스터에그 자체는 유지)
+  assert('주신의 경지 메시지 없음·창조주 흐름 유지', !doc.getElementById('jushinMsg') && typeof window.창조주달성 === 'function');
+
   process.exit(finish() > 0 ? 1 : 0);
 });
