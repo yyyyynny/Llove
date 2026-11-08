@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { load, makeHarness } = require('./load.cjs');
 
-load((window) => {
+load(async (window) => {
   const { assert, finish } = makeHarness('UI 개선 — 감사 지적 수정');
   const doc = window.document;
   const ev = (code) => window.eval(code);
@@ -27,7 +27,7 @@ load((window) => {
   // U3: 봉인 중 이의있음 — 열 때부터 제출이 막혀 있고, 제출을 시도해도 쓴 글이 남는다
   ev("사용자.보유토큰 = 100; openObj('general');");
   const 제출 = doc.getElementById('objSubmit');
-  assert('U3: 봉인 중엔 열자마자 제출 버튼이 막혀 있다', 제출.disabled && 제출.textContent.includes('연동 후'), 제출.textContent);
+  assert('U3: 봉인 중엔 열자마자 제출 버튼이 막혀 있다', 제출.disabled && 제출.textContent.includes('준비 중'), 제출.textContent);
   doc.getElementById('objInp').value = '근거가 틀렸습니다';
   ev('submitObj()');
   assert('U3: 제출 시도 후에도 쓴 글이 남는다', doc.getElementById('objInp').value === '근거가 틀렸습니다');
@@ -132,6 +132,150 @@ load((window) => {
   const css = fs.readFileSync(path.join(__dirname, '..', 'Llove', 'style.css'), 'utf8');
   const 박힌색 = css.match(/rgba\((120,184,120|192,112,112|224,144,96|90,152,200|120,180,255)/g) || [];
   assert('U19: 상태색 고정 rgba가 남아 있지 않다', 박힌색.length === 0, 박힌색.join(' '));
+
+  // AI 즉시 생성 안 함: 켜면 출제는 항상 DB
+  ev("AI생성끔=true");
+  assert("AI 즉시 생성 안 함 ON이면 항상 DB 출제", Array.from({length:50},()=>ev("출제방식_결정()")).every(v=>v==="db"));
+  ev("AI생성끔=false");
+
+  // 심연 업적: 사전 모드에선 "너는 누구"만 달성, 단어 검색(존재)은 달성 안 됨
+  ev("사용자.업적진행도={}; 사전모드=true; document.getElementById('askInp').value='존재'; sendAsk();");
+  assert("심연: 사전 모드 단어 검색(존재)은 달성이 아니다", !ev("사용자.업적진행도['심연을들여다보는자']"));
+  ev("document.getElementById('askInp').value='너는 누구야'; sendAsk();");
+  assert("심연: 사전 모드에서도 너는 누구는 달성", !!ev("사용자.업적진행도['심연을들여다보는자']"));
+  ev("사전모드=false");
+
+  // P0: 사용자 문서를 못 읽으면 이번 접속은 저장하지 않는다(기본값이 서버 기록을 덮지 않게)
+  ev("window.__저장 = []; fbDb = {collection:()=>({doc:()=>({get:()=>Promise.reject(new Error('net')), set:(d)=>{window.__저장.push(d); return Promise.resolve();}})})}; 인증상태_변경({uid:'u1', email:''});");
+  await new Promise(r => setTimeout(r, 20));
+  ev("사용자데이터_저장({레벨:1})");
+  assert('P0: 문서 로드 실패 후엔 저장이 서버로 가지 않는다', ev("window.__저장.length") === 0 && ev("현재UID") === null);
+  ev("fbDb = null");
+
+  // 출제 엔진: 최근에 낸 문항은 다시 안 나오고, 정답 보기가 늘 1번이 아니다
+  const 연속 = ev("histFilter='off'; 최근출제=[]; const 풀=Array.from({length:10},(_,i)=>({q:'문항'+i})); Array.from({length:5},()=>출제_뽑기(풀).q)");
+  assert('출제: 풀 10개에서 연속 5번은 모두 다른 문항', new Set(연속).size === 5, 연속.join(','));
+  const 첫칸정답 = ev("let n=0; for(let i=0;i<40;i++){ renderQuiz('sq3',[{q:'문',cat:'맞춤법',opts:[{t:'정',c:true},{t:'가',c:false},{t:'나',c:false},{t:'다',c:false}]}]); if(document.querySelector('#sq3Body .aopt .otxt').textContent==='정') n++; } n");
+  assert('출제: 정답 보기가 늘 1번에 있지 않다', 첫칸정답 < 40, String(첫칸정답));
+
+  // 잇 퍼즐: 바깥(배경)을 누르면 닫힌다
+  ev("잇는_퍼즐열기()");
+  doc.getElementById('잇는퍼즐Bg').click();
+  assert("잇 퍼즐: 배경을 누르면 닫힌다", !보임('잇는퍼즐Bg'));
+
+  // 2026-11-08 봉인 기능 노출 정리: 봉인 중엔 AI 설정 묶음·질문 탭을 숨기고(플래그는 그대로), 개발자 모드 행은 창조주만
+  assert('봉인: 플래그는 그대로 false', ev('GROK_활성화') === false);
+  assert('봉인: 설정의 AI 기능 묶음과 질문하기 탭이 숨겨진다',
+    doc.querySelector('.set-ai').style.display === 'none' && doc.getElementById('askModeTabs').style.display === 'none');
+  ev("사용자.개발자모드=false; 사용자.창조주달성=false; 갱신_설정_개발자모드_UI();");
+  const 개발행 = () => doc.getElementById('devModeRow').style.display;
+  assert('개발자 모드 행: 창조주가 아니면 숨김', 개발행() === 'none');
+  ev("사용자.개발자모드=true; 사용자.창조주달성=true; 갱신_설정_개발자모드_UI();");
+  assert('개발자 모드 행: 창조주면 보임', 개발행() === 'flex');
+  ev("사용자.개발자모드=false; 사용자.창조주달성=false; 갱신_설정_개발자모드_UI(); 실험실_열기();");
+  const 실험실글 = doc.getElementById('infoDesc').textContent;
+  assert('실험실(11-08): 일반 사용자에겐 준비 중(예정)만 보이고, 끝말잇기·실험 항목은 안 보인다',
+    !실험실글.includes('끝말잇기') && 실험실글.includes('AI 실시간 출제') && !실험실글.includes('음성 생성'), 실험실글);
+  ev("closeInfoModal()");
+
+  // 둘러보기: 로그인 화면 버튼으로 비로그인 진입, 설정의 계정 행은 「로그인」이 된다
+  const 둘러보기 = Array.from(doc.querySelectorAll('#sl button')).find(b => b.textContent.includes('로그인 없이 둘러보기'));
+  assert('둘러보기: 로그인 화면에 버튼이 있다', !!둘러보기);
+  둘러보기.click();
+  assert('둘러보기: 홈으로 들어가고 계정 행이 로그인', ev('curScreen') === 'sh' && doc.querySelector('[onclick="로그아웃()"] .srl').textContent === '로그인');
+
+  // 2026-11-08 2차 정리: 남은 문구·봉인 기능 숨김
+  ev("setLsetMode('sq4','UP¡¿', document.querySelector(\"#lsetSq4 [onclick*='UP']\"))");
+  assert('아재 난이도 토스트는 버튼 라벨(어려움)로', doc.getElementById('toast').textContent === '난이도: 어려움', doc.getElementById('toast').textContent);
+  ev("복습데이터.즐겨찾기=[{id:'f1',단어:'가렴주구',뜻:'뜻',모드:'고사성어·속담',모드클래스:'tp'}]; renderReview();");
+  assert('봉인 중엔 즐겨찾기의 「유사 문제」 버튼이 없다', doc.getElementById('rvFav').innerHTML.includes('가렴주구') && !doc.getElementById('rvFav').innerHTML.includes('즐겨찾기_유사문제'));
+  assert('구어 교정: 버튼·제목이 「모범답안」', doc.querySelector('#sq5 .spk-submit').textContent === '모범답안 보기' && doc.querySelector('#spkResult .spk-result-title').textContent === '모범답안');
+
+  // 배포·메타: 관문 리다이렉트가 쿼리·해시를 유지, og 메타·404
+  const 루트 = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const 이동 = []; new Function('location', 루트.match(/<script>([\s\S]*?)<\/script>/)[1])({ search: '?a=1', hash: '#x', replace: (u) => 이동.push(u) });
+  assert('관문: 쿼리·해시를 붙여 이동', 이동[0] === 'Llove/?a=1#x', 이동[0]);
+  for (const [파일, 주소] of [['index.html', 'https://yyyyynny.github.io/Llove/'], ['Llove/index.html', 'https://yyyyynny.github.io/Llove/'], ['wchain/index.html', 'https://yyyyynny.github.io/Llove/wchain/']]) {
+    const h = fs.readFileSync(path.join(__dirname, '..', 파일), 'utf8');
+    assert(`${파일}: description·og·twitter 메타`, /<meta name="description"/.test(h) && h.includes(`<meta property="og:url" content="${주소}">`) && /og:title/.test(h) && /og:type/.test(h) && /twitter:card/.test(h));
+  }
+  assert('404.html: Llove로 가는 절대 링크', fs.readFileSync(path.join(__dirname, '..', '404.html'), 'utf8').includes('href="/Llove/Llove/"'));
+
+  // 11-08 결정: 이어서 하기 — 마지막으로 연 모드가 홈 맨 위 카드로
+  ev("localStorage.removeItem('plx_마지막학습'); 이어서하기_표시()");
+  assert('이어서 하기: 처음엔 숨김', doc.getElementById('continueCard').style.display === 'none');
+  ev("goLearn('맞춤법','sq3',null); goNav('sh',null)");
+  assert('이어서 하기: 맞춤법을 연 뒤 홈에 표시', doc.getElementById('continueCard').style.display === '' && doc.getElementById('continueDesc').textContent === '맞춤법');
+  // 11-08 결정: 기본 이름 풀에 오류처럼 보이는 이름 없음, 실험실엔 이미 쓸 수 있는 끝말잇기 없음
+  assert('이름 풀: null·undefined 없음', !ev("기본이름풀.some(n=>['null','undefined','noname','N/A'].includes(n))"));
+  assert('실험실: 끝말잇기 항목 없음', !ev("실험실_목록.some(it=>it.이름==='끝말잇기')"));
+
+  // 11-08: 연속 보호 — 하루 빠져도 보호 1개로 연속 유지, 보호가 없으면 1로
+  ev("사용자.마지막학습일=오늘날짜_로컬(-2); 사용자.연속학습일=5; 사용자.얼음=1; 사용자.얼음지급주=Math.floor((일수(오늘날짜_로컬(0))+3)/7); 학습일갱신();");
+  assert('연속 보호: 하루 빠져도 보호로 연속 6일', ev('사용자.연속학습일') === 6 && ev('사용자.얼음') === 0);
+  ev("사용자.마지막학습일=오늘날짜_로컬(-2); 사용자.연속학습일=5; 사용자.얼음=0; 학습일갱신();");
+  assert('연속 보호: 보호가 없으면 1일부터', ev('사용자.연속학습일') === 1);
+  ev("사용자.마지막학습일=오늘날짜_로컬(-1); 사용자.얼음=0; 사용자.얼음지급주=0; 학습일갱신();");
+  assert('연속 보호: 새 주에 처음 공부하면 1개 생긴다', ev('사용자.얼음') === 1);
+  // 11-08: 오늘 목표 — 새 문제마다 센다, 창조주 호칭은 「최고 관리자님」
+  ev("사용자.오늘날짜=''; 오늘목표_한문제(); 오늘목표_한문제();");
+  assert('오늘 목표: 새 날엔 0부터 센다', ev('사용자.오늘푼수') === 2);
+  assert('창조주 호칭은 최고 관리자님', ev('소칭호계산(70, true)') === '최고 관리자님');
+
+  // 11-08: 현황 「주신의 경지」 메시지 삭제(창조주 이스터에그 자체는 유지)
+  assert('주신의 경지 메시지 없음·창조주 흐름 유지', !doc.getElementById('jushinMsg') && typeof window.창조주달성 === 'function');
+
+  // 11-09: PC 홈 — 분류 묶음(라벨+카드)이 1024px+ 2묶음, 1440px+ 3묶음씩 나란히
+  const 묶음 = [...doc.querySelectorAll('#sh .hs > .mc-grp')];
+  assert('PC 홈: 분류 묶음 5개, 각각 라벨로 시작', 묶음.length === 5 && 묶음.every(g => g.firstElementChild.classList.contains('mc-glabel')), String(묶음.length));
+  assert('PC 홈: 좁은 화면은 묶음 없는 2열, 1024px+ 2묶음·1440px+ 3묶음 규칙',
+    css.includes('.mc-grp{display:contents}') && /min-width:1024px\)\{\s*\.hs\{grid-template-columns:repeat\(2,1fr\)[^}]*\}\s*\.mc-grp\{display:grid/.test(css) && /min-width:1440px\)\{\s*\.hs\{grid-template-columns:repeat\(3,1fr\)/.test(css));
+
+  // 11-09: 모달 Tab 가두기 — 끝에서 Tab이면 처음으로, 처음에서 Shift+Tab이면 끝으로
+  ev("showConfirmModal('ℹ️','확인','내용','예', ()=>{})");
+  await new Promise(r => setTimeout(r, 0));   // MutationObserver(열림 감지) 처리 대기
+  const 단추들 = [...doc.querySelectorAll('#infoBg button:not([disabled])')];
+  const 탭 = (shiftKey) => doc.activeElement.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true }));
+  단추들[단추들.length - 1].focus(); 탭(false);
+  assert('Tab 가두기: 끝에서 Tab → 처음', 단추들.length > 1 && doc.activeElement === 단추들[0], String(단추들.length));
+  탭(true);
+  assert('Tab 가두기: 처음에서 Shift+Tab → 끝', doc.activeElement === 단추들[단추들.length - 1]);
+  ev('closeInfoModal()');
+
+  // 11-09: 둘러보기 진도 — 이 기기에 병합 저장되고, 다시 둘러보기로 들어오면 복원된다
+  ev("localStorage.removeItem('plx_게스트진도'); 게스트로그인(); 사용자데이터_저장({레벨:7, 현재EXP:30, 이름:'손님진도'}); 사용자데이터_저장({총누적EXP:500});");
+  const 게스트진도 = () => JSON.parse(window.localStorage.getItem('plx_게스트진도') || 'null');
+  assert('둘러보기 진도: 부분 저장이 병합된다', 게스트진도()?.레벨 === 7 && 게스트진도()?.총누적EXP === 500, JSON.stringify(게스트진도()));
+  ev("curLv=1; 사용자.총누적EXP=0; 게스트로그인();");
+  assert('둘러보기 진도: 다시 들어오면 레벨·누적 EXP 복원', ev('curLv') >= 7 && ev('사용자.총누적EXP') >= 500);  // 복원 뒤 업적 정합화가 EXP를 더할 수 있다
+
+  // 로그인 사용자의 문서 로드 실패 — 서버에도, 게스트 진도에도 쓰지 않는다
+  ev(`window.__저장=[]; window.__문서='실패';
+    const 하위 = {get:()=>Promise.resolve({docs:[], empty:true, forEach(){}}), add:()=>Promise.resolve({id:'x'})};
+    fbDb = {collection:()=>({doc:()=>({
+      get:()=> window.__문서==='실패' ? Promise.reject(new Error('net')) : Promise.resolve(window.__문서 ? {exists:true, data:()=>window.__문서} : {exists:false}),
+      set:(d)=>{ window.__저장.push(d); return Promise.resolve(); },
+      collection:()=>하위 })})};
+    인증상태_변경({uid:'u2', email:''});`);
+  await new Promise(r => setTimeout(r, 20));
+  ev("사용자데이터_저장({레벨:99})");
+  assert('로드 실패: 게스트 진도에도 서버에도 안 쓴다', 게스트진도()?.레벨 === 7 && ev('window.__저장.length') === 0);
+
+  // 둘러보다 신규 계정으로 로그인 — 진도를 새 문서로 옮기고(이름은 입력값) 게스트 진도를 지운다
+  ev("window.__문서=null; 인증상태_변경({uid:'u3', email:'a@b.c'});");
+  await new Promise(r => setTimeout(r, 20));
+  ev("사용자.이름='새이름'");
+  const 이관전 = 게스트진도();
+  await ev('신규사용자_생성()');
+  const 새문서 = ev('window.__저장[0]');
+  assert('신규 계정: 둘러보기 진도 이관(이름은 입력값)', 새문서?.레벨 === 이관전.레벨 && 새문서?.총누적EXP === 이관전.총누적EXP && 새문서?.이름 === '새이름' && ev('curLv') === 이관전.레벨, JSON.stringify(새문서));
+  assert('신규 계정: 옮긴 뒤 게스트 진도 삭제', 게스트진도() === null);
+
+  // 기존 계정으로 로그인 — 서버 기록을 쓰고 게스트 진도는 버린다
+  ev("localStorage.setItem('plx_게스트진도', JSON.stringify({레벨:3})); window.__저장=[]; window.__문서={레벨:20, 현재EXP:0}; 인증상태_변경({uid:'u4', email:''});");
+  await new Promise(r => setTimeout(r, 20));
+  assert('기존 계정: 서버 기록 사용·게스트 진도 버림·덮어쓰기 없음', ev('curLv') === 20 && 게스트진도() === null && !ev('window.__저장').some(d => d.레벨 === 3));
+  ev('fbDb = null');
 
   process.exit(finish() > 0 ? 1 : 0);
 });

@@ -13,7 +13,7 @@ load((window) => {
 
   // 2) 미지원 브라우저 안내 (SpeechRecognition 미정의 상태)
   ev("delete window.SpeechRecognition; delete window.webkitSpeechRecognition; switchSpkMode('voice');");
-  assert('미지원 시 안내 문구 노출', /지원하지 않습니다/.test(doc.getElementById('spkVoiceStatus').textContent));
+  assert('미지원 시 안내 문구 노출', /지원하지 않아요/.test(doc.getElementById('spkVoiceStatus').textContent));
   assert('미지원 시 마이크 버튼 비활성', doc.getElementById('spkMicBtn').disabled === true);
 
   // 3) 지원 브라우저 시뮬레이션 — 가짜 SpeechRecognition 주입

@@ -62,7 +62,6 @@ function 세계만들기({ 게이트 = true, 온라인 = '정상', 모드 = 'SUR
   if(보조사전) vm.runInContext('추가사전 = ' + JSON.stringify(보조사전) + ';', ctx);
   const gs = ctx.새게임상태();
   gs.game_mode = 모드;
-  gs.persona = 'Polite';
   gs.game_state = 'PLAYING';
   // 클래식 스크립트의 const 선언(DICTIONARY 등)은 스크립트 렉시컬 스코프에 있어 컨텍스트 객체의
   // 속성이 되지 않는다(함수 선언은 됨). 값이 필요하면 컨텍스트 안에서 평가해 꺼낸다.
@@ -404,6 +403,21 @@ async function main(){
     const 목록 = await ctx.온라인후보_가져오기(gs);
     const 걸림 = Date.now() - 시작;
     확인('응답 없는 Worker여도 약 1초 뒤 풀로 진행', 목록.length === 0 && 걸림 >= 900 && 걸림 < 2500, 걸림 + 'ms');
+  }
+
+  /* ── 19. 탐욕 선택 표본은 고르게 뽑힌다 (2026-11-07 — sort(무작위 비교) 편향을 Fisher–Yates로) ── */
+  console.log('\n[19] 탐욕 선택 표본 균등');
+  {
+    const { ctx } = 세계만들기();
+    const gs = ctx.새게임상태(); gs.diff = '심연';
+    // 후보 80개(끝 글자가 모두 다름) — find_words 호출의 첫 인자(끝 글자)로 표본에 든 후보를 센다
+    const 후보들 = Array.from({ length: 80 }, (_, i) => '가' + String.fromCharCode(0xAC00 + i));
+    const 횟수 = new Map();
+    ctx.find_words = 글자 => { 횟수.set(글자, (횟수.get(글자) || 0) + 1); return ['임시']; };
+    const 반복 = 2000;
+    for(let r = 0; r < 반복; r++) ctx.탐욕_선택(gs, 후보들, [], []);
+    const 최대편차 = Math.max(...후보들.map(w => Math.abs((횟수.get(w[1]) || 0) / 반복 - 0.5)));
+    확인('후보마다 표본에 들 확률이 약 1/2(편차 0.08 미만)', 최대편차 < 0.08, '최대편차=' + 최대편차.toFixed(3));
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);

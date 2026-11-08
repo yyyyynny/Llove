@@ -5,7 +5,11 @@
 
 // 단어 검증 — 원본과 반환 형태([통과여부, 사유문자열])까지 동일하게 유지(호출부가 사유로 분기하는
 // 원본 관례를 그대로 살림: 'DARK_CONTRACT_VIOLATION' 매직 스트링, "한방 단어" 부분일치 등).
+// 입력 형태(2026-11-07) — 완성형 한글 2글자 이상(구는 공백으로 잇기). 자모('ㄱ')·한 글자('화')·
+// 붙임표/캐럿('학-교')이 단어로 통과해 즉시 승리·중복 우회가 됐다. 이 사유는 목숨을 깎지 않는다(단어_처리).
+const 형태_사유 = '완성된 한글 2글자 이상만 낼 수 있습니다.';
 function validate_word(word, gs){
+  if(word.length < 2 || !/^[가-힣]+( [가-힣]+)*$/.test(word)) return [false, 형태_사유];
   if(gs.game_mode === 'ARCADE' && gs.curse_dark_active){
     if(word.length !== 2) return [false, 'DARK_CONTRACT_VIOLATION'];
   }
@@ -158,9 +162,16 @@ function 탐욕_선택(gs, 후보들, used, 사전){
   const min_len = 족쇄_최소길이(gs.stage);
   // 후보 수 계산은 후보마다 사전을 훑으므로, 후보가 아주 많으면 비용이 커진다.
   // 무작위로 40개만 표본으로 뽑아 그 안에서 고른다(체감 차이는 유지되고 비용은 상한이 걸린다).
-  const 표본 = 후보들.length > 40
-    ? [...후보들].sort(() => Math.random() - 0.5).slice(0, 40)
-    : 후보들;
+  // 앞 40칸만 Fisher–Yates로 섞는다(sort(무작위 비교)는 원래 자리 쪽으로 치우친다).
+  let 표본 = 후보들;
+  if(후보들.length > 40){
+    표본 = [...후보들];
+    for(let i = 0; i < 40; i++){
+      const j = i + Math.floor(Math.random() * (표본.length - i));
+      [표본[i], 표본[j]] = [표본[j], 표본[i]];
+    }
+    표본.length = 40;
+  }
 
   // "남는 수가 N개 있다"는 언제나 확실하다(실제로 세어 봤으니까). 불확실한 건 **0일 때**뿐이다 —
   // 풀에 없을 뿐 우리말샘에는 있을 수 있기 때문. 그래서 0인데 아직 그 글자를 물어본 적이 없으면
@@ -336,26 +347,18 @@ async function 한방_확정인가(word, gs){
   return true;                                                             // 5
 }
 
-// 칭호 체크 — 서바이벌 턴 마일스톤(95/100/200/30배수) + 아케이드(Phase 4) 자리 보존
+// 턴 마일스톤 알림 — 서바이벌 95/100/200/30배수. 원본은 여기서 칭호(각성자·초월자 등)를 붙였지만
+// 2026-11-08 관리자님 결정으로 칭호를 없애고 「n턴 넘겼어요」만 알린다(이름은 원본 대조용으로 유지).
 function check_title(gs){
-  if(gs.god_mode_active){ gs.user_title = '최고 관리자님'; return; }
-  if(gs.game_mode === 'SURVIVAL'){
-    if(gs.turn === 95 && ['초월','심연'].includes(gs.diff)){
-      gs.user_title = is_arrogant(gs) ? '각성자' : '숙련자님';
-      로그_추가(대사(gs, 'check_title_4'));
-    } else if(gs.turn === 100 && ['안온','격동'].includes(gs.diff)){
-      gs.user_title = is_arrogant(gs) ? '각성자' : '숙련자님';
-      로그_추가(대사(gs, 'check_title_3'));
-    } else if(gs.turn === 200 && ['초월','심연'].includes(gs.diff)){
-      gs.user_title = is_arrogant(gs) ? '초월자' : '마스터님';
-      로그_추가(대사(gs, 'check_title_2'));
-    } else if(gs.turn > 0 && gs.turn % 30 === 0 && ![60,90,95,100,150,200].includes(gs.turn)){
-      로그_추가(대사(gs, 'check_title_1', [gs.turn]));
-    }
-  } else if(gs.game_mode === 'ARCADE'){
-    if(gs.stage >= 14 && !['탑의지배자','탑의주인님'].includes(gs.user_title)){
-      gs.user_title = is_arrogant(gs) ? '탑의지배자' : '탑의주인님';
-    }
+  if(gs.god_mode_active || gs.game_mode !== 'SURVIVAL') return;
+  if(gs.turn === 95 && ['초월','심연'].includes(gs.diff)){
+    로그_추가(대사(gs, 'check_title_4'));
+  } else if(gs.turn === 100 && ['안온','격동'].includes(gs.diff)){
+    로그_추가(대사(gs, 'check_title_3'));
+  } else if(gs.turn === 200 && ['초월','심연'].includes(gs.diff)){
+    로그_추가(대사(gs, 'check_title_2'));
+  } else if(gs.turn > 0 && gs.turn % 30 === 0 && ![60,90,95,100,150,200].includes(gs.turn)){
+    로그_추가(대사(gs, 'check_title_1', [gs.turn]));
   }
 }
 
@@ -399,10 +402,10 @@ function user_defeat(gs){
 
   if(gs.hearts === 0){
     if(gs.game_mode === 'SURVIVAL'){
-      로그_추가(대사(gs, 'user_defeat_패배', {칭호: title(gs)}));
+      로그_추가(대사(gs, 'user_defeat_패배'));
       if(gs.turn > gs.best) gs.best = gs.turn;
     } else {
-      로그_추가(대사(gs, 'user_defeat_한계', {층: gs.stage, 칭호: title(gs)}));
+      로그_추가(대사(gs, 'user_defeat_한계', {층: gs.stage}));
       if(gs.stage > gs.best) gs.best = gs.stage;
     }
     return 'game_over';
@@ -442,12 +445,12 @@ function arcade_floor_up(gs, ai_defeated){
 
   if(cleared % 2 === 0){
     gs.hints += 1;
-    로그_추가(`💡 [${cleared}층 보상] 힌트 +1 획득. 남은 힌트: ${표시무한(gs.hints)}`, 'ok');
+    로그_추가(`${cleared}층 보상으로 힌트 1개를 받았어요. 힌트 ${표시무한(gs.hints)}개.`, 'ok');
   }
 
   const target = get_stage_target(gs);
-  if(gs.curse_time_floors > 0) 로그_추가(`⛓ [시간의 계약] 이번 층 목표 턴 +30% (${target}턴)`, 'sys');
-  if(gs.curse_life_floors > 0) 로그_추가(`⛓ [생명의 계약] 두음법칙 OFF 유지 (${gs.curse_life_floors}층 남음)`, 'sys');
+  if(gs.curse_time_floors > 0) 로그_추가(`시간의 계약: 이번 층 목표가 ${target}턴으로 늘었어요.`, 'sys');
+  if(gs.curse_life_floors > 0) 로그_추가(`생명의 계약: 두음법칙 없이 ${gs.curse_life_floors}층 더 가요.`, 'sys');
 
   if(ai_defeated){
     로그_추가(대사(gs, 'arcade_floor_up_3'), 'ok');

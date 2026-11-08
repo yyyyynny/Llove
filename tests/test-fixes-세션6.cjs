@@ -17,8 +17,8 @@ load((window) => {
 
   /* ── #3 창조주 중복 문구 = 지정 문구 ── */
   ev("사용자.창조주달성=true; document.getElementById('askInp').value=창조주키; sendAsk();");
-  assert('#3: 「알현」 제목', doc.getElementById('infoTitle').textContent === '알현');
-  assert('#3: 지정 문구 본문', doc.getElementById('infoDesc').innerHTML.includes('시스템의 창조자이자 최고 권력자이신, 드높으신 폐하를 알현합니다'));
+  assert('#3: 재진입 안내 제목(11-08 「알현」→「창조주」)', doc.getElementById('infoTitle').textContent === '창조주');
+  assert('#3: 재진입 안내 본문(11-08 문구 정리)', doc.getElementById('infoDesc').innerHTML.includes('이미 창조주예요'));
   ev('closeInfoModal(); 사용자.창조주달성=false;');
 
   /* ── #4 채팅 기록 — 세션 단위·상한·아카이브·뷰어 ── */
@@ -105,7 +105,7 @@ load((window) => {
   ev("프로필_적용선택('assets/프로필/테스트.jpg');");
   assert('#11: 이미지 값이면 <img> 렌더', !!doc.querySelector('#homeAvatar img'));
   ev("사용자.개발자모드=false; curLv=1; 이미지_업로드시도('프로필');");
-  assert('#11: 미달자 업로드 → 권한 부족 경고', doc.getElementById('infoDesc').innerHTML.includes('권한 부족'));
+  assert('#11: 미달자 업로드 → Lv.16 안내', doc.getElementById('infoDesc').innerHTML.includes('Lv.16부터'));
   ev("closeInfoModal(); 프로필_적용선택('⚔️');");
 
   /* ── #12 모달 드래그-아웃 방지 ── */

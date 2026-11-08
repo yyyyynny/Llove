@@ -11,6 +11,7 @@ let 현재퀴즈풀 = null;            // 「다음 문제」 재출제용 풀
 let 현재퀴즈화면 = '';            // sq1 / sq3
 let 현재아재풀 = null;            // 아재개그 재출제용 풀
 let AI대체안내함 = false;          // AI→DB 대체 토스트는 세션당 1회만
+let 예문형부족안내함 = false;      // sq1 예문형 → 4지선다 폴백 토스트도 세션당 1회만
 let 현재퀴즈문제 = null;          // 복습 대기열 연동용 — 현재 표시 중인 퀴즈 문항
 let 현재플래시카드 = null;        // 복습 대기열 연동용 — 현재 표시 중인 카드
 let 퀴즈세션 = {수:0, 오답:0};    // 퍼펙트 세션 판정 — 5문제 단위, 전부 정답 시 +150 (KNOWLEDGE 12·14)
@@ -24,9 +25,9 @@ const 모드_마스터리맵 = {
   '문장 배열':'문해력학습수'  // 세션10-m: 문해력 2탄(D안) — 지문 독해와 카운터 공유
 };
 
-// β9: 출제 확률 결정 — DB 40% / AI 60%, 「AI 문제만」 ON 시 항상 AI (KNOWLEDGE 4)
+// β9: 출제 확률 결정 — DB 40% / AI 60%, 「AI 즉시 생성 안 함」 ON 시 항상 DB (KNOWLEDGE 4)
 function 출제방식_결정(){
-  if(aiOnly) return 'ai';
+  if(AI생성끔) return 'db';
   return Math.random() < 0.4 ? 'db' : 'ai';
 }
 
@@ -38,6 +39,24 @@ function 셔플(arr){
     [arr[k], arr[j]] = [arr[j], arr[k]];
   }
   return arr;
+}
+
+/* 풀에서 한 문항 뽑기 — 모든 모드 공용(2026-11-07 전면 조사: 매번 풀 전체에서 뽑아 첫날부터 반복,
+   설정 「최근 출제 제외」는 저장만 되고 안 쓰이던 문제). 최근에 낸 문항(키=내용 앞부분)을 제외하고 뽑는다.
+   제외 개수: 설정값(30~120), 「사용 안함」이어도 풀의 절반은 연속 반복을 피한다. 풀보다 많으면 풀-1개.
+   // ponytail: 키가 내용 앞 80자 — 앞부분이 같은 문항끼리는 하나로 취급. 문항 id가 생기면 id로 */
+let 최근출제 = [];
+try{ 최근출제 = JSON.parse(localStorage.getItem('plx_최근출제') || '[]'); }catch(e){ /* 저장소 차단 무시 */ }
+function 출제_뽑기(풀){
+  const 키 = q => JSON.stringify(q).slice(0, 80);
+  const 제외수 = Math.min(풀.length - 1, histFilter === 'off' ? Math.floor(풀.length / 2) : Number(histFilter) || 0);
+  const 최근 = new Set(제외수 > 0 ? 최근출제.slice(-제외수) : []);
+  const 후보 = 풀.filter(q => !최근.has(키(q)));
+  const q = (후보.length ? 후보 : 풀)[Math.floor(Math.random() * (후보.length || 풀.length))];
+  최근출제.push(키(q));
+  if(최근출제.length > 200) 최근출제 = 최근출제.slice(-200);
+  try{ localStorage.setItem('plx_최근출제', JSON.stringify(최근출제)); }catch(e){ /* 저장소 차단 무시 */ }
+  return q;
 }
 
 /* 학습 화면 상단 진행 표시(Q11 — 2026-09-26 관리자님 결정: "이번 학습에서 푼 문제 수").
@@ -53,6 +72,7 @@ function 배지_방식표시(배지id, 방식){
 }
 function 학습진행_다음(screenId){
   학습진행수++;
+  오늘목표_한문제();
   const 화면 = document.getElementById(screenId);
   const 글 = 화면?.querySelector('.qct'), 바 = 화면?.querySelector('.qpfill');
   if(글) 글.textContent = 학습진행수 + '문제째';
@@ -64,7 +84,7 @@ function 학습진행_다음(screenId){
 function 출제_분기(category){
   const 방식 = 출제방식_결정();
   if(방식 === 'ai' && !GROK_활성화 && !AI대체안내함){
-    showToastMsg('AI 출제는 준비 중이라 기본 문제로 냅니다');
+    showToastMsg('AI 출제는 준비 중이라 기본 문제로 낼게요');
     AI대체안내함 = true;
   }
   // DB 풀: data/ JSON 문항 (미적재·로드 실패면 빈 배열 — 렌더 함수들이 빈 배열을 안전하게 처리)
@@ -85,31 +105,35 @@ function 다음문제(){
 /* 선택형 문제 렌더 — sq1(상식·어원/세계사·신화, 4지선다)·sq3(맞춤법, 4지선다) 공용.
    두 화면은 태그 색·AI 출제 표시·힌트 줄·예문형 지원만 다르다. */
 function renderQuiz(screenId, data){
-  if(!data || !data.length){ showToastMsg('문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
+  if(!data || !data.length){ showToastMsg('문제를 불러오는 중이에요. 잠시 뒤 다시 해 주세요.'); return; }
   학습진행_다음(screenId);
   const sq1 = screenId === 'sq1', 방식 = 학습설정[screenId];
   배지_방식표시(screenId + 'Mode', 방식);
   const body=document.getElementById(screenId+'Body');
   // 빌드1: 풀에서 랜덤 출제 + 「다음 문제」 실동작
   현재퀴즈풀=data; 현재퀴즈화면=screenId;
-  const q=data[Math.floor(Math.random()*data.length)];
+  const q=출제_뽑기(data);
   현재퀴즈문제 = q;  // 복습 대기열 연동용
   현재문제_reasoning_note = q.reasoning_note || '';  // β3: DB 문제는 JSON에 직접 작성 (없으면 Grok fallback 예정)
   // 세션7 항목7: 플래시카드/역방향 분기 (문항 부족 시 기본 선다형 폴백)
   if(방식 === '플래시카드'){ 퀴즈_플래시렌더(screenId, q); return; }
   if(방식 === '역방향'){
     if(data.length >= 2){ 퀴즈_역방향렌더(screenId, q, data); return; }
-    showToastMsg(`문항이 부족해 ${sq1 ? '4지선다로' : '선다형으로'} 출제합니다`);
+    showToastMsg(`문항이 부족해 ${sq1 ? '4지선다로' : '선다형으로'} 낼게요`);
   }
   // 세션9: 「예문형」(sq1 전용) — 단어 단답 대신 예문 맥락으로 판단 (유의어 변별과 동일 엔진 재사용)
+  // 2026-11-08: 표본이 3건 미만이면 주제와 무관한 두 문항만 번갈아 나와 → 4지선다로 폴백(안내는 한 번)
   if(sq1 && 방식 === '예문형'){
     const 예문풀 = (현재학습모드 === '세계사·신화') ? 예문형_세계사신화 : 예문형_상식어원;
-    예문형_렌더('sq1Body', 예문풀[Math.floor(Math.random()*예문풀.length)], ()=>renderQuiz('sq1', data));
-    return;
+    if(예문풀.length >= 3){
+      예문형_렌더('sq1Body', 예문풀[Math.floor(Math.random()*예문풀.length)], ()=>renderQuiz('sq1', data));
+      return;
+    }
+    if(!예문형부족안내함){ showToastMsg('예문형 문항이 아직 부족해 4지선다로 낼게요'); 예문형부족안내함 = true; }
   }
   // 세션5 버그7: 「직접입력」 — 선택지 대신 답 타이핑 + 정답 비교 / 그 밖엔 선택지(1~N번)
   const 답영역 = 방식 === '직접입력' ? 직접입력_HTML(screenId)
-    : `<div class="aopts">${q.opts.map((o,i)=>`<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`).join('')}</div>`;
+    : `<div class="aopts">${셔플([...q.opts]).map((o,i)=>`<div class="aopt" onclick="selAns(this,${o.c})"><div class="onum">${i+1}</div><div class="otxt">${o.t}</div></div>`).join('')}</div>`;
   body.innerHTML=`
     <div class="qcard">
       <div class="qcat">${sq1 && q.ai?'<span class="tag-ai">🤖 AI 출제</span>':''}<span class="tag ${sq1 ? 'tb' : 'tg'}">${q.cat}</span></div>
@@ -172,14 +196,29 @@ function 채점_기록(정답여부, 단어, 뜻, 모드){
   세션결과_기록(정답여부);
 }
 
-/* ━━━ 세션5 버그7: 「직접입력」 공용 구현 (sq1 상식·세계사 / sq3 맞춤법) ━━━ */
-// 입력칸 + 제출 버튼 HTML (renderQuiz의 직접입력 분기에서 사용)
-function 직접입력_HTML(screenId){
+/* 4지선다 공용(아재개그·복습) — 보기에 data-정답 표지를 달고, 고르면 맞고 틀림을 표시한다.
+   선다_표시는 이미 골랐으면 false(문제당 1회). sq1·sq2·sq3의 selAns는 결과 상자까지 그려 따로 둔다 */
+function 선다_HTML(보기들, 선택함수){
+  return `<div class="aopts">${보기들.map((b,i)=>`<div class="aopt" data-정답="${b.정?1:0}" onclick="${선택함수}(this,${b.정})"><div class="onum">${i+1}</div><div class="otxt">${문자열_이스케이프(b.t)}</div></div>`).join('')}</div>`;
+}
+function 선다_표시(el, 정답){
+  if(el.parentElement.querySelector('.correct,.wrong')) return false;
+  el.classList.add(정답 ? 'correct' : 'wrong');
+  el.parentElement.querySelectorAll('.aopt').forEach(o=>{
+    if(!정답 && o.dataset.정답==='1') o.classList.add('correct');
+    o.classList.add('disabled');
+  });
+  return true;
+}
+
+/* ━━━ 세션5 버그7: 「직접입력」 공용 구현 (sq1 상식·세계사 / sq3 맞춤법 / 아재개그 / 복습) ━━━ */
+// 입력칸 + 제출 버튼 HTML. 아재개그('dad')·복습('rv')은 자기 제출 함수를 넘긴다
+function 직접입력_HTML(screenId, 제출 = `직접입력_제출('${screenId}')`){
   return `
     <div style="display:flex;gap:8px;margin:4px 0 10px">
       <input class="nm-inp" id="${screenId}DirectInp" placeholder="정답을 직접 입력하세요" style="flex:1;margin:0"
-             onkeydown="if(event.key==='Enter')직접입력_제출('${screenId}')">
-      <button class="btn-acc" style="padding:11px 18px" id="${screenId}DirectBtn" onclick="직접입력_제출('${screenId}')">제출</button>
+             onkeydown="if(event.key==='Enter')${제출}">
+      <button class="btn-acc" style="padding:11px 18px" id="${screenId}DirectBtn" onclick="${제출}">제출</button>
     </div>
     <div id="${screenId}DirectResult"></div>`;
 }

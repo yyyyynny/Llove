@@ -7,13 +7,21 @@
 <!-- 저장소 재편(2026-07-19): 최상위 = 관문 index.html + Llove/(학습 세계) + wchain/(잇는 · 이세계).
      기존 주소(도메인 루트)로 접속한 사용자를 Llove/ 로 즉시 이동시킨다 — 북마크·재방문 경험 보존.
      JS(location.replace)가 기본이고, JS 꺼진 환경은 meta refresh, 그마저 안 되면 링크 폴백. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="Llove/assets/icon.svg" type="image/svg+xml">
+<meta name="description" content="한국어 어휘력과 표현력을 게임처럼 키우는 학습 앱">
+<meta property="og:title" content="Llove">
+<meta property="og:description" content="한국어 어휘력과 표현력을 게임처럼 키우는 학습 앱">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yyyyynny.github.io/Llove/">
+<meta property="og:image" content="https://yyyyynny.github.io/Llove/Llove/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<!-- meta refresh는 쿼리·해시를 못 넘긴다 — JS가 꺼진 환경만의 폴백 -->
 <meta http-equiv="refresh" content="0; url=Llove/">
-<script>location.replace('Llove/');</script>
+<script>location.replace('Llove/' + location.search + location.hash);</script>
 <meta name="theme-color" content="#0e1016">
 <style>:root{color-scheme:dark}html{background:#0e1016}body{margin:0;min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#0e1016;color:#8b93a8;font-family:'Noto Sans KR',sans-serif;font-size:14px}a{color:#9db0d8}</style>
 </head>
 <body>
-<p>이동 중입니다… <a href="Llove/">바로 가기</a></p>
+<p>이동 중이에요… <a href="Llove/">바로 가기</a></p>
 </body>
 </html>

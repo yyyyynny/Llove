@@ -21,6 +21,15 @@ const firebaseConfig = {
 
 let fbAuth = null, fbDb = null;
 let 현재UID = null;
+// 11-09: 「로그인 없이 둘러보기」 중인가 — 이때만 진도를 이 기기(plx_게스트진도)에 저장한다.
+// 로그인 사용자의 문서 로드 실패(현재UID=null)와 구분하려고 따로 둔다(그 경우엔 아무 데도 저장 안 함)
+let 둘러보기중 = false;
+function 게스트진도_읽기(){
+  try{ return JSON.parse(localStorage.getItem('plx_게스트진도')) || {}; }catch(e){ return {}; }
+}
+function 게스트진도_삭제(){
+  try{ localStorage.removeItem('plx_게스트진도'); }catch(e){ /* 저장소 차단 무시 */ }
+}
 
 function Firebase초기화(){
   try{
@@ -42,7 +51,7 @@ function Firebase초기화(){
 function 구글로그인(){
   if(!fbAuth){
     console.error('[Firebase] auth 미초기화 — 로그인 불가');
-    showToastMsg('로그인 모듈이 초기화되지 않았습니다');
+    showToastMsg('로그인을 준비하지 못했어요. 새로고침해 주세요');
     return;
   }
   const provider = new firebase.auth.GoogleAuthProvider();
@@ -52,19 +61,19 @@ function 구글로그인(){
     let 안내;
     switch(e && e.code){
       case 'auth/unauthorized-domain':
-        안내 = '이 도메인이 Firebase 승인 목록에 없어 로그인 창이 닫혔습니다. (콘솔 → Authentication → 승인된 도메인에 현재 주소 추가 필요)';
+        안내 = '이 주소에서는 아직 로그인할 수 없어요. 잠시 뒤 다시 해 주세요.';
         break;
       case 'auth/popup-blocked':
-        안내 = '브라우저가 팝업을 차단했습니다. 팝업 허용 후 다시 시도해 주세요.';
+        안내 = '브라우저가 팝업을 막았어요. 팝업을 허용한 뒤 다시 해 주세요.';
         break;
       case 'auth/popup-closed-by-user':
-        안내 = '로그인 창이 닫혔습니다. 다시 시도해 주세요.';
+        안내 = '로그인 창이 닫혔어요. 다시 해 주세요.';
         break;
       case 'auth/operation-not-allowed':
-        안내 = 'Firebase 콘솔에서 Google 로그인 제공업체가 비활성 상태입니다.';
+        안내 = '지금은 구글 로그인을 쓸 수 없어요. 잠시 뒤 다시 해 주세요.';
         break;
       default:
-        안내 = '구글 로그인 실패: ' + ((e && e.code) || (e && e.message) || '알 수 없는 오류');
+        안내 = '구글 로그인에 실패했어요. 잠시 뒤 다시 해 주세요.'  // 오류 코드는 위 console.error에;
     }
     showToastMsg(안내);
   });
@@ -72,16 +81,23 @@ function 구글로그인(){
 
 // 로그아웃 (설정 화면)
 function 로그아웃(){
-  showConfirmModal('🚪','로그아웃','정말 로그아웃 하시겠습니까?','로그아웃', 로그아웃실행);
+  if(!현재UID){ 구글로그인(); return; }   // 둘러보기(비로그인) 중엔 같은 행이 「로그인」
+  showConfirmModal('🚪','로그아웃','로그아웃할까요?','로그아웃', 로그아웃실행);
 }
 function 로그아웃실행(){
   if(!fbAuth){ console.error('[Firebase] auth 미초기화'); return; }
-  fbAuth.signOut().then(()=>{
-    현재UID = null;
-    goNav('sl', null);
-    showToastMsg('로그아웃되었습니다');
-  }).catch(e=> console.error('[Firebase] 로그아웃 실패', e));
+  // 진행 중 대화를 이 계정 기록으로 마감하고 서버 쓰기가 끝난 뒤 로그아웃한다 — 남겨 두면 다음 계정 기록으로 들어간다.
+  // 로그아웃 뒤 정리·새로고침은 다른 탭 로그아웃과 같은 길(인증상태_변경의 user 없음)에서 한다.
+  채팅세션_마감('로그아웃');
+  // ponytail: 한계 — 오프라인이면 3초 뒤 못 보낸 쓰기를 버리고 나간다. 필요하면 오프라인 안내 추가
+  Promise.race([fbDb ? fbDb.waitForPendingWrites().catch(()=>{}) : Promise.resolve(), new Promise(r=>setTimeout(r, 3000))])
+    .then(()=> fbAuth.signOut())
+    .catch(e=> console.error('[Firebase] 로그아웃 실패', e));
 }
+
+// 로그아웃 때 지울 계정 개인 키 — 테마·글꼴·화면 배율 같은 기기 설정 키는 남긴다
+const 로그아웃_삭제키 = ['plx_진행중대화', 'plx_채팅기록', 'plx_AI지침', 'plx_게스트보관함', 'plx_음성엔드포인트'];
+let 로그인했었음 = false;  // 첫 접속의 「비로그인」 통지와 실제 로그아웃을 구분
 
 // 인증 상태 변경 — 로그인 성공 시 Firestore 사용자 문서 로드(기존) 또는 이름 입력(신규)
 // 온보딩(#onboarding)은 position:fixed·z-index:9999로 기본 표시라, 걷어내지 않으면 그 아래 화면이
@@ -92,7 +108,18 @@ function 온보딩_걷기(){
 }
 
 function 인증상태_변경(user){
-  if(!user){ 현재UID = null; return; }
+  if(!user){
+    현재UID = null;
+    // 로그아웃(이 탭·다른 탭 모두) — 메모리 상태(복습 대기열·프로필 이미지 등)가 다음 계정에 넘어가지 않게
+    // 개인 키를 지우고 새로 시작한다. 새로 열면 비로그인 첫 화면(로그인)이 뜬다.
+    if(로그인했었음){
+      로그아웃_삭제키.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){ /* 저장소 차단 무시 */ } });
+      location.reload();
+    }
+    return;
+  }
+  로그인했었음 = true;
+  둘러보기중 = false;   // 둘러보다 로그인했으면 이제부터는 계정에 저장
   현재UID = user.uid;
   사용자.이메일 = user.email || '';
 
@@ -113,6 +140,7 @@ function 인증상태_변경(user){
   }
   fbDb.collection('users').doc(user.uid).get().then(snap=>{
     if(snap.exists){
+      게스트진도_삭제();   // 기존 계정은 서버 기록이 원본 — 둘러보기 진도는 버린다(덮어쓰기 금지)
       사용자데이터_적용(snap.data(), user);
       온보딩_걷기();     // 자동 로그인 시 온보딩 건너뜀
       goNav('sh', null);
@@ -127,9 +155,12 @@ function 인증상태_변경(user){
     // 영영 덮인 채 남았다(wchain에서 게임 데이터 삭제 후 돌아올 때 관리자님이 겪으신 증상).
     // 인증은 이미 끝났으므로 온보딩은 걷고 홈으로 보낸 뒤, 데이터를 못 읽었다는 사실만 알린다.
     console.error('[Firestore] 사용자 문서 로드 실패', e);
+    // 못 읽은 채로 저장하면 기본값(Lv.1 등)이 merge로 서버 기록을 덮는다 — 이번 접속은 저장을 막는다
+    // (모든 저장 경로가 지나는 사용자데이터_저장 등이 현재UID 없으면 생략하는 기존 관문 재사용)
+    현재UID = null;
     온보딩_걷기();
     goNav('sh', null);
-    showToastMsg('저장된 데이터를 불러오지 못했습니다. 네트워크를 확인해 주세요.');
+    showToastMsg('저장된 기록을 불러오지 못했어요. 이번 학습은 저장되지 않으니 새로고침해 주세요.');
   });
 }
 
@@ -163,12 +194,13 @@ function 사용자데이터_적용(data, authUser){
     const t=document.getElementById('histFilterTxt');
     if(t) t.textContent = (histFilter==='off') ? '사용 안함' : `최근 ${histFilter}개`;
   }
-  if(typeof data.AI문제만 === 'boolean'){
-    aiOnly = data.AI문제만;
-    const tg=document.getElementById('aiOnlyToggle'); if(tg) tg.checked=aiOnly;
-    const tx=document.getElementById('aiOnlyTxt');   if(tx) tx.textContent=aiOnly?'켜짐':'꺼짐';
+  if(typeof data.AI생성끔 === 'boolean'){
+    AI생성끔 = data.AI생성끔;
+    const tg=document.getElementById('aiOnlyToggle'); if(tg) tg.checked=AI생성끔;
+    const tx=document.getElementById('aiOnlyTxt');   if(tx) tx.textContent=AI생성끔?'켜짐':'꺼짐';
   }
   if(data.복습상한) 사용자.복습대기열상한 = data.복습상한;
+  { const g=document.getElementById('goalTxt'); if(g) g.textContent=`하루 ${사용자.오늘목표||10}문제`; }
   // 빌드1: 토큰 락 만료 검사 + 토큰 UI·개발자 네비 갱신
   토큰락_체크();
   토큰표시_갱신();
@@ -185,6 +217,9 @@ function 신규사용자_생성(){
   }
   const authUser = fbAuth && fbAuth.currentUser;
   사용자.이메일 = (authUser && authUser.email) || '';
+  // 11-09: 둘러보기 진도를 새 계정으로 옮긴다(이름은 방금 입력한 값이 우선)
+  const 게스트진도 = 게스트진도_읽기();
+  delete 게스트진도.이름;
   const 신규데이터 = {
     // 기본 정보
     이름: 사용자.이름,
@@ -194,9 +229,9 @@ function 신규사용자_생성(){
     // 성장·마스터리·토큰 (KNOWLEDGE 13·32) — 상태.js 학습기록_기본값
     ...학습기록_기본값,
     // 설정
-    테마: 'antique', 폰트: 'theme',
+    테마: 'paper', 폰트: 'theme',   // 11-08: 기본 테마 고서(어두운 금색) → 페이퍼(밝은)
     // 화면배율은 신규 사용자도 저장하지 않음(미저장 = 기본 100%)
-    히스토리필터: 'off', AI문제만: false, 복습상한: 50, 알림설정: true,
+    히스토리필터: 'off', AI생성끔: false, 복습상한: 50, 알림설정: true,
     음성엔드포인트: '',   // 추가기능: 음성 생성 서버 주소(창조주가 입력) — 기본 빈 값
     // 업적
     업적진행도: {}, 창조주달성: false, 개발자모드: false, 선택칭호: '',
@@ -207,18 +242,25 @@ function 신규사용자_생성(){
     // 질문하기 (통계)
     오늘질문횟수: 0, 질문날짜: '',
     // '잇는' 포탈 — '잇' 퍼즐 해금 여부(이세계 진입). 세계 이름 미정 → 임시 필드명
-    잇는개방: false
+    잇는개방: false,
+    // 11-08: 오늘 목표·연속 보호
+    오늘목표: 10, 오늘날짜: '', 오늘푼수: 0, 얼음: 0, 얼음지급주: 0,
+    ...게스트진도
   };
   Object.assign(사용자, 신규데이터);
-  curLv = 1; curExp = 0; maxExp = expForLevel(1);
+  curLv = 신규데이터.레벨; curExp = 신규데이터.현재EXP; maxExp = expForLevel(curLv);
   return fbDb.collection('users').doc(현재UID).set(신규데이터, {merge:true})
+    .then(게스트진도_삭제)
     .catch(e=> console.error('[Firestore] 신규 사용자 저장 실패', e));
 }
 
 // 사용자 루트 문서 부분 동기화 저장 (변경된 필드만 merge)
 function 사용자데이터_저장(부분){
   if(!fbDb || !현재UID){
-    console.error('[Firestore] 미초기화 — 저장 생략');
+    // 둘러보기 중이면 이 기기에 병합 저장(얕은 병합 — 맵 필드는 늘 통째로 저장하므로 충분)
+    if(둘러보기중){
+      try{ localStorage.setItem('plx_게스트진도', JSON.stringify({...게스트진도_읽기(), ...부분})); }catch(e){ /* 저장소 차단 무시 */ }
+    } else console.error('[Firestore] 미초기화 — 저장 생략');
     return Promise.resolve();
   }
   return fbDb.collection('users').doc(현재UID).set(부분, {merge:true})

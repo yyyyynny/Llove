@@ -88,7 +88,7 @@ function applyNmChange(){
       if(el) el.textContent=v;
     });
     사용자데이터_저장({이름: v}); // Firestore 동기화
-    showToastMsg('이름이 변경됐습니다');
+    showToastMsg('이름을 바꿨어요');
   }
   closeNmModal();
 }

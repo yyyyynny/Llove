@@ -110,7 +110,7 @@ function 음성재생(소스){
     return audio;
   }catch(e){
     console.error('[음성] 재생 오류', e);
-    showToastMsg('음성 재생을 시작할 수 없습니다');
+    showToastMsg('음성을 재생할 수 없어요');
     return null;
   }
 }
@@ -139,20 +139,20 @@ function 갱신_음성설정_UI(){
 //    "준비 중인 기능입니다"라고 없는 기능처럼 안내하고 있었다. 설명도 음성(봉인 중)을 앞세워
 //    실제와 달랐다 — 실제 내용(사전 검증 배틀)으로 고친다.
 const 실험실_목록 = [
-  {아이콘:'🔗', 이름:'끝말잇기', 설명:'우리말샘 사전으로 판정하는 AI 단어 배틀', 상태:'가능', 열기:'잇는_포탈탭'},
   {아이콘:'🎙', 이름:'음성 생성', 설명:'단어를 캐릭터 목소리로 듣기', 상태:'실험', 열기:'음성설정_탭'},
   {아이콘:'🤖', 이름:'AI 실시간 출제', 설명:'AI가 매번 새로운 문제를 만들어 냄', 상태:'예정'},
   {아이콘:'🧠', 이름:'사고전개 답변', 설명:'AI의 풀이 과정을 함께 보기', 상태:'예정'}
 ];
 function 실험실_열기(){
-  const 목록 = 실험실_목록.map((it,i)=>
+  // 11-08 관리자님 결정: 실험실은 준비 중인 기능을 미리 보는 곳 — 이미 쓸 수 있는 것(끝말잇기)은 빼고 '예정'만, '실험'은 개발자 모드에만
+  const 목록 = 실험실_목록.map((it,i)=>[it,i]).filter(([it])=>it.상태==='예정' || (it.상태==='실험' && 사용자.개발자모드)).map(([it,i])=>
     `<div style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--bdr);cursor:pointer;text-align:left" onclick="실험실_항목탭(${i})">
       <span style="font-size:20px;display:flex;color:var(--acc)">${아이콘_HTML(it.아이콘)}</span>
       <div class="grow"><div style="font-size:13px;font-weight:700;color:var(--txt)">${it.이름} <span style="font-size:10px;color:${it.상태==='가능'?'var(--ok)':it.상태==='실험'?'var(--warn)':'var(--txt2)'};border:1px solid var(--bdr);border-radius:5px;padding:1px 5px">${it.상태}</span></div>
       <div style="font-size:11px;color:var(--txt2);margin-top:2px">${it.설명}</div></div>
       <span style="color:var(--txtm)">›</span>
     </div>`).join('');
-  showInfoModal('🧪','실험실', `<div style="text-align:left;font-size:11px;color:var(--txt2);margin-bottom:6px">앞으로 추가될 기능들을 미리 소개합니다.</div>${목록}`);
+  showInfoModal('🧪','실험실', `<div style="text-align:left;font-size:11px;color:var(--txt2);margin-bottom:6px">준비 중인 기능이에요.</div>${목록}`);
 }
 function 실험실_항목탭(i){
   const it = 실험실_목록[i];
@@ -166,14 +166,14 @@ function 실험실_항목탭(i){
     window[it.열기]();
     return;
   }
-  // 티저형 문구 (최고 관리자님 확정) — 예고 + 해금 조건 안내
+  // 2026-11-08: 못 여는 항목은 「준비 중이에요」 한 문장만(해금 조건·개발자 모드 안내 제거)
   showInfoModal(it.아이콘, it.이름,
-    `준비 중인 기능입니다.<br>업데이트를 조금만 기다려 주세요!<br><br><span style="font-size:11px;color:var(--txt2)">개발자 모드에서는 먼저 체험할 수 있습니다.</span><br><br><button class="btn-g" style="width:100%;padding:9px" onclick="실험실_열기()">← 실험실 목록으로</button>`);
+    `준비 중이에요.<br><br><button class="btn-g" style="width:100%;padding:9px" onclick="실험실_열기()">← 실험실 목록으로</button>`);
 }
 
 function 음성설정_탭(){
   if(!사용자.창조주달성){
-    showInfoModal('🔒','음성 생성','[창조주] 업적을 달성하면 사용할 수 있습니다.');
+    showInfoModal('🔒','음성 생성','준비 중이에요.');
     return;
   }
   음성생성패널_열기();
@@ -199,7 +199,7 @@ function 음성엔드포인트_저장(){
   사용자.음성엔드포인트 = 값;
   사용자데이터_저장({음성엔드포인트: 값});  // Firestore 동기화
   // 세션7 항목4: 저장/지우기 안내 분리 — 빈 값 저장은 "삭제"가 아니라 별도 안내
-  showToastMsg(값 ? '✓ 서버 주소 저장됨' : 'ℹ️ 입력된 주소가 없습니다');
+  showToastMsg(값 ? '서버 주소를 저장했어요' : '입력한 주소가 없어요');
 }
 function 음성엔드포인트_지우기(){
   const inp = document.getElementById('음성엔드포인트입력');
@@ -208,7 +208,7 @@ function 음성엔드포인트_지우기(){
   try{ localStorage.setItem('plx_음성엔드포인트', ''); }catch(e){ /* 무시 */ }
   사용자.음성엔드포인트 = '';
   사용자데이터_저장({음성엔드포인트: ''});
-  showToastMsg('서버 주소 삭제됨');  // 세션7 항목4: 지우기 전용 문구
+  showToastMsg('서버 주소를 지웠어요');  // 세션7 항목4: 지우기 전용 문구
 }
 // 테스트 벤치: 텍스트 → 생성 → 재생 (봉인 중엔 안내만)
 async function 음성_테스트생성(){
@@ -216,7 +216,7 @@ async function 음성_테스트생성(){
   const 텍스트 = (ta ? ta.value : '').trim();
   if(!텍스트){ showToastMsg('테스트 문장을 입력해 주세요'); return; }
   if(!음성생성_활성화){
-    showToastMsg('음성 생성은 서버 준비 후 활성화됩니다');
+    showToastMsg('음성 생성은 준비 중이에요');
     return;
   }
   if(!음성엔드포인트){ showToastMsg('서버 주소를 먼저 저장해 주세요'); return; }

@@ -34,7 +34,7 @@ load((window) => {
     const s = ev("현재채팅세션");
     const aiMsg = s && s.메시지.find(m=>m.역할==='AI');
     assert('#2: 봉인 AI 응답 저장됨', !!aiMsg);
-    assert('#2: 요약 라벨 아닌 안내 전문 저장', !!aiMsg && aiMsg.내용.includes('AI 답변은 연동 준비 중') && !aiMsg.내용.includes('<br>'));
+    assert('#2: 요약 라벨 아닌 안내 전문 저장', !!aiMsg && aiMsg.내용.includes('AI 답변은 준비 중') && !aiMsg.내용.includes('<br>'));
 
     /* ── 항목3: 채팅 내역 큰 팝업(wide) ── */
     // 세션10-e 항목2: 560px 고정 → clamp(340px, 72vw, 680px) 반응형으로 갱신됨
@@ -67,7 +67,7 @@ load((window) => {
     assert('#5: 클램프 — tx 상한 0', ev("이미지크롭_상태.tx") <= 0);
 
     /* ── 항목6·7: 카드 재편(교정 맨 위)·색 그룹·라벨·랜덤 포함 ── */
-    const 카드들 = Array.from(doc.querySelectorAll('.hs .mc')).map(c=>(c.querySelector('.mc-name')||{}).textContent);
+    const 카드들 = Array.from(doc.querySelectorAll('.hs .mc:not(#continueCard)')).map(c=>(c.querySelector('.mc-name')||{}).textContent);
     assert('#6: 맞춤법이 학습 모드 첫 카드', 카드들[0] === '맞춤법');
     assert('#6: 구어 교정이 둘째 카드', 카드들[1] === '구어 교정');
     // 10-03: 그룹 색은 테두리 대신 왼쪽 막대(::before)·아이콘 색으로 표시

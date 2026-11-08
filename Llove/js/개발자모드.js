@@ -30,8 +30,8 @@ function 개발자패널_열기(){
   const o = 개발자오버레이;
   showInfoModal('🔓','개발자 모드',
     `<div style="text-align:left;font-size:12px;line-height:2.1">` +
-    `<b>오버레이 레이어</b> — 조작값은 화면에만 반영되고 실DB는 계속 실시간 기록됩니다.<br>` +
-    `봉인 시 오버레이와 <b>[창조주] 업적</b>이 초기화됩니다 (학습 기록·EXP는 유지).<br>` +
+    `<b>오버레이 레이어</b> — 조작값은 화면에만 반영되고 실제 기록은 계속 저장돼요.<br>` +
+    `봉인 시 오버레이와 <b>[창조주] 업적</b>이 초기화돼요 (학습 기록·EXP는 유지).<br>` +
     `<hr style="border-color:var(--bdr)">` +
     `레벨 (현재 표시 Lv.${표시레벨()} / 실제 Lv.${curLv}) — 확장 Lv.120까지<br>` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_레벨조정(-10)">-10</button> ` +
@@ -40,12 +40,12 @@ function 개발자패널_열기(){
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_레벨조정(10)">+10</button><br>` +
     `EXP (표시 ${표시EXP()}) <button class="btn-g" style="padding:5px 11px" onclick="개발자_EXP추가(500)">+500</button> ` +
     `마스터리 증분 (+${o.마스터리증분||0}) <button class="btn-g" style="padding:5px 11px" onclick="개발자_마스터리증분(10)">+10</button><br>` +
-    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_업적풀돌토글()">업적 풀돌 강제: ${o.업적풀돌?'ON':'OFF'}</button> ` +
+    `<button class="btn-g" style="padding:5px 11px" onclick="개발자_업적풀돌토글()">업적 전부 달성(표시): ${o.업적풀돌?'ON':'OFF'}</button> ` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_상한해제토글()">상한 해제: ${o.상한해제?'ON':'OFF'}</button><br>` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_오버레이초기화()">오버레이 값 전체 초기화</button> ` +
     `<button class="btn-g" style="padding:5px 11px" onclick="개발자_네비토글()">상단 바로가기: ${사용자.개발자네비표시?'ON':'OFF'}</button><br>` +
     `<span style="color:var(--txt2);font-size:11px">※ 토큰은 개발자 모드 중 자동 무제한 (KNOWLEDGE 14)<br>` +
-    `※ 오버레이 값은 새로고침 시 사라집니다(표시 전용 — 실제 달성 기록은 유지)</span>` +
+    `※ 오버레이 값은 새로고침하면 사라져요(표시 전용 — 실제 달성 기록은 유지)</span>` +
     `</div>`);
   const btnArea = document.getElementById('infoBtns');
   if(btnArea){
@@ -87,7 +87,7 @@ function 개발자_상한해제토글(){
 function 개발자_오버레이초기화(){
   개발자오버레이 = {};
   개발자_화면갱신();
-  showToastMsg('오버레이 값이 초기화되었습니다 (실DB 무관)');
+  showToastMsg('오버레이 값을 초기화했어요 (실제 기록은 그대로)');
 }
 
 // 봉인 실행 — 오버레이 레이어만 제거. 실DB(레벨·EXP·기록)는 쌓인 그대로 유지 (KNOWLEDGE 14)
@@ -104,7 +104,8 @@ function 개발자모드_봉인_실행(){
       .then(스냅=>스냅.docs.forEach(d=>d.ref.delete().catch(()=>{})))
       .catch(()=>{ /* 오프라인 등 — 다음 봉인 시 재시도 */ });
   }
-  사용자데이터_저장({개발자모드:false, 창조주달성:false, 업적진행도:사용자.업적진행도||{}});
+  // 병합 저장은 빠진 키를 지우지 않는다 — 서버의 창조주 진행도는 삭제 표지로 명시해서 지운다
+  사용자데이터_저장({개발자모드:false, 창조주달성:false, 업적진행도:{창조주: firebase.firestore.FieldValue.delete()}});
   갱신_개발자네비_표시();
 
   // 갱신
@@ -116,7 +117,7 @@ function 개발자모드_봉인_실행(){
   closeInfoModal();
   setTimeout(()=>{
     showInfoModal('🔒','봉인 완료',
-      `「최상위 성위 ${userName}이(가) 봉인됩니다.」<br><br>` +
+      `「최상위 성위 ${문자열_이스케이프(userName)}이(가) 봉인됩니다.」<br><br>` +
       `오버레이 레이어와 [창조주] 업적이 초기화되었습니다.<br>` +
       `정당하게 얻은 학습 기록·EXP는 그대로 유지됩니다.<br><br>` +
       `재활성화하려면 [창조주] 달성 흐름을 처음부터 진행해야 합니다.`

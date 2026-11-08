@@ -5,84 +5,72 @@
    업적 데이터
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const ACH_DATA=[
-  // 성장
-  {sec:'⭐ 성장', items:[
-    {key:'first', name:'[첫걸음]', icon:'🌱', cat:'성장 계열 · 단발',
-     desc:'최초 학습 기록 생성 시 자동 획득',
-     stage:'unl', progress:'+50 EXP', single:true},
-    {key:'growth', name:'[성장의 기록]', icon:'📈', cat:'성장 계열 · 풀돌',
-     desc:'레벨 달성 시 자동 발동',
-     stage:-1, current:'Lv.1 / Lv.5'},
-    {key:'steady', name:'[꾸준한 발걸음]', icon:'🔥', cat:'성장 계열 · 풀돌',
-     desc:'연속 학습일 기준 자동 발동',
-     stage:1, current:'3일 / 5일'}
+  // 성장 — stage·current는 업적_표시동기화()가 실계산으로 채운다(초기 가짜 진행치 없음)
+  {sec:'성장', items:[
+    {key:'first', name:'첫걸음', icon:'flag', cat:'성장 · 한 번',
+     desc:'처음 공부하면 받아요', progress:'+50 EXP', single:true},
+    {key:'growth', name:'성장의 기록', icon:'chart', cat:'성장 · 7단계',
+     desc:'레벨이 오를수록 단계가 올라가요'},
+    {key:'steady', name:'꾸준한 발걸음', icon:'flame', cat:'성장 · 7단계',
+     desc:'며칠 연속으로 공부할수록 단계가 올라가요. 단계마다 받는 EXP가 조금씩 늘어요'}
   ]},
   // 숙련
-  {sec:'🎯 숙련', items:[
-    {key:'perfect', name:'[완벽주의자]', icon:'🏅', cat:'숙련 계열 · 풀돌',
-     desc:'세션 내 퀴즈 전부 정답 시 카운터 +1',
-     stage:0, current:'1회 / 3회'},
-    {key:'speech', name:'[말의 품격]', icon:'🎙️', cat:'숙련 계열 · 풀돌',
-     desc:'구어 교정 완료 시 카운터 +1',
-     stage:-1, current:'0회 / 3회'}
+  {sec:'숙련', items:[
+    {key:'perfect', name:'완벽주의자', icon:'star', cat:'숙련 · 7단계',
+     desc:'다섯 문제를 이어서 모두 맞히면 1회로 세요'},
+    {key:'speech', name:'말의 품격', icon:'mic', cat:'숙련 · 7단계',
+     desc:'구어 교정 예문을 하나 마칠 때마다 1회로 세요'}
   ]},
   // 탐구
-  {sec:'📚 탐구', items:[
-    {key:'know', name:'[상식의 탑]', icon:'🌍', cat:'탐구 계열 · 풀돌',
-     desc:'상식·어원 모드 풀 때마다 +1',
-     stage:1, current:'8회 / 14회'},
-    {key:'root', name:'[언어의 뿌리]', icon:'📜', cat:'탐구 계열 · 풀돌',
-     desc:'고사성어·속담·한자·우리말 합산',
-     stage:2, current:'18회 / 22회'},
-    {key:'history', name:'[역사 탐험가]', icon:'🏛️', cat:'탐구 계열 · 풀돌',
-     desc:'세계사·신화 모드 풀 때마다 +1',
-     stage:-1, current:'0회 / 4회'},
-    {key:'spell', name:'[맞춤법 수호자]', icon:'✏️', cat:'탐구 계열 · 풀돌',
-     desc:'맞춤법 모드 풀 때마다 +1',
-     stage:0, current:'4회 / 7회'},
-    {key:'dad', name:'[아재력]', icon:'😂', cat:'탐구 계열 · 풀돌',
-     desc:'아재개그 모드 풀 때마다 +1',
-     stage:-1, current:'1회 / 4회'},
-    {key:'vocab', name:'[어휘 대사전]', icon:'📖', cat:'탐구 계열 · 풀돌',
-     desc:'총누적어휘수 카운터 기준 (졸업 후 감소 없음)',
-     stage:1, current:'142개 / 145개'}
+  {sec:'탐구', items:[
+    {key:'know', name:'상식 쌓기', icon:'globe', cat:'탐구 · 7단계',
+     desc:'상식·어원 문제를 풀 때마다 1회로 세요'},
+    {key:'root', name:'언어의 뿌리', icon:'scroll', cat:'탐구 · 7단계',
+     desc:'고사성어·속담·한자·우리말 문제를 풀 때마다 1회로 세요'},
+    {key:'history', name:'역사와 신화', icon:'temple', cat:'탐구 · 7단계',
+     desc:'세계사·신화 문제를 풀 때마다 1회로 세요'},
+    {key:'spell', name:'맞춤법 다지기', icon:'pencil', cat:'탐구 · 7단계',
+     desc:'맞춤법 문제를 풀 때마다 1회로 세요'},
+    {key:'dad', name:'아재력', icon:'smile', cat:'탐구 · 7단계',
+     desc:'아재개그 문제를 풀 때마다 1회로 세요'},
+    {key:'vocab', name:'어휘 모으기', icon:'book', cat:'탐구 · 7단계',
+     desc:'지금까지 익힌 단어 수예요. 복습을 마쳐도 줄지 않아요'}
   ]},
   // 관리
-  {sec:'🗂 관리', items:[
-    {key:'clean', name:'[환경미화원]', icon:'🧹', cat:'관리 계열 · 단발',
-     desc:'휴지통 전체 비우기 1회',
-     stage:'unl', progress:'+80 EXP', single:true}
+  {sec:'관리', items:[
+    {key:'clean', name:'휴지통 정리', icon:'trash', cat:'관리 · 한 번',
+     desc:'휴지통을 한 번 모두 비우면 받아요', progress:'+80 EXP', single:true}
   ]},
-  // 히든
-  {sec:'🔮 히든', items:[
-    {key:'reb', name:'[반박의 화신]', icon:'⚡', cat:'히든 계열 · 풀돌',
-     desc:'I̷̢͓͆̑͐s̵̛͍͊̈́̃s̵̢͊̈́̀͝ů̷̳͇̦̈́͘e̵̛̞͆̌̑͐̀̕ 반박 성공 시 카운터 +1', zalgo:true,
-     stage:-1, current:'0회 / 1회'},
-    {key:'night', name:'[밤의 사색가]', icon:'🌙', cat:'히든 계열 · 풀돌',
-     desc:'Ň̴̡̛̑͐̕i̷̢͓͆̌̑͐̀̕g̸̢̛͊̈́͘͝ḣ̴̡̊̓̈́̑͘t̵̢̛̅̈́̃̌̀͝ 새벽 00:00~04:00 학습 시 +1', zalgo:true,
-     stage:-1, current:'0회 / 1회'},
-    {key:'asker', name:'[질문쟁이]', icon:'💬', cat:'히든 계열 · 풀돌',
-     desc:'Ǎ̴̡̛̑͐̕s̸̢̛͊̈́͘͝k̵̛̞̅̈́̃̌͝ 질문하기 기능 사용 시 +1', zalgo:true,
-     stage:1, current:'4회 / 7회'},
-    {key:'abyss', name:'[심연을 들여다보는 자]', icon:'👁️', cat:'히든 계열 · 단발',
-     desc:'V̷̢͓̌̑͐̀̕o̷̢͊̈́̀͝ȋ̷̢͐̀̕ď̴̡̛̑͐̀̕ 자아·존재·너는 누구냐 키워드 감지 시', zalgo:true,
-     stage:'lck', progress:'+150 EXP', single:true},
-    {key:'will', name:'[불굴의 의지]', icon:'💪', cat:'히든 계열 · 단발',
-     desc:'F̴̡̛̌̑͐̀̕ȃ̷̢͐̀̕i̸̢̛͊̈́̀͘͝l̵̛̞̅̈́̃̌͝ 동일 세션 오답→오답→정답', zalgo:true,
-     stage:'lck', progress:'+120 EXP', single:true},
-    {key:'deep', name:'[지식의 탐닉자]', icon:'🦉', cat:'히든 계열 · 단발',
-     desc:'D̷̢͓̑͐̀̕e̷̢͊̈́̀͘ȇ̷̢͐̀̕p̴̡̛̌̑͐̀̕ 세션 시작부터 30분 이상 연속', zalgo:true,
-     stage:'lck', progress:'+150 EXP', single:true},
-    {key:'border', name:'[경계를 넘어서]', icon:'🚧', cat:'히든 계열 · 단발',
-     desc:'B̴̡̛̌̑͐̀̕ȏ̷̢͐̀̕ư̸̢͊̈́̀͘͝n̵̛̞̅̈́̃̌͝d̷̢̑͐̀̕ 제한 분야 요청 2회 감지 시', zalgo:true,
-     stage:'lck', progress:'+120 EXP', single:true}
+  // 숨은 업적 — 달성 전엔 이름 대신 「???」와 hint만 보인다(업적_공개). ai:true는 AI 기능이 켜져야 보인다(업적_보임)
+  {sec:'숨은 업적', items:[
+    {key:'reb', name:'이의 있음!', icon:'bolt', cat:'숨은 업적 · 7단계', ai:true,
+     hint:'틀렸다고 생각하는 문제가 있다면…',
+     desc:'이의 제기가 받아들여질 때마다 1회로 세요'},
+    {key:'night', name:'새벽 공부', icon:'moon', cat:'숨은 업적 · 7단계',
+     hint:'모두가 잠든 시간에 공부해 보세요',
+     desc:'자정부터 새벽 4시 사이에 공부한 날을 하루 1회로 세요'},
+    {key:'asker', name:'질문 습관', icon:'chat', cat:'숨은 업적 · 7단계',
+     hint:'궁금한 건 물어보세요',
+     desc:'질문하기를 쓸 때마다 1회로 세요'},
+    {key:'abyss', name:'너는 누구니?', icon:'eye', cat:'숨은 업적 · 한 번',
+     hint:'질문하기에 조금 엉뚱한 걸 물어보세요',
+     desc:'질문하기에서 「너는 누구야」처럼 정체를 물으면 받아요', progress:'+150 EXP', single:true},
+    {key:'will', name:'세 번째에 정답', icon:'review', cat:'숨은 업적 · 한 번',
+     hint:'틀려도 포기하지 마세요',
+     desc:'두 번 연달아 틀린 뒤 바로 다음 문제를 맞히면 받아요', progress:'+120 EXP', single:true},
+    {key:'deep', name:'집중력', icon:'clock', cat:'숨은 업적 · 한 번',
+     hint:'한자리에서 오래 공부해 보세요',
+     desc:'문제 사이를 5분 넘게 쉬지 않고 30분 이상 이어서 공부하면 받아요', progress:'+150 EXP', single:true},
+    {key:'border', name:'선을 넘은 질문', icon:'warn', cat:'숨은 업적 · 한 번', ai:true,
+     hint:'물어볼 수 없는 것도 있어요',
+     desc:'질문하기에서 답할 수 없는 분야를 두 번 물으면 받아요', progress:'+120 EXP', single:true}
   ]},
   // 최상위
-  {sec:'👑 최상위', items:[
-    {key:'creator', name:'[창조주]', icon:'👑', cat:'최상위',
-     desc:'', zalgo:false, blur:true,
+  {sec:'최상위', items:[
+    {key:'creator', name:'[창조주]', icon:'crown', cat:'최상위',
+     desc:'', blur:true,
      blurText:`【부富와 권력權力. 승리勝利와 영광榮光.】\n【전지全知와 전능全能.】\n【실패하지 않을 것이요, 고꾸라지지 않을 것이다. 필멸자의 승리는 영원하지 않으나 네 것만은 영원하리라.】\n【원한다면 언제든 세계를 너의 발밑에.】\n【바란다면 죽음 또한 감히 그대를 삼키지 못할지니.】`,
-     stage:'lck', progress:'+2000 EXP · 칭호: 폐하', single:true, mystery:true}
+     stage:'lck', progress:'+2000 EXP · 칭호: 최고 관리자님', single:true, mystery:true}
   ]}
 ];
 
@@ -109,7 +97,7 @@ const 업적_정의 = {
   growth:  {임계:[5,10,20,30,40,55,70],       값:()=>curLv,                  단위:'Lv.', 앞단위:true},
   steady:  {임계:[3,5,7,10,15,21,29],         값:()=>사용자.연속학습일||0,    단위:'일'},
   perfect: {임계:[1,3,6,9,13,17,22],          값:()=>사용자.퍼펙트세션수||0,  단위:'회'},
-  speech:  {임계:[3,6,9,13,17,23,29],         값:()=>사용자.구어교정횟수||0,  단위:'회'},
+  speech:  {임계:[3,6,9,13,17,23,27],         값:()=>사용자.구어교정횟수||0,  단위:'회'},  // 마지막 단계 = 구어 예문 수(27) — 예문당 1회만 세므로 넘으면 달성 불가
   know:    {임계:[4,7,14,29,43,65,87],        값:()=>사용자.상식어원학습수||0, 단위:'회'},
   root:    {임계:[4,7,22,36,58,80,100],       값:()=>사용자.언어의뿌리학습수||0, 단위:'회'},
   history: {임계:[4,7,14,29,43,65,87],        값:()=>사용자.세계사신화학습수||0, 단위:'회'},
@@ -132,7 +120,13 @@ function 업적_단계계산(key){  // 표시용 stage: -1(미획득) ~ 6(풀돌
   const v = d.값();
   return d.임계.findLastIndex(임계 => v >= 임계);
 }
-// 임계·현재값 표기 — 'Lv.5'처럼 단위가 앞에 붙는 업적(growth)과 '5회'처럼 뒤에 붙는 업적
+// AI 기능에 기대는 업적(ai:true)은 AI가 봉인된 동안 목록·개수에서 숨긴다 — 달성할 길이 없어서
+const 업적_보임 = a => !a.ai || GROK_활성화;
+// 숨은 업적(hint 있음)은 달성 전엔 이름·설명을 가리고 힌트만 보인다
+const 업적_공개 = a => !a.hint || a.stage === 'unl' || a.stage >= 0;
+// 업적 아이콘 — icon은 index.html 아이콘 묶음(#i-이름)의 이름. 숨은 업적은 공개 전엔 「?」
+const 업적아이콘_HTML = (a, 공개 = true) => 공개 ? `<svg class="ic" aria-hidden="true"><use href="#i-${a.icon}"/></svg>` : '?';
+// 임계·현재값 표기 —'Lv.5'처럼 단위가 앞에 붙는 업적(growth)과 '5회'처럼 뒤에 붙는 업적
 const 업적_값표기 = (d, n) => d.앞단위 ? (d.단위 + n) : (n + d.단위);
 
 // 단발 업적 보상 — 팝업·업적로그·EXP (진행도 기록과 Firestore 저장 시점은 호출부가 정한다)
@@ -163,10 +157,10 @@ function 업적_팝업표시(key, 단계, exp){
           ppStage=document.getElementById('ppStage'), ppDesc=document.getElementById('ppDesc'),
           ppStars=document.getElementById('ppStars'), ppExp=document.getElementById('ppExp');
     if(!ppIcon) return;
-    ppIcon.textContent = 항목.icon;
+    ppIcon.innerHTML = 업적아이콘_HTML(항목);
     ppTitle.textContent = 항목.name;
-    ppStage.textContent = (단계==null) ? '달성!' : stageLabel(단계) + ' 획득!';
-    ppDesc.textContent = 항목.zalgo ? '히든 업적' : (항목.cat || '');
+    ppStage.textContent = (단계==null) ? '달성!' : (단계 >= 6 ? '모든 단계' : stageLabel(단계)) + ' 달성!';
+    ppDesc.textContent = 항목.desc || 항목.cat || '';
     ppStars.innerHTML = (단계==null)
       ? '<span class="ach-star-filled" style="font-size:20px">☾</span>'
       : buildStars(단계, false);
@@ -255,7 +249,7 @@ function 업적_표시동기화(){
     a.stage = 업적_단계계산(a.key);
     const v = d.값();
     const 다음 = d.임계[Math.min(a.stage+1, 6)];
-    a.current = (a.stage >= 6) ? `${업적_값표기(d, v)} (풀돌)` : `${업적_값표기(d, v)} / ${업적_값표기(d, 다음)}`;
+    a.current = (a.stage >= 6) ? `${업적_값표기(d, v)} (완료)` : `${업적_값표기(d, v)} / ${업적_값표기(d, 다음)}`;
   }));
 }
 
@@ -294,7 +288,7 @@ function renderAchievements(){
   const body=document.getElementById('achBody');
   // 빌드1: 상단 요약(획득/진행 중/미달성) 실계산 — 3/5/12 하드코딩 제거
   let 획득=0, 진행=0, 미달성=0;
-  ACH_DATA.forEach(sec=> sec.items.forEach(a=>{
+  ACH_DATA.forEach(sec=> sec.items.filter(업적_보임).forEach(a=>{
     if(a.single){ (a.stage==='unl') ? 획득++ : 미달성++; }
     else if(a.stage >= 6) 획득++;
     else if(a.stage >= 0) 진행++;
@@ -306,21 +300,22 @@ function renderAchievements(){
   let html='';
   ACH_DATA.forEach(sec=>{
     html+=`<div class="ach-sec"><div class="ach-sec-t">${sec.sec}</div><div class="ach-list">`;
-    sec.items.forEach((a,idx)=>{
+    sec.items.filter(업적_보임).forEach((a,idx)=>{
+      const 공개 = 업적_공개(a);
       const unlClass = (a.stage==='unl' || (typeof a.stage==='number' && a.stage>=0)) ? 'unl' : '';
-      const desc = a.zalgo ? `<div class="ach-ds zalgo">${a.desc}</div>` : `<div class="ach-ds">${a.desc}</div>`;
+      const desc = `<div class="ach-ds">${공개 ? a.desc : a.hint}</div>`;
       let stars='';
       if(!a.single){
         // v3.6: buildStars에 single 명시적 전달 (false)
         stars=`<div class="ach-stars">${buildStars(a.stage, false)}<span style="color:var(--txt2);font-size:10px;font-weight:400;margin-left:8px">${stageLabel(a.stage)} · ${a.current}</span></div>`;
       } else {
         // v3.6: 단발 업적은 single=true 명시
-        stars=`<div class="ach-stars">${buildStars(a.stage, true)}<span style="color:var(--txt2);font-size:10px;font-weight:400;margin-left:8px">${a.stage==='unl'?'획득':'미획득'} · ${a.progress}</span></div>`;
+        stars=`<div class="ach-stars">${buildStars(a.stage, true)}<span style="color:var(--txt2);font-size:10px;font-weight:400;margin-left:8px">${stageLabel(a.stage==='unl' ? 'unl' : 'lck')}</span></div>`;
       }
       html+=`<div class="ach-item ${unlClass}" style="animation-delay:${0.03*idx}s" onclick="openAchDetail('${a.key}')">
-        <div class="ach-icon">${a.icon}</div>
+        <div class="ach-icon">${업적아이콘_HTML(a, 공개)}</div>
         <div class="grow">
-          <div class="ach-nm">${a.name}</div>
+          <div class="ach-nm">${공개 ? a.name : '???'}</div>
           ${desc}
           ${stars}
         </div>
@@ -331,13 +326,12 @@ function renderAchievements(){
   body.innerHTML=html;
 }
 
+// 단계명 — 7단계 업적은 1단계~6단계·완료, 한 번 업적은 달성/미달성
 function stageLabel(stage){
-  if(stage==='unl')return '획득';
-  if(stage==='lck')return '미획득';
-  if(stage===-1)return '미획득';
-  if(stage===0)return '명함';
-  if(stage===6)return '풀돌';
-  return stage+'돌';
+  if(stage==='unl')return '달성';
+  if(stage==='lck' || stage===-1)return '미달성';
+  if(stage===6)return '완료';
+  return (stage+1)+'단계';
 }
 
 /* 업적 상세 */
@@ -345,8 +339,9 @@ function openAchDetail(key){
   const target = ACH_DATA.flatMap(s=>s.items).find(a=>a.key===key);
   if(!target) return;
 
-  document.getElementById('adIcon').textContent=target.icon;
-  document.getElementById('adName').textContent=target.name;
+  const 공개 = 업적_공개(target);
+  document.getElementById('adIcon').innerHTML=업적아이콘_HTML(target, 공개);
+  document.getElementById('adName').textContent=공개 ? target.name : '???';
   document.getElementById('adCat').textContent=target.cat;
 
   const descEl=document.getElementById('adDesc');
@@ -354,21 +349,19 @@ function openAchDetail(key){
   // 창조주 블러 처리
   if(target.blur && target.blurText){
     descEl.innerHTML=`<div id="blurBox" style="filter:blur(6px);cursor:pointer;white-space:pre-line;font-size:12px;line-height:1.8;color:var(--accl);user-select:none" onclick="revealBlur()">${target.blurText}</div><div id="blurHint" style="font-size:10px;color:var(--txtm);margin-top:8px;text-align:center">탭하면 공개됩니다</div>`;
-    descEl.classList.remove('zalgo');
   } else if(target.key==='creator' && target.stage==='unl'){
     // 달성 후에는 블러 없이 보이며 복사 가능
     descEl.innerHTML=`<div style="white-space:pre-line;font-size:12px;line-height:1.8;color:var(--accl);user-select:text;-webkit-user-select:text;padding:10px;background:var(--bg);border-radius:8px">${target.blurText||''}</div><button style="width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid var(--bdr);color:var(--txt2);border-radius:7px;font-family:var(--fn);font-size:11px;cursor:pointer" onclick="복사_창조주키()">키 문장 복사</button>`;
-    descEl.classList.remove('zalgo');
   } else {
-    descEl.innerHTML=target.desc;
-    descEl.classList.toggle('zalgo', !!target.zalgo);
+    descEl.textContent=공개 ? target.desc : target.hint;
   }
 
   const prog=document.getElementById('adProgress');
   if(target.single){
     prog.innerHTML=`
       <div class="ach-d-stars">${buildStars(target.stage, true)}</div>
-      <div style="text-align:center;color:var(--accl);font-size:18px;font-weight:900;padding:10px 0">${target.progress}</div>
+      <div style="text-align:center;color:var(--accl);font-size:18px;font-weight:900;padding:10px 0 2px">${stageLabel(target.stage==='unl' ? 'unl' : 'lck')}</div>
+      <div style="text-align:center;color:var(--txt2);font-size:12px">보상 ${target.progress}</div>
     `;
   } else {
     let html=`<div class="ach-d-stars">${buildStars(target.stage, false)}</div>`;
@@ -376,7 +369,7 @@ function openAchDetail(key){
     // 조건표는 업적_정의 임계에서 만든다(종전엔 ACH_DATA에 rows로 한 벌 더 적혀 있어 함께 고쳐야 했다)
     const d = 업적_정의[target.key];
     d.임계.map((n,i)=>[stageLabel(i), 업적_값표기(d, n)]).forEach((r,i)=>{
-      // v3.6 수정: 미획득(-1) 상태에서 명함 행(i=0)이 '현재'로 표시되던 버그 제거
+      // v3.6 수정: 미달성(-1) 상태에서 1단계 행(i=0)이 '현재'로 표시되던 버그 제거
       // 이제 stage가 명시적으로 0~6 범위의 숫자일 때만 해당 단계 행이 강조됨
       const isCurrent = (typeof target.stage==='number' && target.stage>=0 && target.stage===i);
       html+=`<tr class="${isCurrent?'ach-d-current':''}"><td>${r[0]}</td><td>${r[1]}${isCurrent?' ◀ 현재':''}</td></tr>`;
@@ -460,8 +453,8 @@ function renderTree(){
     {key:'학습 기록', sec:true, branch:'├──'},
     {key:'총 학습일', val:`${사용자.총학습일}일`, branch:'│   ├──'},
     {key:'누적 어휘', val:`${m('총누적어휘수')}개`, branch:'│   ├──', highlight:true},
-    {key:'퍼펙트 세션', val:`${m('퍼펙트세션수')}회`, branch:'│   ├──'},
-    {key:'이의 제기', val:`${m('이의제기횟수')}회`, branch:'│   └──'},
+    {key:'5문제 모두 정답', val:`${m('퍼펙트세션수')}회`, branch: GROK_활성화 ? '│   ├──' : '│   └──'},
+    ...(GROK_활성화 ? [{key:'이의 제기', val:`${m('이의제기횟수')}회`, branch:'│   └──'}] : []),
     {key:'모드별 현황', sec:true, branch:'├──'},
     {key:'상식·어원', val:`${m('상식어원학습수')}회`, branch:'│   ├──'},
     {key:'고사성어·속담·한자·우리말', val:`${m('언어의뿌리학습수')}회`, branch:'│   ├──', highlight:true},

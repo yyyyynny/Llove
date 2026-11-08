@@ -5,7 +5,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      // 루트 문서 필드 수 상한 — 앱이 실제로 쓰는 필드는 70개 안팎(2026-11-07 grep). 임의 필드 무한 추가 차단.
+      // 문서 크기는 Firestore 자체 상한(1MiB)이 막는다. 서브컬렉션은 기존대로 둔다(보수적).
+      allow create, update: if request.auth != null && request.auth.uid == userId
+                            && request.resource.data.size() <= 200;
       match /{document=**} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }

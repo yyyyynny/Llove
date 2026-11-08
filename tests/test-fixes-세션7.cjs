@@ -19,7 +19,7 @@ load((window) => {
   /* ── #3 전역 +10% (대표값) ── */
   assert('#3: .q-question 15→17px(글자배율 calc 기준값)', /\.q-question\{font-size:calc\(17px\*var\(--글자배율\)\)/.test(css));
   // 10-03: 글자 크기 7단(최소 11px)으로 정리하며 10px → 11px
-  assert('#3: 제외 목록 유지(.nv-btn 11px)', /\.nv-btn\{[^}]*font-size:11px/.test(css));
+  assert('#3: 하단 네비 글자 12px(11-08 대비 개선으로 11→12px)', /\.nv-btn\{[^}]*font-size:12px/.test(css));
 
   /* ── #1 봉인 → 창조주 업적 완전 리셋 ── */
   ev("사용자.창조주달성=true; 사용자.개발자모드=true; 사용자.업적진행도=사용자.업적진행도||{}; 사용자.업적진행도['창조주']=1;");
@@ -33,7 +33,7 @@ load((window) => {
   /* ── #2 실험실 ── */
   assert('#2: 위험 구역에 실험실 행', Array.from(doc.querySelectorAll('.set-row')).some(r=>(r.getAttribute('onclick')||'').includes('실험실_열기')));
   ev('실험실_열기();');
-  assert('#2: 목록 팝업(끝말잇기 노출)', doc.getElementById('infoDesc').innerHTML.includes('끝말잇기'));
+  assert('#2: 목록 팝업(11-08: 준비 중 기능만, 끝말잇기 없음)', doc.getElementById('infoDesc').innerHTML.includes('준비 중') && !doc.getElementById('infoDesc').innerHTML.includes('끝말잇기'));
   // 2026-08-22: 종전엔 index 0(끝말잇기)을 탭해 티저를 확인했는데, 끝말잇기가 실제로
   // 플레이 가능해지면서 상태가 '가능'으로 바뀌어 곧바로 열리게 됐다(티저가 안 뜬다).
   // 이 검사의 취지는 "아직 못 쓰는 항목은 티저로 막힌다"이므로, 인덱스를 박지 말고
@@ -41,7 +41,7 @@ load((window) => {
   const 예정idx = ev("실험실_목록.findIndex(x => x.상태 === '예정')");
   assert('#2: 아직 예정인 항목이 남아 있다(티저 검사 전제)', 예정idx >= 0);
   ev(`사용자.개발자모드=false; 실험실_항목탭(${예정idx});`);
-  assert('#2: 티저 문구(기다려 주세요+개발자 힌트)', doc.getElementById('infoDesc').innerHTML.includes('기다려 주세요') && doc.getElementById('infoDesc').innerHTML.includes('개발자 모드'));
+  assert('#2: 준비 중 한 문장(2026-11-08 문구 톤)', doc.getElementById('infoDesc').innerHTML.includes('준비 중이에요'));
   ev('closeInfoModal();');
 
   /* ── #4 음성 저장/지우기 문구 분리 ── */
@@ -50,7 +50,7 @@ load((window) => {
   const 저장토스트 = doc.getElementById('toast').textContent;
   ev('음성엔드포인트_지우기();');
   const 지움토스트 = doc.getElementById('toast').textContent;
-  assert('#4: 저장/지우기 토스트 상이', 저장토스트 !== 지움토스트 && 지움토스트.includes('삭제'), `${저장토스트} / ${지움토스트}`);
+  assert('#4: 저장/지우기 토스트 상이', 저장토스트 !== 지움토스트 && 지움토스트.includes('지웠'), `${저장토스트} / ${지움토스트}`);
 
   /* ── #5 복습 — 졸업 1회 + 방식 ── */
   ev("복습데이터.대기열=[{id:'로컬a',단어:'복습어',뜻:'복습 뜻',모드:'상식·어원',모드클래스:'tb',연속정답수:0,즐겨찾기:false},{id:'로컬b',단어:'딴어',뜻:'다른 뜻',모드:'맞춤법',모드클래스:'tg',연속정답수:0,즐겨찾기:false}];");
@@ -94,7 +94,8 @@ load((window) => {
   assert('#7: sq1 역방향 — 정답 제시+문항 보기', doc.querySelectorAll('#sq1Body .aopt').length >= 2 && doc.getElementById('sq1Body').innerHTML.includes('역방향'));
   ev("renderQuiz('sq1', __TEST_QUIZ__);");
   assert('#7: 역방향 문항 부족 시 4지선다 폴백', doc.getElementById('toast').textContent.includes('부족') && doc.querySelectorAll('#sq1Body .aopt').length === 4);
-  ev("학습설정.sq4_input='4지선다'; renderDad(DAD_GAGS_BY_DIFFICULTY['아↗그거!']);");
+  // 2026-11-08: 오답 보기가 같은 풀의 다른 정답에서 나오므로(임시 표본 폐지) 정답이 4개 이상인 풀로 검증
+  ev("학습설정.sq4_input='4지선다'; renderDad([...DAD_GAGS_BY_DIFFICULTY['아↗그거!'], {q:'가',a:'일',e:''},{q:'나',a:'이',e:''},{q:'다',a:'삼',e:''}]);");
   assert('#7: 아재 4지선다 보기 4개', doc.querySelectorAll('#sq4Body .aopt').length === 4);
   const dExp0 = ev('사용자.총누적EXP||0');
   ev("아재_선다선택(document.querySelector('#sq4Body .aopt[data-정답=\"1\"]'), true);");
@@ -105,7 +106,7 @@ load((window) => {
   assert('#8: 랜덤 카드에 ⚙', Array.from(doc.querySelectorAll('.mc span')).some(s=>(s.getAttribute('onclick')||'').includes('랜덤설정_열기')));
   ev("랜덤학습_모드목록.forEach(m=>랜덤_가중치설정(m[0],0)); closeInfoModal();");
   ev('랜덤학습();');
-  assert('#8: 전부 제외 시 진입 안 함+안내', doc.getElementById('toast').textContent.includes('제외'), doc.getElementById('toast').textContent);
+  assert('#8: 전부 제외 시 진입 안 함+안내', doc.getElementById('toast').textContent.includes('빠져'), doc.getElementById('toast').textContent);
   ev("랜덤_가중치설정('맞춤법',3); closeInfoModal(); 랜덤학습();");
   assert('#8: 유일 후보(맞춤법)로 진입', ev('현재학습모드') === '맞춤법');
   assert('#8: plx_랜덤설정 저장', (window.localStorage.getItem('plx_랜덤설정')||'').includes('맞춤법'));
@@ -137,7 +138,7 @@ load((window) => {
   ev("배너_적용선택('assets/배너/테스트.jpg');");
   assert('#12: 이미지 배너 <img> 렌더', !!doc.querySelector('#statusBanner img'));
   ev("사용자.개발자모드=false; curLv=1; 이미지_업로드시도('배너');");
-  assert('#12: 미달자 업로드 경고', doc.getElementById('infoDesc').innerHTML.includes('권한 부족'));
+  assert('#12: 미달자 업로드 경고', doc.getElementById('infoDesc').innerHTML.includes('Lv.16부터'));
   ev("closeInfoModal(); 배너_적용선택('');");
 
   /* ── #16 신규 발굴 ── */

@@ -30,7 +30,7 @@ load((window) => {
   assert('채팅기록_전체삭제: Firestore 서브컬렉션 문서 각각 삭제 요청됨(doc1·doc2)',
     ev('window.__삭제됨 && window.__삭제됨.includes("doc1") && window.__삭제됨.includes("doc2")'));
   assert('채팅기록_전체삭제: 채팅창이 초기 인사말로 리셋됨',
-    doc.getElementById('askBody').innerHTML.includes('안녕하세요'));
+    !!doc.querySelector('#askBody .ask-msg.intro') && doc.querySelectorAll('#askBody .ask-msg').length === 1);
   ev('fbDb = window.__origFbDb;');
 
   /* ── 학습 데이터 초기화 흐름에도 채팅 기록 삭제가 포함됐는지 ── */

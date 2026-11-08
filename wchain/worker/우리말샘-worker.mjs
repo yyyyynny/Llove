@@ -21,6 +21,8 @@
 //     후보_부적절한가() 참조) — 필드 자체는 안 바뀌었으니 클라이언트 하위 호환.
 //   요청  POST { 글자: "가", 방향: "start", 디버그: true } → 위 응답에 _걸러진표본(필터로
 //     빠진 원본 item 최대 20개) 추가 — 필터 기준이 또 안 맞을 때 진단용, 평소엔 안 씀.
+//   ⚠️ 2026-11-07: 디버그:true는 env.DEBUG_KEY 시크릿을 X-Debug-Key 헤더로 보낼 때만 켜진다(캐시 우회 남용 방지).
+//   입력은 정규화 후 한글 20자 이하(글자는 한 글자)만 받고, 상류 검색이 실패하면 '없음' 대신 502.
 //   실패 시 4xx/5xx만 반환하면 된다 — 클라이언트는 res.ok가 아니면 null로 강등해 로컬 안전망을 탄다.
 //
 // ── 엣지 캐시(Cache API, 2026-08-22) ────────────────────────────────────
@@ -50,6 +52,7 @@ const 공통_HEADERS = {
 // 관리자님의 API 호출량을 몰래 빌려 쓸 수 있다. 게임이 실제로 서비스되는 origin만 허용한다.
 const 허용_ORIGIN = new Set([
   'https://yyyyynny.github.io',
+  'http://localhost:8000',   // 로컬 개발 서버(.claude/launch.json) — 내 PC에서만 열리는 주소
 ]);
 
 function cors헤더(origin){
@@ -75,6 +78,8 @@ function json응답(본문, status, origin){
 // (붙임표를 정규화 없이 통째로 버리면 '사'처럼 흔한 글자의 후보 대부분이 사라진다 —
 // Worker_수정요청.md ②의 원인.)
 const 정규화 = w => String(w).replace(/[-^]/g, '').trim();
+// 입력 검증(2026-11-07) — 한글(구는 공백 1칸씩) 20자 이하만 상류로 보낸다
+const 한글_입력인가 = s => s.length <= 20 && /^[가-힣]+( [가-힣]+)*$/.test(s);
 
 // ── 엣지 캐시 헬퍼 ──────────────────────────────────────────────────────
 // 상세 배경은 파일 상단 헤더 참조. 여기서는 진입점(fetch)에서만 쓰고, 단어존재조회()·
@@ -266,9 +271,10 @@ async function 뜻풀이_그룹화_비동기(env, items){
 // 건너뛰어 원래 속도로 되돌린다.
 async function 단어존재조회(env, word, 진단 = false, 뜻풀이필요 = false){
   const 시도할것 = [word, ...붙임표_변형(word)];
+  let 실패 = false;
   const 결과들 = await Promise.all(
     시도할것.map(w => 오픈API_검색(env, { q: w, method: 'exact', num: 20 })
-      .catch(() => ({ items: [] }))));   // 개별 실패는 "없음"으로 취급, 전체는 아래서 판단
+      .catch(() => { 실패 = true; return { items: [] }; })));   // 다른 변형에서 찾을 수 있으니 일단 계속
 
   for(const { items } of 결과들){
     const 일치항목 = items.filter(it => 정규화(it.word) === 정규화(word));
@@ -278,6 +284,8 @@ async function 단어존재조회(env, word, 진단 = false, 뜻풀이필요 = f
       return 결과;
     }
   }
+  // 못 찾았는데 검색이 하나라도 실패했으면 '없음'으로 단정하지 않는다 → 진입점이 502(캐시 안 함)
+  if(실패) throw new Error('오픈API 검색 실패 — 존재 여부 확인 불가');
   return { 존재: false, 뜻풀이그룹: [] };
 }
 
@@ -340,12 +348,14 @@ async function 후보목록조회(env, 글자, 방향, 진단 = false){
         const 결과 = await 오픈API_검색(env, {
           q: 글자, method,
           start: 1 + i * 후보_페이지당개수, num: 후보_페이지당개수, 추가: 후보_서버필터,
-        }).catch(() => ({ items: [] }));
+        }).catch(() => ({ items: [], 실패: true }));
         결과._ms = Date.now() - t0;
         return 결과;
       })
   );
   const 전체ms = Date.now() - 페이지시작;
+  // 한 페이지라도 실패하면 빈약한 목록을 3일 캐시하지 않도록 진입점이 502로 응답한다
+  if(페이지들.some(p => p.실패)) throw new Error('오픈API 후보 검색 실패');
 
   const 후보 = [];
   const 본것 = new Set();
@@ -401,12 +411,16 @@ export default {
     try{ payload = await request.json(); }
     catch(e){ return json응답({ error: '잘못된 JSON' }, 400, origin); }
 
+    // 진단(디버그) 응답은 캐시를 건너뛰므로 시크릿 헤더가 맞을 때만 — env.DEBUG_KEY 미설정이면 항상 꺼짐
+    const 디버그 = payload.디버그 === true && !!env.DEBUG_KEY
+      && request.headers.get('X-Debug-Key') === env.DEBUG_KEY;
     try{
       if(typeof payload.단어 === 'string' && payload.단어.trim()){
-        const word = payload.단어.trim();
+        // 캐시 키와 조회를 같은 정규화 값으로 — 원문 '가마^솥'의 '없음'이 '가마솥' 캐시를 덮던 문제
+        const word = 정규화(payload.단어);
+        if(!한글_입력인가(word)) return json응답({ error: '단어는 한글 20자 이하여야 합니다.' }, 400, origin);
         const 뜻풀이필요 = payload.뜻풀이 === true;
-        const 디버그 = payload.디버그 === true;
-        const 캐시부분 = [정규화(word), 뜻풀이필요 ? '뜻풀이' : '존재'];
+        const 캐시부분 = [word, 뜻풀이필요 ? '뜻풀이' : '존재'];
         if(!디버그){
           const 캐시됨 = await 캐시_조회('단어', 캐시부분);
           if(캐시됨) return json응답(캐시됨, 200, origin);
@@ -418,7 +432,7 @@ export default {
       if(typeof payload.글자 === 'string' && payload.글자.trim()
          && (payload.방향 === 'start' || payload.방향 === 'end')){
         const 글자 = payload.글자.trim();
-        const 디버그 = payload.디버그 === true;
+        if(!/^[가-힣]$/.test(글자)) return json응답({ error: '글자는 한글 한 글자여야 합니다.' }, 400, origin);
         const 캐시부분 = [글자, payload.방향];
         if(!디버그){
           const 캐시됨 = await 캐시_조회('후보', 캐시부분);

@@ -59,26 +59,21 @@ function goNav(id, btn){
   if(!next) return;
   활성입력_blur();  // 항목4: 이전 화면의 입력 포커스(깜빡이는 커서) 해제
 
-  // 이전 화면: 슬라이드아웃 후 active 제거
-  if(prev){
-    prev.classList.remove('active','entering');
-    prev.classList.add('leaving');
-    setTimeout(()=>{prev.classList.remove('leaving')},280);
-  }
+  // 이전 화면은 즉시 내린다(11-08: 종전 퇴장 연출 slideOut은 display:none에 가려 보인 적이 없어 제거)
+  if(prev) prev.classList.remove('active','entering');
 
   const 첫방문 = !본화면.has(id);
   본화면.add(id);
-  // 다시 오는 화면은 표시되기 전에 멈춰 둬야 첫 프레임부터 깜빡이지 않는다
+  // 다시 오는 화면은 표시되기 전에 멈춰 둬야 첫 프레임부터 깜빡이지 않는다.
+  // 진입 뒤 다시 그려지는 목록(트리·업적·복습)은 이 클래스로 CSS가 멈춘다
   if(!첫방문) next.querySelectorAll('.fu').forEach(e=>{ e.style.animation='none'; });
-  next.classList.add('active');
+  next.classList.toggle('revisit', !첫방문);
+  // 11-08: 진입 연출을 표시와 같은 프레임에 건다 — 종전엔 rAF 두 번 뒤에 걸어 새 화면이 한 프레임
+  // 다 보였다가 투명으로 돌아가 깜빡였다. display:none→표시 때 CSS 애니메이션은 처음부터 다시 돈다
+  next.classList.add('active','entering');
   // v3.7 항목18: 화면 전환 시 scrollTop 초기화 (이전 화면의 스크롤 잔재 방지)
   next.scrollTop=0;
   next.querySelectorAll('.qbody, .ach-list, .set-body, .seg-content').forEach(el=>{ el.scrollTop=0; });
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    next.classList.add('entering');
-    if(첫방문) next.querySelectorAll('.fu').forEach(e=>{e.style.animation='none';void e.offsetWidth;e.style.animation='';});
-    setTimeout(()=>next.classList.remove('entering'),400);
-  }));
 
   const 이전화면ID = curScreen;
   curScreen=id;
@@ -110,9 +105,23 @@ function goNav(id, btn){
   if(btn) btn.classList.add('on');
 
   // v3.7 항목11,12: 슬라이드 자동 순환 — 홈 진입 시 시작, 그 외 정지
-  if(id==='sh'){ 슬라이드시작(); } else { 슬라이드정지(); }
 
   afterNav(id);
+}
+
+// 11-08: 이어서 하기 — 마지막으로 연 학습 모드(plx_마지막학습)를 홈 맨 위 카드로
+function 마지막학습(){
+  try{ const v = JSON.parse(localStorage.getItem('plx_마지막학습') || 'null'); return Array.isArray(v) && 모드_마스터리맵[v[0]] ? v : null; }catch(e){ return null; }
+}
+function 이어서하기_표시(){
+  const 카드 = document.getElementById('continueCard'), v = 마지막학습();
+  if(!카드) return;
+  카드.style.display = v ? '' : 'none';
+  if(v) document.getElementById('continueDesc').textContent = v[0];
+}
+function 이어서하기(){
+  const v = 마지막학습();
+  if(v) goLearn(v[0], v[1], null);
 }
 
 function afterNav(id){
@@ -121,23 +130,26 @@ function afterNav(id){
     const 표시Lv=표시레벨(), 표시Exp=표시EXP(), 표시Max=expForLevel(표시Lv);
     const 등급 = 등급정보(표시Lv);
     document.getElementById('homeUser').textContent=userName;
+    이어서하기_표시();
     아바타_적용(document.getElementById('homeAvatar'), 사용자.프로필이미지);  // 세션6: 이미지/이모지 겸용
     document.getElementById('homeLv').textContent='Lv.'+표시Lv;
     document.getElementById('homeRank').textContent=등급.등급;
     document.getElementById('homeTitle').textContent='· '+등급.세부;
     document.getElementById('homeExpTxt').textContent=`${표시Exp} / ${표시Max} EXP`;
     document.getElementById('homeStreak').textContent=사용자.연속학습일;
+    const 오늘푼수 = 사용자.오늘날짜 === 오늘날짜_로컬(0) ? (사용자.오늘푼수||0) : 0;
+    document.getElementById('homeGoal').textContent = `오늘 ${Math.min(오늘푼수, 사용자.오늘목표||10)}/${사용자.오늘목표||10}문제 · 연속 보호 ${사용자.얼음||0}개`;
     document.getElementById('homeVocab').textContent=표시마스터리('총누적어휘수');
     document.getElementById('homeReview').textContent=사용자.복습대기열수;
 
-    // EXP 바 애니메이션 (transition:none → rAF 두 번 → transition 복구)
+    // EXP 바: 값이 바뀌었을 때만 이전 값에서 채운다(11-08: 종전엔 홈에 올 때마다 0부터 1.1초 재충전).
+    // 레벨업으로 줄어들 땐 거꾸로 빠지는 연출 없이 바로. rAF 두 번 = 방금 표시된 화면에서도 전환이 돌게
     const bar=document.getElementById('homeExp');
-    bar.classList.add('instant');
-    bar.style.width='0%';
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      bar.classList.remove('instant');
-      bar.style.width=(표시Exp/표시Max*100)+'%';
-    }));
+    const 새폭=Math.round(표시Exp/표시Max*1e4)/100, 옛폭=parseFloat(bar.style.width)||0;
+    if(새폭!==옛폭){
+      bar.classList.toggle('instant', 새폭<옛폭);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ bar.style.width=새폭+'%'; }));
+    }
 
     // v3.7 항목11: 「오늘 한 문장」 슬라이드 빌더 호출 (KNOWLEDGE 24섹션)
     슬라이드빌드();
@@ -155,12 +167,6 @@ function afterNav(id){
     // α1·α7·α8: 7단계 소칭호 + 색상 + 주신 글리치 일괄 적용
     const 소칭호엘 = document.getElementById('statusSubTitle');
     소칭호적용(소칭호엘, 표시Lv, 사용자.창조주달성);
-    // α5: 창조주 달성 시 소칭호 탭 → 칭호 선택 (폐하 ↔ 깨끗한 주신)
-    소칭호엘.style.cursor = 사용자.창조주달성 ? 'pointer' : '';
-    소칭호엘.onclick = 사용자.창조주달성 ? 칭호선택_모달 : null;
-    // α4: Lv.70 도달 시 「주신의 경지」 메시지 노출 (창조주 달성 전까지)
-    const jm=document.getElementById('jushinMsg');
-    if(jm) jm.style.display = (표시Lv >= 최대레벨 && !사용자.창조주달성) ? 'block' : 'none';
 
     document.getElementById('statusLv').textContent='Lv.'+표시Lv;
     document.getElementById('statusGrade').textContent=등급.등급;
@@ -205,6 +211,7 @@ function goLearn(category, screenId, btn){
   // 세션6 항목4: 카테고리가 바뀌면 진행 중 채팅을 기록으로 보관하고 채팅창을 비운다
   if(현재학습모드 && 현재학습모드 !== category) 채팅세션_마감('카테고리 이동');
   현재학습모드 = category;
+  try{ localStorage.setItem('plx_마지막학습', JSON.stringify([category, screenId])); }catch(e){ /* 저장소 차단 무시 */ }
   // 세션7: 뒤로가기 복귀용 — 히스토리 상태에 카테고리를 덧붙임 (popstate 시 goLearn 재진입 근거)
   try{ history.replaceState({화면:screenId, 카테고리:category}, '', ''); }catch(e){ /* 무시 */ }
   현재학습모드필드 = 모드_마스터리맵[category] || '';
@@ -316,7 +323,7 @@ function 랜덤학습(){
   // 가중치 추첨 — 0(제외)은 후보에서 빠짐
   const 풀 = [];
   랜덤학습_모드목록.forEach(m => { for(let i=0;i<랜덤_가중치(m[0]);i++) 풀.push(m); });
-  if(!풀.length){ showToastMsg('모든 모드가 제외되어 있습니다 — 랜덤 설정을 확인하세요'); return; }
+  if(!풀.length){ showToastMsg('모든 모드가 빠져 있어요 — 랜덤 설정을 확인해 주세요'); return; }
   const [카테고리, 화면] = 풀[Math.floor(Math.random()*풀.length)];
   showToastMsg('오늘의 랜덤: ' + 카테고리);
   goLearn(카테고리, 화면, null);
@@ -336,7 +343,7 @@ function 랜덤설정_열기(){
     </div>`;
   }).join('');
   showInfoModal('🎲','랜덤 설정',
-    `<div style="text-align:left;font-size:11px;color:var(--txt2);margin-bottom:6px">모드별 등장 확률(×배수)을 정하거나 제외할 수 있습니다.</div>${행들}`);
+    `<div style="text-align:left;font-size:11px;color:var(--txt2);margin-bottom:6px">모드별 등장 확률(×배수)을 정하거나 뺄 수 있어요.</div>${행들}`);
 }
 function 랜덤_가중치설정(모드, v){
   랜덤설정.가중치[모드] = v;
@@ -386,6 +393,57 @@ function 키보드접근_보강(뿌리){
   });
 }
 
+/* 모달 접근성(11-08): 오버레이에 role=dialog·aria-modal·제목 연결, 열리면 상자 안 첫 조작 요소로 포커스를 옮기고
+   닫히면 연 자리로 되돌린다. 모달을 여닫는 함수가 여러 파일(classList show 토글)에 흩어져 있어
+   모두가 지나는 공통 지점인 class 변화를 지켜본다 — 여는 함수를 일일이 고치지 않는다.
+   입력창으로 포커스를 주는 모달(이름·질문·이의)은 그쪽 setTimeout이 나중에 덮어쓴다.
+   11-09: 열린 맨 위 모달 안에서 Tab/Shift+Tab이 처음↔끝으로 돈다(키보드접근_시작의 Tab 처리).
+   ponytail: 한계 — 「맨 위」는 가장 늦게 연 모달(z-index 비교 안 함), 배경 화면에 inert는 안 붙임(스크린리더 가상 커서는 밖으로 나갈 수 있음) */
+const 대화상자_선택자 = '.ov-bg, .modal-bg, .obj-bg, .ach-detail-bg, .ask-panel';
+const 대화상자_제목선택자 = '.modal-title, .pp-title, .lvup-txt, .ach-d-name, .obj-title, .ask-title, .itneun-badge';
+const 대화상자_초점후보 = 'button:not([disabled]), a[href], select, input[type="range"], input[type="checkbox"], [tabindex="0"]';
+const 대화상자_복귀자리 = new Map();
+function 대화상자_상자(el){ return el.matches('.ask-panel') ? el : el.firstElementChild; }
+function 대화상자_변화(el){
+  const 상자 = 대화상자_상자(el);
+  if(!상자) return;
+  const 지금 = document.activeElement;
+  if(el.classList.contains('show')){
+    if(대화상자_복귀자리.has(el)) return;   // 열린 채 다른 class만 바뀐 경우
+    대화상자_복귀자리.set(el, 지금);
+    // 첫 조작 요소로 — 글 입력칸은 건너뛴다(모바일 자판이 튀어나오지 않게). 숨은 단추는 focus가 실패하니 다음 후보로
+    if(!상자.contains(지금)){
+      for(const 후보 of 상자.querySelectorAll(대화상자_초점후보)){
+        후보.focus({preventScroll:true});
+        if(document.activeElement === 후보) break;
+      }
+    }
+  } else if(대화상자_복귀자리.has(el)){
+    const 자리 = 대화상자_복귀자리.get(el);
+    대화상자_복귀자리.delete(el);
+    // 닫는 동안 사용자가 다른 곳으로 옮겨 간 포커스는 빼앗지 않는다
+    if(자리 && 자리.isConnected && (!지금 || 지금 === document.body || 상자.contains(지금))) 자리.focus({preventScroll:true});
+  }
+}
+function 대화상자_보강(){
+  const 대상 = document.querySelectorAll(대화상자_선택자);
+  대상.forEach((el, i) => {
+    const 상자 = 대화상자_상자(el);
+    if(!상자) return;
+    상자.setAttribute('role', 'dialog');
+    상자.setAttribute('aria-modal', 'true');
+    const 제목 = 상자.querySelector(대화상자_제목선택자);
+    if(제목){
+      if(!제목.id) 제목.id = '대화상자제목' + i;
+      상자.setAttribute('aria-labelledby', 제목.id);
+    }
+  });
+  try{
+    const 관찰 = new MutationObserver(변경들 => new Set(변경들.map(v => v.target)).forEach(대화상자_변화));
+    대상.forEach(el => 관찰.observe(el, { attributes: true, attributeFilter: ['class'] }));
+  }catch(e){ console.warn('[모달] MutationObserver 미지원 — 포커스 이동이 생략됩니다', e); }
+}
+
 function 키보드접근_시작(){
   // ② Enter/Space → click (위임)
   document.addEventListener('keydown', e => {
@@ -411,7 +469,27 @@ function 키보드접근_시작(){
     맨위.click();
   });
 
+  // Tab 가두기 — 가장 늦게 연 모달의 끝에서 Tab이면 처음으로, 처음에서 Shift+Tab이면 끝으로(밖에 있던 포커스도 안으로)
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Tab') return;
+    const 맨위 = [...대화상자_복귀자리.keys()].pop();
+    if(!맨위) return;
+    const 상자 = 대화상자_상자(맨위);
+    const 목록 = [...상자.querySelectorAll(대화상자_초점후보 + ', input:not([disabled]), textarea')]
+      .filter(el => !el.checkVisibility || el.checkVisibility());   // 숨은 단추는 건너뛴다
+    if(!목록.length) return;
+    const 처음 = 목록[0], 끝 = 목록[목록.length - 1], 지금 = document.activeElement;
+    if(!상자.contains(지금) || 지금 === (e.shiftKey ? 처음 : 끝)){
+      e.preventDefault();
+      (e.shiftKey ? 끝 : 처음).focus();
+    }
+  });
+
   키보드접근_보강(document);
+  대화상자_보강();
+  // 토스트는 보조 기술이 읽어 주게(표시 시간·문구는 테마.js showToastMsg 그대로)
+  const 토스트 = document.getElementById('toast');
+  if(토스트){ 토스트.setAttribute('role', 'status'); 토스트.setAttribute('aria-live', 'polite'); }
 
   // ③ 동적 렌더 자동 보강
   try{

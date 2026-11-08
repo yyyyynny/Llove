@@ -4,7 +4,7 @@
 
 function 새게임상태(){
   return {
-    game_state: 'INIT', game_mode: null, persona: null,
+    game_state: 'INIT', game_mode: null,
     // strikes·last_log·stage_start_turn은 쓰기만 하고 읽는 곳이 없어 2026-09-27 삭제(Q5)
     turn: 0, stage: 1, stage_turn: 0,
     score: 0, best: 0, hints: 3, hearts: 2,
@@ -21,7 +21,7 @@ function 새게임상태(){
     // 아케이드 전용(Phase 4) — 서바이벌에서는 도달하지 않는 분기지만 필드는 원본과 동일하게 유지
     curse_time_floors: 0, curse_life_floors: 0, curse_dark_active: false, curse_dark_strikes: 0,
     trial_rejected_floor: -1, trial_attempts_this_floor: 0, trial_tower_entries: 0,
-    user_title: null, history: [], ai_last_word: null, ai_last_char: null,
+    history: [], ai_last_word: null, ai_last_char: null,
     god_mode_active: false, erosion_level: 0,
     // hanbang 기본값: 2026-07-27 관리자님 지시로 false → true. 종전 기본값(끄기)은 곧 "한방
     // 단어를 내면 제재"라는 뜻인데, 한방 판정이 로컬 280단어 기준이라 정상 단어의 24~44%가
@@ -118,40 +118,30 @@ function reset_game(gs){
 }
 
 function full_reset(gs){
-  const god = gs.god_mode_active, persona = gs.persona;
+  const god = gs.god_mode_active;
   Object.assign(gs, 새게임상태());
   if(god){
     gs.god_mode_active = true;
-    gs.user_title = '최고 관리자님';
     gs.hints = Infinity; gs.hearts = Infinity;
-    gs.persona = persona;
   }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   페르소나 — 원본 Persona 클래스를 상태 객체 기반 함수로 이식.
-   원본 print()는 웹에서 "메시지 로그에 한 줄 추가"로 대체(서바이벌.js의 로그_추가가 담당).
+   호칭 — 2026-11-08 관리자님 결정으로 원본 Persona(폭군·비서)와 판타지 칭호(필멸자·각성자·
+   초월자·탑의 주인 등)를 없앴다. 대사는 한 목소리이고, 호칭은 아래 하나뿐이다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function is_arrogant(gs){ return gs.persona === 'Arrogant'; }
-
-// 원본 say(arrogant_msg, polite_msg)는 print만 함 — 여기선 어느 문구를 쓸지 "고른 문자열"만 반환.
-// 실제 화면 표시는 호출부가 로그_추가()로 한다(원본의 print 호출부와 1:1 대응).
-function say(gs, arrogant_msg, polite_msg){ return is_arrogant(gs) ? arrogant_msg : polite_msg; }
-
 function title(gs){
-  if(gs.god_mode_active) return '최고 관리자님';
-  return gs.user_title || (is_arrogant(gs) ? '필멸자' : '사용자님');
+  return gs.god_mode_active ? '최고 관리자님' : '사용자님';
 }
 
 /* 정답 반응·AI 단어 반응 — 2026-07-29 문구를 data/대사.json으로 옮겼다.
    관리자님 지시("코드에 있는 각 페르소나별 대화는 전부 코드에서 빼고 폴더로 정리")의 마지막 잔여분.
    나머지 62곳은 앞서 옮겼는데 이 둘만 배열 리터럴이라 코드에 남아 있었다.
-   키는 react_correct_1~3 · react_ai_word_1~4(비서는 3줄 — 4번 칸이 ""이면 자동으로 빠진다). */
+   키는 react_correct_1~3 · react_ai_word_1~3(번호 키를 늘리면 후보가 자동으로 늘어난다). */
 function react_correct(gs){
   return 대사_무작위(gs, 'react_correct');
 }
 
 function react_ai_word(gs, word){
-  // 위치형 {0}=단어, 이름형 {칭호} 둘 다 쓰이므로 두 키를 함께 넘긴다.
-  return 대사_무작위(gs, 'react_ai_word', { 0: word, 칭호: title(gs) });
+  return 대사_무작위(gs, 'react_ai_word', [word]);
 }

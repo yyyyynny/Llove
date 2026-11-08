@@ -87,5 +87,58 @@ assert('sense가 빈 배열이면 포함(판단 보류)', !후보_부적절한�
     p.get('pos') === '1' && p.get('type3') === 'general' && p.get('type4') === 'general' && p.get('type1') === 'word' && p.get('letter_s') === '2');
   assert('후보 요청: method=start 유지', p.get('method') === 'start');
   assert('서버 응답 단어가 후보로 나온다', 결과.후보.includes('면적'));
+
+  // ── 진입점(fetch) — 정규화 캐시 키·상류 실패 502·입력 검증·디버그 잠금 (2026-11-07) ──
+  // export default를 return으로 바꿔 진입점까지 불러오고, fetch·caches를 스텁으로 넣는다.
+  let 상류 = '정상';
+  const 상류요청 = [];
+  const 저장소 = new Map();
+  const 캐시스텁 = { default: {
+    match: async req => 저장소.has(req.url) ? new Response(저장소.get(req.url)) : undefined,
+    put: async (req, res) => { 저장소.set(req.url, await res.text()); },
+  } };
+  const 워커 = new Function('fetch', 'caches', src.replace('export default', 'return'))(async url => {
+    const q = new URL(url).searchParams.get('q');
+    상류요청.push(q);
+    if(상류 === '실패') throw new Error('상류 장애(스텁)');
+    // '가마-솥'(붙임표 표제어)으로 물을 때만 찾힌다 — 실제 우리말샘의 exact 검색과 같음
+    const item = q === '가마-솥' ? [{ word: '가마-솥', sense: [{ definition: '큰 솥.' }] }] : [];
+    return { ok: true, text: async () => JSON.stringify({ channel: { item } }) };
+  }, 캐시스텁);
+  const env = { URIMALSAEM_KEY: 'k', URIMALSAEM_CERTKEY_NO: 'n' };
+  async function 부르기(본문, 헤더 = {}, 환경 = env){
+    const 대기 = [];
+    const res = await 워커.fetch({ method: 'POST', headers: new Headers({ Origin: 'http://localhost:8000', ...헤더 }),
+      json: async () => 본문 }, 환경, { waitUntil: p => 대기.push(p) });
+    await Promise.all(대기);
+    return { status: res.status, body: await res.json() };
+  }
+
+  const r1 = await 부르기({ 단어: '가마^솥' });
+  const r2 = await 부르기({ 단어: '가마솥' });
+  assert('캐럿 원문도 정규화해 조회한다(가마^솥 → 존재)', r1.body.존재 === true, JSON.stringify(r1.body));
+  assert('정규화 캐시 키를 공유해도 가마솥이 없음으로 오염되지 않는다', r2.body.존재 === true, JSON.stringify(r2.body));
+
+  상류 = '실패'; 저장소.clear();
+  const r3 = await 부르기({ 단어: '나비' });
+  assert('상류 검색이 실패하면 존재:false 대신 502', r3.status === 502, JSON.stringify(r3));
+  const r4 = await 부르기({ 글자: '나', 방향: 'start' });
+  assert('후보 검색이 실패하면 빈 목록 대신 502', r4.status === 502, JSON.stringify(r4));
+  assert('상류 실패 결과는 엣지 캐시에 쓰지 않는다', 저장소.size === 0, [...저장소.keys()].join(','));
+  상류 = '정상';
+
+  for(const 본문 of [{ 단어: 'abc' }, { 단어: '가'.repeat(21) }, { 단어: '<script>' }, { 글자: 'ab', 방향: 'start' }, { 글자: 'a', 방향: 'end' }]){
+    const r = await 부르기(본문);
+    assert(`입력 검증: ${JSON.stringify(본문).slice(0, 30)} → 400`, r.status === 400, String(r.status));
+  }
+
+  await 부르기({ 단어: '가마솥' });   // 캐시를 채워 둔다
+  상류요청.length = 0;
+  const r5 = await 부르기({ 단어: '가마솥', 디버그: true });
+  assert('시크릿 없이 디버그:true면 캐시를 쓰고 진단을 싣지 않는다', !r5.body._원본진단 && 상류요청.length === 0,
+    `상류=${상류요청.length}`);
+  const r6 = await 부르기({ 단어: '가마솥', 디버그: true }, { 'X-Debug-Key': 'secret' }, { ...env, DEBUG_KEY: 'secret' });
+  assert('시크릿 헤더가 맞으면 진단을 싣는다', Array.isArray(r6.body._원본진단));
+
   process.exit(finish() > 0 ? 1 : 0);
 })();

@@ -145,6 +145,7 @@ const 이차_설정 = { 제공사: 'openai호환', 모델: 'gpt-5.4-mini', 추�
 // ── CORS (우리말샘 Worker와 동일 원칙 — 같은 origin만 허용) ────────────────
 const 허용_ORIGIN = new Set([
   'https://yyyyynny.github.io',
+  'http://localhost:8000',   // 로컬 개발 서버(.claude/launch.json) — 내 PC에서만 열리는 주소
 ]);
 
 function cors헤더(origin){
@@ -243,6 +244,7 @@ async function 단어_적절성_판정(env, { 단어, 맥락, 반박사유, 반�
 // 도달했다면 클라이언트를 거치지 않은 직접 호출(curl 등 우회)이라는 신호다. 조용히
 // 잘라서 처리하면 상한이 사실상 무의미해지므로(우회하면 몇 바이트든 보낼 수 있고, 유료
 // AI 호출도 그대로 나간다) 명확히 거부한다.
+const 한글_입력인가 = s => s.length <= 20 && /^[가-힣]+( [가-힣]+)*$/.test(s);
 function 반박보충_바이트초과인가(str){
   return new TextEncoder().encode(str).length > 500;
 }
@@ -268,8 +270,11 @@ export default {
     try{ payload = await request.json(); }
     catch(e){ return json응답({ error: '잘못된 JSON' }, 400, origin); }
 
-    if(!payload || typeof payload.단어 !== 'string' || !payload.단어.trim()){
-      return json응답({ error: '요청 형식이 올바르지 않습니다(단어 필요).' }, 400, origin);
+    // 단어·맥락은 한글 20자 이하만(2026-11-07) — 유료 AI 호출에 임의 문자열(인젝션·대용량)이 실리지 않게
+    const 단어 = typeof payload?.단어 === 'string' ? payload.단어.trim() : '';
+    const 맥락 = typeof payload?.맥락 === 'string' ? payload.맥락.trim() : '';
+    if(!한글_입력인가(단어) || (맥락 && !한글_입력인가(맥락))){
+      return json응답({ error: '요청 형식이 올바르지 않습니다(단어·맥락은 한글 20자 이하).' }, 400, origin);
     }
     const 반박사유 = typeof payload.반박사유 === 'string' ? payload.반박사유.trim() : '';
     if(반박사유 && !Object.prototype.hasOwnProperty.call(반박사유표, 반박사유)){
@@ -281,8 +286,8 @@ export default {
     }
     try{
       const 결과 = await 단어_적절성_판정(env, {
-        단어: payload.단어.trim(),
-        맥락: payload.맥락 || '',
+        단어,
+        맥락,
         반박사유,
         반박보충: 반박보충_원본,
       });

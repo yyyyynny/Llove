@@ -59,7 +59,7 @@ function 페이지열기({ 온라인 = '정상', 적절성게이트 = null } = {
     pretendToBeVisual: true,
     beforeParse(win){
       win.fetch = async (url, opt) => {
-        // data/*.json은 디스크에서 그대로 읽어 준다 — 페르소나 대사(data/대사.json)가 실제 파일과
+        // data/*.json은 디스크에서 그대로 읽어 준다 — 대사(data/대사.json)가 실제 파일과
         // 맞물리는지까지 이 테스트로 검증된다(키 오타·JSON 깨짐이 여기서 잡힌다).
         if(typeof url === 'string' && url.startsWith('data/')){
           const 본문 = fs.readFileSync(path.join(WCHAIN, url), 'utf8');
@@ -99,7 +99,6 @@ const 로그텍스트 = win => [...win.document.querySelectorAll('#로그 .line'
 
 // 서바이벌 판을 시작한 상태까지 진행
 function 판시작(win, 설정 = {}){
-  win.선택_페르소나('Polite');
   win.선택_모드('SURVIVAL');
   Object.assign(상태(win), 설정);
   win.게임_시작();
@@ -163,7 +162,7 @@ async function main(){
          '즉시 패배가 아직 살아 있다');
     // 2026-07-29 실수 폐지 — 틀리면 곧바로 목숨 -1(격동 기본 7 → 6)
     확인('목숨이 1개 깎인다', 상태(win).hearts === 6, `hearts=${상태(win).hearts}`);
-    확인('목숨 감소 안내가 화면에 나옴', 로그텍스트(win).includes('[목숨 -1]'));
+    확인('목숨 감소 안내가 화면에 나옴', 로그텍스트(win).includes('목숨이 6개 남았어요'));
     확인('실수(strikes) 개념이 더는 쓰이지 않는다', !('strikes' in 상태(win)));
     // 2026-08-15 신설 — 목숨이 줄면 HUD가 흔들려서 알린다(종전엔 다른 갱신과 똑같이 조용했음)
     확인('목숨 감소 시 HUD가 흔들린다(.hit)',
@@ -175,7 +174,7 @@ async function main(){
   {
     const { win } = 페이지열기();
     await 대사대기(win);
-    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    win.선택_모드('ARCADE'); win.게임_시작();
     win.eval(`is_hanbang = () => true; 한방_판정가능인가 = () => true; ai_한방금지인가 = () => true;`);
     const 전층 = 상태(win).stage;
     await 단어넣기(win, '나무');
@@ -183,7 +182,7 @@ async function main(){
     확인('AI 한방으로 층이 올라감', 상태(win).stage === 전층 + 1, `stage=${상태(win).stage}`);
     확인('한방 단어였다는 대사가 나옴', 로그.includes('한방 단어였어요'));
     확인('"단어가 없네요"(기권 대사)는 나오지 않음', !로그.includes('단어가 없네요'));
-    확인('일반 층 클리어 대사가 나옴', 로그.includes(`[${전층}층 클리어!]`));
+    확인('일반 층 클리어 대사가 나옴', 로그.includes(`${전층}층을 넘겼어요`));
   }
 
   /* ── 2. 정상 단어는 한방으로 막히지 않는다 ──────────────────────────── */
@@ -205,7 +204,7 @@ async function main(){
     판시작(win);
     await 단어넣기(win, '나무');
     const 로그 = 로그텍스트(win);
-    const 반응들 = ['좋아요! 잘하고 계십니다!', '정답입니다! 훌륭해요!', '멋진 단어 선택이에요!'];
+    const 반응들 = ['이어졌어요.', '좋아요.', '통과예요.'];   // 대사.json react_correct_1~3
     확인('맞는 단어에 정답 반응이 출력됨', 반응들.some(r => 로그.includes(r)),
          '호출부가 여전히 빠져 있음');
   }
@@ -331,7 +330,7 @@ async function main(){
     win.전체리셋();
     for(let i = 0; i < 60; i++) await 잠깐(5);
 
-    확인('리셋 후 페르소나 화면', win.document.getElementById('s-페르소나').classList.contains('active'));
+    확인('리셋 후 첫 화면(모드 선택)', win.document.getElementById('s-모드').classList.contains('active'));
     확인('버려진 턴이 history에 남지 않음', 상태(win).history.length === 0,
          `history=${JSON.stringify(상태(win).history)}`);
     확인('버려진 턴이 turn을 올리지 않음', 상태(win).turn === 0, `turn=${상태(win).turn}`);
@@ -370,7 +369,7 @@ async function main(){
          html.includes('.input-row button:disabled') && html.includes('.input-row input:disabled'));
 
     // 설정 화면(Llove 문법 이식 후): 한방 모드는 .mt 토글이며 기본 켜짐, srs가 상태 설명을 보여준다
-    win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
+    win.선택_모드('SURVIVAL');
     const 한방행 = [...win.document.querySelectorAll('#설정-토글 .set-row')]
       .find(r => r.textContent.includes('한방 모드'));
     확인('한방 모드 토글이 기본 켜짐', 한방행?.querySelector('.mt input')?.checked === true);
@@ -440,7 +439,7 @@ async function main(){
   console.log('\n[9] 설정 화면 Llove 문법');
   {
     const { win } = 페이지열기();
-    win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
+    win.선택_모드('SURVIVAL');
     const d = win.document;
 
     확인('섹션 4개(게임 규칙·특수 규칙·화면·사전)가 set-sec로 놓임',
@@ -460,7 +459,7 @@ async function main(){
          r.querySelector('.sri') && r.querySelector('.srl') && r.querySelector('.srs')));
 
     // 칩 실클릭 → gs 반영 + srs가 선택된 값의 설명으로 갱신
-    const 심연칩 = [...d.querySelectorAll('#설정-규칙 .fs-opt')].find(c => c.textContent === '심연');
+    const 심연칩 = [...d.querySelectorAll('#설정-규칙 .fs-opt')].find(c => c.textContent.startsWith('심연'));   // 라벨은 「심연 · 매우 어려움」
     심연칩.click();
     확인('칩 클릭이 gs에 반영됨(난이도 심연)', 상태(win).diff === '심연');
     const 난이도행 = [...d.querySelectorAll('#설정-규칙 .set-row')][0];
@@ -478,12 +477,14 @@ async function main(){
     const d = win.document;
     const 활성 = () => [...d.querySelectorAll('.screen.active')].map(e => e.id).join();
 
-    // 1번 — 뒤로가기
-    win.선택_페르소나('Polite');
-    확인('페르소나 선택 후 모드 화면', 활성() === 's-모드');
-    win.뒤로_페르소나();
-    확인('모드 → 페르소나로 되돌아감', 활성() === 's-페르소나');
-    win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
+    // 1번 — 뒤로가기. 페르소나 선택은 2026-11-08 폐지 → 첫 화면이 모드 선택
+    확인('첫 화면은 모드 선택', 활성() === 's-모드');
+    확인('페르소나 선택 화면이 없다', !d.getElementById('s-페르소나') && typeof win.선택_페르소나 === 'undefined');
+    // 모달 접근성 — Esc로 닫힌다
+    win.버튼_설명();
+    d.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape' }));
+    확인('Esc로 열린 모달이 닫힌다', !d.getElementById('설명Bg').classList.contains('show'));
+    win.선택_모드('SURVIVAL');
     확인('모드 선택 후 설정 화면', 활성() === 's-설정');
     win.뒤로_모드();
     확인('설정 → 모드로 되돌아감', 활성() === 's-모드');
@@ -505,7 +506,7 @@ async function main(){
     // 7번 — 서바이벌에도 모드 이름이 뜬다
     win.게임_시작();
     확인('아케이드 요약에 모드 이름', d.getElementById('설정요약').textContent.includes('아케이드'));
-    win.전체리셋(); win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL'); win.게임_시작();
+    win.전체리셋(); win.선택_모드('SURVIVAL'); win.게임_시작();
     확인('서바이벌 요약에도 모드 이름', d.getElementById('설정요약').textContent.includes('서바이벌'),
          d.getElementById('설정요약').textContent);
   }
@@ -514,44 +515,42 @@ async function main(){
   console.log('\n[11] 모드 전환 시 층 초기화');
   {
     const { win } = 페이지열기();
-    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    win.선택_모드('ARCADE'); win.게임_시작();
     상태(win).stage = 7;                       // 아케이드 7층까지 올라간 상태를 흉내
-    win.전체리셋();                             // 전체 리셋 → 페르소나
-    win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL'); win.게임_시작();
+    win.전체리셋();                             // 전체 리셋 → 모드 선택
+    win.선택_모드('SURVIVAL'); win.게임_시작();
     확인('서바이벌로 넘어오면 층이 1로 초기화', 상태(win).stage === 1, `stage=${상태(win).stage}`);
 
     // 뒤로가기 경로(리셋을 거치지 않음)도 같은지 — 이 경로가 이번에 새로 열렸다
     const { win: w2 } = 페이지열기();
-    w2.선택_페르소나('Polite'); w2.선택_모드('ARCADE'); w2.게임_시작();
+    w2.선택_모드('ARCADE'); w2.게임_시작();
     상태(w2).stage = 9;
-    w2.전체리셋(); w2.선택_페르소나('Polite'); w2.선택_모드('SURVIVAL');
+    w2.전체리셋(); w2.선택_모드('SURVIVAL');
     확인('모드 재선택만으로도 층이 1로 초기화', 상태(w2).stage === 1, `stage=${상태(w2).stage}`);
   }
 
-  /* ── 12. 페르소나 대사 분리 (2026-07-29 제보 6) ───────────────────── */
-  console.log('\n[12] 페르소나 대사 (data/대사.json)');
+  /* ── 12. 대사 분리 (2026-07-29 제보 6) · 한 목소리 통일 (2026-11-08) ─── */
+  console.log('\n[12] 대사 (data/대사.json)');
   {
     const 표 = JSON.parse(fs.readFileSync(path.join(WCHAIN, 'data/대사.json'), 'utf8'));
     const 키목록 = Object.keys(표);
     확인(`대사 ${키목록.length}건이 JSON에 있다`, 키목록.length >= 60);
-    // 대사_무작위로 뽑는 묶음(react_correct_1~3 등)은 페르소나마다 문구 수가 달라도 되고,
-    // 모자란 칸은 ""로 비워 둔다(그 페르소나에서는 후보에서 빠짐). 따라서 "둘 다 채워져 있을 것"은
-    // 무작위 묶음이 아닌 1:1 대사에만 적용하고, 묶음은 "양쪽 모두 최소 1줄"로 검사한다.
+    // 페르소나 구분을 없앴으므로 값은 전부 비어 있지 않은 문자열 한 겹이어야 한다
+    확인('대사는 전부 비어 있지 않은 문자열(페르소나별 객체 없음)',
+         키목록.every(k => typeof 표[k] === 'string' && 표[k].trim()),
+         키목록.filter(k => typeof 표[k] !== 'string' || !표[k].trim()).join(','));
+    // 말투 기준: 영문 대괄호 태그·과한 칭찬·하십시오체를 쓰지 않는다
+    const 금지 = /\[[A-Za-z ]+\]|\[목숨|대단|훌륭|축하|멋져|멋진|십시오|습니다|필멸자|각성자|초월자|마스터님|숙련자/;
+    확인('대사에 영문 태그·과한 칭찬·하십시오체·판타지 호칭이 없다',
+         키목록.every(k => !금지.test(표[k])), 키목록.filter(k => 금지.test(표[k])).join(','));
+
     const 무작위접두 = new Set();
     for(const f of ['게임상태.js', '게임규칙.js', '서바이벌.js']){
       const src = fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8');
       for(const m of src.matchAll(/대사_무작위\(gs,\s*'([^']+)'/g)) 무작위접두.add(m[1]);
     }
-    const 무작위키 = k => [...무작위접두].some(p => new RegExp(`^${p}_\\d+$`).test(k));
-    const 단일키목록 = 키목록.filter(k => !무작위키(k));
-    확인('1:1 대사는 폭군·비서 두 문구를 갖춘다',
-         단일키목록.every(k => 표[k].폭군 && 표[k].비서),
-         단일키목록.filter(k => !표[k].폭군 || !표[k].비서).join(','));
-    확인(`무작위 대사 묶음 ${무작위접두.size}종이 양쪽 페르소나에 최소 1줄씩 있다`,
-         [...무작위접두].every(p => {
-           const 묶음 = 키목록.filter(k => new RegExp(`^${p}_\\d+$`).test(k));
-           return 묶음.some(k => 표[k].폭군) && 묶음.some(k => 표[k].비서);
-         }), [...무작위접두].join(','));
+    확인(`무작위 대사 묶음 ${무작위접두.size}종이 _1부터 있다`,
+         [...무작위접두].every(p => 표[p + '_1']), [...무작위접두].join(','));
 
     // 코드가 참조하는 키가 전부 JSON에 있는지 (오타·누락 방지)
     const 고정키 = new Set(), 조립접두 = new Set(무작위접두);
@@ -568,27 +567,21 @@ async function main(){
          키목록.every(k => 고정키.has(k) || [...조립접두].some(p => k.startsWith(p))),
          키목록.filter(k => !고정키.has(k) && ![...조립접두].some(p => k.startsWith(p))).join(','));
 
-    // 로직 파일에는 대사 문자열이 남아 있지 않아야 한다(say 정의 한 곳만 예외)
-    const say호출 = ['게임규칙.js', '서바이벌.js']
-      .map(f => (fs.readFileSync(path.join(WCHAIN, 'js', f), 'utf8').match(/say\(gs,/g) || []).length)
-      .reduce((a, b) => a + b, 0);
-    확인('로직 파일에 인라인 say() 호출이 남아 있지 않다', say호출 === 0, `${say호출}건 남음`);
+    // 페르소나 함수가 남아 있지 않다
+    const 상태src = fs.readFileSync(path.join(WCHAIN, 'js/게임상태.js'), 'utf8');
+    확인('is_arrogant·say 페르소나 함수가 없다', !/function (is_arrogant|say)\(/.test(상태src));
 
-    // 실제 렌더링 — 페르소나에 따라 다른 문구가 나오고 자리표시자가 채워진다
+    // 실제 렌더링 — 자리표시자가 채워지고, 옛 페르소나 값이 남아 있어도 같은 문구가 나온다
     const { win } = 페이지열기();
     await 대사대기(win);
     const g = 상태(win);
-    g.persona = 'Arrogant'; g.user_title = '필멸자';
-    const 폭군문구 = win.대사(g, 'user_defeat_패배', { 칭호: win.title(g) });
-    g.persona = 'Polite';
-    const 비서문구 = win.대사(g, 'user_defeat_패배', { 칭호: win.title(g) });
-    확인('페르소나별로 다른 문구가 나온다', 폭군문구 !== 비서문구);
-    확인('이름 자리표시자가 채워진다', 폭군문구.includes('필멸자') && !폭군문구.includes('{칭호}'),
-         폭군문구);
-
-    g.persona = 'Arrogant';
-    const 위치문구 = win.대사(g, 'user_defeat_3', [2]);   // `⚠️ [실수 {0}/4]` 계열
-    확인('위치 자리표시자가 채워진다', !/\{\d\}/.test(위치문구), 위치문구);
+    const 이름문구 = win.대사(g, '게임오버_탑패배', { 층: 7 });
+    확인('이름 자리표시자가 채워진다', 이름문구.includes('7층') && !이름문구.includes('{층}'), 이름문구);
+    const 위치문구 = win.대사(g, 'user_defeat_1', [2]);
+    확인('위치 자리표시자가 채워진다', !/\{\d\}/.test(위치문구) && 위치문구.includes('2'), 위치문구);
+    g.persona = 'Arrogant';   // 옛 저장값 흉내 — 무시되어야 한다
+    확인('옛 페르소나 값은 무시된다', win.대사(g, 'user_defeat_1', [2]) === 위치문구);
+    확인('호칭은 사용자님 하나', win.title(g) === '사용자님', win.title(g));
 
     확인('없는 키는 조용히 비지 않고 표시된다',
          win.대사(g, '존재하지_않는_키').includes('대사 없음'));
@@ -666,7 +659,7 @@ async function main(){
   {
     const { win } = 페이지열기();
     const d = win.document;
-    win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL');
+    win.선택_모드('SURVIVAL');
 
     // 기본은 꺼짐 — 잇는 고유 테마(관리자님: "기본적으로는 따로 구분을 할 수 있도록")
     확인('연동 기본값은 꺼짐', win.테마연동_켜짐() === false);
@@ -732,7 +725,7 @@ async function main(){
     확인('plx_잇는_ 접두사 키를 전부 쓸어 담는다',
          연동.includes('잇는_로컬접두') && 연동.includes('startsWith(잇는_로컬접두)'));
     확인('온보딩을 건너뛴 홈으로 보낸다', 연동.includes("'../Llove/#home'"));
-    // 삭제 버튼은 페르소나 화면에 있어 로그창이 안 보인다 — 안내는 모달이어야 읽힌다
+    // 삭제 버튼은 첫 화면(모드 선택)에 있어 로그창이 안 보인다 — 안내는 모달이어야 읽힌다
     확인('비로그인 안내가 로그가 아니라 모달로 뜬다',
          연동.includes('서버(계정) 기록에는 손대지 않았습니다')
          && /게임데이터_확인모달\('ℹ️ 이 기기의 기록만/.test(연동));
@@ -876,7 +869,7 @@ async function main(){
   {
     const { win } = 페이지열기();
     await 대사대기(win);
-    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    win.선택_모드('ARCADE'); win.게임_시작();
     상태(win).stage = 5;
     win.층_올리기(true);
     확인('층_올리기: 한 층 오르고 게임은 계속', 상태(win).stage === 6 && 상태(win).game_state === 'PLAYING');
@@ -894,7 +887,7 @@ async function main(){
     await 대사대기(win);
 
     // (1) 실수 폐지 때 난이도표만 4배로 올리고 빠뜨린 상수들 — 아케이드 시작·계약 보상·14층
-    win.선택_페르소나('Polite'); win.선택_모드('ARCADE'); win.게임_시작();
+    win.선택_모드('ARCADE'); win.게임_시작();
     const 아케목숨 = 값(win, '아케이드_목숨');
     확인('아케이드 시작 목숨이 환산값(2×4)', 상태(win).hearts === 아케목숨 && 아케목숨 === 8,
          `hearts=${상태(win).hearts}`);
@@ -925,7 +918,7 @@ async function main(){
 
     // (2) 모드를 바꿔 재시작해도 시련의 탑 진입 횟수가 남지 않는다
     상태(win).trial_tower_entries = 3;
-    win.전체리셋(); win.선택_페르소나('Polite'); win.선택_모드('SURVIVAL'); win.게임_시작();
+    win.전체리셋(); win.선택_모드('SURVIVAL'); win.게임_시작();
     확인('시련의 탑 진입 횟수가 초기화된다', 상태(win).trial_tower_entries === 0);
     확인('전체리셋이 세션 수집어도 비운다', 값(win, '세션_수집어').length === 0);
   }
@@ -1175,7 +1168,7 @@ async function main(){
     await win.버튼_이의();
     확인('소진되면 조회 자체를 하지 않는다', 호출됨 === false);
     확인('소진 안내 로그가 남는다',
-         로그텍스트(win).includes('다 써버렸다') || 로그텍스트(win).includes('모두 사용'));
+         로그텍스트(win).includes('이의 제기 기회를 다 썼어요'));
   }
 
   /* ── 22. '뜻 보기' · '적절성 검증' 버튼 배선 (2026-08-22 신설) ─────────── */
@@ -1543,6 +1536,68 @@ async function main(){
 
     확인('취소된 단어를 AI가 그대로 재출제하지 않는다', g.ai_last_word !== disputed,
          `disputed=${disputed}, ai_last_word=${g.ai_last_word}`);
+  }
+
+  /* ── 26. 입력 형태·공백·타이머·문구·이스케이프·Worker 실패 (2026-11-07 버그 묶음) ── */
+  console.log('\n[26] 입력 형태·공백·타이머·이스케이프·Worker 실패');
+  {
+    // (1) 자모·한 글자·붙임표·캐럿은 단어가 아니다 — 목숨 유지, Worker에 묻지 않음, 턴 안 넘어감
+    const { win, 요청기록 } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    for(const w of ['ㄱ', '화', '학-교', '가마^솥']) await 단어넣기(win, w);
+    const g = 상태(win);
+    확인('형태가 틀린 입력은 목숨을 깎지 않는다', g.hearts === 7, `hearts=${g.hearts}`);
+    확인('형태가 틀린 입력은 턴이 넘어가지 않는다', g.turn === 0, `turn=${g.turn}`);
+    확인('형태가 틀린 입력은 Worker에 묻지 않는다', !요청기록.some(p => ['ㄱ', '화', '학-교', '가마^솥'].includes(p.단어)));
+    확인('다시 입력 안내가 나온다', 로그텍스트(win).includes('다시 입력해 보세요'));
+
+    // (6) 공백 오타 — 구 허용이 꺼져 있으면 공백을 지워 '학교'로 낸다
+    await 단어넣기(win, '학  교');
+    확인('공백 오타(학  교)가 학교로 정리돼 통과', g.history[0]?.word === '학교' && g.hearts === 7,
+         `${g.history[0]?.word} hearts=${g.hearts}`);
+
+    // (5) 새 판 첫 턴은 이전 판 남은 시간을 이어받지 않는다
+    win.게임_시작();
+    win.eval('타이머_진행(0); 타이머_진행(5000)');
+    win.게임_시작();
+    win.eval('타이머_진행(0)');
+    확인('새 판 시작 시 타이머가 가득 찬다', 값(win, '타이머.남은 > 타이머.총 - 1000'), 값(win, '타이머.남은 + "/" + 타이머.총'));
+
+    // (7) 엄격 두음 설명이 실제 동작(ㄹ→ㄴ만, 녀→여 불가)과 맞는다
+    const 엄격설명 = 값(win, "설정_항목.find(x => x.키 === 'dueum').선택지.find(x => x[0] === 'Strict')[2]");
+    확인('엄격 설명이 녀→여 불가를 밝힌다', 엄격설명.includes('녀→여는 불가') && !win.dueum_check('녀', '여', 'Strict')
+         && win.dueum_check('로', '노', 'Strict'), 엄격설명);
+
+    // (9) 50턴 제안의 질문 칸은 대사를 이스케이프해 넣는다
+    g.diff = '초월'; g.turn = 50; g.infinite = false;
+    win.대사 = () => '<img src=x>';
+    win.서바이벌_제안_확인();
+    const 질문 = win.document.querySelector('.q');
+    확인('제안 질문 칸에 HTML이 해석되지 않는다', 질문 && 질문.textContent === '<img src=x>' && !질문.querySelector('img'), 질문?.innerHTML);
+
+    // (10) AbortSignal.timeout이 없는 브라우저(iOS 15 이하)에서도 시간 제한 신호가 동작
+    win.eval('window.__원timeout = AbortSignal.timeout; AbortSignal.timeout = undefined; window.__신호 = 시간제한_신호(10); AbortSignal.timeout = window.__원timeout;');
+    await 잠깐(40);
+    확인('AbortSignal.timeout 없이도 시간이 지나면 중단된다', 값(win, 'window.__신호.aborted') === true);
+  }
+  {
+    // (3) Worker가 502(상류 실패)를 주면 '확인 실패' — 목숨 유지, 캐시에 '없음'을 쓰지 않음
+    const { win } = 페이지열기();
+    await 대사대기(win);
+    판시작(win);
+    const 원래fetch = win.fetch;
+    win.fetch = async (url, opt) => {
+      if(typeof url === 'string' && url.startsWith('data/')) return 원래fetch(url, opt);
+      if(JSON.parse(opt.body).단어 !== undefined) return { ok: false, status: 502, json: async () => ({ error: '오픈API 호출 실패' }) };
+      return 원래fetch(url, opt);
+    };
+    await 단어넣기(win, '나비');
+    확인('Worker 502면 확인 실패 안내', 로그텍스트(win).includes('확인에 실패'));
+    확인('Worker 502면 목숨 유지', 상태(win).hearts === 7);
+    확인('Worker 502 결과는 캐시에 쓰지 않는다', !값(win, "'나비' in 캐시_로드(국어원_캐시_KEY)"));
+    win.fetch = async () => ({ ok: true, json: async () => ({ error: '형식 이상' }) });
+    확인('존재 필드 없는 응답은 확인 불가(null)', (await win.국어원_단어조회('나방')) === null);
   }
 
   console.log(`\n━━━ 결과: ${통과} 통과 / ${실패} 실패 ━━━\n`);

@@ -17,7 +17,8 @@ let 학습설정 = {
   // 세션9: 기본값을 단어-뜻 암기(4지선다)에서 예문 맥락 판단(유의어 변별)으로 전환 —
   // 앱 취지("표현력 향상")에 맞게 문맥 기반 학습을 기본으로 삼는다.
   // 세션10: 옵션명 "유의어 변별"→"예문형"으로 통일(로직·데이터 변경 없음, 명칭만 정리)
-  sq2: '예문형',     // 예문형(기본) / 4지선다 / 뜻 직접 서술 / 역방향 / 플래시카드 (v3.7 항목3)
+  // 2026-11-07: 기본을 다시 4지선다로 — 예문형은 카테고리와 무관한 유의어 18건만 나와 두 모드가 같은 문제를 냈다
+  sq2: '4지선다',     // 4지선다(기본) / 예문형 / 4지선다 / 뜻 직접 서술 / 역방향 / 플래시카드 (v3.7 항목3)
   sq3: '4지선다',        // 4지선다 / 직접입력 / 플래시카드 / 역방향
   sq4: '아↗그거!',        // 아↗그거! / UP¡¿
   sq4_input: '플래시카드', // 4지선다 / 직접입력 / 플래시카드 (구 '선택지'=탭→공개의 실체가 플래시카드)
@@ -81,7 +82,7 @@ function setLsetMode(screenId, mode, btn){
     // 실브라우저 E2E로 발견한 누락: 하드코딩 풀만 렌더해 설정 변경 순간 JSON DB 문항이
     // 풀에서 빠지던 버그 — 화면전환.js와 동일하게 큐레이션+DB 병합 풀로 통일
     renderDad(아재풀_구성(mode));
-    showToastMsg(`난이도: ${mode}`);
+    showToastMsg(`난이도: ${btn.textContent.trim()}`);  // 내부 값(아↗그거!·UP¡¿) 대신 버튼 라벨(보통·어려움)
   } else if(screenId==='sq4_input'){
     // 아재개그 입력 방식 (4지선다 / 직접입력 / 플래시카드) — 즉시 반영
     if(현재아재풀) renderDad(현재아재풀);
@@ -131,7 +132,7 @@ function renderReview(){
       <span class="rv-cap-lbl">용량</span>
       <div class="cap-bar"><div class="cap-fill" style="width:${Math.min(100,(대기열.length/상한)*100)}%"></div></div>
       <span class="rv-cap-val" onclick="openCapacity()">${대기열.length} / ${상한} ⚙</span>
-    </div>`, 대기열, '대기열이 비어있습니다',
+    </div>`, 대기열, '대기열이 비어 있어요',
     // 세션7 항목5: 졸업 기준 1회 — 점 1개
     item => `<div class="rv-dots"><div class="rv-dot${0<item.연속정답수?' f':''}"></div></div>
              <span style="font-size:10px;color:var(--txtm)">${item.연속정답수}/1</span>`,
@@ -139,14 +140,14 @@ function renderReview(){
              <div class="act-btn d" onclick="대기열_휴지통이동('${item.id}')" title="삭제" aria-label="삭제"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></div>`,
     // 복습 시작 — 대기열 순차 복습 플레이 (완료 시 토큰 +30, 일 3회 — KNOWLEDGE 32)
     `<button class="btn-acc" style="width:100%;margin-top:4px" onclick="복습시작()">복습 시작</button>`);
-  복습탭_렌더('rvFav', `<div class="bin-info">즐겨찾기는 무한 보관 가능하며 다른 시스템(대기열·휴지통)의 영향을 받지 않습니다.</div>`,
-    복습데이터.즐겨찾기, '즐겨찾기가 비어있습니다',
+  복습탭_렌더('rvFav', `<div class="bin-info">즐겨찾기는 개수 제한 없이 대기열·휴지통과 따로 보관돼요.</div>`,
+    복습데이터.즐겨찾기, '즐겨찾기가 비어 있어요',
     () => '',
     item => `<div class="act-btn" onclick="즐겨찾기_다시풀기('${item.id}')" title="다시 풀기">↻</div>
-             <div class="act-btn" onclick="즐겨찾기_유사문제('${item.id}')" title="유사 문제" aria-label="유사 문제"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></div>
+             ${GROK_활성화 ? `<div class="act-btn" onclick="즐겨찾기_유사문제('${item.id}')" title="유사 문제" aria-label="유사 문제"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></div>` : ''}
              <div class="act-btn d" onclick="즐겨찾기_해제('${item.id}')" title="해제">★</div>`);
-  복습탭_렌더('rvBin', `<div class="bin-info">휴지통의 항목은 <b>20일 후 자동 삭제</b>됩니다. 그 전에 복구하거나 영구삭제할 수 있습니다.</div>`,
-    복습데이터.휴지통, '휴지통이 비어있습니다',
+  복습탭_렌더('rvBin', `<div class="bin-info">휴지통의 항목은 <b>20일 뒤 자동으로 삭제</b>돼요. 그 전에 복구하거나 영구 삭제할 수 있어요.</div>`,
+    복습데이터.휴지통, '휴지통이 비어 있어요',
     item => `<span style="font-size:10px;color:var(--txtm)">${item.잔여일}일 후 삭제</span>`,
     item => `<div class="act-btn" onclick="휴지통_복구('${item.id}')" title="복구">↩</div>
              <div class="act-btn d" onclick="휴지통_영구삭제('${item.id}')" title="영구삭제">✕</div>`,
@@ -172,14 +173,14 @@ function 복습탭_렌더(wrapId, 머리글, 목록, 빈안내, 메타, 액션, 
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    복습 플레이 — 대기열 항목을 순차적으로 복습 (KNOWLEDGE 7)
-   - 기억남 → 연속정답수 +1 (3회 시 졸업) / 까먹음 → 0으로 초기화
+   - 기억남 → 졸업(세션7 관리자님 지시: 3연속 → 1회로 완화, 상태.js 복습대기열_정답처리) / 까먹음 → 0으로 초기화
    - 1회 완주 시 토큰 +30 충전, 일 3회 한도 (KNOWLEDGE 32 복구 시스템)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 let 복습진행 = null;  // {목록, idx} — null이면 비진행
 
 function 복습시작(){
   if(복습데이터.대기열.length === 0){
-    showToastMsg('복습할 항목이 없습니다');
+    showToastMsg('복습할 항목이 없어요');
     return;
   }
   복습진행 = { 목록: [...복습데이터.대기열], idx: 0 };
@@ -198,53 +199,55 @@ function 복습_카드렌더(){
   const 항목 = 복습진행.목록[복습진행.idx];
   if(!항목){ 복습_완료(); return; }
   const 진행률 = Math.round((복습진행.idx / 복습진행.목록.length) * 100);
+  // 대기열 항목은 사용자 입력·문항 데이터가 섞여 들어오므로 innerHTML 전 이스케이프
+  const 단어 = 문자열_이스케이프(항목.단어), 뜻 = 문자열_이스케이프(항목.뜻);
+  const 태그 = `<div class="qcat"><span class="tag ${문자열_이스케이프(항목.모드클래스)}">${문자열_이스케이프(항목.모드)}</span></div>`;
   const 머리 = `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 8px">
       <span style="font-size:13px;color:var(--txt2);font-weight:600">복습 ${복습진행.idx+1} / ${복습진행.목록.length}</span>
     </div>
     <div class="exp-track" style="margin-bottom:14px"><div class="exp-fill instant" style="width:${진행률}%"></div></div>`;
 
-  // ── 4지선다: 단어 제시 → 뜻 4개(대기열의 다른 뜻으로 오답 구성, 후보 부족 시 카드 폴백)
+  // ── 4지선다: 원래 문항처럼 뜻(=문제·뜻풀이)을 제시 → 단어(=정답) 4개 중 고르기.
+  //    대기열은 어느 모드든 단어=정답, 뜻=문제로 쌓인다(채점_기록). 종전엔 방향이 반대라 퀴즈 문제 문장이 보기로 나왔다.
+  //    오답은 대기열의 다른 단어, 같은 모드를 먼저(후보 부족 시 카드 폴백)
   if(학습설정.srp === '4지선다'){
-    const 후보 = 복습데이터.대기열.filter(x=>x.단어!==항목.단어 && x.뜻).map(x=>x.뜻);
+    const 후보 = 셔플(복습데이터.대기열.filter(x=>x.단어 && 직접입력_규격(x.단어)!==직접입력_규격(항목.단어)))
+      .sort((a,b)=>(b.모드===항목.모드)-(a.모드===항목.모드));
     if(후보.length >= 1){
-      const 오답 = 셔플(후보).slice(0,3);
-      const 보기들 = 셔플([...오답.map(t=>({t, 정:false})), {t:항목.뜻, 정:true}]);
+      const 보기들 = 셔플([...후보.slice(0,3).map(x=>({t:x.단어, 정:false})), {t:항목.단어, 정:true}]);
       wrap.innerHTML = 머리 + `
         <div class="qcard" style="margin-top:4px">
-          <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
-          <div class="q-question" style="font-size:calc(20px*var(--글자배율));margin-top:6px">${항목.단어}</div>
-          <div class="q-hint">알맞은 뜻을 고르세요</div>
+          ${태그}
+          <div class="q-question" style="margin-top:6px">${뜻}</div>
+          <div class="q-hint">알맞은 답을 고르세요</div>
         </div>
-        <div class="aopts">${보기들.map((b,i)=>`<div class="aopt" data-정답="${b.정?1:0}" onclick="복습_선다선택(this,${b.정})"><div class="onum">${i+1}</div><div class="otxt">${b.t}</div></div>`).join('')}</div>`;
+        ${선다_HTML(보기들, '복습_선다선택')}`;
       return;
     }
-    showToastMsg('보기 후보가 부족해 카드 보기로 진행합니다');
+    showToastMsg('보기 후보가 부족해 카드로 보여 드릴게요');
   }
 
   // ── 직접입력: 뜻 제시 → 단어 타이핑
   if(학습설정.srp === '직접입력'){
     wrap.innerHTML = 머리 + `
       <div class="qcard" style="margin-top:4px">
-        <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
-        <div class="q-question" style="margin-top:6px">${항목.뜻}</div>
+        ${태그}
+        <div class="q-question" style="margin-top:6px">${뜻}</div>
         <div class="q-hint">이 뜻에 해당하는 단어를 입력하세요</div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <input class="nm-inp" id="rvDirectInp" placeholder="단어 입력" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')복습_직접제출()">
-        <button class="btn-acc" style="padding:11px 18px" id="rvDirectBtn" onclick="복습_직접제출()">제출</button>
-      </div>`;
+      ${직접입력_HTML('rv', '복습_직접제출()')}`;
     return;
   }
 
   // ── 기본: 카드 보기 (기존 방식)
   wrap.innerHTML = 머리 + `
     <div class="qcard" style="margin-top:4px;padding:26px 20px">
-      <div class="qcat"><span class="tag ${항목.모드클래스}">${항목.모드}</span></div>
-      <div class="q-question" style="font-size:calc(20px*var(--글자배율));margin-top:6px">${항목.단어}</div>
-      <div id="rvAnswer" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--bdr);font-size:14px;color:var(--txt2);line-height:1.8">${항목.뜻}</div>
+      ${태그}
+      <div class="q-question" style="font-size:calc(16px*var(--글자배율));margin-top:6px;line-height:1.7">${뜻}</div>
+      <div id="rvAnswer" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--bdr);font-size:calc(20px*var(--글자배율));font-weight:700;color:var(--txt)">${단어}</div>
     </div>
-    <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:14px" onclick="복습_뜻공개()">뜻 보기</button>
+    <button class="btn-acc" id="rvRevealBtn" style="width:100%;margin-top:14px" onclick="복습_뜻공개()">답 보기</button>
     <div id="rvJudge" style="display:none;gap:8px;margin-top:12px">
       <button class="btn-acc grow" onclick="복습_판정(true)">기억남 ✓</button>
       <button class="btn-g grow" onclick="복습_판정(false)">까먹음 ✗</button>
@@ -254,11 +257,7 @@ function 복습_카드렌더(){
 
 /* 세션7 항목5: 복습 4지선다 선택 처리 — 정답/오답 표시 후 기존 판정 흐름으로 위임 */
 function 복습_선다선택(el, 정답){
-  if(el.parentElement.querySelector('.correct,.wrong')) return;
-  el.classList.add(정답 ? 'correct' : 'wrong');
-  if(!정답) el.parentElement.querySelectorAll('.aopt').forEach(o=>{ if(o.dataset.정답==='1') o.classList.add('correct'); });
-  el.parentElement.querySelectorAll('.aopt').forEach(o=>o.classList.add('disabled'));
-  setTimeout(()=>복습_판정(정답), 700);
+  if(선다_표시(el, 정답)) setTimeout(()=>복습_판정(정답), 700);
 }
 /* 세션7 항목5: 복습 직접입력 제출 — 단어 느슨 비교 후 판정 위임 */
 function 복습_직접제출(){
@@ -299,11 +298,13 @@ function 복습_중단(){
   복습진행 = null;
   goNav('sr', null);   // 항목10: 전용 화면 → 복습 관리 화면으로 복귀
   renderReview();
-  showToastMsg('복습을 중단했습니다 (보상 없음)');
+  showToastMsg('복습을 멈췄어요 (보상 없음)');
 }
 
 function 복습_완료(){
+  const 보상없음 = 복습진행?.보상없음;
   복습진행 = null;
+  if(보상없음){ goNav('sr', null); renderReview(); showToastMsg('다시 풀기 완료'); return; }  // 즐겨찾기 한 항목 다시 풀기는 토큰 충전 없음
   학습일갱신();
   // 토큰 +30 충전 — 일 3회 한도 (KNOWLEDGE 32). 한도 추적 필드는 한글 신규: 복습복구횟수·복습복구날짜
   const 오늘 = 오늘날짜_로컬(0);
@@ -373,14 +374,18 @@ function 대기열_휴지통이동(id){
 
 /* ━━━ 즐겨찾기 액션 ━━━ */
 
+// 즐겨찾기 한 항목을 복습 플레이(현재 복습 방식)로 한 번 출제 — 대기열 복습과 같은 화면·판정
 function 즐겨찾기_다시풀기(id){
-  // 서브컬렉션 연동(즐겨찾기 항목 ↔ 문제 풀 매핑) 후 실제 재출제 연결 예정
-  showInfoModal('🔁','다시 풀기','이 문제를 다시 출제합니다.<br><br>🔧 문제 풀 매핑 구축 후 제공됩니다 (다음 빌드).');
+  const item = 복습데이터.즐겨찾기.find(x=>x.id===id);
+  if(!item) return;
+  복습진행 = { 목록: [item], idx: 0, 보상없음: true };
+  goNav('srp', null);
+  복습_카드렌더();
 }
 
 function 즐겨찾기_유사문제(id){
   if(!GROK_활성화){
-    showInfoModal('✨','유사 문제','AI가 비슷한 유형의 문제를 새로 만듭니다 (토큰 20 차감).<br><br>AI 연동 후 쓸 수 있습니다.');
+    showInfoModal('✨','유사 문제','AI가 비슷한 유형의 문제를 새로 만들어요 (토큰 20 차감).<br><br>준비 중이에요.');
     return;
   }
   // ── Grok 활성화 후 실행 경로 ──
@@ -416,7 +421,7 @@ function 휴지통_복구(id){
   // 대기열 상한 체크 (개발자 모드 상한 해제 시 통과 — KNOWLEDGE 14)
   const 상한 = 개발자오버레이?.상한해제 ? Infinity : 사용자.복습대기열상한;
   if(복습데이터.대기열.length >= 상한){
-    showInfoModal('🚫','복구 불가',`대기열이 가득 찼습니다 (${사용자.복습대기열상한}개).<br><br>먼저 대기열 항목을 줄여주세요.`);
+    showInfoModal('🚫','복구 불가',`대기열이 가득 찼어요 (${사용자.복습대기열상한}개).<br><br>먼저 대기열 항목을 줄여주세요.`);
     return;
   }
 
@@ -455,17 +460,17 @@ function 휴지통_영구삭제(id){
 
 // 종전엔 확인 없이 주 단추 한 번에 전부 영구 삭제됐다 — 개수를 보여 주고 한 번 묻는다
 function 휴지통_비우기확인(){
-  if(복습데이터.휴지통.length===0){ showToastMsg('휴지통이 비어있습니다'); return; }
-  showConfirmModal('🗑️', '휴지통 비우기', `${복습데이터.휴지통.length}개 항목을 영구 삭제합니다.<br>되돌릴 수 없습니다.`, '비우기', 휴지통_전체비우기, true);
+  if(복습데이터.휴지통.length===0){ showToastMsg('휴지통이 비어 있어요'); return; }
+  showConfirmModal('🗑️', '휴지통 비우기', `${복습데이터.휴지통.length}개 항목을 영구 삭제할까요?<br>되돌릴 수 없어요.`, '비우기', 휴지통_전체비우기, true);
 }
 function 휴지통_전체비우기(){
   if(복습데이터.휴지통.length===0){
-    showToastMsg('휴지통이 비어있습니다');
+    showToastMsg('휴지통이 비어 있어요');
     return;
   }
   복습데이터.휴지통.forEach(x=> 보관함_문서삭제('휴지통', x.id));
   복습데이터.휴지통 = [];
-  showToastMsg('휴지통을 비웠습니다');
+  showToastMsg('휴지통을 비웠어요');
   업적_단발달성('clean');  // [환경미화원] 단발 +80 (KNOWLEDGE 14)
   renderReview();
 }
@@ -474,13 +479,13 @@ function 휴지통_전체비우기(){
 function openCapacity(){
   // 현재 항목 수보다 작은 값으로 변경 시도 시 차단(흐리게 + 안내)
   선택모달_열기('⚙️ 복습 대기열 상한',
-    '상한 초과 시 가장 오래된 항목이 휴지통으로 자동 이동됩니다. 현재 항목 수보다 작은 값으로는 변경 불가.',
+    '상한을 넘으면 가장 오래된 항목이 휴지통으로 옮겨져요. 지금 항목 수보다 작게는 바꿀 수 없어요.',
     [30,40,50,60,70].map(v=>{
       const 차단 = v < 사용자.복습대기열수;
       return {
         라벨: `${v}개${v===50?' (기본값)':''}${차단?' 🚫':''}`, 켜짐: v===사용자.복습대기열상한, 비활성: 차단,
         클릭: 차단
-          ? ()=>showInfoModal('🚫','변경 불가', `현재 대기열 항목 수(${사용자.복습대기열수}개)가 새 상한(${v}개)보다 많습니다.<br><br>먼저 항목을 줄여주세요.`)
+          ? ()=>showInfoModal('🚫','변경 불가', `현재 대기열 항목 수(${사용자.복습대기열수}개)가 새 상한(${v}개)보다 많아요.<br><br>먼저 항목을 줄여 주세요.`)
           : ()=>applyCapacity(v)
       };
     }));
