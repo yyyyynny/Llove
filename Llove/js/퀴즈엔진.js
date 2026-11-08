@@ -72,6 +72,7 @@ function 배지_방식표시(배지id, 방식){
 }
 function 학습진행_다음(screenId){
   학습진행수++;
+  오늘목표_한문제();
   const 화면 = document.getElementById(screenId);
   const 글 = 화면?.querySelector('.qct'), 바 = 화면?.querySelector('.qpfill');
   if(글) 글.textContent = 학습진행수 + '문제째';

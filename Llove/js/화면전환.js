@@ -137,6 +137,8 @@ function afterNav(id){
     document.getElementById('homeTitle').textContent='· '+등급.세부;
     document.getElementById('homeExpTxt').textContent=`${표시Exp} / ${표시Max} EXP`;
     document.getElementById('homeStreak').textContent=사용자.연속학습일;
+    const 오늘푼수 = 사용자.오늘날짜 === 오늘날짜_로컬(0) ? (사용자.오늘푼수||0) : 0;
+    document.getElementById('homeGoal').textContent = `오늘 ${Math.min(오늘푼수, 사용자.오늘목표||10)}/${사용자.오늘목표||10}문제 · 연속 보호 ${사용자.얼음||0}개`;
     document.getElementById('homeVocab').textContent=표시마스터리('총누적어휘수');
     document.getElementById('homeReview').textContent=사용자.복습대기열수;
 
@@ -165,9 +167,6 @@ function afterNav(id){
     // α1·α7·α8: 7단계 소칭호 + 색상 + 주신 글리치 일괄 적용
     const 소칭호엘 = document.getElementById('statusSubTitle');
     소칭호적용(소칭호엘, 표시Lv, 사용자.창조주달성);
-    // α5: 창조주 달성 시 소칭호 탭 → 칭호 선택 (폐하 ↔ 깨끗한 주신)
-    소칭호엘.style.cursor = 사용자.창조주달성 ? 'pointer' : '';
-    소칭호엘.onclick = 사용자.창조주달성 ? 칭호선택_모달 : null;
     // α4: Lv.70 도달 시 「주신의 경지」 메시지 노출 (창조주 달성 전까지)
     const jm=document.getElementById('jushinMsg');
     if(jm) jm.style.display = (표시Lv >= 최대레벨 && !사용자.창조주달성) ? 'block' : 'none';

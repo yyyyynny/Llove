@@ -189,6 +189,7 @@ function 사용자데이터_적용(data, authUser){
     const tx=document.getElementById('aiOnlyTxt');   if(tx) tx.textContent=AI생성끔?'켜짐':'꺼짐';
   }
   if(data.복습상한) 사용자.복습대기열상한 = data.복습상한;
+  { const g=document.getElementById('goalTxt'); if(g) g.textContent=`하루 ${사용자.오늘목표||10}문제`; }
   // 빌드1: 토큰 락 만료 검사 + 토큰 UI·개발자 네비 갱신
   토큰락_체크();
   토큰표시_갱신();
@@ -227,7 +228,9 @@ function 신규사용자_생성(){
     // 질문하기 (통계)
     오늘질문횟수: 0, 질문날짜: '',
     // '잇는' 포탈 — '잇' 퍼즐 해금 여부(이세계 진입). 세계 이름 미정 → 임시 필드명
-    잇는개방: false
+    잇는개방: false,
+    // 11-08: 오늘 목표·연속 보호
+    오늘목표: 10, 오늘날짜: '', 오늘푼수: 0, 얼음: 0, 얼음지급주: 0
   };
   Object.assign(사용자, 신규데이터);
   curLv = 1; curExp = 0; maxExp = expForLevel(1);

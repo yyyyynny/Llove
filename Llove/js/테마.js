@@ -439,6 +439,18 @@ function toggleAiOnly(){
   showToastMsg('준비된 문제만 풀기: '+(AI생성끔?'켜짐':'꺼짐'));
 }
 
+/* 11-08: 오늘 목표 — 하루 몇 문제 풀지(기본 10) */
+function 오늘목표_설정(){
+  선택모달_열기('오늘 목표', '하루에 풀 문제 수예요. 채우면 알려 드려요.',
+    [5,10,20].map(n=>({라벨:`하루 ${n}문제`, 켜짐:(사용자.오늘목표||10)===n, 클릭:()=>{
+      사용자.오늘목표 = n;
+      사용자데이터_저장({오늘목표:n});
+      document.getElementById('goalTxt').textContent = `하루 ${n}문제`;
+      showToastMsg(`오늘 목표: 하루 ${n}문제`);
+      setTimeout(closeSelect,250);
+    }})));
+}
+
 /* 히스토리 필터 */
 function openHistoryFilter(){
   선택모달_열기('최근 출제 제외', '최근에 푼 문제를 다시 내지 않게 해요. 모드마다 따로 적용돼요.',

@@ -22,7 +22,7 @@ function 렌더_성장상세(){
   // 소칭호표(상태.js)에서 구간을 만든다 — 다음 칭호 최소 레벨 직전까지, 마지막은 최대 레벨까지
   const 로드맵=[
     ...소칭호표.map(([t,min],i)=>({t, min, r:`Lv.${min}~${i<소칭호표.length-1 ? 소칭호표[i+1][1]-1 : 최대레벨}`})),
-    {t:'폐하',    r:'창조주 달성', min:Infinity}
+    {t:'최고 관리자님',    r:'창조주 달성', min:Infinity}
   ];
   body.innerHTML = `
     <div class="sg-sec fu">

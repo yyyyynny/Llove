@@ -82,7 +82,7 @@ const ACH_DATA=[
     {key:'creator', name:'[창조주]', icon:'👑', cat:'최상위',
      desc:'', zalgo:false, blur:true,
      blurText:`【부富와 권력權力. 승리勝利와 영광榮光.】\n【전지全知와 전능全能.】\n【실패하지 않을 것이요, 고꾸라지지 않을 것이다. 필멸자의 승리는 영원하지 않으나 네 것만은 영원하리라.】\n【원한다면 언제든 세계를 너의 발밑에.】\n【바란다면 죽음 또한 감히 그대를 삼키지 못할지니.】`,
-     stage:'lck', progress:'+2000 EXP · 칭호: 폐하', single:true, mystery:true}
+     stage:'lck', progress:'+2000 EXP · 칭호: 최고 관리자님', single:true, mystery:true}
   ]}
 ];
 

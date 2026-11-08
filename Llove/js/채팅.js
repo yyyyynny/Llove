@@ -174,7 +174,7 @@ function 창조주달성(){
   `;
   document.body.appendChild(overlay);
 
-  showToastMsg('👑 +2000 EXP · 칭호: 폐하');
+  showToastMsg('+2000 EXP · 칭호: 최고 관리자님');
 }
 
 /* 시나리오 상태 해제(종료·중도 포기 공용) — 진행 플래그를 내려 토큰 차감을 재개한다 */
